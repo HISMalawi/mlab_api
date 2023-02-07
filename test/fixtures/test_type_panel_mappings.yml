@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  test_type: one
+  test_panel: one
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:16
+  creator: 
+  created_date: 2023-02-07 19:42:16
+  updated_date: 2023-02-07 19:42:16
+
+two:
+  test_type: two
+  test_panel: two
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:16
+  creator: 
+  created_date: 2023-02-07 19:42:16
+  updated_date: 2023-02-07 19:42:16

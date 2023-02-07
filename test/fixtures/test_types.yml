@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  department: one
+  expected_turn_around_time: 9.99
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-02-07 19:42:15
+  creator: 
+  updated_date: 2023-02-07 19:42:15
+  created_date: 2023-02-07 19:42:15
+
+two:
+  name: MyString
+  department: two
+  expected_turn_around_time: 9.99
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-02-07 19:42:15
+  creator: 
+  updated_date: 2023-02-07 19:42:15
+  created_date: 2023-02-07 19:42:15

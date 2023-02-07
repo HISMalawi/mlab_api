@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  client: one
+  facility: one
+  destination: one
+  facility_section: one
+  start_date: 2023-02-07 19:42:20
+  end_date: 2023-02-07 19:42:20
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:20
+  creator: 
+  created_date: 2023-02-07 19:42:20
+  updated_date: 2023-02-07 19:42:20
+  uuid: MyString
+
+two:
+  client: two
+  facility: two
+  destination: two
+  facility_section: two
+  start_date: 2023-02-07 19:42:20
+  end_date: 2023-02-07 19:42:20
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:20
+  creator: 
+  created_date: 2023-02-07 19:42:20
+  updated_date: 2023-02-07 19:42:20
+  uuid: MyString

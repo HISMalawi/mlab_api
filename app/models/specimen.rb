@@ -1,0 +1,2 @@
+class Specimen < ApplicationRecord
+end

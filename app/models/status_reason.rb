@@ -1,0 +1,2 @@
+class StatusReason < ApplicationRecord
+end

@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  order: one
+  creator: 
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:26
+
+two:
+  order: two
+  creator: 
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:26

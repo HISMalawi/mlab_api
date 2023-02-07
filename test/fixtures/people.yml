@@ -1,0 +1,31 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  first_name: MyString
+  middle_name: MyString
+  last_name: MyString
+  sex: MyString
+  date_of_birth: 2023-02-07
+  birth_date_estimated: 1
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:41:57
+  creator: 
+  created_date: 2023-02-07 19:41:57
+  updated_date: 
+
+two:
+  first_name: MyString
+  middle_name: MyString
+  last_name: MyString
+  sex: MyString
+  date_of_birth: 2023-02-07
+  birth_date_estimated: 1
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:41:57
+  creator: 
+  created_date: 2023-02-07 19:41:57
+  updated_date: 

@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  role: one
+  person: one
+  username: MyString
+  password: MyString
+  last_password_changed: MyString
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:11
+  creator: 
+  created_date: 2023-02-07 19:42:11
+  updated_date: 
+
+two:
+  role: two
+  person: two
+  username: MyString
+  password: MyString
+  last_password_changed: MyString
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:11
+  creator: 
+  created_date: 2023-02-07 19:42:11
+  updated_date: 

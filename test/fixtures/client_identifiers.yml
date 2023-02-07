@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  client_identifier_type: one
+  value: MyString
+  client: one
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:00
+  creator: 
+  created_date: 2023-02-07 19:42:00
+  updated_date: 
+  uuid: MyString
+
+two:
+  client_identifier_type: two
+  value: MyString
+  client: two
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:00
+  creator: 
+  created_date: 2023-02-07 19:42:00
+  updated_date: 
+  uuid: MyString

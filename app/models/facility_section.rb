@@ -1,0 +1,2 @@
+class FacilitySection < ApplicationRecord
+end

@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  description: MyString
+  ip_address: MyString
+  hostname: MyString
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-02-07 19:42:07
+  creator: 
+  created_date: 2023-02-07 19:42:07
+  updated_date: 2023-02-07 19:42:07
+
+two:
+  name: MyString
+  description: MyString
+  ip_address: MyString
+  hostname: MyString
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-02-07 19:42:07
+  creator: 
+  created_date: 2023-02-07 19:42:07
+  updated_date: 2023-02-07 19:42:07

@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  encounter: one
+  priority: one
+  accession_number: MyString
+  tracking_number: MyString
+  requested_by: MyString
+  sample_collected_time: 2023-02-07 19:42:21
+  collected_by: MyString
+  creator: 
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:21
+
+two:
+  encounter: two
+  priority: two
+  accession_number: MyString
+  tracking_number: MyString
+  requested_by: MyString
+  sample_collected_time: 2023-02-07 19:42:21
+  collected_by: MyString
+  creator: 
+  voided: 1
+  voided_by: 
+  voided_reason: MyString
+  voided_date: 2023-02-07 19:42:21

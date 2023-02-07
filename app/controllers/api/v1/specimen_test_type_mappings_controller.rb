@@ -1,0 +1,44 @@
+class Api::V1::SpecimenTestTypeMappingsController < ApplicationController
+  before_action :set_specimen_test_type_mapping, only: [:show, :update, :destroy]
+
+  def index
+    @specimen_test_type_mappings = SpecimenTestTypeMapping.all
+    render json: @specimen_test_type_mappings
+  end
+  
+  def show
+    render json: @specimen_test_type_mapping
+  end
+
+  def create
+    @specimen_test_type_mapping = SpecimenTestTypeMapping.new(specimen_test_type_mapping_params)
+
+    if @specimen_test_type_mapping.save
+      render json: @specimen_test_type_mapping, status: :created, location: [:api, :v1, @specimen_test_type_mapping]
+    else
+      render json: @specimen_test_type_mapping.errors, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    if @specimen_test_type_mapping.update(specimen_test_type_mapping_params)
+      render json: @specimen_test_type_mapping
+    else
+      render json: @specimen_test_type_mapping.errors, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @specimen_test_type_mapping.destroy
+  end
+
+  private
+
+  def set_specimen_test_type_mapping
+    @specimen_test_type_mapping = SpecimenTestTypeMapping.find(params[:id])
+  end
+
+  def specimen_test_type_mapping_params
+    params.require(:specimen_test_type_mapping).permit(:specimen_id, :test_type_id, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+  end
+end

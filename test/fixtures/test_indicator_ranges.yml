@@ -1,0 +1,35 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  test_indicator: one
+  min_age: 1
+  max_age: 1
+  sex: MyString
+  lower_range: 
+  upper_range: 
+  interpretation: MyString
+  value: MyString
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-02-07 19:42:19
+  creator: 
+  created_date: 2023-02-07 19:42:19
+  updated_date: 2023-02-07 19:42:19
+
+two:
+  test_indicator: two
+  min_age: 1
+  max_age: 1
+  sex: MyString
+  lower_range: 
+  upper_range: 
+  interpretation: MyString
+  value: MyString
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-02-07 19:42:19
+  creator: 
+  created_date: 2023-02-07 19:42:19
+  updated_date: 2023-02-07 19:42:19
