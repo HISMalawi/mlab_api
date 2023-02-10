@@ -1,44 +1,15 @@
 class AddForeignKeyReferenceCreatorToEveryTable < ActiveRecord::Migration[7.0]
   def change
-    tables = ActiveRecord::Base.connection.tables
-    tables.each do |table|
-      columns = ActiveRecord::Base.connection.columns(table)
-      column_names = columns.map(&:name)
-      if table == 'roles' || table == 'people'
-        change_table table do |t|
-          if column_names.include?('retired_by')
-            t.remove :retired_by
-            t.references :retired_by, null: true, foreign_key: {to_table: :users}
-          end
-          if column_names.include?('voided_by')
-            t.remove :voided_by
-            t.references :voided_by, null: true, foreign_key: {to_table: :users}
-          end
-          if column_names.include?('creator')
-            t.remove :creator
-            t.references :creator, null: true, foreign_key: {to_table: :users}
-          end
-        end
-      else
-        change_table table do |t|
-          if column_names.include?('retired_by')
-            t.remove :retired_by
-            t.references :retired_by, null: true, foreign_key: {to_table: :users}
-          end
-          if column_names.include?('voided_by')
-            t.remove :voided_by
-            t.references :voided_by, null: true, foreign_key: {to_table: :users}
-          end
-          if column_names.include?('creator')
-            t.remove :creator
-            t.references :creator, null: false, foreign_key: {to_table: :users}
-          end
-          if column_names.include?('destination_id')
-            t.remove :destination_id
-            t.references :destination, null: false, foreign_key: {to_table: :facilities}
-          end
-        end
-      end
+    ActiveRecord::Base.connection.tables.each do |table|
+      column_names = ActiveRecord::Base.connection.columns(table).map(&:name)
+      add_fk(affected_table: table, col: :retired_by, ref_table: :users) if column_names.include?('retired_by')
+      add_fk(affected_table: table, col: :voided_by, ref_table: :users) if column_names.include?('voided_by')
+      add_fk(affected_table: table, col: :creator, ref_table: :users) if column_names.include?('creator')
+      add_fk(affected_table: table, col: :destination_id, ref_table: :facilities) if column_names.include?('destination_id')
     end
+  end
+  
+  def add_fk(affected_table:, col:, ref_table:)
+    add_foreign_key affected_table, ref_table, column: col, primary_key: :id
   end
 end
