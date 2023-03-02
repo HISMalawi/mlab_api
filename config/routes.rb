@@ -5,7 +5,9 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :specimen
       resources :roles
-      resources :users
+      resources :users do
+        get '/current/'  => 'users#current_user'
+      end
     end
   end
 end

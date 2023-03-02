@@ -32,6 +32,15 @@ class Api::V1::UsersController < ApplicationController
     @user.destroy
   end
 
+  def current_user
+    user = UserService.find_user(params[:user_id])
+    if user.nil?
+      render json: user.errors, status: :unprocessable_entity
+    else
+      render json: user, status: :ok
+    end
+  end
+
   private
 
   def set_user
