@@ -2,7 +2,7 @@ class Api::V1::DepartmentsController < ApplicationController
   before_action :set_department, only: [:show, :update, :destroy]
 
   def index
-    @departments = Department.all
+    @departments = Department.where(retired: 0)
     render json: @departments
   end
   
@@ -11,8 +11,8 @@ class Api::V1::DepartmentsController < ApplicationController
   end
 
   def create
-    @department = Department.new(department_params)
-
+    name = department_params[:name]
+    @department = Department.new(name: name, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
     if @department.save
       render json: @department, status: :created, location: [:api, :v1, @department]
     else
@@ -22,14 +22,15 @@ class Api::V1::DepartmentsController < ApplicationController
 
   def update
     if @department.update(department_params)
-      render json: @department
+      render json: @department, status: :ok
     else
       render json: @department.errors, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @department.destroy
+    if @department.update(retired: 1, retired_by: User.current.id, retired_reason: department_params[:retired_reason], retired_date: Time.now,  updated_date: Time.now)
+      render json: @department, status: :ok
   end
 
   private
