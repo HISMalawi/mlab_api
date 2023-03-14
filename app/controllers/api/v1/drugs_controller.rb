@@ -2,7 +2,7 @@ class Api::V1::DrugsController < ApplicationController
   before_action :set_drug, only: [:show, :update, :destroy]
 
   def index
-    @drugs = Drug.all
+    @drugs = Drug.where(retired: 0)
     render json: @drugs
   end
   
@@ -11,7 +11,7 @@ class Api::V1::DrugsController < ApplicationController
   end
 
   def create
-    @drug = Drug.new(drug_params)
+    @drug = Drug.new(short_name: drug_params[:short_name], name: drug_params[:name], creator: User.current.id, retired: 0, created_date: Time.now, updated_date: Time.now)
 
     if @drug.save
       render json: @drug, status: :created, location: [:api, :v1, @drug]
@@ -21,15 +21,19 @@ class Api::V1::DrugsController < ApplicationController
   end
 
   def update
-    if @drug.update(drug_params)
-      render json: @drug
+    if @drug.update(name: drug_params[:name], short_name: drug_params[:short_name],  updated_date: Time.now)
+      render json: @drug, status: :ok
     else
       render json: @drug.errors, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @drug.destroy
+    if @drug.update(retired: 1, retired_by: User.current.id, retired_reason: drug_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+      render json: @drug, status: :ok
+    else
+      render json: @drug.errors, status: :unprocessable_entity
+   end
   end
 
   private
