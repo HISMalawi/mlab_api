@@ -5,9 +5,12 @@ Rails.application.routes.draw do
     namespace :v1 do
       resources :specimen
       resources :roles
+      resources :departments
       resources :users do
         get '/current/'  => 'users#current_user'
       end
+      post '/login/' => 'users#login'
+      get '/refresh_token/' => 'users#refresh_token'
     end
   end
 end
