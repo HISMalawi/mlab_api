@@ -40,6 +40,6 @@ class Api::V1::DepartmentsController < ApplicationController
   end
 
   def department_params
-    params.require(:department).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+    params.require(:department).permit(:name, :retired_reason)
   end
 end
