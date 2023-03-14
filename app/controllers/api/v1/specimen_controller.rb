@@ -29,8 +29,7 @@ class Api::V1::SpecimenController < ApplicationController
   end
 
   def destroy
-   if @specimen.update(name: specimen_params[:name], retired: 1, retired_by: User.current.id, 
-      retired_reason: specimen_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+   if @specimen.update(retired: 1, retired_by: User.current.id, retired_reason: specimen_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
       render json: @specimen, status: :ok
    else
       render json: @specimen.errors, status: :unprocessable_entity
