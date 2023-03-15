@@ -2,7 +2,7 @@ require 'bcrypt'
 
 module UserService 
   SECRET_KEY = Rails.application.secrets.secret_key_base
-  TOKEN_VALID_TIME = 24.hours.from_now
+  TOKEN_VALID_TIME = 6.hours.from_now
   
   class << self
     def create_user(first_name:, middle_name: '', last_name:, sex:, date_of_birth: '', birth_date_estimated: '', username:, password:, roles:, departments:)
@@ -25,12 +25,11 @@ module UserService
         person = user.person 
         person.updated_date = Time.now
         person.save
-      end
-      
+      end    
     end
 
     def find_user(id)
-      user = User.joins(:person).select('users.id, username, first_name, middle_name, last_name, sex','date_of_birth','birth_date_estimated').where(id: id).first
+      user = User.joins(:person).select('users.id, username, first_name, middle_name, last_name, sex, date_of_birth, birth_date_estimated').where(id: id).first
       return nil if user.nil?
       roles = UserRoleMapping.joins(:user, :role).where(user_id: id).select('roles.id, roles.name')
       departments = UserDepartmentMapping.joins(:user, :department).where(user_id: id).select('departments.id, departments.name')
@@ -75,11 +74,21 @@ module UserService
     def login(username, password, department)
       user = User.find_by_username(username)
       if user && user.active? &&  basic_authentication(user, password)
-        return false if user_departments?(user, department)
-        return {token: jwt_token_encode(user_id: user.id), expiry_time: Time.now + TOKEN_VALID_TIME, user: user}
+         unless user_departments?(user, department)
+          return false
+         end
+        return {token: jwt_token_encode(user_id: user.id), expiry_time: TOKEN_VALID_TIME, user: find_user(user.id)}
       else
         return nil
       end
+    end
+
+    def application_login(username, password)
+      user = User.find_by_username(username)
+      unless user && user.active? &&  basic_authentication(user, password)
+        return nil
+      end
+      return {token: jwt_token_encode(user_id: user.id), expiry_time: TOKEN_VALID_TIME, user: find_user(user.id)}
     end
 
     def user_departments(user)
@@ -96,7 +105,12 @@ module UserService
     end
 
     def user_departments?(user, department)
-      user_departments(user).include?(department)
+      departments = user_departments(user)
+      if departments.nil?
+        return false
+      else 
+       return departments.include?(department)
+      end
     end
 
     def jwt_token_encode(payload)

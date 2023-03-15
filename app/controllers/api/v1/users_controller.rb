@@ -1,5 +1,6 @@
 class Api::V1::UsersController < ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
+  skip_before_action :authorize_request, only: [:login, :application_login]
 
   def index
     @users = User.all
@@ -32,13 +33,35 @@ class Api::V1::UsersController < ApplicationController
     @user.destroy
   end
 
-  def current_user
-    user = UserService.find_user(params[:user_id])
-    if user.nil?
-      render json: user.errors, status: :unprocessable_entity
+  def login
+    payload = UserService.login(params[:username], params[:password], params[:department])
+    if payload == false
+      error_message = 'User is not authorized to access this department'
+      render json: {errors: [error_message]}, status: :unauthorized
+    elsif payload.nil?
+      error_message = 'Invalid username or password'
+      render json: {errors: [error_message]}, status: :unauthorized
     else
-      render json: user, status: :ok
+      render json: {authorization: payload}, status: :ok
     end
+  end
+
+  def application_login
+    payload = UserService.application_login(params[:username], params[:password])
+    if payload.nil?
+      error_message = 'Invalid username or password'
+      render json: {errors: [error_message]}, status: :unauthorized
+    else 
+      render json: {authorization: payload}, status: :ok
+    end
+  end
+
+  # TO DO TOKEN REFRESH _ 
+  def refresh_token
+    user = User.find()
+    payload = {token: UserService::jwt_token_encode(user_id: User.current.id), expiry_time: UserService::TOKEN_VALID_TIME,
+       user: UserService::find_user(User.current.id)}
+    render json: {authorization: payload}, status: :ok
   end
 
   private
