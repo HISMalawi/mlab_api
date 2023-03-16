@@ -41,7 +41,7 @@ class Api::V1::TestPanelsController < ApplicationController
         end
         if !testtypes_to_be_removed.empty?
           testtypes_to_be_removed.each do |test_type|
-            testtype_test_panel = TestTypePanelMapping.where(test_type_id: test_type, test_panel_id: @test_panel.id).first
+            testtype_test_panel = TestTypePanelMapping.where(test_type_id: test_type, test_panel_id: @test_panel.id, voided: 0).first
             testtype_test_panel.update(voided: 1, voided_by: User.current.id, voided_reason: 'Removed from test panel', voided_date: Time.now, updated_date: Time.now)
           end
         end

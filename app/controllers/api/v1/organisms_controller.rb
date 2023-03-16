@@ -27,19 +27,21 @@ class Api::V1::OrganismsController < ApplicationController
 
   def update
     if @organism.update(name: organism_params[:name], description: organism_params[:description],  updated_date: Time.now)
-      drug_organisms_ids = DrugOrganismMapping.where(organism_id: @organism.id, retired: 0).pluck('id')
-      new_drugs_to_be_mapped = organism_params[:drugs] - drug_organisms_ids
-      drugs_to_be_removed = drug_organisms_ids - organism_params[:drugs]
-      if drug_organisms_ids
-        if organism_params[:drugs].sort == drug_organisms_ids.sort
+      drug_ids = DrugOrganismMapping.where(organism_id: @organism.id, retired: 0).pluck('drug_id')
+      new_drugs_to_be_mapped = organism_params[:drugs] - drug_ids
+      drugs_to_be_removed = drug_ids - organism_params[:drugs]
+      if drug_ids
+        if organism_params[:drugs].sort == drug_ids.sort
           render json: @organism && return
-        elsif !new_drugs_to_be_mapped.empty?
+        end
+        if !new_drugs_to_be_mapped.empty?
           new_drugs_to_be_mapped.each do |drug|
             DrugOrganismMapping.create(drug_id: drug, organism_id: @organism.id, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
           end
-        elsif !drugs_to_be_removed.empty?
+        end
+        if !drugs_to_be_removed.empty?
           drugs_to_be_removed.each do | drug |
-            drug_organism = DrugOrganismMapping.where(drug_id: drug, organism_id: @organism.id).first
+            drug_organism = DrugOrganismMapping.where(drug_id: drug, organism_id: @organism.id, retired: 0).first
             drug_organism.update(retired: 1, retired_by: User.current.id, retired_reason: 'Removed from organism', retired_date: Time.now, updated_date: Time.now)
           end
         end
