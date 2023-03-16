@@ -26,8 +26,27 @@ class Api::V1::TestPanelsController < ApplicationController
   end
 
   def update
-    if @test_panel.update(test_panel_params)
-      render json: @test_panel
+    if @test_panel.update(name: test_panel_params[:name], short_name: test_panel_params[:short_name], description: test_panel_params[:description], updated_date: Time.now)
+      testtype_ids = TestTypePanelMapping.where(test_panel: @test_panel.id, voided: 0).pluck('test_type_id')
+      new_testtypes_to_be_mapped = test_panel_params[:test_types] - testtype_ids
+      testtypes_to_be_removed = testtype_ids - test_panel_params[:test_types]
+      if testtype_ids
+        if test_panel_params[:test_types].sort == testtype_ids.sort
+          render json: @test_panel && return
+        end
+        if !new_testtypes_to_be_mapped.empty?
+          new_testtypes_to_be_mapped.each do |test_type|
+            TestTypePanelMapping.create(test_type_id: test_type, test_panel_id: @test_panel.id, voided: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
+          end
+        end
+        if !testtypes_to_be_removed.empty?
+          testtypes_to_be_removed.each do |test_type|
+            testtype_test_panel = TestTypePanelMapping.where(test_type_id: test_type, test_panel_id: @test_panel.id).first
+            testtype_test_panel.update(voided: 1, voided_by: User.current.id, voided_reason: 'Removed from test panel', voided_date: Time.now, updated_date: Time.now)
+          end
+        end
+      end
+      render json: @test_panel, status: :ok
     else
       render json: @test_panel.errors, status: :unprocessable_entity
     end
