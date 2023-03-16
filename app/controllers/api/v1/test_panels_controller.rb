@@ -12,9 +12,13 @@ class Api::V1::TestPanelsController < ApplicationController
   end
 
   def create
-    @test_panel = TestPanel.new(test_panel_params)
-
+    @test_panel = TestPanel.new(name: test_panel_params[:name], short_name: test_panel_params[:short_name], description: test_panel_params[:description], retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
     if @test_panel.save
+      if !test_panel_params[:test_types].empty?
+        test_panel_params[:test_types].each do |test_type|
+          TestTypePanelMapping.create(test_type_id: test_type, test_panel_id: @test_panel.id, voided: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
+        end
+      end
       render json: @test_panel, status: :created, location: [:api, :v1, @test_panel]
     else
       render json: @test_panel.errors, status: :unprocessable_entity
