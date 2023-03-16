@@ -2,7 +2,7 @@ class Api::V1::TestPanelsController < ApplicationController
   before_action :set_test_panel, only: [:show, :update, :destroy]
 
   def index
-    @test_panels = TestPanel.all
+    @test_panels = TestPanel.where(retired: 0)
     render json: @test_panels
   end
   
@@ -53,7 +53,16 @@ class Api::V1::TestPanelsController < ApplicationController
   end
 
   def destroy
-    @test_panel.destroy
+    if @test_panel.update(retired: 1, retired_by: User.current.id, retired_reason: test_panel_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+      testtype_test_panels = TestTypePanelMapping.where(test_panel_id: @test_panel.id, voided: 0)
+      if testtype_test_panels
+        testtype_test_panels.each do |testtype_test_panel|
+          testtype_test_panel.update(voided: 1, voided_by: User.current.id, voided_reason: test_panel_params[:voided_reason], voided_date: Time.now, updated_date: Time.now)
+        end
+      end
+    else
+      render json: @test_panel.errors, status: :unprocessable_entity
+    end
   end
 
   private
