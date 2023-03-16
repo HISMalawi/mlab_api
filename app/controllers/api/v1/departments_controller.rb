@@ -1,5 +1,6 @@
 class Api::V1::DepartmentsController < ApplicationController
   before_action :set_department, only: [:show, :update, :destroy]
+  skip_before_action :authorize_request, only: [:index]
 
   def index
     @departments = Department.where(retired: 0)
