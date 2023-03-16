@@ -7,7 +7,8 @@ class Api::V1::TestPanelsController < ApplicationController
   end
   
   def show
-    render json: @test_panel
+    test_types = TestTypePanelMapping.where(test_panel_id: @test_panel.id, voided: 0).joins(:test_type).select('test_types.id, test_types.name, test_types.short_name')
+    render json: serialize(@test_panel, test_types), status: :ok
   end
 
   def create
@@ -39,6 +40,15 @@ class Api::V1::TestPanelsController < ApplicationController
   end
 
   def test_panel_params
-    params.require(:test_panel).permit(:name, :description, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+    params
+  end
+
+  def serialize(test_panel, test_types)
+    {
+      id: test_panel.id,
+      name: test_panel.name,
+      short_name: test_panel.short_name,
+      test_types: test_types
+    }
   end
 end
