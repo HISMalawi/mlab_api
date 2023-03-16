@@ -5,7 +5,7 @@ ActiveRecord::Base.transaction do
   roles.each do |role|
     if Role.find_by_name(role.name).nil?
       Rails.logger.info("=========Loading Role: #{role.name}===========")
-      Role.create(name: role.name, created_date: role.created_at, updated_date: role.updated_at)
+      Role.create(name: role.name,  retired: 0, created_date: role.created_at, updated_date: role.updated_at)
     end
   end
   # Load Users
@@ -25,13 +25,13 @@ ActiveRecord::Base.transaction do
     person = Person.where(first_name: first_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at).first
     if person.nil?
       Rails.logger.info("=========Loading Person: #{user.name}===========")
-      person = Person.create(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at)
+      person = Person.create(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, voided: 0, created_date: user.created_at, updated_date: user.updated_at)
     end
     if UserService.username_exists? user.username
       mlab_user = User.find_by_username(user.username)
     else
       Rails.logger.info("=========Loading User: #{user.username}===========")
-      mlab_user = User.create(person_id: person.id, username: user.username, password: user.password, created_date: Time.now, updated_date: Time.now)
+      mlab_user = User.create(person_id: person.id, username: user.username, password: user.password, voided: 0, created_date: Time.now, updated_date: Time.now)
     end
     # Load User Role mapping
     user_roles_sql = "SELECT distinct(u.username), r.name AS role FROM assigned_roles ar INNER JOIN roles r on r.id = ar.role_id 
@@ -41,7 +41,7 @@ ActiveRecord::Base.transaction do
       role = Role.find_by_name(user_role.role)
       if UserRoleMapping.where(role_id: role.id, user_id: mlab_user.id).first.nil?
         Rails.logger.info("=========Loading User Role For: #{user_role.username}===========")
-        UserRoleMapping.create(role_id: role.id, user_id: mlab_user.id, created_date: Time.now, updated_date: Time.now)
+        UserRoleMapping.create(role_id: role.id, user_id: mlab_user.id, retired: 0, created_date: Time.now, updated_date: Time.now)
       end
     end
   end
@@ -50,7 +50,7 @@ ActiveRecord::Base.transaction do
   departments.each do |department|
     if Department.find_by_name(department.name).nil?
       Rails.logger.info("=========Loading department: #{department.name}===========")
-      Department.create(name: department.name, created_date: department.created_at, updated_date: department.updated_at)
+      Department.create(name: department.name, retired: 0, created_date: department.created_at, updated_date: department.updated_at)
     end
   end
   # Map User to department
@@ -60,7 +60,7 @@ ActiveRecord::Base.transaction do
     department = Department.find_by_name(u_dpt.dept)
     if UserDepartmentMapping.where(user_id: user.id, department_id: department.id).first.nil?
       Rails.logger.info("=========Mapping user: #{u_dpt.user} to department: #{u_dpt.dept}===========")
-      UserDepartmentMapping.create(user_id: user.id, department_id: department.id, created_date: Time.now, updated_date: Time.now) unless user.nil?
+      UserDepartmentMapping.create(user_id: user.id, department_id: department.id, retired: 0, created_date: Time.now, updated_date: Time.now) unless user.nil?
     end
   end
   Role.update_all(creator: 1)
