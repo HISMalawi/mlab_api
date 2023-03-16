@@ -467,6 +467,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
 
   create_table "test_panels", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
+    t.string "short_name"
     t.string "description"
     t.integer "retired"
     t.bigint "retired_by"
@@ -541,6 +542,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
 
   create_table "test_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
+    t.string "short_name"
     t.bigint "department_id", null: false
     t.decimal "expected_turn_around_time", precision: 10
     t.integer "retired"
