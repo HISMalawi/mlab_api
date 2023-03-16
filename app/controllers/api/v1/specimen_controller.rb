@@ -1,44 +1,48 @@
 class Api::V1::SpecimenController < ApplicationController
-  before_action :set_speciman, only: [:show, :update, :destroy]
+  before_action :set_specimen, only: [:show, :update, :destroy]
 
   def index
-    @specimen = Specimen.all
-    render json: @specimen
+    @specimen = Specimen.where(retired: 0)
+    render json: @specimen, status: :ok
   end
   
   def show
-    render json: @speciman
+    render json: @specimen
   end
 
   def create
-    @speciman = Specimen.new(speciman_params)
+    @specimen = Specimen.new(name: specimen_params[:name], creator: User.current.id, retired: 0, created_date: Time.now, updated_date: Time.now)
 
-    if @speciman.save
-      render json: @speciman, status: :created, location: [:api, :v1, @speciman]
+    if @specimen.save
+      render json: @specimen, status: :created, location: [:api, :v1, @specimen]
     else
-      render json: @speciman.errors, status: :unprocessable_entity
+      render json: @specimen.errors, status: :unprocessable_entity
     end
   end
 
   def update
-    if @speciman.update(speciman_params)
-      render json: @speciman
+    if @specimen.update(name: specimen_params[:name], creator: User.current.id, retired: 0, updated_date: Time.now)
+      render json: @specimen, status: :ok
     else
-      render json: @speciman.errors, status: :unprocessable_entity
+      render json: @specimen.errors, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @speciman.destroy
+   if @specimen.update(retired: 1, retired_by: User.current.id, retired_reason: specimen_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+      render json: @specimen, status: :ok
+   else
+      render json: @specimen.errors, status: :unprocessable_entity
+   end
   end
 
   private
 
-  def set_speciman
-    @speciman = Specimen.find(params[:id])
+  def set_specimen
+    @specimen = Specimen.find(params[:id])
   end
 
-  def speciman_params
+  def specimen_params
     params.require(:speciman).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :created_date, :updated_date)
   end
 end
