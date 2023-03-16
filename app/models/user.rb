@@ -2,7 +2,7 @@ class User < ApplicationRecord
   belongs_to :person
  
   def active?
-    self.voided.nil?
+    self.voided == 0
   end
 
   def self.current
