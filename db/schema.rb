@@ -36,7 +36,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "voided_date"
     t.bigint "creator"
     t.datetime "created_date"
-    t.bigint "updated_date"
+    t.datetime "updated_date"
     t.string "uuid"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -53,6 +53,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.bigint "voided_by"
     t.string "voided_reason"
     t.datetime "voided_date"
+    t.datetime "created_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_f6852eeed6"
@@ -69,7 +71,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "voided_date"
     t.bigint "creator"
     t.datetime "created_date"
-    t.bigint "updated_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_8bd1def1b3"
@@ -248,6 +250,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.bigint "voided_by"
     t.string "voided_reason"
     t.datetime "voided_date"
+    t.datetime "created_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_58c783a090"
@@ -285,7 +289,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "voided_date"
     t.bigint "creator"
     t.datetime "created_date"
-    t.bigint "updated_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_4a9413ff3e"
@@ -331,7 +335,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "voided_date"
     t.bigint "creator"
     t.datetime "created_date"
-    t.bigint "updated_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_d72d795e2e"
@@ -506,6 +510,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.bigint "voided_by"
     t.string "voided_reason"
     t.datetime "voided_date"
+    t.datetime "created_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_0adac8ee6b"
@@ -589,8 +595,25 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.index ["user_id"], name: "index_user_department_mappings_on_user_id"
   end
 
-  create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "user_role_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
     t.bigint "role_id", null: false
+    t.integer "retired"
+    t.bigint "retired_by"
+    t.string "retired_reason"
+    t.datetime "retired_date"
+    t.bigint "creator"
+    t.datetime "updated_date"
+    t.datetime "created_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["creator"], name: "fk_rails_70a7a9087a"
+    t.index ["retired_by"], name: "fk_rails_7009c0ebef"
+    t.index ["role_id"], name: "index_user_role_mappings_on_role_id"
+    t.index ["user_id"], name: "index_user_role_mappings_on_user_id"
+  end
+
+  create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "person_id", null: false
     t.string "username"
     t.string "password"
@@ -601,12 +624,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "voided_date"
     t.bigint "creator"
     t.datetime "created_date"
-    t.bigint "updated_date"
+    t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_fd256d8564"
     t.index ["person_id"], name: "index_users_on_person_id"
-    t.index ["role_id"], name: "index_users_on_role_id"
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
   end
 
@@ -710,8 +732,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
   add_foreign_key "user_department_mappings", "users"
   add_foreign_key "user_department_mappings", "users", column: "creator"
   add_foreign_key "user_department_mappings", "users", column: "retired_by"
+  add_foreign_key "user_role_mappings", "roles"
+  add_foreign_key "user_role_mappings", "users"
+  add_foreign_key "user_role_mappings", "users", column: "creator"
+  add_foreign_key "user_role_mappings", "users", column: "retired_by"
   add_foreign_key "users", "people"
-  add_foreign_key "users", "roles"
   add_foreign_key "users", "users", column: "creator"
   add_foreign_key "users", "users", column: "voided_by"
 end
