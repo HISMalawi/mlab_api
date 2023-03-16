@@ -11,7 +11,7 @@ ActiveRecord::Base.transaction do
   test_types.each do |test_type|
     department = Department.find_by_name(test_type.dept)
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
-    TestType.create(name: test_type.name, department_id: department.id, retired: 0, expected_turn_around_time: test_type.targetTAT, creator: 1, created_date: test_type.created_at, updated_date: test_type.updated_at)
+    TestType.create(name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, expected_turn_around_time: test_type.targetTAT, creator: 1, created_date: test_type.created_at, updated_date: test_type.updated_at)
   end
   # Map test types with specimen
   testtypes_specimens = Iblis.find_by_sql("SELECT tt.name AS test_type, spt.name AS specimen FROM test_types tt
@@ -27,7 +27,7 @@ ActiveRecord::Base.transaction do
   panel_types = Iblis.find_by_sql("SELECT * FROM panel_types")
   panel_types.each do |panel_type|
     Rails.logger.info("=========Loading test panel: #{panel_type.name}===========")
-    TestPanel.create(name: panel_type.name, creator: 1,  created_date: panel_type.created_at, retired: 0, updated_date: panel_type.updated_at)
+    TestPanel.create(name: panel_type.name, short_name: panel_type.short_name, creator: 1,  created_date: panel_type.created_at, retired: 0, updated_date: panel_type.updated_at)
   end
   # Map test types to panels
   test_types_panels = Iblis.find_by_sql("SELECT tt.name AS test_type, pnt.name AS panel FROM panels pn INNER JOIN panel_types pnt ON pnt.id = pn.panel_type_id INNER JOIN test_types tt ON tt.id=pn.test_type_id")
