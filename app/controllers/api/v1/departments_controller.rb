@@ -31,6 +31,7 @@ class Api::V1::DepartmentsController < ApplicationController
   def destroy
     if @department.update(retired: 1, retired_by: User.current.id, retired_reason: department_params[:retired_reason], retired_date: Time.now,  updated_date: Time.now)
       render json: @department, status: :ok
+    end
   end
 
   private
