@@ -28,7 +28,11 @@ class Api::V1::StatusesController < ApplicationController
   end
 
   def destroy
-    @status.update(retired: 1, retired_by: User.current.id, retired_reason: status_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+    if @status.update(retired: 1, retired_by: User.current.id, retired_reason: status_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+      render json: @status
+    else
+      render json: @status.errors, status: :unprocessable_entity
+    end
   end
 
   private
