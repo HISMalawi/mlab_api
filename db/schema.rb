@@ -414,8 +414,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.string "retired_reason"
     t.datetime "retired_date"
     t.bigint "creator"
+    t.datetime "created_date"
     t.datetime "updated_date"
-    t.datetime "updated_date_copy1"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["creator"], name: "fk_rails_03b122d8ec"

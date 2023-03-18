@@ -9,6 +9,7 @@ Rails.application.routes.draw do
       resources :drugs
       resources :organisms
       resources :test_panels
+      resources :statuses
       resources :users do
         get '/current/'  => 'users#current_user'
       end

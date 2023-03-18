@@ -2,7 +2,7 @@ class Api::V1::StatusesController < ApplicationController
   before_action :set_status, only: [:show, :update, :destroy]
 
   def index
-    @statuses = Status.all
+    @statuses = Status.where(retired: 0)
     render json: @statuses
   end
   
@@ -11,8 +11,7 @@ class Api::V1::StatusesController < ApplicationController
   end
 
   def create
-    @status = Status.new(status_params)
-
+    @status = Status.new(name: status_params[:name], retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
     if @status.save
       render json: @status, status: :created, location: [:api, :v1, @status]
     else
@@ -21,7 +20,7 @@ class Api::V1::StatusesController < ApplicationController
   end
 
   def update
-    if @status.update(status_params)
+    if @status.update(name: status_params[:name], updated_date: Time.now)
       render json: @status
     else
       render json: @status.errors, status: :unprocessable_entity
@@ -29,7 +28,7 @@ class Api::V1::StatusesController < ApplicationController
   end
 
   def destroy
-    @status.destroy
+    @status.update(retired: 1, retired_by: User.current.id, retired_reason: status_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
   end
 
   private
@@ -39,6 +38,6 @@ class Api::V1::StatusesController < ApplicationController
   end
 
   def status_params
-    params.require(:status).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :updated_date_copy1)
+    params.require(:status).permit(:name, :retired_reason)
   end
 end

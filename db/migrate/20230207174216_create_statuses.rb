@@ -7,8 +7,8 @@ class CreateStatuses < ActiveRecord::Migration[7.0]
       t.string :retired_reason
       t.datetime :retired_date
       t.bigint :creator
+      t.datetime :created_date
       t.datetime :updated_date
-      t.datetime :updated_date_copy1
 
       t.timestamps
     end
