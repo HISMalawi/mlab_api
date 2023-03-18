@@ -2,7 +2,7 @@ class Api::V1::StatusReasonsController < ApplicationController
   before_action :set_status_reason, only: [:show, :update, :destroy]
 
   def index
-    @status_reasons = StatusReason.all
+    @status_reasons = StatusReason.where(retired: 0)
     render json: @status_reasons
   end
   
@@ -11,8 +11,7 @@ class Api::V1::StatusReasonsController < ApplicationController
   end
 
   def create
-    @status_reason = StatusReason.new(status_reason_params)
-
+    @status_reason = StatusReason.new(description: status_reason_params[:description], retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
     if @status_reason.save
       render json: @status_reason, status: :created, location: [:api, :v1, @status_reason]
     else
@@ -21,7 +20,7 @@ class Api::V1::StatusReasonsController < ApplicationController
   end
 
   def update
-    if @status_reason.update(status_reason_params)
+    if @status_reason.update(description: status_reason_params[:description], updated_date: Time.now)
       render json: @status_reason
     else
       render json: @status_reason.errors, status: :unprocessable_entity
@@ -29,7 +28,11 @@ class Api::V1::StatusReasonsController < ApplicationController
   end
 
   def destroy
-    @status_reason.destroy
+    if @status_reason.update(retired: 1, retired_by: User.current.id, retired_reason: status_reason_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+      render json: @status_reason
+    else
+      render json: @status_reason.errors, status: :unprocessable_entity
+    end
   end
 
   private
@@ -39,6 +42,6 @@ class Api::V1::StatusReasonsController < ApplicationController
   end
 
   def status_reason_params
-    params.require(:status_reason).permit(:description, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+    params.require(:status_reason).permit(:description, :retired_reason)
   end
 end
