@@ -9,9 +9,9 @@ class Api::V1::DepartmentsController < ApplicationController
   
   def show
     if @department.nil?
-      render json: {error: true, message: "Record Not Found"}, status: :ok
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
     else
-      render json: {error: false, message: "", department: @department}
+      render json: {error: false, message: MessageService::RECORD_RETRIEVED, department: @department}
     end
   end
 
@@ -19,7 +19,7 @@ class Api::V1::DepartmentsController < ApplicationController
     name = department_params[:name]
     @department = Department.new(name: name, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
     if @department.save
-      render json:  {error: false, message: "Successfully created", department: @department}, status: :created, location: [:api, :v1, @department]
+      render json:  {error: false, message: MessageService::RECORD_CREATED, department: @department}, status: :created, location: [:api, :v1, @department]
     else
       render json: @department.errors, status: :unprocessable_entity
     end
@@ -27,10 +27,10 @@ class Api::V1::DepartmentsController < ApplicationController
 
   def update
     if @department.nil?
-      render json: {error: true, message: "Record Not Found"}, status: :ok
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
     else
       if @department.update(name: department_params[:name], updated_date: Time.now)
-        render json: {error: false, message: "Successfully updated", department: @department}, status: :ok
+        render json: {error: false, message: MessageService::RECORD_UPDATED, department: @department}, status: :ok
       else
         render json: {error: true, message: @department.errors}, status: :unprocessable_entity
       end
@@ -39,10 +39,10 @@ class Api::V1::DepartmentsController < ApplicationController
 
   def destroy
     if @department.nil?
-      render json: {error: true, message: "Record Not Found"}
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}
     else
       if @department.update(retired: 1, retired_by: User.current.id, retired_reason: department_params[:retired_reason], retired_date: Time.now,  updated_date: Time.now)
-        render json: {error: false, message: "Successfully deleted"}, status: :ok
+        render json: {error: false, message: MessageService::RECORD_DELETED}, status: :ok
       end
     end
   end

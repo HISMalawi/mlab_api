@@ -7,8 +7,12 @@ class Api::V1::OrganismsController < ApplicationController
   end
   
   def show
-    drugs = DrugOrganismMapping.joins(:drug).where(organism_id: @organism.id, retired: 0).select('drugs.id, drugs.name, drugs.short_name')
-    render json: serialize_organism_drug(@organism, drugs), status: :ok
+    if @organism.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
+    else
+      drugs = DrugOrganismMapping.joins(:drug).where(organism_id: @organism.id, retired: 0).select('drugs.id, drugs.name, drugs.short_name')
+      render json: {error: false, message: MessageService::RECORD_RETRIEVED, organism: serialize_organism_drug(@organism, drugs)}, status: :ok
+    end
   end
 
   def create
@@ -26,50 +30,62 @@ class Api::V1::OrganismsController < ApplicationController
   end
 
   def update
-    if @organism.update(name: organism_params[:name], description: organism_params[:description],  updated_date: Time.now)
-      drug_ids = DrugOrganismMapping.where(organism_id: @organism.id, retired: 0).pluck('drug_id')
-      new_drugs_to_be_mapped = organism_params[:drugs] - drug_ids
-      drugs_to_be_removed = drug_ids - organism_params[:drugs]
-      if drug_ids
-        if organism_params[:drugs].sort == drug_ids.sort
-          render json: @organism && return
-        end
-        if !new_drugs_to_be_mapped.empty?
-          new_drugs_to_be_mapped.each do |drug|
-            DrugOrganismMapping.create(drug_id: drug, organism_id: @organism.id, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
-          end
-        end
-        if !drugs_to_be_removed.empty?
-          drugs_to_be_removed.each do | drug |
-            drug_organism = DrugOrganismMapping.where(drug_id: drug, organism_id: @organism.id, retired: 0).first
-            drug_organism.update(retired: 1, retired_by: User.current.id, retired_reason: 'Removed from organism', retired_date: Time.now, updated_date: Time.now)
-          end
-        end
-      end
-      render json: @organism
+    if @organism.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
     else
-      render json: @organism.errors, status: :unprocessable_entity
+      if @organism.update(name: organism_params[:name], description: organism_params[:description],  updated_date: Time.now)
+        drug_ids = DrugOrganismMapping.where(organism_id: @organism.id, retired: 0).pluck('drug_id')
+        new_drugs_to_be_mapped = organism_params[:drugs] - drug_ids
+        drugs_to_be_removed = drug_ids - organism_params[:drugs]
+        if drug_ids
+          if organism_params[:drugs].sort == drug_ids.sort
+            render json: {error: false, message: MessageService::RECORD_UPDATED, organism: @organism} && return
+          end
+          if !new_drugs_to_be_mapped.empty?
+            new_drugs_to_be_mapped.each do |drug|
+              DrugOrganismMapping.create(drug_id: drug, organism_id: @organism.id, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
+            end
+          end
+          if !drugs_to_be_removed.empty?
+            drugs_to_be_removed.each do | drug |
+              drug_organism = DrugOrganismMapping.where(drug_id: drug, organism_id: @organism.id, retired: 0).first
+              drug_organism.update(retired: 1, retired_by: User.current.id, retired_reason: 'Removed from organism', retired_date: Time.now, updated_date: Time.now)
+            end
+          end
+        end
+        render json: {error: false, message: MessageService::RECORD_UPDATED, organism: @organism}
+      else
+        render json: {error: true, message: @organism.errors}, status: :unprocessable_entity
+      end
     end
   end
 
   def destroy
-    if @organism.update(retired: 1, retired_by: User.current.id, retired_reason: organism_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
-      drug_organisms = DrugOrganismMapping.where(organism_id: @organism.id, retired: 0)
-      if drug_organisms
-        drug_organisms.each do |drug_organism|
-          drug_organism.update(retired: 1, retired_by: User.current.id, retired_reason: organism_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
-        end
-      end
-      render json: @organism, status: :ok
+    if @organism.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
     else
-      render json: @organism.errors, status: :unprocessable_entity
-   end
+      if @organism.update(retired: 1, retired_by: User.current.id, retired_reason: organism_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+        drug_organisms = DrugOrganismMapping.where(organism_id: @organism.id, retired: 0)
+        if drug_organisms
+          drug_organisms.each do |drug_organism|
+            drug_organism.update(retired: 1, retired_by: User.current.id, retired_reason: organism_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+          end
+        end
+        render json: {error: false, message: MessageService::RECORD_DELETED}, status: :ok
+      else
+        render json: {error: true, message: @organism.errors}, status: :unprocessable_entity
+      end
+    end
   end
 
   private
 
   def set_organism
-    @organism = Organism.find(params[:id])
+    begin
+      @organism = Organism.find(params[:id])
+    rescue => e
+      @organism = nil
+    end
   end
 
   def organism_params
