@@ -8,37 +8,53 @@ class Api::V1::DepartmentsController < ApplicationController
   end
   
   def show
-    render json: @department
+    if @department.nil?
+      render json: {error: true, message: "Record Not Found"}, status: :ok
+    else
+      render json: {error: false, message: "", department: @department}
+    end
   end
 
   def create
     name = department_params[:name]
     @department = Department.new(name: name, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
     if @department.save
-      render json: @department, status: :created, location: [:api, :v1, @department]
+      render json:  {error: false, message: "Successfully created", department: @department}, status: :created, location: [:api, :v1, @department]
     else
       render json: @department.errors, status: :unprocessable_entity
     end
   end
 
   def update
-    if @department.update(department_params)
-      render json: @department, status: :ok
+    if @department.nil?
+      render json: {error: true, message: "Record Not Found"}, status: :ok
     else
-      render json: @department.errors, status: :unprocessable_entity
+      if @department.update(name: department_params[:name], updated_date: Time.now)
+        render json: {error: false, message: "Successfully updated", department: @department}, status: :ok
+      else
+        render json: {error: true, message: @department.errors}, status: :unprocessable_entity
+      end
     end
   end
 
   def destroy
-    if @department.update(retired: 1, retired_by: User.current.id, retired_reason: department_params[:retired_reason], retired_date: Time.now,  updated_date: Time.now)
-      render json: @department, status: :ok
+    if @department.nil?
+      render json: {error: true, message: "Record Not Found"}
+    else
+      if @department.update(retired: 1, retired_by: User.current.id, retired_reason: department_params[:retired_reason], retired_date: Time.now,  updated_date: Time.now)
+        render json: {error: false, message: "Successfully deleted"}, status: :ok
+      end
     end
   end
 
   private
 
   def set_department
-    @department = Department.find(params[:id])
+    begin
+      @department = Department.find(params[:id])
+    rescue => exception
+      @department = nil
+    end
   end
 
   def department_params
