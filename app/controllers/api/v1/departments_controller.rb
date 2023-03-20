@@ -21,7 +21,7 @@ class Api::V1::DepartmentsController < ApplicationController
     if @department.save
       render json:  {error: false, message: MessageService::RECORD_CREATED, department: @department}, status: :created, location: [:api, :v1, @department]
     else
-      render json: @department.errors, status: :unprocessable_entity
+      render json: {error: true, message: @department.errors}, status: :unprocessable_entity
     end
   end
 

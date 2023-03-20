@@ -23,9 +23,9 @@ class Api::V1::OrganismsController < ApplicationController
           DrugOrganismMapping.create(drug_id: drug, organism_id: @organism.id, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
         end
       end
-      render json: @organism, status: :created, location: [:api, :v1, @organism]
+      render json: {error: false, message: MessageService::RECORD_CREATED, organism: @organism}, status: :created, location: [:api, :v1, @organism]
     else
-      render json: @organism.errors, status: :unprocessable_entity
+      render json: {error: true, message: @organism.errors}, status: :unprocessable_entity
     end
   end
 
