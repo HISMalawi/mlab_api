@@ -7,39 +7,55 @@ class Api::V1::DrugsController < ApplicationController
   end
   
   def show
-    render json: @drug
+    if @drug.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
+    else 
+      render json: {error: false, message: MessageService::RECORD_RETRIEVED, drug: @drug}, status: :ok
+    end
   end
 
   def create
     @drug = Drug.new(short_name: drug_params[:short_name], name: drug_params[:name], creator: User.current.id, retired: 0, created_date: Time.now, updated_date: Time.now)
 
     if @drug.save
-      render json: @drug, status: :created, location: [:api, :v1, @drug]
+      render json: {error: false, message: MessageService::RECORD_CREATED, drug: @drug}, status: :created, location: [:api, :v1, @drug]
     else
-      render json: @drug.errors, status: :unprocessable_entity
+      render json: {error: true, message: @drug.errors}, status: :unprocessable_entity
     end
   end
 
   def update
-    if @drug.update(name: drug_params[:name], short_name: drug_params[:short_name],  updated_date: Time.now)
-      render json: @drug, status: :ok
-    else
-      render json: @drug.errors, status: :unprocessable_entity
+    if @drug.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
+    else 
+      if @drug.update(name: drug_params[:name], short_name: drug_params[:short_name],  updated_date: Time.now)
+        render json: {error: false, message: MessageService::RECORD_UPDATED, drug: @drug}, status: :ok
+      else
+        render json: {error: true, message: @drug.errors}, status: :unprocessable_entity
+      end
     end
   end
 
   def destroy
-    if @drug.update(retired: 1, retired_by: User.current.id, retired_reason: drug_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
-      render json: @drug, status: :ok
-    else
-      render json: @drug.errors, status: :unprocessable_entity
-   end
+    if @drug.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
+    else 
+      if @drug.update(retired: 1, retired_by: User.current.id, retired_reason: drug_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
+        render json: {error: false, message: MessageService::RECORD_DELETED}, status: :ok
+      else
+        render json: {error: true, message: @drug.errors}, status: :unprocessable_entity
+      end
+    end
   end
 
   private
 
   def set_drug
-    @drug = Drug.find(params[:id])
+    begin
+      @drug = Drug.find(params[:id])
+    rescue => e
+      @drug = nil
+    end
   end
 
   def drug_params
