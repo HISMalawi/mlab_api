@@ -7,7 +7,12 @@ class Api::V1::TestTypesController < ApplicationController
   end
   
   def show
-    render json: @test_type
+    if @test_type.nil?
+      render json: {error: true, message: "No Record Found"}
+    else
+      test_type = TestCatalog::TestTypeService.show(@test_type)
+      render json: test_type 
+    end
   end
 
   def create
@@ -21,21 +26,27 @@ class Api::V1::TestTypesController < ApplicationController
   end
 
   def update
-    if @test_type.update(test_type_params)
-      render json: @test_type
-    else
-      render json: @test_type.errors, status: :unprocessable_entity
-    end
+    TestCatalog::TestTypeService.update(@test_type, test_type_params)
   end
 
   def destroy
-    @test_type.destroy
+    if @test_type.nil?
+      render json: {error: true, message: "No Record Found"}
+    else
+     TestCatalog::TestTypeService.delete(@test_type, test_type_params[:retired_reason])
+     render json: {error: false, message: "Successfully deleted"}
+    end
   end
 
   private
 
   def set_test_type
-    @test_type = TestType.find(params[:id])
+    begin
+      @test_type = TestType.find(params[:id])
+    rescue => e
+      @test_type = nil
+      return @test_type
+    end
   end
 
   def test_type_params
