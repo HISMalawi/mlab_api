@@ -3,26 +3,31 @@ module TestCatalog
     class << self
       def create(params)
         begin
+          create_response = ""
+          testtype = ""
           ActiveRecord::Base.transaction do 
             testtype = TestType.new(name: params[:name], short_name: params[:short_name], department_id: params[:department_id],
               expected_turn_around_time: params[:expected_turn_around_time], retired: 0, creator: User.current.id,
               created_date: Time.now, updated_date: Time.now)
-            if testtype.save
-              TestCatalog::TestTypeUtil.create_specimen_test_type_mapping(testtype.id, params[:specimens])
-              TestCatalog::TestTypeUtil.perform_create_test_indicator(testtype.id, params[:indicators])
+            if testtype.save!
+              TestCatalog::TestTypeCreateUtil.create_specimen_test_type_mapping(testtype.id, params[:specimens])
+              create_response = TestCatalog::TestTypeCreateUtil.perform_create_test_indicator(testtype.id, params[:indicators])
             end
           end
-          return {status: true, error: false, msg: "successful"}
+          if create_response[:status] 
+            create_response[:test_type] = testtype
+            return create_response
+          end
         rescue => e
           return {status: false, error: e.message, msg: "unsuccessful"}
         end
       end
 
-      def update(testtype, params)
-        TestCatalog::TestTypeUtil.update_test_type(testtype, params)
-        TestCatalog::TestTypeUtil.update_specimen_test_type_mapping(testtype.id, params[:specimens])
-        TestCatalog::TestTypeUtil.update_test_indicator(testtype.id, params[:indicators])
-      end
+      # def update(testtype, params)
+      #   TestCatalog::TestTypeUpdateUtil.update_test_type(testtype, params)
+      #   TestCatalog::TestTypeUpdateUtil.update_specimen_test_type_mapping(testtype.id, params[:specimens])
+      #   TestCatalog::TestTypeUpdateUtil.update_test_indicator(testtype.id, params[:indicators])
+      # end
 
       def delete(testtype, retired_reason)
         testtype.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: retired_reason, updated_date: Time.now)

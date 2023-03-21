@@ -6,9 +6,13 @@ class Api::V1::TestTypesController < ApplicationController
     render json: @test_types
   end
   
+  def test_indicator_types
+    render json: {error: false, message: MessageService::RECORD_RETRIEVED, test_indicator_types: TestIndicator.test_indicator_types}, status: :ok
+  end 
+
   def show
     if @test_type.nil?
-      render json: {error: true, message: "No Record Found"}
+      render json: {error: true, message: "Record Not Found"}
     else
       test_type = TestCatalog::TestTypeService.show(@test_type)
       render json: test_type 
@@ -18,7 +22,6 @@ class Api::V1::TestTypesController < ApplicationController
   def create
     perform_create = TestCatalog::TestTypeService.create(test_type_params)
     if perform_create[:status]
-      perform_create[:testtype] = TestType.where(retired: 0).last
       render json: perform_create, status: :created
     else
       render json: perform_create, status: :unprocessable_entity
@@ -31,10 +34,10 @@ class Api::V1::TestTypesController < ApplicationController
 
   def destroy
     if @test_type.nil?
-      render json: {error: true, message: "No Record Found"}
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}
     else
      TestCatalog::TestTypeService.delete(@test_type, test_type_params[:retired_reason])
-     render json: {error: false, message: "Successfully deleted"}
+     render json: {error: false, message: MessageService::RECORD_DELETED}, status: :ok
     end
   end
 
@@ -45,7 +48,6 @@ class Api::V1::TestTypesController < ApplicationController
       @test_type = TestType.find(params[:id])
     rescue => e
       @test_type = nil
-      return @test_type
     end
   end
 

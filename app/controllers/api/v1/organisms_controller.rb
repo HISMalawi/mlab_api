@@ -39,7 +39,7 @@ class Api::V1::OrganismsController < ApplicationController
         drugs_to_be_removed = drug_ids - organism_params[:drugs]
         if drug_ids
           if organism_params[:drugs].sort == drug_ids.sort
-            render json: {error: false, message: MessageService::RECORD_UPDATED, organism: @organism} && return
+            return render json: {error: false, message: MessageService::RECORD_UPDATED, organism: @organism}
           end
           if !new_drugs_to_be_mapped.empty?
             new_drugs_to_be_mapped.each do |drug|

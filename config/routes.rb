@@ -16,6 +16,7 @@ Rails.application.routes.draw do
         get '/current/'  => 'users#current_user'
       end
       post '/login/' => 'users#login'
+      get '/test_indicator_types/' => 'test_types#test_indicator_types'
       get '/refresh_token/' => 'users#refresh_token'
     end
   end

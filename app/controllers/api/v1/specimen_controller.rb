@@ -43,7 +43,7 @@ class Api::V1::SpecimenController < ApplicationController
       if @specimen.update(retired: 1, retired_by: User.current.id, retired_reason: specimen_params[:retired_reason], retired_date: Time.now, updated_date: Time.now)
         render json: {error: false, message: MessageService::RECORD_DELETED}, status: :ok
       else
-      render json: {error: true, message: @specimen.errors}, status: :unprocessable_entity
+        render json: {error: true, message: @specimen.errors}, status: :unprocessable_entity
       end
     end
   end
