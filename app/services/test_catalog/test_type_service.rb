@@ -55,6 +55,8 @@ module TestCatalog
           name: test_type.name,
           short_name: test_type.short_name,
           expected_turn_around_time: test_type.expected_turn_around_time,
+          created_date: test_type.created_date,
+          retired: test_type.retired,
           department: Department.select(:id, :name).find(test_type.department_id),
           specimens: specimens,
           indicators: serialize_indicators(test_type.id)
@@ -63,9 +65,9 @@ module TestCatalog
 
       def serialize_indicators(testtype_id)
         serialize_indicators = []
-        indicators = TestIndicator.where(test_type_id: testtype_id, retired: 0)
+        indicators = TestIndicator.where(test_type_id: testtype_id)
         indicators.each do |indicator|
-          indicator_ranges = TestIndicatorRange.where(test_indicator_id: indicator.id, retired: 0)
+          indicator_ranges = TestIndicatorRange.where(test_indicator_id: indicator.id)
           serialize_indicators.push({
             id: indicator.id,
             name: indicator.name,
