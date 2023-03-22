@@ -7,7 +7,16 @@ class Api::V1::TestTypesController < ApplicationController
   end
   
   def test_indicator_types
-    render json: {error: false, message: MessageService::RECORD_RETRIEVED, test_indicator_types: TestIndicator.test_indicator_types}, status: :ok
+    types = []
+    indicator_types = TestIndicator.test_indicator_types
+    indicator_types.each do |key, value|
+      data = {
+        id: value,
+        name: key.gsub('_', ' ').titleize
+      }
+      types.push(data)
+    end
+    render json: {error: false, message: MessageService::RECORD_RETRIEVED, test_indicator_types: types}, status: :ok
   end 
 
   def show
