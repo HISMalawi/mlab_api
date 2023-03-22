@@ -21,7 +21,7 @@ class Api::V1::TestTypesController < ApplicationController
 
   def show
     if @test_type.nil?
-      render json: {error: true, message: "Record Not Found"}
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
     else
       test_type = TestCatalog::TestTypeService.show(@test_type)
       render json: test_type 
@@ -38,7 +38,16 @@ class Api::V1::TestTypesController < ApplicationController
   end
 
   def update
-    TestCatalog::TestTypeService.update(@test_type, test_type_params)
+    if @test_type.nil?
+      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
+    else
+      response = TestCatalog::TestTypeService.update(@test_type, test_type_params)
+      if response[:status]
+        render json: {error: false, message: MessageService::RECORD_UPDATED, test_type: TestCatalog::TestTypeService.show(@test_type)}, status: :ok
+      else
+        render json: {error: false, message: response[:error]}, status: :unprocessable_entity
+      end
+    end
   end
 
   def destroy

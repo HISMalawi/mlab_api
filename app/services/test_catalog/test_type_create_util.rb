@@ -16,7 +16,7 @@ module TestCatalog
         if test_indicator.save!
           if indicator.has_key?('indicator_ranges') && indicator[:indicator_ranges].is_a?(Array)
             create_test_indicator_range(indicator[:indicator_ranges], test_indicator.id, indicator[:test_indicator_type])
-            return {status: true, error: false, message: ""}
+            return {status: true, error: false, message:  MessageService::RECORD_CREATED}
           else
             raise ActiveRecord::Rollback
           end

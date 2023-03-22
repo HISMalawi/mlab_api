@@ -4,7 +4,7 @@ class CreateTestTypes < ActiveRecord::Migration[7.0]
       t.string :name
       t.string :short_name
       t.references :department, null: false, foreign_key: true
-      t.decimal :expected_turn_around_time
+      t.decimal :expected_turn_around_time, precision: 10, scale: 2 
       t.integer :retired
       t.bigint :retired_by
       t.string :retired_reason

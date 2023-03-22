@@ -26,14 +26,13 @@ class Api::V1::SpecimenController < ApplicationController
   def update
     if @specimen.nil?
       render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
-     else
+    else
       if @specimen.update(name: specimen_params[:name], creator: User.current.id, retired: 0, updated_date: Time.now)
         render json: {error: false, message: MessageService::RECORD_UPDATED, specimen: @specimen}, status: :ok
       else
         render json: {error: true, message: @specimen.errors}, status: :unprocessable_entity
       end
-     end
-    
+    end
   end
 
   def destroy

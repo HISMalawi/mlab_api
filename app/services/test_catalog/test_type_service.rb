@@ -23,11 +23,18 @@ module TestCatalog
         end
       end
 
-      # def update(testtype, params)
-      #   TestCatalog::TestTypeUpdateUtil.update_test_type(testtype, params)
-      #   TestCatalog::TestTypeUpdateUtil.update_specimen_test_type_mapping(testtype.id, params[:specimens])
-      #   TestCatalog::TestTypeUpdateUtil.update_test_indicator(testtype.id, params[:indicators])
-      # end
+      def update(testtype, params)
+        begin
+        ActiveRecord::Base.transaction do 
+          TestCatalog::TestTypeUpdateUtil.update_test_type(testtype, params)
+          TestCatalog::TestTypeUpdateUtil.update_specimen_test_type_mapping(testtype.id, params[:specimens])
+          TestCatalog::TestTypeUpdateUtil.update_test_indicator(testtype.id, params[:indicators])
+        end
+        return {status: true, error: false, msg: "successful"}
+      rescue => e
+        return {status: false, error: e.message, msg: "unsuccessful"}
+      end
+      end
 
       def delete(testtype, retired_reason)
         testtype.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: retired_reason, updated_date: Time.now)
@@ -57,6 +64,7 @@ module TestCatalog
           expected_turn_around_time: test_type.expected_turn_around_time,
           created_date: test_type.created_date,
           retired: test_type.retired,
+          retired_reason: test_type.retired_reason,
           department: Department.select(:id, :name).find(test_type.department_id),
           specimens: specimens,
           indicators: serialize_indicators(test_type.id)
@@ -71,9 +79,14 @@ module TestCatalog
           serialize_indicators.push({
             id: indicator.id,
             name: indicator.name,
-            test_indicator_type: indicator.test_indicator_type,
+            test_indicator_type: {
+              id: indicator.read_attribute_before_type_cast(:test_indicator_type),
+              name: indicator.test_indicator_type.gsub('_', ' ').titleize,
+            },
             unit: indicator.unit,
             description: indicator.description,
+            retired: indicator.retired,
+            retired_reason: indicator.retired_reason,
             indicator_ranges: indicator_ranges
           })
         end

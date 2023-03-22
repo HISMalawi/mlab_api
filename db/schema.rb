@@ -427,8 +427,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.integer "min_age"
     t.integer "max_age"
     t.string "sex"
-    t.bigint "lower_range"
-    t.bigint "upper_range"
+    t.decimal "lower_range", precision: 10, scale: 4
+    t.decimal "upper_range", precision: 10, scale: 4
     t.string "interpretation"
     t.string "value"
     t.integer "retired"
@@ -544,7 +544,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.string "name"
     t.string "short_name"
     t.bigint "department_id", null: false
-    t.decimal "expected_turn_around_time", precision: 10
+    t.decimal "expected_turn_around_time", precision: 10, scale: 2
     t.integer "retired"
     t.bigint "retired_by"
     t.string "retired_reason"
