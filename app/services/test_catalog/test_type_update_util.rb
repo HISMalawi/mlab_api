@@ -25,18 +25,6 @@ module TestCatalog
       end
   
       def update_test_indicator_range(indicator_ranges, test_indicator_id, test_indicator_type)
-        indicator_range_ids = indicator_ranges.each.with_object(:id).map(&:[]).reject(&:blank?)
-       
-        puts '=============================IRSNGE==================================='
-        puts indicator_ranges
-        puts '========================IDfrom params========================================'
-        puts indicator_range_ids
-        puts '=========================IDfrom======================================='
-        indicator_range_record_ids = TestIndicatorRange.where(test_indicator_id: test_indicator_id).pluck('id')
-        indicator_ranges_to_be_removed = indicator_range_record_ids - indicator_range_ids
-        
-        puts indicator_range_record_ids
-        puts '========================================================================'
         indicator_ranges.each do |indicator_range|
           if indicator_range.has_key?('id') && !indicator_range[:id].blank?
             test_indicator_range = TestIndicatorRange.find(indicator_range[:id])
@@ -52,10 +40,6 @@ module TestCatalog
               TestCatalog::TestTypeCreateUtil.create_test_indicator_range_for_numeric(indicator_range, test_indicator_id)
             end
           end
-        end
-        indicator_ranges_to_be_removed.each do |indicator_range_to_be_removed|
-          indicator_range = TestIndicatorRange.find(indicator_range_to_be_removed)
-          indicator_range.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: "Removed from test indicator", updated_date: Time.now)
         end
       end
   
@@ -89,6 +73,14 @@ module TestCatalog
         indicators_to_be_removed.each do |indicator|
           test_indicator = TestIndicator.find(indicator)
           test_indicator.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: "Removed from test type", updated_date: Time.now)
+          test_indicator_range_to_be_removed_on_indicator_removal(test_indicator.id)
+        end
+      end
+
+      def test_indicator_range_to_be_removed_on_indicator_removal(test_indicator_id)
+        indicator_ranges_to_be_removed = TestIndicatorRange.where(test_indicator_id: test_indicator_id)
+        indicator_ranges_to_be_removed.each do |indicator_range|
+          indicator_range.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: "Removed from test indicator", updated_date: Time.now)
         end
       end
 
