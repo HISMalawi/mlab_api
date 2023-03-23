@@ -59,6 +59,7 @@ module TestCatalog
       def serialize(test_type)
         specimens = SpecimenTestTypeMapping.joins(:specimen).where(test_type_id: test_type.id, retired: 0).select('specimen.id, specimen.name')
         {
+          id: test_type.id,
           name: test_type.name,
           short_name: test_type.short_name,
           expected_turn_around_time: test_type.expected_turn_around_time,
