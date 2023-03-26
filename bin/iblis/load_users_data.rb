@@ -31,7 +31,13 @@ ActiveRecord::Base.transaction do
       mlab_user = User.find_by_username(user.username)
     else
       Rails.logger.info("=========Loading User: #{user.username}===========")
-      mlab_user = User.create(person_id: person.id, username: user.username, password: user.password, voided: 0, created_date: Time.now, updated_date: Time.now)
+      mlab_user = User.new(person_id: person.id, username: user.username, password: user.password, voided: 0, created_date: Time.now, updated_date: Time.now)
+      if mlab_user.save
+        if !user.deleted_at.nil?
+          Rails.logger.info("=========Voiding  deleted User: #{user.username}===========")
+          mlab_user.update(voided: 1, voided_by: 1, voided_date: user.deleted_at, voided_reason: 'deleted', updated_date: user.updated_at)
+        end
+      end 
     end
     # Load User Role mapping
     user_roles_sql = "SELECT distinct(u.username), r.name AS role FROM assigned_roles ar INNER JOIN roles r on r.id = ar.role_id 
