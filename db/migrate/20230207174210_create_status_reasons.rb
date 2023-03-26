@@ -1,7 +1,7 @@
 class CreateStatusReasons < ActiveRecord::Migration[7.0]
   def change
     create_table :status_reasons do |t|
-      t.string :description
+      t.text :description
       t.integer :retired
       t.bigint :retired_by
       t.string :retired_reason

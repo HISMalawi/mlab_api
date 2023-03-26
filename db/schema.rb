@@ -393,7 +393,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
   end
 
   create_table "status_reasons", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "description"
+    t.text "description"
     t.integer "retired"
     t.bigint "retired_by"
     t.string "retired_reason"

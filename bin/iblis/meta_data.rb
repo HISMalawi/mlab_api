@@ -38,4 +38,9 @@ ActiveRecord::Base.transaction do
     Rails.logger.info("=========Mapping panel: #{tt_panel.panel} to test type: #{tt_panel.test_type}===========")
     TestTypePanelMapping.create(test_panel_id: test_panel.id, test_type_id: test_type.id, creator: 1, voided: 0, created_date: Time.now, updated_date: Time.now)
   end 
+
+  # Create Drugs and Organisms and map them
+  TestCatalog::IblisData::DrugOrganismService.create_drug
+  TestCatalog::IblisData::DrugOrganismService.create_organism
+  TestCatalog::IblisData::DrugOrganismService.drug_organism_mapping
 end
