@@ -43,4 +43,8 @@ ActiveRecord::Base.transaction do
   TestCatalog::IblisData::DrugOrganismService.create_drug
   TestCatalog::IblisData::DrugOrganismService.create_organism
   TestCatalog::IblisData::DrugOrganismService.drug_organism_mapping
+
+  # Load statuses and status reasons
+  TestCatalog::IblisData::StatusService.create_test_status
+  TestCatalog::IblisData::StatusService.create_test_status_reason
 end
