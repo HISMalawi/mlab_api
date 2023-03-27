@@ -4,7 +4,7 @@ ActiveRecord::Base.transaction do
   specimes = Iblis.find_by_sql("SELECT * FROM specimen_types")
   specimes.each do | specimen |
     Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
-    Specimen.create(name: specimen.name, retired: 0, creator: 1, created_date: specimen.created_at, updated_date: specimen.updated_at)
+    Specimen.create(name: specimen.name, description: specimen.description, retired: 0, creator: 1, created_date: specimen.created_at, updated_date: specimen.updated_at)
   end
   # Load test types
   test_types = Iblis.find_by_sql("SELECT tt.id, tt.name, tt.short_name, tc.name As dept, tt.created_at, tt.updated_at, tt.targetTAT FROM test_types tt INNER JOIN test_categories tc ON tc.id =tt.test_category_id")
