@@ -51,6 +51,12 @@ module TestCatalog
         end
       end
 
+      def create_test_type_organism_mapping(testtype_id, organism_ids)
+        organism_ids.each do | organism |
+          TestTypeOrganismMapping.create!(organism_id: organism, test_type_id: testtype_id, retired: 0, creator: User.current.id, created_date: Time.now, updated_date: Time.now)
+        end
+      end
+
     end
   end
 end

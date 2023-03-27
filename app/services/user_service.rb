@@ -9,22 +9,24 @@ module UserService
       person = PersonService.create_person(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, date_of_birth: date_of_birth, birth_date_estimated: birth_date_estimated)
       user = User.new(person_id: person.id, username: username, creator: User.current, created_date: Time.now, updated_date: Time.now)
       user.password = BCrypt::Password.create(password)
-      user.save!
-      roles.each do |role|
-        UserRoleMapping.create(role_id: role, user_id: user.id)
+      if user.save!
+        roles.each do |role|
+          UserRoleMapping.create(role_id: role, user_id: user.id)
+        end
+        departments.each do |department|
+          UserDepartmentMapping.create(department_id: department, user_id: user.id)
+        end
+        return find_user(user.id)
       end
-      departments.each do |department|
-        UserDepartmentMapping.create(department_id: department, user_id: user.id)
-      end
-      return find_user(user.id)
     end
 
     def update_user(user, params)
-      updated_person = PersonService.update_person(first_name: params[first_name], middle_name: params[middle_name], last_name: params[last_name], sex: params[sex], date_of_birth: params[date_of_birth], birth_date_estimated: params[birth_date_estimated])
-      if updated_person
-        person = user.person 
-        person.updated_date = Time.now
-        person.save
+      person = user.person 
+      updated_person = PersonService.update_person(person: person, first_name: params[:first_name], middle_name: params[:middle_name], 
+        last_name: params[:last_name], sex: params[:sex], date_of_birth: params[:date_of_birth], birth_date_estimated: params[:birth_date_estimated])
+      # TO DO FROM
+        if updated_person
+        user.update()
       end    
     end
 

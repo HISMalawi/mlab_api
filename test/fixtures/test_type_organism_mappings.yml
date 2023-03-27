@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  test: one
+  organism: one
+  creator: 
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-03-27 09:08:43
+
+two:
+  test: two
+  organism: two
+  creator: 
+  retired: 1
+  retired_by: 
+  retired_reason: MyString
+  retired_date: 2023-03-27 09:08:43

@@ -93,6 +93,24 @@ module TestCatalog
           sex: indicator_range_params[:sex], lower_range: indicator_range_params[:lower_range], upper_range: indicator_range_params[:upper_range], updated_date: Time.now)
       end
 
+      def update_test_type_organism_mapping(testtype_id, organism_ids)
+        organism_record_ids = TestTypeOrganismMapping.where(test_type_id: testtype_id, retired: 0).pluck('organism_id')
+        organism_to_be_removed = organism_record_ids - organism_ids
+        organism_to_be_mapped = organism_ids - organism_record_ids
+        if organism_record_ids.sort == organism_ids
+          return {status: true, error: false}
+        end
+        if !organism_to_be_removed.empty?
+          organism_to_be_removed.each do |organism_id|
+            test_type_organism_mapping = TestTypeOrganismMapping.where(organism_id: organism_id, test_type_id: testtype_id, retired: 0).first
+            test_type_organism_mapping.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: 'Removed from test type', updated_date: Time.now)
+          end
+        end
+        if !organism_to_be_mapped.empty?
+          TestCatalog::TestTypeCreateUtil.create_test_type_organism_mapping(testtype_id, organism_to_be_mapped)
+        end
+      end
+
     end
   end
 end

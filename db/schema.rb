@@ -522,6 +522,24 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.index ["voided_by"], name: "fk_rails_f6510b76c0"
   end
 
+  create_table "test_type_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "test_type_id", null: false
+    t.bigint "organism_id", null: false
+    t.bigint "creator"
+    t.integer "retired"
+    t.bigint "retired_by"
+    t.string "retired_reason"
+    t.datetime "retired_date"
+    t.datetime "updated_date"
+    t.datetime "created_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["creator"], name: "fk_rails_30264e8cf9"
+    t.index ["organism_id"], name: "index_test_type_organism_mappings_on_organism_id"
+    t.index ["retired_by"], name: "fk_rails_eb65b8696d"
+    t.index ["test_type_id"], name: "index_test_type_organism_mappings_on_test_type_id"
+  end
+
   create_table "test_type_panel_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "test_type_id", null: false
     t.bigint "test_panel_id", null: false
@@ -718,6 +736,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
   add_foreign_key "test_statuses", "tests"
   add_foreign_key "test_statuses", "users", column: "creator"
   add_foreign_key "test_statuses", "users", column: "voided_by"
+  add_foreign_key "test_type_organism_mappings", "organisms"
+  add_foreign_key "test_type_organism_mappings", "test_types"
+  add_foreign_key "test_type_organism_mappings", "users", column: "creator"
+  add_foreign_key "test_type_organism_mappings", "users", column: "retired_by"
   add_foreign_key "test_type_panel_mappings", "test_panels"
   add_foreign_key "test_type_panel_mappings", "test_types"
   add_foreign_key "test_type_panel_mappings", "users", column: "creator"

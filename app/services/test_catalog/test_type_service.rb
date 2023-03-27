@@ -11,6 +11,7 @@ module TestCatalog
               created_date: Time.now, updated_date: Time.now)
             if testtype.save!
               TestCatalog::TestTypeCreateUtil.create_specimen_test_type_mapping(testtype.id, params[:specimens])
+              TestCatalog::TestTypeCreateUtil.create_test_type_organism_mapping(testtype.id, params[:organisms])
               create_response = TestCatalog::TestTypeCreateUtil.perform_create_test_indicator(testtype.id, params[:indicators])
             end
           end
@@ -28,6 +29,7 @@ module TestCatalog
         ActiveRecord::Base.transaction do 
           TestCatalog::TestTypeUpdateUtil.update_test_type(testtype, params)
           TestCatalog::TestTypeUpdateUtil.update_specimen_test_type_mapping(testtype.id, params[:specimens])
+          TestCatalog::TestTypeUpdateUtil.update_test_type_organism_mapping(testtype.id, params[:organisms])
           TestCatalog::TestTypeUpdateUtil.update_test_indicator(testtype.id, params[:indicators])
         end
         return {status: true, error: false, msg: "successful"}
@@ -41,6 +43,10 @@ module TestCatalog
         specimens = SpecimenTestTypeMapping.where(test_type_id: testtype.id, retired: 0)
         specimens.each do |specimen|
           specimen.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: retired_reason, updated_date: Time.now)
+        end
+        organisms = TestTypeOrganismMapping.where(test_type_id: testtype.id, retired: 0)
+        organisms.each do |organism|
+          organism.update(retired: 1, retired_date: Time.now, retired_by:  User.current.id, retired_reason: retired_reason, updated_date: Time.now)
         end
         test_indicators = TestIndicator.where(test_type_id: testtype.id, retired: 0)
         test_indicators.each do |test_indicator|
@@ -68,6 +74,7 @@ module TestCatalog
           retired_reason: test_type.retired_reason,
           department_id: Department.select(:id, :name).find(test_type.department_id),
           specimens: specimens,
+          organisms: serialize_test_type_organism(test_type.id),
           indicators: serialize_indicators(test_type.id)
         }
       end
@@ -92,6 +99,21 @@ module TestCatalog
           })
         end
         return serialize_indicators
+      end
+
+      def serialize_test_type_organism(test_type_id)
+        test_type_organisms = TestTypeOrganismMapping.where(test_type_id: test_type_id)
+        organism_a = []
+        test_type_organisms.each do |test_type_organism|
+          organism = Organism.find(test_type_organism.id)
+          organism_a.push({
+            name: organism.name,
+            description: organism.description,
+            retired: test_type_organism.retired,
+            retired_reason: test_type_organism.retired_reason
+          })
+        end
+        organism_a
       end
 
     end
