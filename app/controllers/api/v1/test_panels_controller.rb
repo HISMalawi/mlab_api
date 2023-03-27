@@ -97,6 +97,7 @@ class Api::V1::TestPanelsController < ApplicationController
       id: test_panel.id,
       name: test_panel.name,
       short_name: test_panel.short_name,
+      description: test_panel.description,
       test_types: test_types
     }
   end
