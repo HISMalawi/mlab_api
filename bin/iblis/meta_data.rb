@@ -6,6 +6,12 @@ ActiveRecord::Base.transaction do
     Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
     Specimen.create(name: specimen.name, description: specimen.description, retired: 0, creator: 1, created_date: specimen.created_at, updated_date: specimen.updated_at)
   end
+
+   # Create Drugs and Organisms and map them
+   TestCatalog::IblisData::DrugOrganismService.create_drug
+   TestCatalog::IblisData::DrugOrganismService.create_organism
+   TestCatalog::IblisData::DrugOrganismService.drug_organism_mapping
+
   # Load test types
   test_types = Iblis.find_by_sql("SELECT tt.id, tt.name, tt.short_name, tc.name As dept, tt.created_at, tt.updated_at, tt.targetTAT FROM test_types tt INNER JOIN test_categories tc ON tc.id =tt.test_category_id")
   test_types.each do |test_type|
@@ -13,6 +19,7 @@ ActiveRecord::Base.transaction do
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
     mlap_test_type = TestType.create(name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, expected_turn_around_time: test_type.targetTAT, creator: 1, created_date: test_type.created_at, updated_date: test_type.updated_at)
     TestCatalog::IblisData::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
+    TestCatalog::IblisData::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
   end
   # Map test types with specimen
   testtypes_specimens = Iblis.find_by_sql("SELECT tt.name AS test_type, spt.name AS specimen FROM test_types tt
@@ -38,11 +45,6 @@ ActiveRecord::Base.transaction do
     Rails.logger.info("=========Mapping panel: #{tt_panel.panel} to test type: #{tt_panel.test_type}===========")
     TestTypePanelMapping.create(test_panel_id: test_panel.id, test_type_id: test_type.id, creator: 1, voided: 0, created_date: Time.now, updated_date: Time.now)
   end 
-
-  # Create Drugs and Organisms and map them
-  TestCatalog::IblisData::DrugOrganismService.create_drug
-  TestCatalog::IblisData::DrugOrganismService.create_organism
-  TestCatalog::IblisData::DrugOrganismService.drug_organism_mapping
 
   # Load statuses and status reasons
   TestCatalog::IblisData::StatusService.create_test_status

@@ -55,6 +55,22 @@ module TestCatalog
             end
           end
         end
+
+        def test_type_organism_mapping(test_type_id, mlab_test_type_id)
+          test_type_mappings = Iblis.find_by_sql("SELECT o.name, o.deleted_at, o.created_at, o.updated_at FROM testtype_organisms tto INNER JOIN organisms o ON o.id=tto.organism_id WHERE tto.test_type_id=#{test_type_id}")
+          test_type_mappings.each do |test_type_mapping|
+            organism = Organism.find_by_name(test_type_mapping.name)
+            if !organism.nil?
+              Rails.logger.info("=========Mapping Test Type===========to Organism: #{organism.name} ======")
+              res = TestTypeOrganismMapping.new(test_type_id: mlab_test_type_id, organism_id: organism.id, retired: 0, creator: 1, created_date: test_type_mapping.created_at, updated_date: test_type_mapping.updated_at)
+              if res.save
+                if !test_type_mapping.deleted_at.nil?
+                  res.update(retired: 1, retired_by: 1, retired_date: test_type_mapping.deleted_at, retired_reason: 'deleted', updated_date: test_type_mapping.updated_at)
+                end
+              end
+            end
+          end
+        end
   
       end  
     end
