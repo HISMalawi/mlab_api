@@ -25,8 +25,7 @@ module Auditable
       Rails.logger.warn "Auditable model missing changed_by or date_changed: #{self}"
       return
     end
-    # would be nice to have updated_by, but tour model doesn't have it
-
+    self.updated_by = User.current&.id 
     self.updated_date = Time.now
   end
 
