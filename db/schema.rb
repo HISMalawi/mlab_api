@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
+ActiveRecord::Schema[7.0].define(version: 2023_02_08_125955) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -22,8 +22,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_76d55355c3"
     t.index ["retired_by"], name: "fk_rails_19fcfd1174"
+    t.index ["updated_by"], name: "fk_rails_7a8f7bbfc0"
   end
 
   create_table "client_identifiers", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -40,9 +42,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.string "uuid"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["client_id"], name: "index_client_identifiers_on_client_id"
     t.index ["client_identifier_type_id"], name: "index_client_identifiers_on_client_identifier_type_id"
     t.index ["creator"], name: "fk_rails_1d6a18d6aa"
+    t.index ["updated_by"], name: "fk_rails_9b4b314ede"
     t.index ["voided_by"], name: "fk_rails_77f50c4288"
   end
 
@@ -57,8 +61,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f6852eeed6"
     t.index ["order_id"], name: "index_client_order_print_trails_on_order_id"
+    t.index ["updated_by"], name: "fk_rails_990b298340"
     t.index ["voided_by"], name: "fk_rails_d0e284cc0a"
   end
 
@@ -74,8 +80,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_8bd1def1b3"
     t.index ["person_id"], name: "index_clients_on_person_id"
+    t.index ["updated_by"], name: "fk_rails_2b73b8b268"
     t.index ["voided_by"], name: "fk_rails_8ddb993c38"
   end
 
@@ -92,8 +100,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_336ba6c926"
     t.index ["test_id"], name: "index_culture_observations_on_test_id"
+    t.index ["updated_by"], name: "fk_rails_d49b6d9b8a"
     t.index ["voided_by"], name: "fk_rails_71c231eae4"
   end
 
@@ -108,8 +118,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_7aef731b14"
     t.index ["retired_by"], name: "fk_rails_07e4d2e8c0"
+    t.index ["updated_by"], name: "fk_rails_f4ba61f503"
   end
 
   create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -124,10 +136,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_0800e412cf"
     t.index ["drug_id"], name: "index_drug_organism_mappings_on_drug_id"
     t.index ["organism_id"], name: "index_drug_organism_mappings_on_organism_id"
     t.index ["retired_by"], name: "fk_rails_9129054208"
+    t.index ["updated_by"], name: "fk_rails_f03d36516c"
   end
 
   create_table "drugs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -142,8 +156,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f659be91a8"
     t.index ["retired_by"], name: "fk_rails_6c278e75fd"
+    t.index ["updated_by"], name: "fk_rails_3650d0586d"
   end
 
   create_table "encounters", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -163,11 +179,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.string "uuid"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["client_id"], name: "index_encounters_on_client_id"
     t.index ["creator"], name: "fk_rails_d942b30673"
     t.index ["destination_id"], name: "index_encounters_on_destination_id"
     t.index ["facility_id"], name: "index_encounters_on_facility_id"
     t.index ["facility_section_id"], name: "index_encounters_on_facility_section_id"
+    t.index ["updated_by"], name: "fk_rails_e8a1975a3c"
     t.index ["voided_by"], name: "fk_rails_bd2826d55e"
   end
 
@@ -182,8 +200,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_d28145efac"
     t.index ["retired_by"], name: "fk_rails_e319067bf9"
+    t.index ["updated_by"], name: "fk_rails_1f012546ff"
   end
 
   create_table "facility_sections", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -197,8 +217,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_72da1deecd"
     t.index ["retired_by"], name: "fk_rails_2b632c0b11"
+    t.index ["updated_by"], name: "fk_rails_6bcb6255cf"
   end
 
   create_table "instrument_test_type_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -213,10 +235,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_d97721fc8d"
     t.index ["instrument_id"], name: "index_instrument_test_type_mappings_on_instrument_id"
     t.index ["retired_by"], name: "fk_rails_051201364f"
     t.index ["test_type_id"], name: "index_instrument_test_type_mappings_on_test_type_id"
+    t.index ["updated_by"], name: "fk_rails_1c160e3ebc"
   end
 
   create_table "instruments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -233,8 +257,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_31d4d000b3"
     t.index ["retired_by"], name: "fk_rails_b85ba53bf5"
+    t.index ["updated_by"], name: "fk_rails_030d937fe9"
   end
 
   create_table "orders", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -254,9 +280,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_58c783a090"
     t.index ["encounter_id"], name: "index_orders_on_encounter_id"
     t.index ["priority_id"], name: "index_orders_on_priority_id"
+    t.index ["updated_by"], name: "fk_rails_2d08b953e5"
     t.index ["voided_by"], name: "fk_rails_6891831a3d"
   end
 
@@ -272,8 +300,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_112492a36b"
     t.index ["retired_by"], name: "fk_rails_0ca4fdfa97"
+    t.index ["updated_by"], name: "fk_rails_03900b2cb0"
   end
 
   create_table "people", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -292,7 +322,9 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_4a9413ff3e"
+    t.index ["updated_by"], name: "fk_rails_57c8d62f7a"
     t.index ["voided_by"], name: "fk_rails_a6e182138c"
   end
 
@@ -307,8 +339,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_555d2a3bd5"
     t.index ["retired_by"], name: "fk_rails_b0bb8c2a6e"
+    t.index ["updated_by"], name: "fk_rails_4aa71f1fd5"
   end
 
   create_table "privileges", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -322,8 +356,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_13b25d4d99"
     t.index ["retired_by"], name: "fk_rails_74d4b13f40"
+    t.index ["updated_by"], name: "fk_rails_93ae80f87f"
   end
 
   create_table "role_privilege_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -338,9 +374,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_d72d795e2e"
     t.index ["privilege_id"], name: "index_role_privilege_mappings_on_privilege_id"
     t.index ["role_id"], name: "index_role_privilege_mappings_on_role_id"
+    t.index ["updated_by"], name: "fk_rails_ba8875dc08"
     t.index ["voided_by"], name: "fk_rails_c02b7ac72f"
   end
 
@@ -355,8 +393,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f0b260e680"
     t.index ["retired_by"], name: "fk_rails_aa96010497"
+    t.index ["updated_by"], name: "fk_rails_7b99252597"
   end
 
   create_table "specimen", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -371,8 +411,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_3d6fc047ad"
     t.index ["retired_by"], name: "fk_rails_10ee122152"
+    t.index ["updated_by"], name: "fk_rails_626b1bcbb9"
   end
 
   create_table "specimen_test_type_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -387,10 +429,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_c40492fbeb"
     t.index ["retired_by"], name: "fk_rails_47458cb1ed"
     t.index ["specimen_id"], name: "index_specimen_test_type_mappings_on_specimen_id"
     t.index ["test_type_id"], name: "index_specimen_test_type_mappings_on_test_type_id"
+    t.index ["updated_by"], name: "fk_rails_0c4cfd257a"
   end
 
   create_table "status_reasons", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -404,8 +448,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_a051adf67c"
     t.index ["retired_by"], name: "fk_rails_7181c23722"
+    t.index ["updated_by"], name: "fk_rails_a65e4e7239"
   end
 
   create_table "statuses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -419,8 +465,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_03b122d8ec"
     t.index ["retired_by"], name: "fk_rails_dc1b2e5f4a"
+    t.index ["updated_by"], name: "fk_rails_239f1561e1"
   end
 
   create_table "test_indicator_ranges", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -441,9 +489,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_822a0e09d9"
     t.index ["retired_by"], name: "fk_rails_c7a13cd42e"
     t.index ["test_indicator_id"], name: "index_test_indicator_ranges_on_test_indicator_id"
+    t.index ["updated_by"], name: "fk_rails_01f927bee0"
   end
 
   create_table "test_indicators", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -461,9 +511,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fda346a95f"
     t.index ["retired_by"], name: "fk_rails_8fea8a0952"
     t.index ["test_type_id"], name: "index_test_indicators_on_test_type_id"
+    t.index ["updated_by"], name: "fk_rails_692ced2c3a"
   end
 
   create_table "test_panels", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -479,8 +531,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f9cb5cd94a"
     t.index ["retired_by"], name: "fk_rails_37372fa1a2"
+    t.index ["updated_by"], name: "fk_rails_508837b977"
   end
 
   create_table "test_results", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -497,9 +551,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_e31692d4ca"
     t.index ["test_id"], name: "index_test_results_on_test_id"
     t.index ["test_indicator_id"], name: "index_test_results_on_test_indicator_id"
+    t.index ["updated_by"], name: "fk_rails_75b1bff4fc"
     t.index ["voided_by"], name: "fk_rails_d60aefd51e"
   end
 
@@ -516,10 +572,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_0adac8ee6b"
     t.index ["status_id"], name: "index_test_statuses_on_status_id"
     t.index ["status_reason_id"], name: "index_test_statuses_on_status_reason_id"
     t.index ["test_id"], name: "index_test_statuses_on_test_id"
+    t.index ["updated_by"], name: "fk_rails_16325e098f"
     t.index ["voided_by"], name: "fk_rails_f6510b76c0"
   end
 
@@ -535,10 +593,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_30264e8cf9"
     t.index ["organism_id"], name: "index_test_type_organism_mappings_on_organism_id"
     t.index ["retired_by"], name: "fk_rails_eb65b8696d"
     t.index ["test_type_id"], name: "index_test_type_organism_mappings_on_test_type_id"
+    t.index ["updated_by"], name: "fk_rails_30bc089809"
   end
 
   create_table "test_type_panel_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -553,9 +613,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_3c1b4cdb96"
     t.index ["test_panel_id"], name: "index_test_type_panel_mappings_on_test_panel_id"
     t.index ["test_type_id"], name: "index_test_type_panel_mappings_on_test_type_id"
+    t.index ["updated_by"], name: "fk_rails_843d79a70c"
     t.index ["voided_by"], name: "fk_rails_83dfe97307"
   end
 
@@ -573,9 +635,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fc31efdaf6"
     t.index ["department_id"], name: "index_test_types_on_department_id"
     t.index ["retired_by"], name: "fk_rails_e098721114"
+    t.index ["updated_by"], name: "fk_rails_ae1e39de07"
   end
 
   create_table "tests", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -591,10 +655,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_9e21c12cab"
     t.index ["order_id"], name: "index_tests_on_order_id"
     t.index ["specimen_id"], name: "index_tests_on_specimen_id"
     t.index ["test_type_id"], name: "index_tests_on_test_type_id"
+    t.index ["updated_by"], name: "fk_rails_e1dd8edc7e"
     t.index ["voided_by"], name: "fk_rails_1c50d4e771"
   end
 
@@ -610,9 +676,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_749595bdf9"
     t.index ["department_id"], name: "index_user_department_mappings_on_department_id"
     t.index ["retired_by"], name: "fk_rails_700d5dc05d"
+    t.index ["updated_by"], name: "fk_rails_82e29a7c8b"
     t.index ["user_id"], name: "index_user_department_mappings_on_user_id"
   end
 
@@ -628,9 +696,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "created_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_70a7a9087a"
     t.index ["retired_by"], name: "fk_rails_7009c0ebef"
     t.index ["role_id"], name: "index_user_role_mappings_on_role_id"
+    t.index ["updated_by"], name: "fk_rails_6590234044"
     t.index ["user_id"], name: "index_user_role_mappings_on_user_id"
   end
 
@@ -648,120 +718,158 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_08_125954) do
     t.datetime "updated_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fd256d8564"
     t.index ["person_id"], name: "index_users_on_person_id"
+    t.index ["updated_by"], name: "fk_rails_8c1436a35d"
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
   end
 
   add_foreign_key "client_identifier_types", "users", column: "creator"
   add_foreign_key "client_identifier_types", "users", column: "retired_by"
+  add_foreign_key "client_identifier_types", "users", column: "updated_by"
   add_foreign_key "client_identifiers", "client_identifier_types"
   add_foreign_key "client_identifiers", "clients"
   add_foreign_key "client_identifiers", "users", column: "creator"
+  add_foreign_key "client_identifiers", "users", column: "updated_by"
   add_foreign_key "client_identifiers", "users", column: "voided_by"
   add_foreign_key "client_order_print_trails", "orders"
   add_foreign_key "client_order_print_trails", "users", column: "creator"
+  add_foreign_key "client_order_print_trails", "users", column: "updated_by"
   add_foreign_key "client_order_print_trails", "users", column: "voided_by"
   add_foreign_key "clients", "people"
   add_foreign_key "clients", "users", column: "creator"
+  add_foreign_key "clients", "users", column: "updated_by"
   add_foreign_key "clients", "users", column: "voided_by"
   add_foreign_key "culture_observations", "tests"
   add_foreign_key "culture_observations", "users", column: "creator"
+  add_foreign_key "culture_observations", "users", column: "updated_by"
   add_foreign_key "culture_observations", "users", column: "voided_by"
   add_foreign_key "departments", "users", column: "creator"
   add_foreign_key "departments", "users", column: "retired_by"
+  add_foreign_key "departments", "users", column: "updated_by"
   add_foreign_key "drug_organism_mappings", "drugs"
   add_foreign_key "drug_organism_mappings", "organisms"
   add_foreign_key "drug_organism_mappings", "users", column: "creator"
   add_foreign_key "drug_organism_mappings", "users", column: "retired_by"
+  add_foreign_key "drug_organism_mappings", "users", column: "updated_by"
   add_foreign_key "drugs", "users", column: "creator"
   add_foreign_key "drugs", "users", column: "retired_by"
+  add_foreign_key "drugs", "users", column: "updated_by"
   add_foreign_key "encounters", "clients"
   add_foreign_key "encounters", "facilities"
   add_foreign_key "encounters", "facilities", column: "destination_id"
   add_foreign_key "encounters", "facility_sections"
   add_foreign_key "encounters", "users", column: "creator"
+  add_foreign_key "encounters", "users", column: "updated_by"
   add_foreign_key "encounters", "users", column: "voided_by"
   add_foreign_key "facilities", "users", column: "creator"
   add_foreign_key "facilities", "users", column: "retired_by"
+  add_foreign_key "facilities", "users", column: "updated_by"
   add_foreign_key "facility_sections", "users", column: "creator"
   add_foreign_key "facility_sections", "users", column: "retired_by"
+  add_foreign_key "facility_sections", "users", column: "updated_by"
   add_foreign_key "instrument_test_type_mappings", "instruments"
   add_foreign_key "instrument_test_type_mappings", "test_types"
   add_foreign_key "instrument_test_type_mappings", "users", column: "creator"
   add_foreign_key "instrument_test_type_mappings", "users", column: "retired_by"
+  add_foreign_key "instrument_test_type_mappings", "users", column: "updated_by"
   add_foreign_key "instruments", "users", column: "creator"
   add_foreign_key "instruments", "users", column: "retired_by"
+  add_foreign_key "instruments", "users", column: "updated_by"
   add_foreign_key "orders", "encounters"
   add_foreign_key "orders", "priorities"
   add_foreign_key "orders", "users", column: "creator"
+  add_foreign_key "orders", "users", column: "updated_by"
   add_foreign_key "orders", "users", column: "voided_by"
   add_foreign_key "organisms", "users", column: "creator"
   add_foreign_key "organisms", "users", column: "retired_by"
+  add_foreign_key "organisms", "users", column: "updated_by"
   add_foreign_key "people", "users", column: "creator"
+  add_foreign_key "people", "users", column: "updated_by"
   add_foreign_key "people", "users", column: "voided_by"
   add_foreign_key "priorities", "users", column: "creator"
   add_foreign_key "priorities", "users", column: "retired_by"
+  add_foreign_key "priorities", "users", column: "updated_by"
   add_foreign_key "privileges", "users", column: "creator"
   add_foreign_key "privileges", "users", column: "retired_by"
+  add_foreign_key "privileges", "users", column: "updated_by"
   add_foreign_key "role_privilege_mappings", "privileges"
   add_foreign_key "role_privilege_mappings", "roles"
   add_foreign_key "role_privilege_mappings", "users", column: "creator"
+  add_foreign_key "role_privilege_mappings", "users", column: "updated_by"
   add_foreign_key "role_privilege_mappings", "users", column: "voided_by"
   add_foreign_key "roles", "users", column: "creator"
   add_foreign_key "roles", "users", column: "retired_by"
+  add_foreign_key "roles", "users", column: "updated_by"
   add_foreign_key "specimen", "users", column: "creator"
   add_foreign_key "specimen", "users", column: "retired_by"
+  add_foreign_key "specimen", "users", column: "updated_by"
   add_foreign_key "specimen_test_type_mappings", "specimen", column: "specimen_id"
   add_foreign_key "specimen_test_type_mappings", "test_types"
   add_foreign_key "specimen_test_type_mappings", "users", column: "creator"
   add_foreign_key "specimen_test_type_mappings", "users", column: "retired_by"
+  add_foreign_key "specimen_test_type_mappings", "users", column: "updated_by"
   add_foreign_key "status_reasons", "users", column: "creator"
   add_foreign_key "status_reasons", "users", column: "retired_by"
+  add_foreign_key "status_reasons", "users", column: "updated_by"
   add_foreign_key "statuses", "users", column: "creator"
   add_foreign_key "statuses", "users", column: "retired_by"
+  add_foreign_key "statuses", "users", column: "updated_by"
   add_foreign_key "test_indicator_ranges", "test_indicators"
   add_foreign_key "test_indicator_ranges", "users", column: "creator"
   add_foreign_key "test_indicator_ranges", "users", column: "retired_by"
+  add_foreign_key "test_indicator_ranges", "users", column: "updated_by"
   add_foreign_key "test_indicators", "test_types"
   add_foreign_key "test_indicators", "users", column: "creator"
   add_foreign_key "test_indicators", "users", column: "retired_by"
+  add_foreign_key "test_indicators", "users", column: "updated_by"
   add_foreign_key "test_panels", "users", column: "creator"
   add_foreign_key "test_panels", "users", column: "retired_by"
+  add_foreign_key "test_panels", "users", column: "updated_by"
   add_foreign_key "test_results", "test_indicators"
   add_foreign_key "test_results", "tests"
   add_foreign_key "test_results", "users", column: "creator"
+  add_foreign_key "test_results", "users", column: "updated_by"
   add_foreign_key "test_results", "users", column: "voided_by"
   add_foreign_key "test_statuses", "status_reasons"
   add_foreign_key "test_statuses", "statuses"
   add_foreign_key "test_statuses", "tests"
   add_foreign_key "test_statuses", "users", column: "creator"
+  add_foreign_key "test_statuses", "users", column: "updated_by"
   add_foreign_key "test_statuses", "users", column: "voided_by"
   add_foreign_key "test_type_organism_mappings", "organisms"
   add_foreign_key "test_type_organism_mappings", "test_types"
   add_foreign_key "test_type_organism_mappings", "users", column: "creator"
   add_foreign_key "test_type_organism_mappings", "users", column: "retired_by"
+  add_foreign_key "test_type_organism_mappings", "users", column: "updated_by"
   add_foreign_key "test_type_panel_mappings", "test_panels"
   add_foreign_key "test_type_panel_mappings", "test_types"
   add_foreign_key "test_type_panel_mappings", "users", column: "creator"
+  add_foreign_key "test_type_panel_mappings", "users", column: "updated_by"
   add_foreign_key "test_type_panel_mappings", "users", column: "voided_by"
   add_foreign_key "test_types", "departments"
   add_foreign_key "test_types", "users", column: "creator"
   add_foreign_key "test_types", "users", column: "retired_by"
+  add_foreign_key "test_types", "users", column: "updated_by"
   add_foreign_key "tests", "orders"
   add_foreign_key "tests", "specimen", column: "specimen_id"
   add_foreign_key "tests", "test_types"
   add_foreign_key "tests", "users", column: "creator"
+  add_foreign_key "tests", "users", column: "updated_by"
   add_foreign_key "tests", "users", column: "voided_by"
   add_foreign_key "user_department_mappings", "departments"
   add_foreign_key "user_department_mappings", "users"
   add_foreign_key "user_department_mappings", "users", column: "creator"
   add_foreign_key "user_department_mappings", "users", column: "retired_by"
+  add_foreign_key "user_department_mappings", "users", column: "updated_by"
   add_foreign_key "user_role_mappings", "roles"
   add_foreign_key "user_role_mappings", "users"
   add_foreign_key "user_role_mappings", "users", column: "creator"
   add_foreign_key "user_role_mappings", "users", column: "retired_by"
+  add_foreign_key "user_role_mappings", "users", column: "updated_by"
   add_foreign_key "users", "people"
   add_foreign_key "users", "users", column: "creator"
+  add_foreign_key "users", "users", column: "updated_by"
   add_foreign_key "users", "users", column: "voided_by"
 end
