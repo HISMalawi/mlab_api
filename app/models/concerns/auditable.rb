@@ -42,6 +42,6 @@ module Auditable
   end
 
   def auditable?
-    respond_to?(:changed_by) && respond_to?(:updated_at)
+    respond_to?(:updated_date)
   end
 end
