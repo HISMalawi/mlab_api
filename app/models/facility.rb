@@ -1,2 +1,2 @@
-class Facility < ApplicationRecord
+class Facility < RetirableRecord
 end

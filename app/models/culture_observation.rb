@@ -1,3 +1,3 @@
-class CultureObservation < ApplicationRecord
+class CultureObservation < VoidableRecord
   belongs_to :test
 end

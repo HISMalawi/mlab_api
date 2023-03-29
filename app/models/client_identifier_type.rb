@@ -1,2 +1,2 @@
-class ClientIdentifierType < ApplicationRecord
+class ClientIdentifierType < RetirableRecord
 end

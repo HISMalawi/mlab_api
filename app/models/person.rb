@@ -1,2 +1,2 @@
-class Person < ApplicationRecord
+class Person < VoidableRecord
 end

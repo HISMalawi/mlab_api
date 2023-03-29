@@ -1,4 +1,4 @@
-class User < ApplicationRecord
+class User < VoidableRecord
   belongs_to :person
  
   def active?
