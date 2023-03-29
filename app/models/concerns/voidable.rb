@@ -48,11 +48,12 @@ module Voidable
     #
     #       remap_voidable_interface(voided: :retired, voided_at: :date_retired)
     #    end
-    def remap_voidable_interface(voided: :voided, voided_date: :voided_date, voided_reason: :voided_reason)
+    def remap_voidable_interface(voided: :voided, voided_date: :voided_date, voided_reason: :voided_reason, voided_by: :voided_by)
       @interface = {
         voided:,
         voided_date:,
-        voided_reason:
+        voided_reason:,
+        voided_by:
       }
     end
 
