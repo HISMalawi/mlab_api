@@ -99,7 +99,8 @@ module Voidable
 
     def _update_voidable_field(instance, field, value)
       # remap_voidable_interface unless @interface # Initialise default interface
-      setter = "#{field}="
+      # setter = "#{field}="
+      setter = "#{_voidable_field(field)}="
       instance.send(setter, value)
     end
   end
