@@ -8,11 +8,7 @@ class Api::V1::DepartmentsController < ApplicationController
   end
   
   def show
-    if @department.nil?
-      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
-    else
-      render json: {error: false, message: MessageService::RECORD_RETRIEVED, department: @department}
-    end
+    render json: @departments
   end
 
   def create
@@ -21,14 +17,8 @@ class Api::V1::DepartmentsController < ApplicationController
   end
 
   def update
-    if @department.nil?
-      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
-    else
-      if @department.update(name: department_params[:name], updated_date: Time.now)
-        render json: {error: false, message: MessageService::RECORD_UPDATED, department: @department}, status: :ok
-      else
-        render json: {error: true, message: @department.errors}, status: :unprocessable_entity
-      end
+    if @department.update!(department_params)
+      render json: @department
     end
   end
 
