@@ -10,7 +10,7 @@ module Api
       end
       
       def show
-        render json: @departments
+        render json: @department
       end
     
       def create
