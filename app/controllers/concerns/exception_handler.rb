@@ -68,10 +68,10 @@ module ExceptionHandler
     end
 
     # rescue internal server errors
-    rescue_from StandardError do |e|
-      Rails.logger.error("Internal server error: #{e.message}")
-      render json: { error: e.message }, status: :internal_server_error
-    end
+    # rescue_from StandardError do |e|
+    #   Rails.logger.error("Internal server error: #{e.message}")
+    #   render json: { error: e.message }, status: :internal_server_error
+    # end
     
 
   end
