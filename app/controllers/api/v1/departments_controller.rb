@@ -3,7 +3,7 @@ class Api::V1::DepartmentsController < ApplicationController
   skip_before_action :authorize_request, only: [:index]
 
   def index
-    @departments = Department.where(retired: 0)
+    @departments = Department.all
     render json: @departments
   end
   
@@ -17,29 +17,19 @@ class Api::V1::DepartmentsController < ApplicationController
   end
 
   def update
-    if @department.update!(department_params)
-      render json: @department
-    end
+    @department.update!(department_params)
+    render json: @department
   end
 
   def destroy
-    if @department.nil?
-      render json: {error: true, message: MessageService::RECORD_NOT_FOUND}
-    else
-      if @department.update(retired: 1, retired_by: User.current.id, retired_reason: department_params[:retired_reason], retired_date: Time.now,  updated_date: Time.now)
-        render json: {error: false, message: MessageService::RECORD_DELETED}, status: :ok
-      end
-    end
+    @department.void(params[:retired_reason])
+    render json: @department
   end
 
   private
 
   def set_department
-    begin
-      @department = Department.find(params[:id])
-    rescue => exception
-      @department = nil
-    end
+    @department = Department.find(params[:id])
   end
 
   def department_params
