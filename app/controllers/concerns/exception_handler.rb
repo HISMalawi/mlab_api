@@ -67,6 +67,10 @@ module ExceptionHandler
       render json: { error: e.message }, status: :unauthorized
     end
 
+    rescue_from ActionController::ParameterMissing do |e|
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+
     # rescue internal server errors
     # rescue_from StandardError do |e|
     #   Rails.logger.error("Internal server error: #{e.message}")
