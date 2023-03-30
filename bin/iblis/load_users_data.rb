@@ -74,11 +74,11 @@ ActiveRecord::Base.transaction do
       UserDepartmentMapping.create!(user_id: user, department_id: department.id, creator: user_.id) unless user.nil?
     end
   end
-  Role.update_all(creator: 1)
-  Person.update_all(creator: 1)
-  User.update_all(creator: 1)
-  Department.update_all(creator: 1)
-  UserDepartmentMapping.update_all(creator: 1)
+  Role.update_all(creator: user_.id)
+  Person.update_all(creator: user_.id)
+  User.update_all(creator: user_.id)
+  Department.update_all(creator: user_.id)
+  UserDepartmentMapping.update_all(creator: user_.id)
 end
 
 
