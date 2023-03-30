@@ -16,7 +16,7 @@ class CreateEncounters < ActiveRecord::Migration[7.0]
       t.datetime :updated_date
       t.string :uuid
 
-      t.timestamps
+      
     end
   end
 end

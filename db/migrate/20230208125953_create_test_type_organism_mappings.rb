@@ -11,7 +11,7 @@ class CreateTestTypeOrganismMappings < ActiveRecord::Migration[7.0]
       t.datetime :updated_date
       t.datetime :created_date
 
-      t.timestamps
+      
     end
   end
 end

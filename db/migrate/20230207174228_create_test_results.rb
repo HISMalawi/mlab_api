@@ -13,7 +13,7 @@ class CreateTestResults < ActiveRecord::Migration[7.0]
       t.datetime :created_date
       t.datetime :updated_date
 
-      t.timestamps
+      
     end
   end
 end
