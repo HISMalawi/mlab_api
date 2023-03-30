@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+  include ExceptionHandler
   before_action :authorize_request
 
   def authorize_request
