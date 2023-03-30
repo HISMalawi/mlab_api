@@ -17,7 +17,7 @@ class RetirableRecord < ApplicationRecord
   default_scope { where(retired: 0) }
   scope :retired, -> { unscoped.where.not(retired: 0) }
 
-  belongs_to :creator_user, foreign_key: 'creator', class_name: 'User'
+  belongs_to :creator_user, foreign_key: 'creator', class_name: 'User', optional: true
 
   def void(*args, **kwargs)
     # HACK: This should normally be called within the top most scope of
