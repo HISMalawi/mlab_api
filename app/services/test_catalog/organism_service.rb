@@ -3,7 +3,6 @@ module TestCatalog
     class << self
 
       def create_organism(organism_params, params)
-        check_drug_params(params)
         ActiveRecord::Base.transaction do
           @organism = Organism.create!(organism_params)
           params[:drugs].each do |drug|
@@ -19,7 +18,6 @@ module TestCatalog
       end
 
       def update_organism(organism, organism_params, params)
-        check_drug_params(params)
         ActiveRecord::Base.transaction do 
           organism.update!(organism_params)
           DrugOrganismMapping.where(organism_id: organism.id).where.not(drug_id: params[:drugs]).each do |drug_organism|
@@ -33,18 +31,12 @@ module TestCatalog
 
       def void_organism(organism, reason)
         unless reason
-          raise ActionController::ParameterMissing, ''
+          raise ActionController::ParameterMissing, 'for retired_reason'
         end
         organism.void(reason)
         drug_organisms = DrugOrganismMapping.where(organism_id: organism.id)
         drug_organisms.each do |drug_organism|
           drug_organism.void(reason)
-        end
-      end
-
-      def check_drug_params(params)
-        unless params.has_key?('drugs') && params[:drugs].is_a?(Array)
-          raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY
         end
       end
 

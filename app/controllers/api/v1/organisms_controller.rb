@@ -2,7 +2,8 @@ module Api
   module V1
     class OrganismsController < ApplicationController
       before_action :set_organism, only: [:show, :update, :destroy]
-    
+      before_action :check_drug_params, only: [:create, :update]
+
       def index
         @organisms = Organism.all
         render json: @organisms
@@ -35,6 +36,12 @@ module Api
     
       def organism_params
         params.require(:organism).permit(:name, :description)
+      end
+
+      def check_drug_params
+        unless params.has_key?('drugs') && params[:drugs].is_a?(Array)
+          raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for drugs"
+        end
       end
     
     end
