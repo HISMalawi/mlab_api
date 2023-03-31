@@ -11,10 +11,17 @@ module TestCatalog
         SpecimenTestTypeMapping.where(test_type_id:).where.not(specimen_id: specimen_ids).each do |specimen_test_type_mapping|
           specimen_test_type_mapping.void('Removed from test type')
         end
-
-        # find or create specimen test type mapping
         specimen_ids.each do |specimen_id|
           SpecimenTestTypeMapping.find_or_create_by(test_type_id:, specimen_id:)
+        end
+      end
+
+      def update_test_type_organism_mapping(test_type_id, organism_ids)
+        TestTypeOrganismMapping.where(test_type_id:).where.not(organism_id: organism_ids).each do |test_type_organism_mapping|
+          test_type_organism_mapping.void('Removed from test type')
+        end
+        organism_ids.each do |organism_id|
+          TestTypeOrganismMapping.find_or_create_by(organism_id:, test_type_id:)
         end
       end
 

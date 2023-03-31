@@ -71,6 +71,9 @@ module ExceptionHandler
       render json: { error: e.message }, status: :unprocessable_entity
     end
 
+    rescue_from ActiveModel::UnknownAttributeError do |e|
+      render json: { error: e.message }, status: :internal_server_error
+    end
     # rescue internal server errors
     # rescue_from StandardError do |e|
     #   Rails.logger.error("Internal server error: #{e.message}")

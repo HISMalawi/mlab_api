@@ -1,5 +1,5 @@
 module TestCatalog
-  module TestType
+  module TestTypes
     module TestIndicatorType 
 
       AUTO_COMPLETE = 0
