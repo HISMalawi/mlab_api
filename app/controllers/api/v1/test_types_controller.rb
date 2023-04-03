@@ -23,16 +23,8 @@ module Api
       end
     
       def update
-        if @test_type.nil?
-          render json: {error: true, message: MessageService::RECORD_NOT_FOUND}, status: :ok
-        else
-          response = TestCatalog::TestTypeService.update(@test_type, test_type_params)
-          if response[:status]
-            render json: {error: false, message: MessageService::RECORD_UPDATED, test_type: TestCatalog::TestTypesService.show(@test_type)}, status: :ok
-          else
-            render json: {error: false, message: response[:error]}, status: :unprocessable_entity
-          end
-        end
+        TestCatalog::TestTypes::UpdateService.update_test_type(@test_type, test_type_params, params)
+        render json: @test_type
       end
     
       def destroy
