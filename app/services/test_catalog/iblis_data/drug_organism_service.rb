@@ -31,13 +31,10 @@ module TestCatalog
         end
   
         def drug_organism_mapping
-          ActiveRecord::Base.conncection.select_all <<~SQL
-            SELECT d.name AS drug,o.name AS organism,od.deleted_at, o.created_at, o.updated_at
+          iblis_drug_organisms = Iblis.find_by_sql("SELECT d.name AS drug,o.name AS organism,od.deleted_at, o.created_at, o.updated_at
             FROM organism_drugs od
             INNER JOIN organisms o ON o.id = od.organism_id
-            INNER JOIN drugs d ON d.id = od.drug_id
-          SQL
-          iblis_drug_organisms = Iblis.find_by_sql("d")
+            INNER JOIN drugs d ON d.id = od.drug_id")
           iblis_drug_organisms.each do |drug_organism|
             drug = Drug.find_by_name(drug_organism.drug)
             organism = Organism.find_by_name(drug_organism.organism)

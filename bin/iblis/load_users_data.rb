@@ -67,8 +67,6 @@ ActiveRecord::Base.transaction do
   users_departments.each do |u_dpt|
     user = User.find_by_username(u_dpt.user)&.id
     department = Department.find_by_name(u_dpt.dept)
-    puts department
-    puts "================================================================"
     if UserDepartmentMapping.where(user_id: user, department_id: department.id, creator: user_.id).first.nil?
       Rails.logger.info("=========Mapping user: #{u_dpt.user} to department: #{u_dpt.dept}===========")
       UserDepartmentMapping.create!(user_id: user, department_id: department.id, creator: user_.id) unless user.nil?

@@ -89,14 +89,14 @@ module TestCatalog
     
         def create_test_indicator_range(iblis_measure_id, test_indicator_type, test_indicator_id)
           iblis_measure_ranges = iblis_measure_ranges(iblis_measure_id)
-          if test_indicator_type == TestCatalog::TestIndicatorType::AUTO_COMPLETE || test_indicator_type == TestCatalog::TestIndicatorType::ALPANUMERIC
+          if [TestCatalog::TestTypes::TestIndicatorType::AUTO_COMPLETE, TestCatalog::TestTypes::TestIndicatorType::ALPANUMERIC].include? test_indicator_type
             iblis_measure_ranges.each do |measure_range|
               res = create_test_indicator_range_for_autocomplete(measure_range, test_indicator_id)
               if !measure_range.mr_deleted_at.nil?
                 void_indicator_ranges(res, measure_range.mr_deleted_at)
               end
             end
-          elsif test_indicator_type == TestCatalog::TestIndicatorType::NUMERIC
+          elsif test_indicator_type ==  TestCatalog::TestTypes::TestIndicatorType::NUMERIC
             iblis_measure_ranges.each do |measure_range|
               res = create_test_indicator_range_for_numeric(measure_range, test_indicator_id)
               if !measure_range.mr_deleted_at.nil?

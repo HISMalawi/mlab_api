@@ -8,9 +8,9 @@ ActiveRecord::Base.transaction do
   end
 
    # Create Drugs and Organisms and map them
-   TestCatalog::IblisData::DrugOrganismService.create_drug
-   TestCatalog::IblisData::DrugOrganismService.create_organism
-   TestCatalog::IblisData::DrugOrganismService.drug_organism_mapping
+  IblisService::DrugOrganismService.create_drug
+  IblisService::DrugOrganismService.create_organism
+  IblisService::DrugOrganismService.drug_organism_mapping
 
   # Load test types
   test_types = Iblis.find_by_sql("SELECT tt.id, tt.name, tt.short_name, tc.name As dept, tt.created_at, tt.updated_at, tt.targetTAT FROM test_types tt INNER JOIN test_categories tc ON tc.id =tt.test_category_id")
@@ -18,8 +18,8 @@ ActiveRecord::Base.transaction do
     department = Department.find_by_name(test_type.dept)
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
     mlap_test_type = TestType.create(name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, expected_turn_around_time: test_type.targetTAT, creator: 1, created_date: test_type.created_at, updated_date: test_type.updated_at)
-    TestCatalog::IblisData::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
-    TestCatalog::IblisData::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
+   IblisService::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
+   IblisService::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
   end
   # Map test types with specimen
   testtypes_specimens = Iblis.find_by_sql("SELECT tt.name AS test_type, spt.name AS specimen FROM test_types tt
@@ -47,6 +47,6 @@ ActiveRecord::Base.transaction do
   end 
 
   # Load statuses and status reasons
-  TestCatalog::IblisData::StatusService.create_test_status
-  TestCatalog::IblisData::StatusService.create_test_status_reason
+ IblisService::StatusService.create_test_status
+ IblisService::StatusService.create_test_status_reason
 end
