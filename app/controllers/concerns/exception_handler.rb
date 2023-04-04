@@ -6,6 +6,10 @@ module ExceptionHandler
       render json: {error: MessageService::RECORD_NOT_FOUND}, status: :not_found
     end
 
+    rescue_from UnAuthorized do |e|
+      render json: { error: e.message }, status: :unauthorized
+    end
+
     rescue_from ActiveRecord::RecordInvalid do |e|
       render json: {error: e.message}, status: :unprocessable_entity
     end
