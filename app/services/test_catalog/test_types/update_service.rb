@@ -22,11 +22,11 @@ module TestCatalog
         end
   
         def update_test_type_organism_mapping(test_type_id, organism_ids)
-          TestTypeOrganismMapping.where(test_type_id:).where.not(organism_id: organism_ids).each do |test_type_organism_mapping|
+          TestTypeOrganismMapping.where(test_type_id: test_type_id).where.not(organism_id: organism_ids).each do |test_type_organism_mapping|
             test_type_organism_mapping.void('Removed from test type')
           end
           organism_ids.each do |organism_id|
-            TestTypeOrganismMapping.find_or_create_by(organism_id:, test_type_id:)
+            TestTypeOrganismMapping.find_or_create_by(organism_id: organism_id, test_type_id: test_type_id)
           end
         end
 
