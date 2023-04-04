@@ -46,7 +46,7 @@ module TestCatalog
           test_type_organisms = TestTypeOrganismMapping.where(test_type_id: test_type_id)
           organisms = []
           test_type_organisms.each do |test_type_organism|
-            organism = Organism.find(test_type_organism.id)
+            organism = Organism.find(test_type_organism.organism_id)
             organisms.push({
               name: organism.name,
               description: organism.description,
