@@ -37,11 +37,8 @@ module TestCatalog
           end
           test_indicator_ranges.each do |test_indicator_range|
             test_indicator_range[:test_indicator_id] = test_indicator_id
-            
             test_indicator_range_attributes = JSON.parse(test_indicator_range.to_json)
-            puts "test_indicator_range_attributes #{test_indicator_range_attributes} ================="
             test_indicator_range = TestIndicatorRange.find_or_initialize_by(id: test_indicator_range_attributes['id'])
-            puts "test_indicator_range #{test_indicator_range.to_json} ================="
             test_indicator_range.update!(test_indicator_range_attributes)
           end
         end
@@ -58,9 +55,9 @@ module TestCatalog
           # Update or create test indicators and its associated ranges
           test_indicator_params.each do |test_indicator_param|
             test_indicator_param[:test_type_id] = test_type_id
+            test_indicator_param[:test_indicator_type] = test_indicator_param[:test_indicator_type]['id']
             test_indicator_attributes = JSON.parse(test_indicator_param.to_json).slice('id', 'name','unit','description','test_indicator_type', 'test_type_id')
             test_indicator = TestIndicator.find_or_initialize_by(id: test_indicator_attributes['id'])
-            puts "Testing indicator #{test_indicator.to_json}"
             test_indicator.update!(test_indicator_attributes)
             update_test_indicator_range(test_indicator_param[:indicator_ranges], test_indicator.id, test_indicator.test_indicator_type)
           end          
