@@ -11,13 +11,18 @@ Rails.application.routes.draw do
       resources :test_panels
       resources :statuses
       resources :status_reasons
-      resources :test_types
-      resources :users do
-        get '/current/'  => 'users#current_user'
+      resources :test_types do
+        collection do
+          get '/test_indicator_types/' => 'test_types#test_indicator_types'
+        end
       end
-      post '/login/' => 'users#login'
-      get '/test_indicator_types/' => 'test_types#test_indicator_types'
-      get '/refresh_token/' => 'users#refresh_token'
+      resources :users do
+        collection do
+          post '/login/' => 'users#login'
+          get '/refresh_token/' => 'users#refresh_token'
+        end
+      end
+      
     end
   end
 end
