@@ -5,8 +5,8 @@ module Api
       before_action :check_drug_params, only: [:create, :update]
 
       def index
-        @organisms = Organism.all
-        render json: @organisms
+        @organisms = Organism.all.page(params[:page]).per(params[:per_page])
+        render json: { organism: @organisms, meta: PaginationService.pagination_metadata(@organisms)}
       end
       
       def show
