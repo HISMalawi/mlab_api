@@ -25,7 +25,7 @@ module Api
     
       def destroy
         TestCatalog::OrganismService.void_organism(@organism, params[:retired_reason])
-        render json: @organism
+        render json: {message: MessageService::RECORD_DELETED}
       end
     
       private

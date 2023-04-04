@@ -24,7 +24,7 @@ module Api
     
       def destroy
         @specimen.void(params[:retired_reason])
-        render json: @specimen
+        render json: {message: MessageService::RECORD_DELETED}
       end
     
       private

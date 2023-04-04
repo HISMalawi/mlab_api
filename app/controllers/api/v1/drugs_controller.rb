@@ -24,7 +24,7 @@ module Api
     
       def destroy
         @drug.void(params[:retired_reason])
-        render json: @drug
+        render json: {message: MessageService::RECORD_DELETED}
       end
     
       private

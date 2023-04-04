@@ -25,7 +25,7 @@ module Api
     
       def destroy
         @department.void(params[:retired_reason])
-        render json: @department
+        render json: {message: MessageService::RECORD_DELETED}
       end
     
       private

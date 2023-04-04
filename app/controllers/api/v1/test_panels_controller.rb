@@ -25,7 +25,7 @@ module Api
     
       def destroy
        @test_panel = TestCatalog::TestPanelService.void_panel(@test_panel, params[:retired_reason])
-       render json: @test_panel
+       render json: {message: MessageService::RECORD_DELETED}
       end
     
       private

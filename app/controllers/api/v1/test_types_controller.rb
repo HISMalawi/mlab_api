@@ -29,7 +29,7 @@ module Api
     
       def destroy
         TestCatalog::TestTypes::DeleteService.void_test_type(@test_type, params[:retired_reason])
-        render json: @test_type
+        render json: {message: MessageService::RECORD_DELETED}
       end
     
       private
