@@ -4,8 +4,8 @@ module Api
       before_action :set_drug, only: [:show, :update, :destroy]
     
       def index
-        @drugs = Drug.all
-        render json: @drugs
+        @drugs = Drug.all.page(params[:page]).per(params[:per_page])
+        render json: {drugs: @drugs, meta: PaginationService.pagination_metadata(@drugs)}
       end
       
       def show
