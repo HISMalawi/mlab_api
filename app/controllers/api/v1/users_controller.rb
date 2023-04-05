@@ -7,7 +7,7 @@ module Api
       skip_before_action :authorize_request, only: [:login, :application_login]
     
       def index
-        @users = User.all.page(params[:page]).per(params[:per_page])
+        @users = User.all
         render json: UserManagement::UserService.serialize_users(@users)
       end
       
