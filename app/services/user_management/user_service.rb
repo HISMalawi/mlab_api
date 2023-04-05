@@ -8,7 +8,7 @@ module UserManagement
         ActiveRecord::Base.transaction do
           person = PersonService.create_person(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, date_of_birth: date_of_birth, birth_date_estimated: birth_date_estimated)
           user = User.new(person_id: person.id, username: username)
-          user.password = BCrypt::Password.create(password)
+          user.password_hash = password
           if user.save!
             roles.each do |role|
               create_role( user.id, role)
@@ -65,8 +65,8 @@ module UserManagement
         if !basic_authentication(user, old_password)
           raise ActiveRecord::RecordInvalid, "Your old password is incorrect"
         else
-          user.last_password_changed = user.password
-          user.password = BCrypt::Password.create(new_password)
+          user.last_password_changed = Time.now
+          user.password_hash = new_password
           user.save!
         end
       end
@@ -135,6 +135,7 @@ module UserManagement
           users_a.push({
             id: user.id,
             username: user.username,
+            is_active: user.is_active == 0 ? true : false,
             first_name: user.person.first_name,
             middle_name: user.person.middle_name,
             last_name: user.person.last_name,
