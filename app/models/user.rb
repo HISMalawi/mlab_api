@@ -9,12 +9,6 @@ class User < VoidableRecord
     self.is_active == 0
   end
 
-  def deactivate
-    self.is_active = 1
-    self.updated_by = User.current.id
-    self.save!
-  end
-
   def self.current
     Thread.current['current_user']
   end

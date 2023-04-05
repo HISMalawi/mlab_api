@@ -16,21 +16,26 @@ module Api
       end
     
       def create
-        @user = UserManagement::UserService.create_user(user_params)
+        birth_date_estimated = nil
+        unless params[:age].blank?
+          birth_date_estimated = UserManagement::UserService.calculate_birth_date_estimate(params[:age].to_i)
+        end
+        @user = UserManagement::UserService.create_user(first_name: params[:first_name], middle_name: params[:middle_name], last_name: params[:last_name], 
+          sex: params[:sex], date_of_birth: params[:date_of_birth], birth_date_estimated: birth_date_estimated,  username: params[:username], 
+          password: params[:password], roles: params[:roles], departments: params[:departments])
         render json: UserManagement::UserService.find_user(@user.id), status: :created
       end
     
       def update
-        UserManagement::UserService.update_user(@user, user_params)
-        unless @user.username == user_params[:user][:username]
-          UserManagement::UserService.change_username(@user, user_params[:user][:username])
+        if @user.update(params)
+          render json: @user
+        else
+          render json: @user.errors, status: :unprocessable_entity
         end
-        render json: UserManagement::UserService.find_user(@user.id)
       end
     
       def destroy
-        @user.deactivate
-        render json: {message: MessageService::RECORD_DELETED}
+        @user.destroy
       end
     
       def login
@@ -55,10 +60,6 @@ module Api
       def set_user
         @user = User.find(params[:id])
       end
-
-      def user_params
-        params.permit(user: %i[username password old_password], person: %i[first_name middle_name last_name sex date_of_birth], roles: [], departments: [])
-      end
     
       def run_validations
         unless params.has_key?('departments') && params[:departments].is_a?(Array)
@@ -70,7 +71,7 @@ module Api
       end
       
       def check_username
-        if UserManagement::UserService.username_exists?(params[:user][:username])
+        if UserManagement::UserService.username_exists?(params[:username])
           raise ActiveRecord::RecordNotUnique, "Username already exists"
         end
       end

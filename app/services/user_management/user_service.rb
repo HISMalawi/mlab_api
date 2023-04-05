@@ -4,18 +4,16 @@ module UserManagement
   module UserService 
   
     class << self
-      def create_user(user_params)
+      def create_user(first_name:, middle_name:, last_name:, sex:, date_of_birth:, birth_date_estimated:, username:, password:, roles:, departments:)
         ActiveRecord::Base.transaction do
-          person = Person.create!(user_params[:person])
-          user = User.new(user_params[:user])
-          user.person = person
-          user.is_active = 0
-          user.password_hash = user_params[:user][:password]
+          person = PersonService.create_person(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, date_of_birth: date_of_birth, birth_date_estimated: birth_date_estimated)
+          user = User.new(person_id: person.id, username: username)
+          user.password_hash = password
           if user.save!
-            user_params[:roles].each do |role|
+            roles.each do |role|
               create_role( user.id, role)
             end
-            user_params[:departments].each do |department|
+            departments.each do |department|
               create_department(user.id, department)
             end
             user
@@ -31,13 +29,14 @@ module UserManagement
         UserDepartmentMapping.create!(department_id: department_id, user_id: user_id)
       end
   
-      def update_user(user, user_params)
+      def update_user(user, params)
         ActiveRecord::Base.transaction do 
           person = user.person 
-          updated_person = person.update!(user_params[:person])
+          updated_person = PersonService.update_person(person: person, first_name: params[:first_name], middle_name: params[:middle_name], 
+            last_name: params[:last_name], sex: params[:sex], date_of_birth: params[:date_of_birth], birth_date_estimated: params[:birth_date_estimated])
           if updated_person
-            update_roles(user.id, user_params[:roles])
-            update_departments(user.id, user_params[:departments])
+            update_roles(user.id, params[:roles])
+            update_departments(user.id, params[:departments])
           end
           user
         end
@@ -61,6 +60,7 @@ module UserManagement
         end
       end
   
+  
       def update_password(user, old_password, new_password)
         if !basic_authentication(user, old_password)
           raise ActiveRecord::RecordInvalid, "Your old password is incorrect"
@@ -78,6 +78,24 @@ module UserManagement
             user.username = username
             user.save!
           end
+      end
+  
+      def calculate_birth_date_estimate(age)
+        Date.today - age.years
+      end
+  
+      def void_user(user, void_reason)
+        ActiveRecord::Base.transaction do
+          user.void(void_reason)
+          user_departments = UserDepartmentMapping.where(user_id: user.id)
+          user_departments.each do |user_department|
+            user_department.void(void_reason)
+          end
+          user_roles = UserRoleMapping.where(user_id: user.id)
+          user_roles.each do |user_role|
+            user_role.void(void_reason)
+          end
+        end
       end
   
       def find_user(id)
