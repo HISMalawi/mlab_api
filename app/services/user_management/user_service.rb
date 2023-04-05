@@ -62,8 +62,8 @@ module UserManagement
       end
   
       def update_password(user, old_password, new_password)
-        if !basic_authentication(user, old_password)
-          raise ActiveRecord::RecordInvalid, "Your old password is incorrect"
+        unless UserManagement::AuthService.basic_authentication(user, old_password)
+          raise ActiveRecord::RecordNotUnique, "Your old password is incorrect"
         else
           user.last_password_changed = Time.now
           user.password_hash = new_password
@@ -81,7 +81,7 @@ module UserManagement
       end
   
       def find_user(id)
-        user = User.joins(:person).select('users.id, username, first_name, middle_name, last_name, sex, date_of_birth, birth_date_estimated, users.voided, users.voided_reason').where(id: id).first
+        user = User.joins(:person).select('users.id, username, first_name, middle_name, last_name, sex, date_of_birth, birth_date_estimated, users.is_active, users.voided, users.voided_reason').where(id: id).first
         return nil if user.nil?
         roles = UserRoleMapping.joins(:user, :role).where(user_id: id).select('roles.id, roles.name, user_role_mappings.retired, user_role_mappings.retired_reason')
         departments = UserDepartmentMapping.joins(:user, :department).where(user_id: id).select('departments.id, departments.name, user_department_mappings.retired, user_department_mappings.retired_reason')
@@ -102,6 +102,7 @@ module UserManagement
           middle_name: user.middle_name,
           last_name: user.last_name,
           sex: user.sex,
+          is_active: user.is_active == 0 ? true : false,
           date_of_birth: user.date_of_birth,
           birth_date_estimated: user.birth_date_estimated,
           voided: user.voided,

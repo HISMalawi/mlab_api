@@ -25,6 +25,9 @@ module Api
         unless @user.username == user_params[:user][:username]
           UserManagement::UserService.change_username(@user, user_params[:user][:username])
         end
+        unless user_params[:user][:password].blank?
+          UserManagement::UserService.update_password(@user, user_params[:user][:old_password], user_params[:user][:password])
+        end
         render json: UserManagement::UserService.find_user(@user.id)
       end
     
