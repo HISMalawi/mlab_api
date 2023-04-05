@@ -38,7 +38,7 @@ module UserManagement
         role_privileges = RolePrivilegeMapping.joins(:privilege, :role).where(role_id: role.id).select('privileges.id, privileges.name')
         {
           id: role.id,
-          role: role.name,
+          name: role.name,
           privileges: role_privileges
         }
       end
