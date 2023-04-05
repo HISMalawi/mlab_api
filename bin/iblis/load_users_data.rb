@@ -19,7 +19,7 @@ ActiveRecord::Base.transaction do
       Rails.logger.info("=========Loading Person: #{user.name}===========")
       person = Person.create!(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at)
     end
-    if UserService.username_exists? user.username
+    if UserManagement::UserService.username_exists? user.username
       mlab_user = User.find_by_username(user.username)
     else
       Rails.logger.info("=========Loading User: #{user.username}===========")
@@ -40,6 +40,7 @@ ActiveRecord::Base.transaction do
         Role.create!(name: role.name, created_date: role.created_at, updated_date: role.updated_at, creator: mlab_user.id)
       end
     end
+
     # Load User Role mapping
     user_roles_sql = "SELECT distinct(u.username), r.name AS role FROM assigned_roles ar INNER JOIN roles r on r.id = ar.role_id 
                     INNER JOIN users u ON u.id=user_id WHERE u.name = '#{user.name.gsub("'", "\\\\'")}' AND u.updated_at = '#{user.updated_at}'"
@@ -72,6 +73,25 @@ ActiveRecord::Base.transaction do
       UserDepartmentMapping.create!(user_id: user, department_id: department.id, creator: user_.id) unless user.nil?
     end
   end
+
+  privileges = Iblis.find_by_sql("SELECT * FROM permissions")
+    privileges.each do |privilege|
+      if Privilege.find_by_name(privilege.name).nil?
+        Rails.logger.info("=========Loading Privilege: #{privilege.name}===========")
+        Privilege.create!(name: privilege.name, display_name: privilege.display_name, created_date: privilege.created_at, updated_date: privilege.updated_at, creator: user_.id)
+      end
+    end
+
+  role_privileges = Iblis.find_by_sql("SELECT r.name AS role, p.name AS privilege FROM permission_role pr INNER JOIN permissions p ON p.id = pr.permission_id INNER JOIN roles r ON r.id = pr.role_id")
+  role_privileges.each do |role_privilege|
+    role = Role.find_by_name(role_privilege.role)
+    privilege = Privilege.find_by_name(role_privilege.privilege)
+    if RolePrivilegeMapping.where(role_id: role.id, privilege_id: privilege.id).first.nil?
+      Rails.logger.info("=========Mapping Privilege: #{privilege.name} to Role: #{role.name}===========")
+      RolePrivilegeMapping.create!(role_id: role.id, privilege_id: privilege.id, creator: user_.id)
+    end
+  end
+
   Role.update_all(creator: user_.id)
   Person.update_all(creator: user_.id)
   User.update_all(creator: user_.id)
