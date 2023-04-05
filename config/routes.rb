@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       resources :specimen
       resources :roles
       resources :departments
+      resources :privileges
       resources :drugs
       resources :organisms
       resources :test_panels
