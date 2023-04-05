@@ -11,25 +11,19 @@ class Api::V1::PrivilegesController < ApplicationController
   end
 
   def create
-    @privilege = Privilege.new(privilege_params)
-
-    if @privilege.save
-      render json: @privilege, status: :created, location: [:api, :v1, @privilege]
-    else
-      render json: @privilege.errors, status: :unprocessable_entity
-    end
+    puts privilege_params
+    @privilege = Privilege.create!(privilege_params)
+    render json: @privilege, status: :created
   end
 
   def update
-    if @privilege.update(privilege_params)
-      render json: @privilege
-    else
-      render json: @privilege.errors, status: :unprocessable_entity
-    end
+    @privilege.update(privilege_params)
+    render json: @privilege
   end
 
   def destroy
-    @privilege.destroy
+    @privilege.void(params.require(:retired_reason))
+    render json: {message: Message::RECORD_DELETED}
   end
 
   private
@@ -39,6 +33,6 @@ class Api::V1::PrivilegesController < ApplicationController
   end
 
   def privilege_params
-    params.require(:privilege).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+    params.require(:privilege).permit(:name)
   end
 end
