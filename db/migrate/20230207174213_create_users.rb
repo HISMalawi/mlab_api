@@ -4,7 +4,7 @@ class CreateUsers < ActiveRecord::Migration[7.0]
       t.references :person, null: false, foreign_key: true
       t.string :username
       t.string :password
-      t.datetime :last_password_changed
+      t.string :last_password_changed
       t.integer :voided
       t.bigint :voided_by
       t.string :voided_reason
