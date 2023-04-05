@@ -8,7 +8,7 @@ class ApplicationController < ActionController::API
       errors = ['Authorization token required']
       raise UnAuthorized, errors
     end 
-    authorized_user = UserService.authenticate auth_token
+    authorized_user = UserManagement::AuthService.authenticate auth_token
     unless authorized_user
       errors = ['Invalid or expired authentication token']
       raise UnAuthorized, errors
