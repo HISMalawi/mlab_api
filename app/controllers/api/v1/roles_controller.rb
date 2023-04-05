@@ -1,35 +1,29 @@
 class Api::V1::RolesController < ApplicationController
   before_action :set_role, only: [:show, :update, :destroy]
+  before_action :check_privileges, only: [:create, :update]
 
   def index
     @roles = Role.all
-    render json: @roles
+    render json: UserManagement::RoleService.serialize_roles(@roles)
   end
   
   def show
-    render json: @role
+    render json: UserManagement::RoleService.serialize_role(@role)
   end
 
   def create
-    @role = Role.new(role_params)
-
-    if @role.save
-      render json: @role, status: :created, location: [:api, :v1, @role]
-    else
-      render json: @role.errors, status: :unprocessable_entity
-    end
+    @role = UserManagement::RoleService.create_role(role_params)
+    render json: UserManagement::RoleService.serialize_role(@role), status: :created
   end
 
   def update
-    if @role.update(role_params)
-      render json: @role
-    else
-      render json: @role.errors, status: :unprocessable_entity
-    end
+    UserManagement::RoleService.update_role(@role, role_params)
+    render json: UserManagement::RoleService.serialize_role(@role)
   end
 
   def destroy
-    @role.destroy
+    UserManagement::RoleService.delete_role(@role, params.require(:retired_reason))
+    render json: {message: MessageService::RECORD_DELETED}
   end
 
   private
@@ -39,6 +33,12 @@ class Api::V1::RolesController < ApplicationController
   end
 
   def role_params
-    params.require(:role).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+    params.permit(:name, privileges: [])
+  end
+
+  def check_privileges
+    unless params.has_key?('privileges') && params[:privileges].is_a?(Array)
+      raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for privileges"
+    end
   end
 end
