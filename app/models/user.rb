@@ -15,6 +15,12 @@ class User < VoidableRecord
     self.save!
   end
 
+  def activate
+    self.is_active = 0
+    self.updated_by = User.current.id
+    self.save!
+  end
+
   def self.current
     Thread.current['current_user']
   end
