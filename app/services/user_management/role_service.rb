@@ -27,6 +27,18 @@ module UserManagement
         end
       end
 
+      def update_permission(params)
+        params[:role_privileges].each do |role_privilege|
+          privileges = role_privilege[:privileges].each.with_object(:id).map(&:[])
+          RolePrivilegeMapping.where(role_id: role_privilege[:id]).where.not(privilege_id: privileges).each do |role_privilege_mapping|
+            role_privilege_mapping.void('Removed')
+          end
+          privileges.each do |privilege|
+            RolePrivilegeMapping.find_or_create_by!(role_id: role_privilege[:id], privilege_id: privilege)
+          end
+        end
+      end
+
       def delete_role(role, reason)
         role.void(reason)
         RolePrivilegeMapping.where(role_id: role).each do |role_privilege|
@@ -35,7 +47,7 @@ module UserManagement
       end
 
       def serialize_role(role)
-        role_privileges = RolePrivilegeMapping.joins(:privilege, :role).where(role_id: role.id).select('privileges.id, privileges.name')
+        role_privileges = RolePrivilegeMapping.joins(:privilege, :role).where(role_id: role.id).select('privileges.id, privileges.name, privileges.display_name')
         {
           id: role.id,
           name: role.name,
