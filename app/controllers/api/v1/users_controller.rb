@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      before_action :set_user, only: [:show, :update, :destroy]
+      before_action :set_user, only: [:show, :update, :destroy, :activate]
       before_action :run_validations, only: [:create, :update]
       before_action :check_username, only: [:create]
       skip_before_action :authorize_request, only: [:login, :application_login]
@@ -34,6 +34,11 @@ module Api
       def destroy
         @user.deactivate
         render json: {message: MessageService::RECORD_DELETED}
+      end
+
+      def activate
+        @user.activate
+        render json: {message: MessageService::RECORD_ACTIVATED}
       end
     
       def login

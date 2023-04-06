@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         collection do
           post '/login/' => 'users#login'
           get '/refresh_token/' => 'users#refresh_token'
+          put '/activate/:id' => 'users#activate'
         end
       end
       
