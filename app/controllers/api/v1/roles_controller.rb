@@ -21,6 +21,11 @@ class Api::V1::RolesController < ApplicationController
     render json: UserManagement::RoleService.serialize_role(@role)
   end
 
+  def update_permissions
+    UserManagement::RoleService.update_permission(params[:role_privileges])
+    render json: UserManagement::RoleService.serialize_roles(Role.all)
+  end
+
   def destroy
     UserManagement::RoleService.delete_role(@role, params.require(:retired_reason))
     render json: {message: MessageService::RECORD_DELETED}

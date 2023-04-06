@@ -4,7 +4,11 @@ Rails.application.routes.draw do
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       resources :specimen
-      resources :roles
+      resources :roles do
+        collection do
+         put '/update_permissions/' => 'roles#update_permissions'
+        end
+      end
       resources :departments
       resources :privileges
       resources :drugs
