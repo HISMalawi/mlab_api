@@ -27,8 +27,8 @@ module UserManagement
         end
       end
 
-      def update_permission(params)
-        params[:role_privileges].each do |role_privilege|
+      def update_permission(role_privileges)
+        role_privileges.each do |role_privilege|
           privileges = role_privilege[:privileges].each.with_object(:id).map(&:[])
           RolePrivilegeMapping.where(role_id: role_privilege[:id]).where.not(privilege_id: privileges).each do |role_privilege_mapping|
             role_privilege_mapping.void('Removed')
