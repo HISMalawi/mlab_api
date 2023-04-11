@@ -75,6 +75,7 @@ module UserManagement
           if username_exists?(username)
             raise ActiveRecord::RecordNotUnique, "Username already exists"
           else
+            raise ActionController::ParameterMissing, "for username" if username.blank?
             user.username = username
             user.save!
           end
