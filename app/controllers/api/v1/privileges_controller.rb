@@ -13,7 +13,6 @@ module Api
       end
     
       def create
-        puts privilege_params
         @privilege = Privilege.create!(privilege_params)
         render json: @privilege, status: :created
       end
