@@ -13,6 +13,9 @@ module ClientManagement
       def create_client(params)
         ActiveRecord::Base.transaction do
           person = Person.create!(params[:person])
+
+          # TO DO: HANDLE UUID and BIRTH DATE ESTIMATED
+          
           client = Client.create!(person_id: person.id, uuid: params[:client][:uuid])
           params[:client_identifiers].each do |identifier|
             client_identifier_type = ClientIdentifierType.find_by_name(identifier[:type])
