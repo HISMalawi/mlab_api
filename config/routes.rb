@@ -23,13 +23,14 @@ Rails.application.routes.draw do
       end
       resources :users do
         collection do
-          post '/login/' => 'users#login'
-          get '/refresh_token/' => 'users#refresh_token'
           put '/activate/:id' => 'users#activate'
           put 'change_password/:id' => 'users#update_password'
           put 'change_username/:id' => 'users#change_username'
         end
       end
+      post '/auth/login' => 'auth#login'
+      post '/auth/application_login' => 'auth#application_login'
+      get '/auth/refresh_token/' => 'auth#refresh_token'
       
     end
   end

@@ -4,7 +4,6 @@ module Api
       before_action :set_user, only: [:show, :update, :destroy, :activate, :change_username, :update_password]
       before_action :run_validations, only: [:create, :update]
       before_action :check_username, only: [:create]
-      skip_before_action :authorize_request, only: [:login, :application_login]
     
       def index
         @users = User.all.page(params[:page]).per(params[:per_page])
@@ -58,23 +57,6 @@ module Api
       def activate
         @user.activate
         render json: {message: MessageService::RECORD_ACTIVATED}
-      end
-    
-      def login
-        payload = UserManagement::AuthService.login(params[:username], params[:password], params[:department])
-        raise UnAuthorized, 'User is not authorized to access this department' if payload == false
-        raise UnAuthorized, 'Invalid username or password' if payload.nil?
-        render json: {authorization: payload}, status: :ok
-      end
-    
-      def application_login
-        payload = UserManagement::AuthService.application_login(params[:username], params[:password])
-        raise UnAuthorized, 'Invalid username or password' if payload.nil?
-        render json: {authorization: payload}, status: :ok
-      end
-    
-      def refresh_token
-        render json: {authorization: UserManagement::AuthService.refresh_token}, status: :ok
       end
     
       private
