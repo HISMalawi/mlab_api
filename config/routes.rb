@@ -30,7 +30,11 @@ Rails.application.routes.draw do
           put 'change_username/:id' => 'users#change_username'
         end
       end
-      
+      resources :clients do
+        collection do
+          get '/identifier_types/' => 'clients#identifier_types'
+        end
+      end
     end
   end
 end
