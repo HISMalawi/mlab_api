@@ -53,3 +53,13 @@ production:
   database: mlab_api_production
   username: mlab_api
   password: <%= ENV["MLAB_API_DATABASE_PASSWORD"] %>
+
+iblis_db:
+  host: 127.0.0.1
+  adapter: mysql2
+  username: username
+  password: password
+  port: 3305
+  encoding: utf8
+  database: iblis
+  pool: 5

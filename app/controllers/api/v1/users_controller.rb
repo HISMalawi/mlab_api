@@ -1,7 +1,7 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      before_action :set_user, only: [:show, :update, :destroy, :activate]
+      before_action :set_user, only: [:show, :update, :destroy, :activate, :change_username, :update_password]
       before_action :run_validations, only: [:create, :update]
       before_action :check_username, only: [:create]
       skip_before_action :authorize_request, only: [:login, :application_login]
@@ -29,6 +29,25 @@ module Api
           UserManagement::UserService.update_password(@user, user_params[:user][:old_password], user_params[:user][:password])
         end
         render json: UserManagement::UserService.find_user(@user.id)
+      end
+
+      def update_password
+        if @user.id == User.current.id
+          raise ActionController::ParameterMissing, "for password" if params[:user][:password].blank?
+          UserManagement::UserService.update_password(@user, user_params[:user][:old_password], user_params[:user][:password])
+          render json: UserManagement::UserService.find_user(@user.id)
+        else
+          raise UnAuthorized, 'User not equal to logged in user'
+        end
+      end
+
+      def change_username
+        if @user.id == User.current.id
+          UserManagement::UserService.change_username(@user, user_params[:user][:username])
+          render json: UserManagement::UserService.find_user(@user.id)
+        else
+          raise UnAuthorized, 'User not equal to logged in user'
+        end
       end
     
       def destroy
