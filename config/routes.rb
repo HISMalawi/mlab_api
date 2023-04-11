@@ -26,6 +26,8 @@ Rails.application.routes.draw do
           post '/login/' => 'users#login'
           get '/refresh_token/' => 'users#refresh_token'
           put '/activate/:id' => 'users#activate'
+          put 'change_password/:id' => 'users#update_password'
+          put 'change_username/:id' => 'users#change_username'
         end
       end
       
