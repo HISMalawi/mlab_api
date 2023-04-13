@@ -5,7 +5,11 @@ module Api
       before_action :validate_params, only: [:update, :create]
     
       def index
-        @clients = Client.all.page(params[:page]).per(params[:per_page])
+        if params[:search].blank?
+          @clients = Client.all.order(id: :desc).page(params[:page]).per(params[:per_page])
+        else
+          @clients = ClientManagement::ClientService.search_client(params[:search], params[:page], params[:per_page])
+        end
         render json: {
           clients: ClientManagement::ClientService.serialize_clients(@clients), 
           meta: PaginationService.pagination_metadata(@clients)

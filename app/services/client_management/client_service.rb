@@ -51,6 +51,11 @@ module ClientManagement
         end
       end
 
+      def search_client(client_name, page, per_page)
+        people  = Person.search(client_name)
+        Client.joins(:person).where(person_id: people).order(id: :desc).page(page).per(per_page)
+      end
+
       def serialize_client(client, person, client_identifiers)
         client_hash = {
           client_id: client.id,
@@ -73,7 +78,7 @@ module ClientManagement
         clients.each do |client|
           client_all << get_client(client.id)
         end
-        client_all.sort_by! { |e| [e['last_name'], e['first_name']] }.reverse
+        client_all
       end
 
     end
