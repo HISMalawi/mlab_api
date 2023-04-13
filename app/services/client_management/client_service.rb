@@ -53,7 +53,7 @@ module ClientManagement
 
       def search_client(client_name, page, per_page)
         people  = Person.search(client_name)
-        Client.joins(:person).where(person_id: people).order(id: :desc).page(page).per(per_page)
+        Client.joins(:person).where(person_id: people).order(id: :desc).page().per(per_page)
       end
 
       def serialize_client(client, person, client_identifiers)
