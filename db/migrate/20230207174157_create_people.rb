@@ -6,7 +6,7 @@ class CreatePeople < ActiveRecord::Migration[7.0]
       t.string :last_name
       t.string :sex
       t.date :date_of_birth
-      t.integer :birth_date_estimated
+      t.boolean :birth_date_estimated
       t.integer :voided
       t.bigint :voided_by
       t.string :voided_reason
@@ -14,7 +14,6 @@ class CreatePeople < ActiveRecord::Migration[7.0]
       t.bigint :creator
       t.datetime :created_date
       t.datetime :updated_date
-
       
     end
   end
