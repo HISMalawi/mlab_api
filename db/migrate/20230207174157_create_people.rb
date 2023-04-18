@@ -13,9 +13,9 @@ class CreatePeople < ActiveRecord::Migration[7.0]
       t.datetime :voided_date
       t.bigint :creator
       t.datetime :created_date
-      t.bigint :updated_date
+      t.datetime :updated_date
 
-      t.timestamps
+      
     end
   end
 end

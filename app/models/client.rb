@@ -1,3 +1,3 @@
-class Client < ApplicationRecord
+class Client < VoidableRecord
   belongs_to :person
 end

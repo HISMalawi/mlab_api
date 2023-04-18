@@ -1,3 +1,3 @@
-class ClientOrderPrintTrail < ApplicationRecord
+class ClientOrderPrintTrail < VoidableRecord
   belongs_to :order
 end

@@ -5,8 +5,8 @@ class CreateTestIndicatorRanges < ActiveRecord::Migration[7.0]
       t.integer :min_age
       t.integer :max_age
       t.string :sex
-      t.bigint :lower_range
-      t.bigint :upper_range
+      t.decimal :lower_range, precision: 65, scale: 4
+      t.decimal :upper_range, precision: 65, scale: 4
       t.string :interpretation
       t.string :value
       t.integer :retired
@@ -17,7 +17,7 @@ class CreateTestIndicatorRanges < ActiveRecord::Migration[7.0]
       t.datetime :created_date
       t.datetime :updated_date
 
-      t.timestamps
+      
     end
   end
 end

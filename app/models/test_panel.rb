@@ -1,2 +1,3 @@
-class TestPanel < ApplicationRecord
+class TestPanel < RetirableRecord
+  validates :name, uniqueness: true, presence: true
 end

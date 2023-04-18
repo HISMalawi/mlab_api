@@ -1,2 +1,2 @@
-class Instrument < ApplicationRecord
+class Instrument < RetirableRecord
 end

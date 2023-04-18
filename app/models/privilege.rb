@@ -1,2 +1,2 @@
-class Privilege < ApplicationRecord
+class Privilege < RetirableRecord
 end

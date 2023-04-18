@@ -1,2 +1,3 @@
-class Priority < ApplicationRecord
+class Priority < RetirableRecord
+  
 end
