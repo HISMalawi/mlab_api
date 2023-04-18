@@ -1,44 +1,63 @@
-class Api::V1::ClientsController < ApplicationController
-  before_action :set_client, only: [:show, :update, :destroy]
+module Api
+  module V1
+    class ClientsController < ApplicationController
+      before_action :set_client, only: [:show, :update, :destroy]
+      before_action :validate_params, only: [:update, :create]
+    
+      def index
+        if params[:search].blank?
+          @clients = Client.all.order(id: :desc).page(params[:page]).per(params[:per_page])
+        else
+          @clients = ClientManagement::ClientService.search_client(params[:search], params[:page], params[:per_page])
+        end
+        render json: {
+          clients: ClientManagement::ClientService.serialize_clients(@clients), 
+          meta: PaginationService.pagination_metadata(@clients)
+        }
+      end
 
-  def index
-    @clients = Client.all
-    render json: @clients
-  end
-  
-  def show
-    render json: @client
-  end
-
-  def create
-    @client = Client.new(client_params)
-
-    if @client.save
-      render json: @client, status: :created, location: [:api, :v1, @client]
-    else
-      render json: @client.errors, status: :unprocessable_entity
+      def identifier_types
+        @identifier_types = ClientIdentifierType.all.pluck('id, name')
+        render json: @identifier_types
+      end
+      
+      def show
+        render json: ClientManagement::ClientService.get_client(@client.id)
+      end
+    
+      def create
+        @client = ClientManagement::ClientService.create_client(client_params)
+        render json: ClientManagement::ClientService.get_client(@client.id), status: :created
+      end
+    
+      def update
+        ClientManagement::ClientService.update_client(@client, client_params)
+        render json: ClientManagement::ClientService.get_client(@client.id)
+      end
+    
+      def destroy
+        ClientManagement::ClientService.void_client(@client, params.require(:reason))
+        render json: {message: MessageService::RECORD_DELETED}
+      end
+    
+      private
+    
+      def set_client
+        @client = Client.find(params[:id])
+      end
+    
+      def client_params
+        params.permit(client: %i[uuid], 
+          person: %i[first_name middle_name last_name sex date_of_birth birth_date_estimated], 
+          client_identifiers: [:type, :value])
+      end
+      
+      def validate_params
+        unless params.has_key?('client_identifiers') && params[:client_identifiers].is_a?(Array)
+          raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for client_identifiers"
+        end
+      end
     end
-  end
-
-  def update
-    if @client.update(client_params)
-      render json: @client
-    else
-      render json: @client.errors, status: :unprocessable_entity
-    end
-  end
-
-  def destroy
-    @client.destroy
-  end
-
-  private
-
-  def set_client
-    @client = Client.find(params[:id])
-  end
-
-  def client_params
-    params.require(:client).permit(:person_id, :uuid, :voided, :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date)
+    
   end
 end

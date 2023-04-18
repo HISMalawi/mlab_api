@@ -1,9 +1,15 @@
+# frozen_string_literal: true
+
 module ExceptionHandler
   extend ActiveSupport::Concern
   included do 
     rescue_from ActiveRecord::RecordNotFound do |e|
       Rails.logger.error("Record not found: #{e.message}")
       render json: {error: MessageService::RECORD_NOT_FOUND}, status: :not_found
+    end
+
+    rescue_from UnAuthorized do |e|
+      render json: { error: e.message }, status: :unauthorized
     end
 
     rescue_from ActiveRecord::RecordInvalid do |e|

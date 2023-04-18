@@ -16,7 +16,7 @@ module TestCatalog
               id: value,
               name: key.gsub('_', ' ').titleize
             }
-            types.push(data)
+            types << data
           end
           types
         end

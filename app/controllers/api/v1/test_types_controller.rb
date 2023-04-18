@@ -5,8 +5,12 @@ module Api
       before_action :check_specimen_indicator_params, only: [:create, :update]
     
       def index
-        @test_types = TestType.all
-        render json: @test_types
+        if params[:search].blank?
+          @test_types = TestType.all.order(:name).page(params[:page]).per(params[:per_page])
+        else
+          @test_types = TestType.search(params[:search]).order(:name).page().per(params[:per_page])
+        end
+        render json: { test_types: @test_types, meta: PaginationService.pagination_metadata(@test_types)}
       end
       
       def test_indicator_types

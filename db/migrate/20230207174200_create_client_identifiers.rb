@@ -11,8 +11,6 @@ class CreateClientIdentifiers < ActiveRecord::Migration[7.0]
       t.bigint :creator
       t.datetime :created_date
       t.datetime :updated_date
-      t.string :uuid
-
       
     end
   end

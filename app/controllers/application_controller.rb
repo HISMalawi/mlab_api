@@ -6,14 +6,12 @@ class ApplicationController < ActionController::API
     auth_token = request.headers['Authorization']
     unless auth_token
       errors = ['Authorization token required']
-      render json: { errors: errors }, status: :unauthorized
-      return false
+      raise UnAuthorized, errors
     end 
-    authorized_user = UserService.authenticate auth_token
+    authorized_user = UserManagement::AuthService.authenticate auth_token
     unless authorized_user
       errors = ['Invalid or expired authentication token']
-      render json: { errors: errors }, status: :unauthorized
-      return false
+      raise UnAuthorized, errors
     end
     User.current = authorized_user
     true

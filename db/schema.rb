@@ -37,7 +37,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
-    t.string "uuid"
     t.bigint "updated_by"
     t.index ["client_id"], name: "index_client_identifiers_on_client_id"
     t.index ["client_identifier_type_id"], name: "index_client_identifiers_on_client_identifier_type_id"
@@ -282,7 +281,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
     t.string "last_name"
     t.string "sex"
     t.date "date_of_birth"
-    t.integer "birth_date_estimated"
+    t.boolean "birth_date_estimated"
     t.integer "voided"
     t.bigint "voided_by"
     t.string "voided_reason"
@@ -312,7 +311,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
   end
 
   create_table "privileges", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.bigint "name"
+    t.string "name"
+    t.string "display_name"
     t.integer "retired"
     t.bigint "retired_by"
     t.string "retired_reason"
@@ -638,7 +638,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
     t.bigint "person_id", null: false
     t.string "username"
     t.string "password"
-    t.string "last_password_changed"
+    t.datetime "last_password_changed"
     t.integer "voided"
     t.bigint "voided_by"
     t.string "voided_reason"
