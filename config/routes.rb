@@ -31,7 +31,6 @@ Rails.application.routes.draw do
       post '/auth/login' => 'auth#login'
       post '/auth/application_login' => 'auth#application_login'
       get '/auth/refresh_token/' => 'auth#refresh_token'
-      end
       resources :clients do
         collection do
           get '/identifier_types/' => 'clients#identifier_types'
