@@ -8,7 +8,7 @@ module Api
         if params[:search].blank?
           @clients = Client.all.order(id: :desc).page(params[:page]).per(params[:per_page])
         else
-          @clients = ClientManagement::ClientService.search_client(params[:search], params[:page], params[:per_page])
+          @clients = ClientManagement::ClientService.search_client(params[:search], params[:per_page])
         end
         render json: {
           clients: ClientManagement::ClientService.serialize_clients(@clients), 
