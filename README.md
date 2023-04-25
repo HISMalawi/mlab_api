@@ -13,6 +13,7 @@ cp database.yml.example database.yml
 ```
 ```
 Edit the default database in database.yml and iblis_db block 
+Create the db specified in iblis_db block and load the old iblis dump
 ```
 
 * Database creation
