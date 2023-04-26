@@ -2,7 +2,13 @@ class Api::V1::InstrumentsController < ApplicationController
   before_action :set_instrument, only: [:show, :update, :destroy]
 
   def index
-    @instruments = Instrument.all
+    page, page_size = pagination.values_at(:page, :page_size)
+    total = Instrument.count
+    @instruments = {page: page.to_i,
+                    page_size: page_size.to_i,
+                    total: total.to_i,
+                    data: Instrument.limit(page_size.to_i).offset(page.to_i - 1).all}
+
     render json: @instruments
   end
   
@@ -11,6 +17,7 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def create
+    debugger
     @instrument = Instrument.new(instrument_params)
 
     if @instrument.save
@@ -29,7 +36,7 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def destroy
-    @instrument.destroy
+    @instrument.update(retired: true, retired_by: 1)
   end
 
   private
@@ -39,6 +46,12 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def instrument_params
-    params.require(:instrument).permit(:name, :description, :ip_address, :hostname, :retired, :retired_by, :retired_reason, :retired_date, :creator, :created_date, :updated_date)
+    params.require(:name)
+    params.permit(:name, :description, :ip_address, :hostname, :retired, :retired_by, :retired_reason, :retired_date, :creator, :created_date, :updated_date)
+  end
+
+  def pagination
+    params.require([:page, :page_size])
+    {page: params[:page], page_size: params[:page_size]}
   end
 end

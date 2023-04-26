@@ -9,6 +9,7 @@ Rails.application.routes.draw do
          put '/update_permissions/' => 'roles#update_permissions'
         end
       end
+      resources :instruments
       resources :departments
       resources :privileges
       resources :drugs
