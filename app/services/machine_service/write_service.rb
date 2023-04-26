@@ -21,16 +21,24 @@ module MachineService
     private
 
     def read_json_file
-      ReadingService.new(accession_number: order.accession_number).read_json_file
+      ReadingService.new(accession_number: order.accession_number).read
     end
 
     def write_to_disk
-      create_directory unless check_directory?
-      create_file unless file_exists?
+      process_file
       to_write = read_json_file
-      to_write[order.accession_number] = {} unless to_write[order.accession_number]
+      init_hash(to_write)
       write_measure(hash: to_write[order.accession_number], measure_id:, result:)
       File.write("./tmp/machine_results/#{order.accession_number}.json", JSON.dump(to_write))
+    end
+
+    def init_hash(hash)
+      hash[order.accession_number] = {} unless hash[order.accession_number]
+    end
+
+    def process_file
+      create_directory unless check_directory?
+      create_file unless file_exists?
     end
 
     def write_measure(hash:, measure_id:, result:)
