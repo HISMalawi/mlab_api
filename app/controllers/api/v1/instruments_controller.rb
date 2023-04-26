@@ -4,9 +4,9 @@ class Api::V1::InstrumentsController < ApplicationController
   def index
     page, page_size, search = pagination.values_at(:page, :page_size, :search)
     if search.blank?
-      data = Instrument.limit(page_size.to_i).offset(page.to_i - 1).all
+      data = Instrument.limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i).all
     else
-      data = Instrument.where("name like #{search}%").limit(page_size.to_i).offset(page.to_i - 1)
+      data = Instrument.where("name like #{search}%").limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i)
     end
 
     total = Instrument.count
