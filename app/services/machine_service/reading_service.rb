@@ -6,7 +6,7 @@ module MachineService
     attr_accessor :order
 
     def initialize(accession_number:)
-      @order = Order.find_by!(accession_number:)
+      @order = Order.find_by!(accession_number:) # OpenStruct.new({ accession_number: })
     end
 
     def read
@@ -21,7 +21,7 @@ module MachineService
       JSON.parse(file)
     rescue JSON::ParserError => e
       Rails.logger.error(e)
-      {}
+      []
     end
   end
 end

@@ -6,7 +6,7 @@ module MachineService
     attr_accessor :order, :machine_name, :measure_id, :result
 
     def initialize(specimen_id:, machine_name:, measure_id:, result:)
-      @order = Order.find_by!(accession_number: specimen_id)
+      @order = Order.find_by!(accession_number: specimen_id) # OpenStruct.new({ accession_number: specimen_id })
       @machine_name = machine_name
       @measure_id = measure_id
       @result = result
@@ -27,13 +27,16 @@ module MachineService
     def write_to_disk
       process_file
       to_write = read_json_file
-      init_hash(to_write)
-      write_measure(hash: to_write[order.accession_number], measure_id:, result:)
+      process_hash(hash: to_write)
       File.write("./tmp/machine_results/#{order.accession_number}.json", JSON.dump(to_write))
     end
 
-    def init_hash(hash)
-      hash[order.accession_number] = {} unless hash[order.accession_number]
+    def process_hash(hash:)
+      if check_indicator_exists?(hash:)
+        update_indicator(hash:)
+      else
+        write_measure(hash:)
+      end
     end
 
     def process_file
@@ -41,12 +44,29 @@ module MachineService
       create_file unless file_exists?
     end
 
-    def write_measure(hash:, measure_id:, result:)
-      hash[measure_id.to_s] = {
-        value: result,
+    def write_measure(hash:)
+      hash << {
+        indicator_id: @measure_id,
+        value: @result,
         machine_name:,
-        indicator_name: TestIndicator.find_by(id: measure_id)&.name
+        indicator_name: TestIndicator.find_by(id: @measure_id)&.name
       }
+    end
+
+    def check_indicator_exists?(hash:)
+      hash.each do |h|
+        return true if h['indicator_id'] == measure_id && h['machine_name'] == machine_name
+      end
+      false
+    end
+
+    def update_indicator(hash:)
+      hash.each do |h|
+        next unless h['indicator_id'] == measure_id && h['machine_name'] == machine_name
+
+        h['value'] = result
+        break
+      end
     end
 
     def check_directory?
