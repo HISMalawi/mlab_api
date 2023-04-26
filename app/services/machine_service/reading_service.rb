@@ -6,7 +6,7 @@ module MachineService
     attr_accessor :order
 
     def initialize(accession_number:)
-      @order = OpenStruct.new({ accession_number: }) # Order.find_by!(accession_number:)
+      @order = Order.find_by!(accession_number:)
     end
 
     def read

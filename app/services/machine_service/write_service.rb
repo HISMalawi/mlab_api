@@ -6,7 +6,7 @@ module MachineService
     attr_accessor :order, :machine_name, :measure_id, :result
 
     def initialize(specimen_id:, machine_name:, measure_id:, result:)
-      @order = OpenStruct.new({ accession_number: specimen_id }) # Order.find_by!(accession_number: specimen_id)
+      @order = Order.find_by!(accession_number: specimen_id)
       @machine_name = machine_name
       @measure_id = measure_id
       @result = result
