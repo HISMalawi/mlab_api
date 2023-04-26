@@ -1,24 +1,28 @@
 # README
-
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
+SETUP MLAB API
+* Ruby version  
+```
+3.2.0
+```
 * System dependencies
-
+```
+bundle install
+```
 * Configuration
+```
+cd config 
+cp database.yml.example database.yml
+```
+```
+Edit the default database in database.yml and iblis_db block 
+Create the db specified in iblis_db block and load the old iblis dump
+```
 
 * Database creation
-
+```
+rails db:create && rails db:migrate
+```
 * Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```
+bash load_iblis_data.sh 
+```
