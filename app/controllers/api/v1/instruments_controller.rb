@@ -2,12 +2,18 @@ class Api::V1::InstrumentsController < ApplicationController
   before_action :set_instrument, only: [:show, :update, :destroy]
 
   def index
-    page, page_size = pagination.values_at(:page, :page_size)
+    page, page_size, search = pagination.values_at(:page, :page_size, :search)
+    if search.blank?
+      data = Instrument.limit(page_size.to_i).offset(page.to_i - 1).all
+    else
+      data = Instrument.where("name like #{search}%").limit(page_size.to_i).offset(page.to_i - 1)
+    end
+
     total = Instrument.count
     @instruments = {page: page.to_i,
                     page_size: page_size.to_i,
                     total: total.to_i,
-                    data: Instrument.limit(page_size.to_i).offset(page.to_i - 1).all}
+                    data: data}
 
     render json: @instruments
   end
@@ -17,7 +23,6 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def create
-    debugger
     @instrument = Instrument.new(instrument_params)
 
     if @instrument.save
@@ -52,6 +57,7 @@ class Api::V1::InstrumentsController < ApplicationController
 
   def pagination
     params.require([:page, :page_size])
-    {page: params[:page], page_size: params[:page_size]}
+    params.permit(:search)
+    {page: params[:page], page_size: params[:page_size], search: params[:search]}
   end
 end
