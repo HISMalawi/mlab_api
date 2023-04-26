@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_26_091254) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -652,6 +652,17 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
     t.index ["person_id"], name: "index_users_on_person_id"
     t.index ["updated_by"], name: "fk_rails_8c1436a35d"
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
+  end
+
+  create_table "visit_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.integer "retired"
+    t.bigint "retired_by"
+    t.string "retired_reason"
+    t.datetime "retired_date"
+    t.bigint "creator"
+    t.datetime "created_date"
+    t.datetime "updated_date"
   end
 
   add_foreign_key "client_identifier_types", "users", column: "creator"
