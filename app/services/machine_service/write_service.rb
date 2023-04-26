@@ -6,7 +6,7 @@ module MachineService
     attr_accessor :order, :machine_name, :measure_id, :result
 
     def initialize(specimen_id:, machine_name:, measure_id:, result:)
-      @order = Order.find_by(accession_number: specimen_id)
+      @order = OpenStruct.new({ accession_number: specimen_id }) # Order.find_by!(accession_number: specimen_id)
       @machine_name = machine_name
       @measure_id = measure_id
       @result = result
@@ -15,7 +15,7 @@ module MachineService
     def write
       return unless order.present?
 
-      write_to_machine
+      write_to_disk
     end
 
     private
@@ -27,11 +27,18 @@ module MachineService
     def write_to_disk
       create_directory unless check_directory?
       create_file unless file_exists?
-
       to_write = read_json_file
-      to_write[order.accession_number.to_s][measure_id.to_s] = result if measure_id
-      to_write['machine_name'] = machine_name if machine_name
+      to_write[order.accession_number] = {} unless to_write[order.accession_number]
+      write_measure(hash: to_write[order.accession_number], measure_id:, result:)
       File.write("./tmp/machine_results/#{order.accession_number}.json", JSON.dump(to_write))
+    end
+
+    def write_measure(hash:, measure_id:, result:)
+      hash[measure_id.to_s] = {
+        value: result,
+        machine_name:,
+        indicator_name: TestIndicator.find_by(id: measure_id)&.name
+      }
     end
 
     def check_directory?
@@ -49,6 +56,7 @@ module MachineService
     def file_exists?
       # check if the file exists
       file = File.join(Rails.root, 'tmp', 'machine_results', "#{order.accession_number}.json")
+      puts file
       File.exist?(file)
     end
 
