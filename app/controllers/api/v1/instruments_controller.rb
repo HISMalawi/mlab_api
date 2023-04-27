@@ -33,7 +33,7 @@ class Api::V1::InstrumentsController < ApplicationController
     if @instrument.save
       render json: @instrument, status: :created, location: [:api, :v1, @instrument]
     else
-      render json: @instrument.errors, status: :unprocessable_entity
+      render json: { errors: @instrument.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
@@ -41,7 +41,7 @@ class Api::V1::InstrumentsController < ApplicationController
     if @instrument.update(instrument_params)
       render json: @instrument
     else
-      render json: @instrument.errors, status: :unprocessable_entity
+      render json: { errors: @instrument.errors.full_messages }, status: :unprocessable_entity
     end
   end
 
@@ -51,7 +51,7 @@ class Api::V1::InstrumentsController < ApplicationController
    if @instrument.update(destroy_data)
      render json: {message: 'Deletion Sucessful'}, status: :no_content and return
    else
-    render json: @instrument.errors.full_messages, status: :unprocessable_entity
+    render json: { errors: @instrument.errors.full_messages }, status: :unprocessable_entity
    end
   end
 
