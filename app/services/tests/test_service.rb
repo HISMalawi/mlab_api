@@ -17,7 +17,7 @@ module Tests
             end
             
             def search_by_client(tests,query)
-                clients = client_service.search_client(query, 100)
+                clients = client_service.search_client(query, 1000)
                 return tests unless clients.present?
                 tests.or(Test.where("clients.id IN (?)", clients.map(&:id))) if clients.present? 
             end
