@@ -4,8 +4,20 @@ class Test < VoidableRecord
   belongs_to :test_type
   has_many :test_status
 
-  def as_json(options= {})
-    super(options.merge(methods: %i[accession_number tracking_number requested_by test_type_name expected_turn_around_time patient_name status]))
+  def as_json(options = {})
+    super(options.merge(methods: %i[request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
+  end
+
+  def request_origin
+    EncounterType.find(order.encounter.encounter_type_id).name
+  end
+
+  def requesting_ward
+    order.encounter.facility_section.name
+  end
+
+  def specimen_type
+    specimen&.name
   end
 
   def status
@@ -36,7 +48,7 @@ class Test < VoidableRecord
     test_type.expected_turn_around_time
   end
 
-  def patient_name
-    order.encounter.client.person.fullname
+  def client
+    order.encounter.client
   end
 end
