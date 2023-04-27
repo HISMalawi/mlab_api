@@ -34,6 +34,7 @@ Rails.application.routes.draw do
       resources :clients do
         collection do
           get '/identifier_types/' => 'clients#identifier_types'
+          get '/search_dde' => 'clients#dde_search_client'
         end
       end
     end
