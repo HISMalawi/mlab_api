@@ -4,22 +4,25 @@ class Api::V1::InstrumentsController < ApplicationController
   def index
     page, page_size, search = pagination.values_at(:page, :page_size, :search)
     if search.blank?
-      data = Instrument.limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i).all
+      data = Instrument.limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i)
     else
-      data = Instrument.where("name like #{search}%").limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i)
+      filtered = Instrument.where("name LIKE ?", "%#{search}%").count
+      data = Instrument.where("name LIKE ?", "%#{search}%").offset((page.to_i - 1) * page_size.to_i).limit(page_size.to_i)
     end
 
-    total = Instrument.count
+    total = Instrument.count    
+    
     @instruments = {page: page.to_i,
                     page_size: page_size.to_i,
                     total: total.to_i,
-                    data: data}
+                    filtered: filtered || 0,
+                    data: payload(data.as_json)}
 
     render json: @instruments
   end
   
   def show
-    render json: @instrument
+    render json: payload([@instrument.as_json])
   end
 
   def create
@@ -59,5 +62,9 @@ class Api::V1::InstrumentsController < ApplicationController
     params.require([:page, :page_size])
     params.permit(:search)
     {page: params[:page], page_size: params[:page_size], search: params[:search]}
+  end
+
+  def payload(data)
+    data.map { |instrument| instrument.slice('name', 'description', 'ip_address', 'hostname', 'can_perform', 'created_date')}
   end
 end
