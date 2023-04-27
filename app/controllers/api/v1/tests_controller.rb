@@ -39,6 +39,7 @@ class Api::V1::TestsController < ApplicationController
   end
 
   def test_params
-    params.require(:test).permit(:specimen_id, :order_id, :test_type_id, :voided, :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date)
+    params.require(:test).permit(:specimen_id, :order_id, :test_type_id, :voided, 
+    :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date)
   end
 end
