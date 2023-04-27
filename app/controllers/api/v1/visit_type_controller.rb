@@ -1,4 +1,6 @@
-class Api::V1::VisitTypeController < ApplicationController
+module Api
+  module V1
+    class VisitTypeController < ApplicationController
     before_action :set_visit_type, only: [:show, :update, :destroy]
 
     def index
@@ -10,8 +12,7 @@ class Api::V1::VisitTypeController < ApplicationController
         render json: @visit_type
     end
     
-    def create
-     
+    def create     
       @visit_type = VisitType.new(visit_type_params)
 
       if @visit_type.save
@@ -22,7 +23,7 @@ class Api::V1::VisitTypeController < ApplicationController
     end
 
     def update
-      if @visit_type.update(name: visit_type_params)
+      if @visit_type.update(visit_type_params)
         render json: @visit_type
       else
         render json: @visit_type.errors, status: :unprocessable_entity
