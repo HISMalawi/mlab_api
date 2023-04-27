@@ -44,7 +44,13 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def destroy
-    @instrument.update(retired: true, retired_by: 1)
+    destroy_data = destroy_params
+   
+   if @instrument.update(destroy_data)
+     render json: 'Deletion Sucessful', status: :no_content
+   else
+    render json: @instrument.errors, status: :unprocessable_entity
+   end
   end
 
   private
@@ -66,5 +72,14 @@ class Api::V1::InstrumentsController < ApplicationController
 
   def payload(data)
     data.map { |instrument| instrument.slice('name', 'description', 'ip_address', 'hostname', 'can_perform', 'created_date')}
+  end
+
+  def destroy_params
+    params.require(:retired_reason)
+    {retired_reason: params[:retired_reason], retired_by: user.to_i}
+  end
+
+  def user
+    UserManagement::AuthService.jwt_token_decode(request.headers['Authorization'].split.last)['user_id']
   end
 end
