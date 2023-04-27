@@ -9,7 +9,7 @@ class Test < VoidableRecord
   end
 
   def request_origin
-    order.encounter.encounter_type.name
+    EncounterType.find(order.encounter.encounter_type_id).name
   end
 
   def requesting_ward
