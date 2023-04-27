@@ -71,7 +71,7 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def payload(data)
-    data.map { |instrument| instrument.slice('name', 'description', 'ip_address', 'hostname', 'can_perform', 'created_date')}
+    data.map { |instrument| instrument.slice('id', 'name', 'description', 'ip_address', 'hostname', 'can_perform', 'created_date')}
   end
 
   def destroy_params
