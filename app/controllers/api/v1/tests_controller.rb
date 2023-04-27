@@ -2,8 +2,7 @@ class Api::V1::TestsController < ApplicationController
   before_action :set_test, only: [:show, :update, :destroy]
 
   def index
-    @tests = Test.all
-    render json: @tests
+    render json: paginate(test_service.find_tests(params[:search]))
   end
   
   def show
@@ -38,7 +37,11 @@ class Api::V1::TestsController < ApplicationController
     @test = Test.find(params[:id])
   end
 
+  def test_service
+    Tests::TestService.new
+  end
+
   def test_params
-    params.require(:test).permit(:specimen_id, :order_id, :test_type_id, :voided, :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date)
+    params.permit(:specimen_id, :order_id, :test_type_id, :voided, :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date)
   end
 end
