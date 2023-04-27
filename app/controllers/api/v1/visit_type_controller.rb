@@ -40,6 +40,6 @@ class Api::V1::VisitTypeController < ApplicationController
     end
 
     def visit_type_params
-      params.require(:name)
+      params.require(:visit_type).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :created_date, :updated_date)
     end
 end
