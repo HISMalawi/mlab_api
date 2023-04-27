@@ -4,7 +4,7 @@ module Api
   module V1
     # Interfacer Controller
     class InterfacerController < ApplicationController
-      skip_before_action :authorize_request, only: [:update]
+      skip_before_action :authorize_request, only: [:create]
       before_action :authenticate_driver
 
       def fetch_results
@@ -13,10 +13,10 @@ module Api
 
       def result_available
         result = read_service.new(accession_number: params[:accession_number]).read
-        render json: { message: 'success', result_available: result.present? }, status: :ok
+        render json: { result_available: result.present? }, status: :ok
       end
 
-      def update
+      def create
         write_service.new(allowed_params).write
         render json: { message: 'success' }, status: :ok
       end

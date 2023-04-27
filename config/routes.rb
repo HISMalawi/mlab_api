@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  mount Rswag::Ui::Engine => '/'
+  mount Rswag::Api::Engine => '/'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   namespace :api, defaults: { format: :json } do
