@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_26_135640) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -145,6 +145,19 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
     t.index ["updated_by"], name: "fk_rails_3650d0586d"
   end
 
+  create_table "encounter_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.string "description"
+    t.bigint "creator"
+    t.integer "voided"
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.datetime "created_date"
+    t.datetime "updated_by"
+    t.datetime "updated_date"
+  end
+
   create_table "encounters", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "client_id", null: false
     t.bigint "facility_id", null: false
@@ -161,9 +174,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
     t.datetime "updated_date"
     t.string "uuid"
     t.bigint "updated_by"
+    t.bigint "encounter_type_id"
     t.index ["client_id"], name: "index_encounters_on_client_id"
     t.index ["creator"], name: "fk_rails_d942b30673"
     t.index ["destination_id"], name: "index_encounters_on_destination_id"
+    t.index ["encounter_type_id"], name: "fk_rails_cf33a2decd"
     t.index ["facility_id"], name: "index_encounters_on_facility_id"
     t.index ["facility_section_id"], name: "index_encounters_on_facility_section_id"
     t.index ["updated_by"], name: "fk_rails_e8a1975a3c"
@@ -686,6 +701,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_03_30_075133) do
   add_foreign_key "drugs", "users", column: "retired_by"
   add_foreign_key "drugs", "users", column: "updated_by"
   add_foreign_key "encounters", "clients"
+  add_foreign_key "encounters", "encounter_types"
   add_foreign_key "encounters", "facilities"
   add_foreign_key "encounters", "facilities", column: "destination_id"
   add_foreign_key "encounters", "facility_sections"

@@ -1,0 +1,3 @@
+class EncounterType < VoidableRecord
+    
+end
