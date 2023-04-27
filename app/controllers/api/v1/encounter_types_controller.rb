@@ -22,16 +22,18 @@ class Api::V1::EncounterTypesController < ApplicationController
 
   # PATCH/PUT /encounter_types/1
   def update
-    if @encounter_type.update(encounter_type_params)
-      render json: @encounter_type
-    else
-      render json: @encounter_type.errors, status: :unprocessable_entity
+    encounter_type = EncounterType.find(params[:id])
+    encounter_type.update!(encounter_type_params)
+    unless encounter_type.errors.blank?
+      render json: encounter_type.errors, status: :unprocessable_entity
     end
+    render json: encounter_type, status: :ok
   end
 
   # DELETE /encounter_types/1
   def destroy
-    @encounter_type.destroy
+    EncounterType.find(params[:id]).void(params[:retired_reason])
+    render json: {message: MessageService::RECORD_DELETED}
   end
 
   private
