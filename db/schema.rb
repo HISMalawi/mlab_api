@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_26_135640) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_27_095108) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -143,6 +143,21 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_135640) do
     t.index ["creator"], name: "fk_rails_f659be91a8"
     t.index ["retired_by"], name: "fk_rails_6c278e75fd"
     t.index ["updated_by"], name: "fk_rails_3650d0586d"
+  end
+
+  create_table "encounter_type_facility_section_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "creator"
+    t.integer "voided"
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.datetime "created_date"
+    t.datetime "updated_by"
+    t.datetime "updated_date"
+    t.bigint "facility_section_id", null: false
+    t.bigint "encounter_type_id", null: false
+    t.index ["encounter_type_id"], name: "fk_rails_2880469aa4"
+    t.index ["facility_section_id"], name: "fk_rails_afdb26e1db"
   end
 
   create_table "encounter_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -669,6 +684,31 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_135640) do
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
   end
 
+  create_table "visit_type_facility_section_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.integer "retired"
+    t.bigint "retired_by"
+    t.string "retired_reason"
+    t.datetime "retired_date"
+    t.bigint "creator"
+    t.datetime "updated_date"
+    t.datetime "created_date"
+    t.bigint "facility_section_id", null: false
+    t.bigint "visit_type_id", null: false
+    t.index ["facility_section_id"], name: "fk_rails_79cf966fd7"
+    t.index ["visit_type_id"], name: "fk_rails_607bb2a066"
+  end
+
+  create_table "visit_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.integer "retired"
+    t.bigint "retired_by"
+    t.string "retired_reason"
+    t.datetime "retired_date"
+    t.bigint "creator"
+    t.datetime "created_date"
+    t.datetime "updated_date"
+  end
+
   add_foreign_key "client_identifier_types", "users", column: "creator"
   add_foreign_key "client_identifier_types", "users", column: "retired_by"
   add_foreign_key "client_identifier_types", "users", column: "updated_by"
@@ -700,6 +740,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_135640) do
   add_foreign_key "drugs", "users", column: "creator"
   add_foreign_key "drugs", "users", column: "retired_by"
   add_foreign_key "drugs", "users", column: "updated_by"
+  add_foreign_key "encounter_type_facility_section_mappings", "encounter_types"
+  add_foreign_key "encounter_type_facility_section_mappings", "facility_sections"
   add_foreign_key "encounters", "clients"
   add_foreign_key "encounters", "encounter_types"
   add_foreign_key "encounters", "facilities"
@@ -817,4 +859,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_26_135640) do
   add_foreign_key "users", "users", column: "creator"
   add_foreign_key "users", "users", column: "updated_by"
   add_foreign_key "users", "users", column: "voided_by"
+  add_foreign_key "visit_type_facility_section_mappings", "facility_sections"
+  add_foreign_key "visit_type_facility_section_mappings", "visit_types"
 end
