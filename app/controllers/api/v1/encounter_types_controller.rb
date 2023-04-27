@@ -14,7 +14,7 @@ class Api::V1::EncounterTypesController < ApplicationController
     @encounter_type = EncounterType.new(encounter_type_params)
 
     if @encounter_type.save
-      render json: @encounter_type, status: :created, location: @encounter_type
+      render json: @encounter_type, status: :created
     else
       render json: @encounter_type.errors, status: :unprocessable_entity
     end
@@ -32,5 +32,11 @@ class Api::V1::EncounterTypesController < ApplicationController
   # DELETE /encounter_types/1
   def destroy
     @encounter_type.destroy
+  end
+
+  private
+
+  def encounter_type_params
+    params.permit(:name, :description)
   end
 end

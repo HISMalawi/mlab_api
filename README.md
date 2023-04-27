@@ -5,7 +5,9 @@ SETUP MLAB API
 3.2.0
 ```
 * System dependencies
-
+```
+bundle install
+```
 * Configuration
 ```
 cd config 
