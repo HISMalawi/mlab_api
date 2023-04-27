@@ -22,7 +22,9 @@ class Api::V1::InstrumentsController < ApplicationController
   end
   
   def show
-    render json: payload([@instrument.as_json])[0]
+    data = payload([@instrument.as_json])[0]
+    data[:supported_tests] = supported_tests
+    render json: data
   end
 
   def create
@@ -47,7 +49,7 @@ class Api::V1::InstrumentsController < ApplicationController
     destroy_data = destroy_params
    
    if @instrument.update(destroy_data)
-     render json: {message: 'Deletion Sucessful'}, status: :no_content
+     render json: {message: 'Deletion Sucessful'}, status: :no_content and return
    else
     render json: @instrument.errors.full_messages, status: :unprocessable_entity
    end
@@ -81,5 +83,13 @@ class Api::V1::InstrumentsController < ApplicationController
 
   def user
     UserManagement::AuthService.jwt_token_decode(request.headers['Authorization'].split.last)['user_id']
+  end
+
+  def supported_tests
+    results = Instrument.joins(instrument_test_type_mapping: :test_type)
+                   .where(id: params[:id])
+                   .pluck('test_types.name')
+
+    results.join(', ')
   end
 end

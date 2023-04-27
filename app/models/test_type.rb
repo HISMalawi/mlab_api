@@ -1,5 +1,7 @@
 class TestType < RetirableRecord
   belongs_to :department
+  has_many :instrument_test_type_mapping
+
   validates :name, uniqueness: true, presence: true
 
   def self.search(search_term)
