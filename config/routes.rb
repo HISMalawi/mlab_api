@@ -36,6 +36,7 @@ Rails.application.routes.draw do
           get '/identifier_types/' => 'clients#identifier_types'
         end
       end
+      resources :test_statuses
     end
   end
 end
