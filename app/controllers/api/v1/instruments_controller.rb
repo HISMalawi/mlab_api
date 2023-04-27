@@ -47,9 +47,9 @@ class Api::V1::InstrumentsController < ApplicationController
     destroy_data = destroy_params
    
    if @instrument.update(destroy_data)
-     render json: 'Deletion Sucessful', status: :no_content
+     render json: {message: 'Deletion Sucessful'}, status: :no_content
    else
-    render json: @instrument.errors, status: :unprocessable_entity
+    render json: @instrument.errors.full_messages, status: :unprocessable_entity
    end
   end
 
@@ -76,7 +76,7 @@ class Api::V1::InstrumentsController < ApplicationController
 
   def destroy_params
     params.require(:retired_reason)
-    {retired_reason: params[:retired_reason], retired_by: user.to_i}
+    {retired_reason: params[:retired_reason], retired_by: user.to_i, retired: true}
   end
 
   def user
