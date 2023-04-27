@@ -12,7 +12,6 @@ class Api::V1::TestStatusesController < ApplicationController
 
   def create
     @test_status = TestStatus.new(test_status_params)
-
     if @test_status.save
       render json: @test_status, status: :created, location: [:api, :v1, @test_status]
     else
@@ -21,11 +20,7 @@ class Api::V1::TestStatusesController < ApplicationController
   end
 
   def update
-    if @test_status.update(test_status_params)
-      render json: @test_status
-    else
-      render json: @test_status.errors, status: :unprocessable_entity
-    end
+    render json: TestCatalog::TestStatusesService.update_test_status(@test_status, test_status_params)
   end
 
   def destroy
