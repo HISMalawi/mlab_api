@@ -22,7 +22,7 @@ class Api::V1::InstrumentsController < ApplicationController
   end
   
   def show
-    render json: payload([@instrument.as_json])
+    render json: payload([@instrument.as_json])[0]
   end
 
   def create
