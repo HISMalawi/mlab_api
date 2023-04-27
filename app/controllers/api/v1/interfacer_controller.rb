@@ -5,7 +5,7 @@ module Api
     # Interfacer Controller
     class InterfacerController < ApplicationController
       skip_before_action :authorize_request, only: [:create]
-      before_action :authenticate_driver
+      before_action :authenticate_driver, only: [:create]
 
       def fetch_results
         render json: read_service.new(accession_number: params[:accession_number]).read, status: :ok
@@ -17,14 +17,16 @@ module Api
       end
 
       def create
-        write_service.new(allowed_params).write
+        values = allowed_params.to_h
+        Rails.logger.info(values)
+        write_service.new(specimen_id: values[:specimen_id], machine_name: values[:machine_name], measure_id: values[:measure_id], result: values[:result]).write
         render json: { message: 'success' }, status: :ok
       end
 
       private
 
       def allowed_params
-        params.permit(:accession_number, :machine_name, :measure_id, :result)
+        params.permit(:specimen_id, :machine_name, :measure_id, :result)
       end
 
       def write_service
