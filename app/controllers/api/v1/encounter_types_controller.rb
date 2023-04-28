@@ -11,7 +11,8 @@ class Api::V1::EncounterTypesController < ApplicationController
 
   # POST /encounter_types
   def create
-    EncounterType.create!(encounter_type_params)
+    e_type = EncounterType.create!(encounter_type_params)
+    render json: e_type, status: :created
   end
 
   # PATCH/PUT /encounter_types/1
