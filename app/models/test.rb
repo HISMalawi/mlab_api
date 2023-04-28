@@ -53,6 +53,6 @@ class Test < VoidableRecord
   end
 
   def client
-    order.encounter.client
+    order.encounter.client.person.as_json(only: %i[first_name middle_name last_name sex date_of_birth birth_date_estimated])
   end
 end
