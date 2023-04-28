@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       end
 
       resources :diseases
+      resources :surveillances
     end
   end
 end
