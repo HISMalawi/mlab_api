@@ -1,0 +1,113 @@
+---
+openapi: 3.0.1
+info:
+  title: API V1
+  version: v1
+paths:
+  "/api/v1/interfacer/fetch_results":
+    get:
+      summary: fetch_results interfacer
+      tags:
+      - Interfacer
+      description: Interfacer API Endpoints
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: accession_number
+        in: query
+        description: accession_number
+        schema:
+          type: string
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    indicator_id:
+                      type: string
+                    value:
+                      type: string
+                    machine_name:
+                      type: string
+                    indicator_name:
+                      type: string
+  "/api/v1/interfacer/result_available":
+    get:
+      summary: result_available interfacer
+      tags:
+      - Interfacer
+      description: Interfacer API Endpoints
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: accession_number
+        in: query
+        description: accession_number
+        schema:
+          type: string
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result_available:
+                    type: boolean
+  "/api/v1/interfacer":
+    post:
+      summary: update interfacer
+      tags:
+      - Interfacer
+      description: Interfacer API Endpoints
+      parameters: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accession_number:
+                  type: string
+                machine_name:
+                  type: string
+                measure_id:
+                  type: string
+                result:
+                  type: string
+                PHP_AUTH_USER:
+                  type: string
+                PHP_AUTH_PW:
+                  type: string
+              required:
+              - accession_number
+              - machine_name
+              - measure_id
+              - result
+servers:
+- url: http://{defaultHost}
+  variables:
+    defaultHost:
+      default: localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

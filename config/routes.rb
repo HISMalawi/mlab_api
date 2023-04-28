@@ -1,8 +1,16 @@
 Rails.application.routes.draw do
+  mount Rswag::Ui::Engine => '/'
+  mount Rswag::Api::Engine => '/'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
+      resources :interfacer, only: %i[create] do
+        collection do
+          get '/fetch_results/' => 'interfacer#fetch_results'
+          get '/result_available/' => 'interfacer#result_available'
+        end
+      end
       resources :specimen
       resources :roles do
         collection do
