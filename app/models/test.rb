@@ -5,7 +5,11 @@ class Test < VoidableRecord
   has_many :test_status
 
   def as_json(options = {})
-    super(options.merge(methods: %i[request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
+    super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
+  end
+
+  def indicators
+    test_type.test_indicators
   end
 
   def request_origin
