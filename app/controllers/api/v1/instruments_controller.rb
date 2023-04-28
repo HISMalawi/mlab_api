@@ -4,10 +4,10 @@ class Api::V1::InstrumentsController < ApplicationController
   def index
     page, page_size, search = pagination.values_at(:page, :page_size, :search)
     if search.blank?
-      data = Instrument.limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i)
+      data = Instrument.limit(page_size.to_i).offset((page.to_i - 1) * page_size.to_i).order(id: :desc)
     else
       filtered = Instrument.where("name LIKE ?", "%#{search}%").count
-      data = Instrument.where("name LIKE ?", "%#{search}%").offset((page.to_i - 1) * page_size.to_i).limit(page_size.to_i)
+      data = Instrument.where("name LIKE ?", "%#{search}%").offset((page.to_i - 1) * page_size.to_i).limit(page_size.to_i).order(id: :desc)
     end
 
     total = Instrument.count    
