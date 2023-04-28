@@ -38,7 +38,11 @@ Rails.application.routes.draw do
           get '/search_dde' => 'clients#dde_search_client'
         end
       end
-      resources :orders 
+      resources :orders  do 
+        collection do
+          get '/search_by_accession_or_tracking_number' => 'orders#search_by_accession_or_tracking_number'
+        end
+      end
     end
   end
 end

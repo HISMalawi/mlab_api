@@ -12,9 +12,7 @@ module OrderService
       client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
       client_id = client.id
       end
-      # facility = Facility.find_or_create_by!(name: params[:sending_facility]
       facility = params[:encounter][:sending_facility]
-      # facility_section = FacilitySection.find_or_create_by!(name: params[:facility_section])
       facility_section = params[:encounter][:facility_section]
       encounterType = EncounterType.find(params[:encounter][:encounter_type])
       destination = facility
@@ -55,6 +53,10 @@ module OrderService
       end
     end
 
+    def search_by_accession_or_tracking_number(search_query)
+      Order.where(accession_number: search_query).or(Order.where(tracking_number: search_query)).first
+    end
+
     def show_order(order, encounter)
       tests = Test.where(order_id: order.id)
       serialize_order(order, encounter, tests)
@@ -86,7 +88,7 @@ module OrderService
     def generate_accession_number
       zero_padding = 8
       year = Time.current.year.to_s.last(2)
-      order_id = User.last.id.to_s.rjust(zero_padding, '0')
+      order_id = Order.last.id.to_s.rjust(zero_padding, '0')
       side_code = 'KCH'
       "#{side_code}#{year}#{order_id}"
     end

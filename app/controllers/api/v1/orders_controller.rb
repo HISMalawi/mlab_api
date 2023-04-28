@@ -12,6 +12,14 @@ module Api
         encounter = Encounter.find_by(id: @order.encounter_id)
         render json: OrderService.show_order(@order, encounter)
       end
+
+      def search_by_accession_or_tracking_number
+        order = OrderService.search_by_accession_or_tracking_number(params[:accession_number])
+        raise ActiveRecord::RecordNotFound if order.nil?
+        encounter = Encounter.find_by(id: order.encounter_id)
+        render json: OrderService.show_order(order, encounter)
+      end
+      
     
       def create
         ActiveRecord::Base.transaction do
