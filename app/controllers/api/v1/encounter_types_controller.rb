@@ -6,18 +6,12 @@ class Api::V1::EncounterTypesController < ApplicationController
 
   # GET /encounter_types/1
   def show
-    render json: @encounter_type
+    render json: EncounterType.find(params[:id])
   end
 
   # POST /encounter_types
   def create
-    @encounter_type = EncounterType.new(encounter_type_params)
-
-    if @encounter_type.save
-      render json: @encounter_type, status: :created
-    else
-      render json: @encounter_type.errors, status: :unprocessable_entity
-    end
+    EncounterType.create!(encounter_type_params)
   end
 
   # PATCH/PUT /encounter_types/1
