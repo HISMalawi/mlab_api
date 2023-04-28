@@ -28,7 +28,8 @@ class Api::V1::TestsController < ApplicationController
   end
 
   def destroy
-    @test.destroy
+    @test.void(params[:retired_reason])
+    render json: {message: MessageService::RECORD_DELETED}
   end
 
   private
