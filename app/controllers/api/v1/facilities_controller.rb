@@ -19,6 +19,7 @@ class Api::V1::FacilitiesController < ApplicationController
 
   def destroy
     Facility.find(params[:id]).void(params[:retired_reason])
+    render json: {message: MessageService::RECORD_DELETED}
   end
 
   private
