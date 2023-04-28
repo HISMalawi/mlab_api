@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   mount Rswag::Ui::Engine => '/'
   mount Rswag::Api::Engine => '/'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
+  
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       resources :interfacer, only: %i[create] do
@@ -14,9 +14,10 @@ Rails.application.routes.draw do
       resources :specimen
       resources :roles do
         collection do
-         put '/update_permissions/' => 'roles#update_permissions'
+          put '/update_permissions/' => 'roles#update_permissions'
         end
       end
+      resources :encounter_types
       resources :departments
       resources :privileges
       resources :drugs
@@ -24,6 +25,7 @@ Rails.application.routes.draw do
       resources :test_panels
       resources :statuses
       resources :status_reasons
+      resources :tests
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'

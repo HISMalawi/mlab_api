@@ -12,4 +12,8 @@ class Person < VoidableRecord
   def self.search_by_name_and_gender(first_name, last_name, gender)
     where(first_name: first_name, last_name: last_name, sex: gender)
   end
+
+  def fullname
+    "#{first_name} #{middle_name} #{last_name}"
+  end
 end
