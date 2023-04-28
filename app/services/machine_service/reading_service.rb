@@ -22,6 +22,10 @@ module MachineService
     rescue JSON::ParserError => e
       Rails.logger.error(e)
       []
+    # rescue from file does not exist
+    rescue Errno::ENOENT => e
+      Rails.logger.error(e)
+      []
     end
   end
 end
