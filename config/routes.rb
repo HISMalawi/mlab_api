@@ -20,6 +20,8 @@ Rails.application.routes.draw do
       resources :drugs
       resources :organisms
       resources :test_panels
+      resources :test_results
+      resources :facilities
       resources :statuses
       resources :status_reasons
       resources :tests
