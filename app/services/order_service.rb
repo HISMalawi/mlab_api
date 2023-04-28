@@ -43,13 +43,25 @@ module OrderService
     end
 
     def create_test(order_id, test_params)
-      # TO DO: HANDLE TEST PANELS
       test_params.each do |test_param|
-        Test.create!(
-          specimen_id: test_param[:specimen],
-          order_id: order_id,
-          test_type_id: test_param[:test_type]
-        )
+        test_type = TestType.find_by_name(test_param[:test_type])
+        test_panel = TestPanel.find_by_name(test_param[:test_type])
+        if test_panel.nil?
+          Test.create!(
+            specimen_id: test_param[:specimen],
+            order_id: order_id,
+            test_type_id: test_param[:test_type]
+          )
+        else
+          member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
+          member_test_types.each do |test_type|
+            Test.create!(
+              specimen_id: test_param[:specimen],
+              order_id: order_id,
+              test_type_id: test_type
+            )
+          end
+        end
       end
     end
 
