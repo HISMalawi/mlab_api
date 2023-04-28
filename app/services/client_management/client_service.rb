@@ -14,7 +14,14 @@ module ClientManagement
         @client = params[:client][:uuid].blank? ? nil : Client.find_by_uuid(params[:client][:uuid])
         if @client.nil?
           ActiveRecord::Base.transaction do
-            person = Person.create!(params[:person])
+            person = Person.create!(
+              first_name: params[:person][:first_name],
+              middle_name: params[:person][:middle_name],
+              last_name: params[:person][:last_name],
+              sex: params[:person][:sex],
+              date_of_birth: params[:person][:date_of_birth],
+              birth_date_estimated: params[:person][:birth_date_estimated]
+            )
             uuid =  params[:client][:uuid]
             @client = Client.create!(person_id: person.id, uuid: uuid)
             create_client_identifier(identifiers, @client.id)

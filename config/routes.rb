@@ -38,6 +38,7 @@ Rails.application.routes.draw do
           get '/search_dde' => 'clients#dde_search_client'
         end
       end
+      resources :orders 
     end
   end
 end
