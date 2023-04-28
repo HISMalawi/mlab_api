@@ -53,6 +53,13 @@ module OrderService
       end
     end
 
+    def add_test_to_order(order_id, specimen_id, test_types)
+      test_types.each do |test_type|
+        Test.create!(order_id: order_id, specimen_id: specimen_id, test_type_id: test_type)
+      end
+      Order.find(order_id)
+    end
+
     def search_by_accession_or_tracking_number(search_query)
       Order.where(accession_number: search_query).or(Order.where(tracking_number: search_query)).first
     end
@@ -64,6 +71,7 @@ module OrderService
 
     def serialize_order(order, encounter, tests)
       ClientManagement::ClientService.get_client(encounter.client_id).merge({
+        order_id: order.id,
         accession_number: order.accession_number,
         tracking_number: order.tracking_number,
         requested_by: order.requested_by,

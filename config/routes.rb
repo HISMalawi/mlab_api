@@ -41,6 +41,7 @@ Rails.application.routes.draw do
       resources :orders  do 
         collection do
           get '/search_by_accession_or_tracking_number' => 'orders#search_by_accession_or_tracking_number'
+          post '/add_test_to_order' => 'orders#add_test_to_order'
         end
       end
     end

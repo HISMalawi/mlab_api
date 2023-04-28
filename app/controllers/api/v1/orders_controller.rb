@@ -20,6 +20,10 @@ module Api
         render json: OrderService.show_order(order, encounter)
       end
       
+      def add_test_to_order
+        order = OrderService.add_test_to_order(params[:order_id], params[:specimen_id], params[:test_types])
+        render json: order, status: :created
+      end
     
       def create
         ActiveRecord::Base.transaction do
