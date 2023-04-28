@@ -13,8 +13,8 @@ class Api::V1::FacilitiesController < ApplicationController
   end
 
   def update
-    @facility.update!(facility_params)
-    render json: @facility, status: :ok
+    facility = Facility.find(params[:id]).update!(facility_params)
+    render json: facility, status: :ok
   end
 
   def destroy
