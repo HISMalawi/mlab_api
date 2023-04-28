@@ -10,6 +10,11 @@ class Test < VoidableRecord
 
   def indicators
     test_type.test_indicators.as_json(only: %i[id name test_indicator_type])
+      .map { |i| i.merge(result: results(i['id'])) }
+  end
+
+  def results(indicator_id)
+    TestResult.where(test_id: id, test_indicator_id: indicator_id)&.last&.as_json(only: %i[id value result_date])
   end
 
   def request_origin
