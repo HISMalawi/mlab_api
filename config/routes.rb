@@ -10,6 +10,11 @@ Rails.application.routes.draw do
         end
       end
       resources :encounter_types
+      resources :encounter_type_facility_section_mappings do
+        collection do
+          get '/facility_sections/' => 'encounter_type_facility_section_mappings#encounter_type_facility_sections'
+        end
+      end
       resources :departments
       resources :privileges
       resources :drugs
