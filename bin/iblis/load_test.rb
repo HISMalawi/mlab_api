@@ -1,12 +1,13 @@
 Rails.logger = Logger.new(STDOUT)
 facility = Facility.create(name: 'test_facility')
 creator = 1
+User.current = User.find(creator)
 facility_section = FacilitySection.create(name: 'test_facility_section')
 priority = Priority.create(name: 'test_priority')
 
 # clients
 orders = Iblis.find_by_sql("SELECT 
-  sp.accession_number, sp.tracking_number, tt.name as t_name, p.name, p.dob, st.name as sp_name
+  sp.accession_number, sp.tracking_number, tt.name as t_name, p.name, p.dob, st.name as sp_name, v.visit_type
     FROM
       specimens sp
           INNER JOIN
@@ -34,7 +35,7 @@ orders.each do |order_|
   p = Person.where(first_name: , middle_name: , last_name: , date_of_birth: order_.dob).pluck('id').first
   client = Client.where(person_id: p).first
   encouter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, 
-    destination_id: facility.id, start_date: Time.now
+    destination_id: facility.id, start_date: Time.now, encounter_type_id: EncounterType.find_by_name(order_.visit_type&.strip).id
   )
   
   order = Order.find_or_create_by(encounter_id: encouter.id, priority_id: priority.id, accession_number: order_.accession_number, 

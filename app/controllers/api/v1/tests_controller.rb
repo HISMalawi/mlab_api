@@ -13,7 +13,7 @@ class Api::V1::TestsController < ApplicationController
     @test = Test.new(test_params)
 
     if @test.save
-      render json: @test, status: :created, location: [:api, :v1, @test]
+      render json: @test, status: :created
     else
       render json: @test.errors, status: :unprocessable_entity
     end
