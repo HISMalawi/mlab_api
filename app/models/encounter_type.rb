@@ -1,3 +1,4 @@
 class EncounterType < VoidableRecord
-    validates_presence_of :name
+  self.primary_key = 'id'
+  validates_presence_of :name
 end

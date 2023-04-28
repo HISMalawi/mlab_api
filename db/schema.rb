@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_27_095108) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -536,7 +536,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_27_095108) do
   create_table "test_statuses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "test_id", null: false
     t.bigint "status_id", null: false
-    t.bigint "status_reason_id", null: false
+    t.bigint "status_reason_id"
     t.bigint "creator"
     t.integer "voided"
     t.bigint "voided_by"
@@ -682,31 +682,6 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_27_095108) do
     t.index ["person_id"], name: "index_users_on_person_id"
     t.index ["updated_by"], name: "fk_rails_8c1436a35d"
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
-  end
-
-  create_table "visit_type_facility_section_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.integer "retired"
-    t.bigint "retired_by"
-    t.string "retired_reason"
-    t.datetime "retired_date"
-    t.bigint "creator"
-    t.datetime "updated_date"
-    t.datetime "created_date"
-    t.bigint "facility_section_id", null: false
-    t.bigint "visit_type_id", null: false
-    t.index ["facility_section_id"], name: "fk_rails_79cf966fd7"
-    t.index ["visit_type_id"], name: "fk_rails_607bb2a066"
-  end
-
-  create_table "visit_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "name"
-    t.integer "retired"
-    t.bigint "retired_by"
-    t.string "retired_reason"
-    t.datetime "retired_date"
-    t.bigint "creator"
-    t.datetime "created_date"
-    t.datetime "updated_date"
   end
 
   add_foreign_key "client_identifier_types", "users", column: "creator"
@@ -859,6 +834,4 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_27_095108) do
   add_foreign_key "users", "users", column: "creator"
   add_foreign_key "users", "users", column: "updated_by"
   add_foreign_key "users", "users", column: "voided_by"
-  add_foreign_key "visit_type_facility_section_mappings", "facility_sections"
-  add_foreign_key "visit_type_facility_section_mappings", "visit_types"
 end

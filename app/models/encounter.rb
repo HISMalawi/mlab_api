@@ -3,5 +3,4 @@ class Encounter < VoidableRecord
   belongs_to :facility, :class_name => 'Facility'
   belongs_to :destination, :class_name => 'Facility'
   belongs_to :facility_section
-  has_one :encounter_type
 end
