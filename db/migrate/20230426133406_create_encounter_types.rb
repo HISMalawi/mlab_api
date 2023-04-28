@@ -12,6 +12,8 @@ class CreateEncounterTypes < ActiveRecord::Migration[7.0]
       t.datetime :created_date
       t.datetime :updated_by
       t.datetime :updated_date
+
+      add_foreign_key :encounter_types, :users, column: :creator, primary_key: :id
     end
   end
 end
