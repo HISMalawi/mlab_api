@@ -16,9 +16,9 @@ module OrderService
       facility = params[:encounter][:sending_facility]
       # facility_section = FacilitySection.find_or_create_by!(name: params[:facility_section])
       facility_section = params[:encounter][:facility_section]
-      visit_type = VisitType.find(params[:encounter][:visit_type])
+      encounterType = EncounterType.find(params[:encounter][:encounter_type])
       destination = facility
-      if visit_type.name == 'Referal'
+      if encounterType.name == 'Referal'
         destination = params[:encounter][:destination_facility]
       end
       Encounter.create!(
