@@ -4,7 +4,9 @@ require 'bcrypt'
 class User < VoidableRecord
   include BCrypt
   belongs_to :person
- 
+  has_many :user_department_mappings
+  has_many :departments, through: :user_department_mappings
+
   def active?
     self.is_active == 0
   end
