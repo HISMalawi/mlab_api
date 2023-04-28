@@ -10,18 +10,35 @@ module ClientManagement
         serialize_client(client, person, client_identifiers)
       end
 
-      def create_client(params)
-        ActiveRecord::Base.transaction do
-          person = Person.create!(params[:person])
-          uuid =  params[:client][:uuid].blank? ? SecureRandom.uuid << "#{person.id}" : params[:client][:uuid]
-          client = Client.create!(person_id: person.id, uuid: uuid)
-          params[:client_identifiers].each do |identifier|
-            client_identifier_type = ClientIdentifierType.find_by_name(identifier[:type])
-            unless (client_identifier_type.nil? || identifier[:value].blank?)
-              ClientIdentifier.create!(client_identifier_type_id: client_identifier_type.id, client_id: client.id, value: identifier[:value])
+      def create_client(params, identifiers)
+        @client = params[:client][:uuid].blank? ? nil : Client.find_by_uuid(params[:client][:uuid])
+        if @client.nil?
+          ActiveRecord::Base.transaction do
+            person = Person.create!(
+              first_name: params[:person][:first_name],
+              middle_name: params[:person][:middle_name],
+              last_name: params[:person][:last_name],
+              sex: params[:person][:sex],
+              date_of_birth: params[:person][:date_of_birth],
+              birth_date_estimated: params[:person][:birth_date_estimated]
+            )
+            uuid =  params[:client][:uuid]
+            @client = Client.create!(person_id: person.id, uuid: uuid)
+            create_client_identifier(identifiers, @client.id)
+          end
+        end
+        @client
+      end
+
+      def create_client_identifier(identifiers, client_id)
+        client_identifier_types = identifiers.blank? ? [] : identifiers.keys
+        if client_identifier_types.length > 1
+          client_identifier_types.each do |identifier_type|
+            client_identifier_type = ClientIdentifierType.find_by_name(identifier_type)
+            unless (client_identifier_type.nil? || identifiers[identifier_type].blank?)
+              ClientIdentifier.create!(client_identifier_type_id: client_identifier_type.id, client_id: client_id, value: identifiers[identifier_type])
             end
           end
-          client
         end
       end
 
@@ -58,15 +75,16 @@ module ClientManagement
 
       def search_client_by_name_and_gender(first_name, last_name, gender)
         people = Person.search_by_name_and_gender(first_name, last_name, gender)
-        Client.joins(:person).where(person_id: people).limit(15)
+        Client.joins(:person).where(person_id: people).limit(10)
       end
 
       def serialize_client(client, person, client_identifiers)
         client_hash = {
+          source: 'local',
           client_id: client.id,
           first_name: person.first_name,
-          last_name: person.last_name,
           middle_name: person.middle_name,
+          last_name: person.last_name,
           sex: person.sex,
           date_of_birth: person.date_of_birth,
           birth_date_estimated: person.birth_date_estimated,

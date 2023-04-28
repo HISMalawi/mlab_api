@@ -1,0 +1,5 @@
+dde_service:
+  base_url: localhost
+  port: 8050
+  username: username
+  password: password

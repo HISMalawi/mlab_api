@@ -3,15 +3,16 @@ module Api
     class ClientsController < ApplicationController
       before_action :set_client, only: [:show, :update, :destroy]
       before_action :validate_params, only: [:update, :create]
+      before_action :dde, only: [:create, :dde_search_client]
     
       def index
         if params[:search].blank?
           @clients = Client.all.order(id: :desc).page(params[:page]).per(params[:per_page])
         else
-          @clients = ClientManagement::ClientService.search_client(params[:search], params[:per_page])
+          @clients = client_service.search_client(params[:search], params[:per_page])
         end
         render json: {
-          clients: ClientManagement::ClientService.serialize_clients(@clients), 
+          clients: client_service.serialize_clients(@clients), 
           meta: PaginationService.pagination_metadata(@clients)
         }
       end
@@ -24,9 +25,19 @@ module Api
       def show
         render json: ClientManagement::ClientService.get_client(@client.id)
       end
+
+      def dde_search_client
+        clients = client_service.search_client_by_name_and_gender(params[:first_name], params[:last_name], params[:gender])
+        clients = client_service.serialize_clients(clients)
+        if @dde_service.check_dde_status
+          dde_clients = @dde_service.search_client_by_name_and_gender(params[:first_name], params[:last_name], params[:gender])
+          clients = (clients + dde_clients).uniq{|key| [key[:uuid]]}
+        end
+        render json: clients
+      end
     
       def create
-        @client = ClientManagement::ClientService.create_client(client_params)
+        @client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
         render json: ClientManagement::ClientService.get_client(@client.id), status: :created
       end
     
@@ -45,15 +56,29 @@ module Api
       def set_client
         @client = Client.find(params[:id])
       end
+
+      def client_service
+        client_service = ClientManagement::ClientService
+      end
+
+      def dde
+        config_data = YAML.load_file("#{Rails.root}/config/application.yml")
+        dde_config = config_data["dde_service"] 
+        @dde_service = ClientManagement::DdeService.new(
+          base_url: "#{dde_config['base_url']}:#{dde_config['port']}",
+          token: '',
+          username: dde_config['username'],
+          password: dde_config['password']
+        )
+      end
     
       def client_params
         params.permit(client: %i[uuid], 
-          person: %i[first_name middle_name last_name sex date_of_birth birth_date_estimated], 
-          client_identifiers: [:type, :value])
+          person: %i[first_name middle_name last_name sex date_of_birth birth_date_estimated])
       end
       
       def validate_params
-        unless params.has_key?('client_identifiers') && params[:client_identifiers].is_a?(Array)
+        unless params.has_key?('client_identifiers')
           raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for client_identifiers"
         end
       end
