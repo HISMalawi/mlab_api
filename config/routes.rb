@@ -44,6 +44,8 @@ Rails.application.routes.draw do
           post '/add_test_to_order' => 'orders#add_test_to_order'
         end
       end
+
+      resources :diseases
     end
   end
 end
