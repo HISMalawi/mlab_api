@@ -47,5 +47,7 @@ orders.each do |order_|
 
   Rails.logger.info("Loading Test")
   
-  Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id)
+  test = Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id)
+
+  TestStatus.create!(test_id: test.id, status_id: Status.find_by_name('pending').id)
 end
