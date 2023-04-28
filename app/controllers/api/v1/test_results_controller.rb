@@ -19,7 +19,7 @@ class Api::V1::TestResultsController < ApplicationController
         indicator = indicator_obj[:indicator]
         value = indicator_obj[:value]
         unless TestIndicator.find_by_id(indicator).present?
-          render json: {message: "Indicator with id #{indicator} not does not exists"} and return
+          render json: {message: "Indicator with id #{indicator} not does not exists"}, status: :bad_request and return
         end
         TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value: value, result_date: Time.now)
       end
