@@ -2,7 +2,7 @@ LOGGER = Logger.new(STDOUT)
 User.current = User.first
 
 def insert_to_db(model, values)
-  item = model.find_or_create_by(name: values[:name])
+  item = model.create!(name: values[:name])
   item.update!(values)
   item.save!
 end
@@ -12,7 +12,7 @@ ActiveRecord::Base.transaction do
 
   data = Iblis.find_by_sql("SELECT * FROM facilities")
   mapped = data.map { |v| { id: v.id, name: v.name, creator: User.current.id, created_date: Date.today, updated_date: Date.today } }
-
+ 
   mapped.collect { |v| insert_to_db Facility, v }
 
   LOGGER.info("=========Facilities Created===========")
@@ -21,7 +21,7 @@ ActiveRecord::Base.transaction do
 
   sections = Iblis.find_by_sql("SELECT * FROM wards")
   mapped_sections = sections.map { |v| { id: v.id, name: v.name, creator: User.current.id, created_date: Date.today, updated_date: Date.today } }
-
+  puts mapped_sections
   mapped_sections.collect { |v| insert_to_db FacilitySection, v }
 
   LOGGER.info("=========Facility Sections Created===========")

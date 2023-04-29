@@ -49,26 +49,16 @@ module IblisService
               created_date: client.created_at,
               updated_date: client.updated_at
             },
-            client_identifiers: [
-              {
-                type: 'email',
-                value: client.email
+            client_identifiers: {
+                physical_address: client.physical_address,
+                npid: client.external_patient_number == '' ? '' : client.external_patient_number
               },
-              {
-                type: 'physical_address',
-                value: client.physical_address
-              },
-              {
-                type: 'phone',
-                value: client.phone
-              }
-            ],
             client: {
-              uuid: client.external_patient_number == '' ? '' : client.external_patient_number
+              uuid: ''
             }
           }
           Rails.logger.info("Loading Client: #{client.name}")
-          ClientManagement::ClientService.create_client(client_details)
+          ClientManagement::ClientService.create_client(client_details, client_details[:client_identifiers])
         end
       end
 

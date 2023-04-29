@@ -1,7 +1,7 @@
 Rails.logger = Logger.new(STDOUT)
-facility = Facility.create(name: 'test_facility')
 creator = 1
-facility_section = FacilitySection.create(name: 'test_facility_section')
+facility = Facility.create(name: 'test_facility',  creator: creator)
+facility_section = FacilitySection.create(name: 'test_facility_section', creator: creator)
 priority = Priority.create(name: 'test_priority')
 
 # clients
@@ -34,11 +34,11 @@ orders.each do |order_|
   p = Person.where(first_name: , middle_name: , last_name: , date_of_birth: order_.dob).pluck('id').first
   client = Client.where(person_id: p).first
   encouter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, 
-    destination_id: facility.id, start_date: Time.now
+    destination_id: facility.id, start_date: Time.now, creator: creator
   )
   
   order = Order.find_or_create_by(encounter_id: encouter.id, priority_id: priority.id, accession_number: order_.accession_number, 
-    tracking_number: order_.tracking_number)
+    tracking_number: order_.tracking_number,  creator: creator)
   
   specimen = Specimen.find_by_name(order_.sp_name)
   
@@ -46,5 +46,5 @@ orders.each do |order_|
 
   Rails.logger.info("Loading Test")
   
-  Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id)
+  Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id,  creator: creator)
 end

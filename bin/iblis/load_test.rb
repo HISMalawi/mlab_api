@@ -1,11 +1,9 @@
 Rails.logger = Logger.new(STDOUT)
-facility = Facility.create(name: 'test_facility')
 creator = 1
 
-User.current = User.find(creator)
-
-facility_section = FacilitySection.create(name: 'test_facility_section')
-priority = Priority.create(name: 'test_priority')
+facility = Facility.create(name: 'test_facility', creator: creator)
+facility_section = FacilitySection.create(name: 'test_facility_section', creator: creator)
+priority = Priority.create(name: 'test_priority', creator: creator)
 
 # clients
 orders = Iblis.find_by_sql("SELECT 
@@ -37,13 +35,12 @@ orders.each do |order_|
   end
   p = Person.where(first_name: , middle_name: , last_name: , date_of_birth: order_.dob).pluck('id').first
   client = Client.where(person_id: p).first
-  encouter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, 
-    destination_id: facility.id, start_date: Time.now
+  encouter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, creator: creator,
     destination_id: facility.id, start_date: Time.now, encounter_type_id: EncounterType.find_by_name(order_.visit_type&.strip).id
   )
   
   order = Order.find_or_create_by(encounter_id: encouter.id, priority_id: priority.id, accession_number: order_.accession_number, 
-    tracking_number: order_.tracking_number)
+    tracking_number: order_.tracking_number, creator: creator)
   
   specimen = Specimen.find_by_name(order_.sp_name)
   
@@ -51,7 +48,7 @@ orders.each do |order_|
 
   Rails.logger.info("Loading Test")
   
-  test = Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id)
+  test = Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id, creator: creator)
 
-  TestStatus.create!(test_id: test.id, status_id: Status.find_by_name('pending').id)
+  TestStatus.create!(test_id: test.id, status_id: Status.find_by_name('pending').id, creator: creator)
 end

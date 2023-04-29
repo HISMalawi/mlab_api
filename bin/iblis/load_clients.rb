@@ -1,5 +1,5 @@
-last_patient_id = Iblis.find_by_sql("SELECT * FROM patients order by id DESC LIMIT 1")[0].id
-
+# last_patient_id = Iblis.find_by_sql("SELECT * FROM patients order by id DESC LIMIT 1")[0].id
+last_patient_id = 1000
 def run(start_from, step, last_patient_id)
   clients = IblisService::LoadClientService.get_iblis_clients(start_from, step)
   IblisService::LoadClientService.load_client(clients)
