@@ -33,7 +33,6 @@ Rails.application.routes.draw do
       resources :facilities
       resources :statuses
       resources :status_reasons
-      resources :visit_type
       resources :tests
       resources :test_types do
         collection do
