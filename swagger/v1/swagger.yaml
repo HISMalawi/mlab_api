@@ -4,6 +4,30 @@ info:
   title: API V1
   version: v1
 paths:
+  "api/v1//global":
+    get:
+      summary: Returns the details of a hospital.
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  code:
+                    type: string
+                  address:
+                    type: string
+                  phone:
+                    type: string
+                example:
+                    - name: "Kamuzu Central Hospital"
+                      code: "KCH"
+                      address: "P.O BOX 21, Lilongwe"
+                      phone: "+2651123435, +2651123424"
   "/api/v1/clients":
     post:
       summary: create_a_client
@@ -282,6 +306,60 @@ paths:
                       type: string
                     indicator_name:
                       type: string
+  "/api/v1/orders":
+    post:
+      summary: create a new order
+      tags:
+        - Create an Order
+      description: Create an Order API Endpoints
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                  encounter:
+                    type: object
+                    properties:
+                      sending_facility:
+                        type: integer
+                      destination_facility:
+                        type: string
+                      encounter_type:
+                        type: integer
+                      facility_section:
+                        type: integer
+                  order:
+                    type: object
+                    properties:
+                      priority:
+                        type: integer
+                      requested_by:
+                        type: string
+                      collected_by:
+                        type: string
+                      sample_collected_time:
+                        type: string
+                        format: date
+                      tracking_number:
+                        type: string
+                  tests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        specimen:
+                          type: integer
+                        test_type:
+                          type: string
   "/api/v1/interfacer/result_available":
     get:
       summary: result_available interfacer

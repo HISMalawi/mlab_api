@@ -55,11 +55,6 @@ module Barcode
         num = num.sub(/^#{code}/, '')
         num
       end
-    
-    
-      def generate_epl(accession_number, acc_number)
-        "\nN\nR216,0\nZT\nS2\nA51,6,0,1,1,1,N,\nA51,29,0,1,1,1,N,\nB51,51,0,1A,2,2,56,N,\"#{acc_number}\"\nA51,111,0,1,1,1,N,\"#{format_ac(accession_number)} * #{acc_number}\"\nA51,130,0,1,1,1,N,\nA51,152,0,1,1,1,N,\nP2"
-      end
 
     end
   end
