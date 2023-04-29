@@ -11,9 +11,10 @@ client_identifier_types.each do |identifier_type|
   end
 end
 
-Global.find_or_create_by(
+g = Global.find_or_create_by(
   name: "Kamuzu Central Hospital",
   address: "P.O Box 34, Lilongwe",
   phone: "+265323443",
   code: 'KCH'
 )
+Facility.find_or_create_by(name: g.name)

@@ -12,12 +12,13 @@ module OrderService
       client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
       client_id = client.id
       end
-      facility = params[:encounter][:sending_facility]
+      g = Global.find(params[:encounter][:sending_facility])
+      facility = Facility.find_by_name(g.name).id
       facility_section = params[:encounter][:facility_section]
       encounterType = EncounterType.find(params[:encounter][:encounter_type])
       destination = facility
-      if encounterType.name == 'Referal'
-        destination = params[:encounter][:destination_facility]
+      if encounterType.name == 'Referral'
+        destination = params[:encounter][:facility_section]
       end
       Encounter.create!(
         client_id: client_id,
@@ -89,6 +90,8 @@ module OrderService
         collected_by: order.collected_by,
         registered_by: User.find(order.creator).username,
         priority: order.priority.name,
+        sending_facility: encounter.facility.name,
+        destination_facility: encounter.destination.name,
         date_created: order.created_date,
         tests: serialize_test(tests)
       })
