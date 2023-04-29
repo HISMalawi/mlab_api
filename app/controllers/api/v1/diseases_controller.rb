@@ -31,13 +31,13 @@ class Api::V1::DiseasesController < ApplicationController
 
   # DELETE /api/v1/diseases/1
   def destroy
-    @disease.destroy
+    render json: @disease.void(disease_params[:voided_reason])
   end
 
   private
     # Only allow a list of trusted parameters through.
     def disease_params 
-      params.require(:disease).permit(:name)
+      params.require(:disease).permit(:name, :id, :voided_reason)
     end
 
     #pagination 
