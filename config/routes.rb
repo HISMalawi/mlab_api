@@ -11,7 +11,11 @@ Rails.application.routes.draw do
           get '/result_available/' => 'interfacer#result_available'
         end
       end
-      resources :specimen
+      resources :specimen do 
+        collection do
+          get '/test_types/' => 'specimen#specimen_test_type'
+        end
+      end
       resources :roles do
         collection do
           put '/update_permissions/' => 'roles#update_permissions'
