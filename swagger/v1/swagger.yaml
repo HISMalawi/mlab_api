@@ -160,7 +160,7 @@ paths:
               - encounter_type_id
       responses:
         200:
-          description: OK
+          description: successful
           content:
             application/json:
               schema:
@@ -191,6 +191,65 @@ paths:
 
       tags:
         - Create an Order
+  "api/v1/specimen":
+    get:
+      summary: Retrieve a list of all specimens
+      description: Use this endpoint to retrieve a list of all specimens currently in the system.
+      produces:
+        - application/json
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: The unique identifier of the facility section.
+                    name:
+                      type: string
+                      description: The name of the facility section.
+              example:
+                - id: 1
+                  name: Blood
+                  description: The description of the specimen
+                - id: 2
+                  name: Swabs
+                  description: The description of the specimen
+      tags:
+        - Create an Order
+  "api/v1/specimen/test_types":
+    get:
+      summary: "Retrieve test types for a given specimen"
+      parameters:
+        - in: query
+          name: specimen_id
+          description: "ID of the specimen for which test types are to be retrieved"
+          required: true
+          type: integer
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example:
+                - "Glucose"
+                - "Gram Stain"
+                - "Culture & Sensitivity"
+                - "Cell Count"
+                - "India Ink"
+      tags:
+        - Create an Order
+
   "/api/v1/interfacer/fetch_results":
     get:
       summary: fetch_results interfacer
