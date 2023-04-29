@@ -4,7 +4,7 @@ info:
   title: API V1
   version: v1
 paths:
-  "api/v1//global":
+  "api/v1/global":
     get:
       summary: Returns the details of a hospital.
       responses:
@@ -28,6 +28,26 @@ paths:
                       code: "KCH"
                       address: "P.O BOX 21, Lilongwe"
                       phone: "+2651123435, +2651123424"
+  "api/v1/priorities":
+    get:
+      summary: Returns order priolities.
+      tags:
+        - Create an Order
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                example:
+                    - id: 1
+                      name: "stat"
   "/api/v1/clients":
     post:
       summary: create_a_client
