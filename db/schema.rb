@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -111,6 +111,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.index ["updated_by"], name: "fk_rails_f4ba61f503"
   end
 
+  create_table "diseases", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "drug_id", null: false
     t.bigint "organism_id", null: false
@@ -152,12 +158,15 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.string "voided_reason"
     t.datetime "voided_date"
     t.datetime "created_date"
-    t.datetime "updated_by"
     t.datetime "updated_date"
     t.bigint "facility_section_id", null: false
     t.bigint "encounter_type_id", null: false
+    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_0a2ba9e596"
     t.index ["encounter_type_id"], name: "fk_rails_2880469aa4"
     t.index ["facility_section_id"], name: "fk_rails_afdb26e1db"
+    t.index ["updated_by"], name: "fk_rails_d0fbfdc159"
+    t.index ["voided_by"], name: "fk_rails_f4b4388678"
   end
 
   create_table "encounter_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -169,8 +178,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.string "voided_reason"
     t.datetime "voided_date"
     t.datetime "created_date"
-    t.datetime "updated_by"
     t.datetime "updated_date"
+    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_c085b6c147"
+    t.index ["updated_by"], name: "fk_rails_0ccd05d941"
+    t.index ["voided_by"], name: "fk_rails_3b11e06173"
   end
 
   create_table "encounters", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -188,8 +200,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.datetime "created_date"
     t.datetime "updated_date"
     t.string "uuid"
-    t.bigint "updated_by"
     t.bigint "encounter_type_id"
+    t.bigint "updated_by"
     t.index ["client_id"], name: "index_encounters_on_client_id"
     t.index ["creator"], name: "fk_rails_d942b30673"
     t.index ["destination_id"], name: "index_encounters_on_destination_id"
@@ -676,8 +688,8 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
-    t.bigint "updated_by"
     t.integer "is_active"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fd256d8564"
     t.index ["person_id"], name: "index_users_on_person_id"
     t.index ["updated_by"], name: "fk_rails_8c1436a35d"
@@ -694,7 +706,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.datetime "created_date"
     t.bigint "facility_section_id", null: false
     t.bigint "visit_type_id", null: false
+    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_7fc43c315a"
     t.index ["facility_section_id"], name: "fk_rails_79cf966fd7"
+    t.index ["retired_by"], name: "fk_rails_663642c7d8"
+    t.index ["updated_by"], name: "fk_rails_4239107500"
     t.index ["visit_type_id"], name: "fk_rails_607bb2a066"
   end
 
@@ -707,6 +723,10 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_8098698b0f"
+    t.index ["retired_by"], name: "fk_rails_c55e7d0885"
+    t.index ["updated_by"], name: "fk_rails_ca3f0f978f"
   end
 
   add_foreign_key "client_identifier_types", "users", column: "creator"
@@ -742,6 +762,12 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
   add_foreign_key "drugs", "users", column: "updated_by"
   add_foreign_key "encounter_type_facility_section_mappings", "encounter_types"
   add_foreign_key "encounter_type_facility_section_mappings", "facility_sections"
+  add_foreign_key "encounter_type_facility_section_mappings", "users", column: "creator"
+  add_foreign_key "encounter_type_facility_section_mappings", "users", column: "updated_by"
+  add_foreign_key "encounter_type_facility_section_mappings", "users", column: "voided_by"
+  add_foreign_key "encounter_types", "users", column: "creator"
+  add_foreign_key "encounter_types", "users", column: "updated_by"
+  add_foreign_key "encounter_types", "users", column: "voided_by"
   add_foreign_key "encounters", "clients"
   add_foreign_key "encounters", "encounter_types"
   add_foreign_key "encounters", "facilities"
@@ -860,5 +886,11 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_063428) do
   add_foreign_key "users", "users", column: "updated_by"
   add_foreign_key "users", "users", column: "voided_by"
   add_foreign_key "visit_type_facility_section_mappings", "facility_sections"
+  add_foreign_key "visit_type_facility_section_mappings", "users", column: "creator"
+  add_foreign_key "visit_type_facility_section_mappings", "users", column: "retired_by"
+  add_foreign_key "visit_type_facility_section_mappings", "users", column: "updated_by"
   add_foreign_key "visit_type_facility_section_mappings", "visit_types"
+  add_foreign_key "visit_types", "users", column: "creator"
+  add_foreign_key "visit_types", "users", column: "retired_by"
+  add_foreign_key "visit_types", "users", column: "updated_by"
 end
