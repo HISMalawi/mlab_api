@@ -50,7 +50,7 @@ module OrderService
           Test.create!(
             specimen_id: test_param[:specimen],
             order_id: order_id,
-            test_type_id: test_param[:test_type]
+            test_type_id: test_type.id
           )
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
@@ -65,10 +65,8 @@ module OrderService
       end
     end
 
-    def add_test_to_order(order_id, specimen_id, test_types)
-      test_types.each do |test_type|
-        Test.create!(order_id: order_id, specimen_id: specimen_id, test_type_id: test_type)
-      end
+    def add_test_to_order(order_id, tests)
+      create_test(order_id, tests)
       Order.find(order_id)
     end
 

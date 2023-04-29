@@ -21,7 +21,7 @@ module Api
       end
       
       def add_test_to_order
-        order = OrderService.add_test_to_order(params[:order_id], params[:specimen_id], params[:test_types])
+        order = OrderService.add_test_to_order(params[:order_id], params[:tests])
         render json: order, status: :created
       end
     
