@@ -1,53 +1,57 @@
-class Api::V1::DiseasesController < ApplicationController
-  before_action :set_disease, only: %i[ show update destroy ]
+module Api
+  module V1 
+    class DiseasesController < ApplicationController
+      before_action :set_disease, only: %i[ show update destroy ]
 
-  # GET /api/v1/diseases
-  def index
-    page, page_size = pagination.values_at(:page, :page_size)
-    total = Disease.count
-    @diseases = {page: page.to_i,
-                    page_size: page_size.to_i,
-                    total: total.to_i,
-                    data: Disease.limit(page_size.to_i).offset(page.to_i - 1).all}    
-    render json: @diseases
-  end
+      # GET /api/v1/diseases
+      def index
+        page, page_size = pagination.values_at(:page, :page_size)
+        total = Disease.count
+        @diseases = {page: page.to_i,
+                        page_size: page_size.to_i,
+                        total: total.to_i,
+                        data: Disease.limit(page_size.to_i).offset(page.to_i - 1).all}    
+        render json: @diseases
+      end
 
-  # GET /api/v1/diseases/1
-  def show
-    render json: @disease
-  end
+      # GET /api/v1/diseases/1
+      def show
+        render json: @disease
+      end
 
-  # POST /api/v1/diseases
-  def create
-    @disease = Disease.create!(disease_params)
-    render json: @disease
-  end
+      # POST /api/v1/diseases
+      def create
+        @disease = Disease.create!(disease_params)
+        render json: @disease
+      end
 
-  # PATCH/PUT /api/v1/diseases/1
-  def update
-    @disease.update!(disease_params)
-    render json: @disease, status: :ok
-  end
+      # PATCH/PUT /api/v1/diseases/1
+      def update
+        @disease.update!(disease_params)
+        render json: @disease, status: :ok
+      end
 
-  # DELETE /api/v1/diseases/1
-  def destroy
-    render json: @disease.void(disease_params[:voided_reason])
-  end
+      # DELETE /api/v1/diseases/1
+      def destroy
+        render json: @disease.void(disease_params[:voided_reason])
+      end
 
-  private
-    # Only allow a list of trusted parameters through.
-    def disease_params 
-      params.require(:disease).permit(:name, :id, :voided_reason)
+      private
+        # Only allow a list of trusted parameters through.
+        def disease_params 
+          params.require(:disease).permit(:name, :id, :voided_reason)
+        end
+
+        #pagination 
+        def pagination
+          params.require([:page, :page_size])
+          {page: params[:page], page_size: params[:page_size]}
+        end
+
+        # Use callbacks to share common setup or constraints between actions.
+        def set_disease
+          @disease = Disease.find(params[:id])
+        end
     end
-
-    #pagination 
-    def pagination
-      params.require([:page, :page_size])
-      {page: params[:page], page_size: params[:page_size]}
-    end
-
-    # Use callbacks to share common setup or constraints between actions.
-    def set_disease
-      @disease = Disease.find(params[:id])
-    end
+  end
 end
