@@ -19,12 +19,8 @@ class Api::V1::DiseasesController < ApplicationController
 
   # POST /api/v1/diseases
   def create
-    @disease = Disease.new(disease_params)
-    if @disease.save
-      render json: @disease, status: :created, location: [:api, :v1, @disease]
-    else
-      render json: @disease.errors, status: :unprocessable_entity
-    end
+    @disease = Disease.create!(disease_params)
+    render json: @disease
   end
 
   # PATCH/PUT /api/v1/diseases/1
@@ -42,9 +38,9 @@ class Api::V1::DiseasesController < ApplicationController
   end
 
   private
-    #disease_params 
+    # Only allow a list of trusted parameters through.
     def disease_params 
-      params.permit(:name)
+      params.require(:disease).permit(:name)
     end
 
     #pagination 
@@ -56,10 +52,5 @@ class Api::V1::DiseasesController < ApplicationController
     # Use callbacks to share common setup or constraints between actions.
     def set_disease
       @disease = Disease.find(params[:id])
-    end
-
-    # Only allow a list of trusted parameters through.
-    def disease_params
-      params.fetch(:disease, {})
     end
 end
