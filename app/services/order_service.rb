@@ -58,7 +58,8 @@ module OrderService
             Test.create!(
               specimen_id: test_param[:specimen],
               order_id: order_id,
-              test_type_id: test_type
+              test_type_id: test_type,
+              test_panel_id: test_panel.id
             )
           end
         end

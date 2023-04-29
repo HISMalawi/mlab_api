@@ -624,6 +624,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.bigint "specimen_id", null: false
     t.bigint "order_id", null: false
     t.bigint "test_type_id", null: false
+    t.bigint "test_panel_id"
     t.integer "voided"
     t.bigint "voided_by"
     t.string "voided_reason"
@@ -635,6 +636,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["creator"], name: "fk_rails_9e21c12cab"
     t.index ["order_id"], name: "index_tests_on_order_id"
     t.index ["specimen_id"], name: "index_tests_on_specimen_id"
+    t.index ["test_panel_id"], name: "index_tests_on_test_panel_id"
     t.index ["test_type_id"], name: "index_tests_on_test_type_id"
     t.index ["updated_by"], name: "fk_rails_e1dd8edc7e"
     t.index ["voided_by"], name: "fk_rails_1c50d4e771"
@@ -867,6 +869,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "test_types", "users", column: "updated_by"
   add_foreign_key "tests", "orders"
   add_foreign_key "tests", "specimen", column: "specimen_id"
+  add_foreign_key "tests", "test_panels"
   add_foreign_key "tests", "test_types"
   add_foreign_key "tests", "users", column: "creator"
   add_foreign_key "tests", "users", column: "updated_by"
