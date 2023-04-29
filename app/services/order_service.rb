@@ -89,6 +89,7 @@ module OrderService
         collected_by: order.collected_by,
         registered_by: User.find(order.creator).username,
         priority: order.priority.name,
+        date_created: order.created_date,
         tests: serialize_test(tests)
       })
     end
