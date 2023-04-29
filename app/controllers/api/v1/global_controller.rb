@@ -4,7 +4,7 @@ module Api
       skip_before_action :authorize_request, only: [:current_location]
 
       def index
-        render json: current_location
+        render json: GlobalService.current_location
       end
       
     end

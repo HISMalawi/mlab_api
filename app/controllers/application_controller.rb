@@ -23,8 +23,4 @@ class ApplicationController < ActionController::API
     {data: results, meta: PaginationService.pagination_metadata(results)}
   end
 
-  def current_location
-    location = YAML.load_file("#{Rails.root}/config/application.yml")['facility']
-  end
-
 end
