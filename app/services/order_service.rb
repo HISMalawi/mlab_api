@@ -99,7 +99,8 @@ module OrderService
         tests_ << {
           specimen_id: test.specimen.id,
           specimen: test.specimen.name,
-          test_type: test.test_type.name
+          test_type: test.test_type.name,
+          test_type_short_name: test.test_type.short_name
         }
       end
       tests_
