@@ -242,6 +242,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_6bcb6255cf"
   end
 
+  create_table "globals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.string "code"
+    t.string "address"
+    t.string "phone"
+    t.bigint "creator"
+    t.integer "retired"
+    t.bigint "retired_by"
+    t.string "retired_reason"
+    t.datetime "retired_date"
+    t.datetime "created_date"
+    t.datetime "updated_date"
+    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_bb30e1b9e2"
+    t.index ["retired_by"], name: "fk_rails_57610fb0a4"
+    t.index ["updated_by"], name: "fk_rails_8d2a6c1779"
+  end
+
   create_table "instrument_test_type_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "instrument_id", null: false
     t.bigint "test_type_id", null: false
@@ -784,6 +802,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "facility_sections", "users", column: "creator"
   add_foreign_key "facility_sections", "users", column: "retired_by"
   add_foreign_key "facility_sections", "users", column: "updated_by"
+  add_foreign_key "globals", "users", column: "creator"
+  add_foreign_key "globals", "users", column: "retired_by"
+  add_foreign_key "globals", "users", column: "updated_by"
   add_foreign_key "instrument_test_type_mappings", "instruments"
   add_foreign_key "instrument_test_type_mappings", "test_types"
   add_foreign_key "instrument_test_type_mappings", "users", column: "creator"
