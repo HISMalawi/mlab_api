@@ -68,6 +68,7 @@ Rails.application.routes.draw do
 
       resources :diseases
       resources :test_statuses
+      resources :global
     end
   end
 end
