@@ -96,6 +96,7 @@ module OrderService
       tests_ = []
       tests.each do |test|
         tests_ << {
+          specimen_id: test.specimen.id,
           specimen: test.specimen.name,
           test_type: test.test_type.name
         }
