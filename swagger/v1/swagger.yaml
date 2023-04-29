@@ -4,6 +4,193 @@ info:
   title: API V1
   version: v1
 paths:
+  "/api/v1/clients":
+    post:
+      summary: create_a_client
+      tags:
+        - Create an Order
+      description: Create an Order API Endpoints
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                  person:
+                    type: object
+                    properties:
+                      first_name:
+                        type: string
+                      middle_name:
+                        type: string
+                      last_name:
+                        type: string
+                      sex:
+                        type: string
+                      date_of_birth:
+                        type: string
+                        format: date
+                      birth_date_estimated:
+                        type: boolean
+                  client_identifiers:
+                    type: object
+                    properties:
+                      current_district:
+                        type: string
+                        properties:
+                      current_village:
+                        type: string
+                        properties:
+                      current_traditional_authority:
+                        type: string
+                        properties:
+                      physical_address:
+                        type: string
+  "/api/v1/encounter_types":
+    get:
+      summary: get visit types aka encounter types
+      tags:
+        - Create an Order
+      description: Create an Order API Endpoints
+      security:
+        - bearerAuth: []
+      parameters: []
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          format: int64
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        creator:
+                          type: integer
+                          format: int64
+                        voided:
+                          type: integer
+                          format: int32
+                        voided_by:
+                          type: integer
+                          format: int64
+                          nullable: true
+                        voided_reason:
+                          type: string
+                          nullable: true
+                        voided_date:
+                          type: string
+                          format: date-time
+                          nullable: true
+                        created_date:
+                          type: string
+                          format: date-time
+                        updated_date:
+                          type: string
+                          format: date-time
+                        updated_by:
+                          type: integer
+                          format: int64
+                      required:
+                        - id
+                        - name
+                        - description
+                        - creator
+                        - voided
+                        - created_date
+                        - updated_date
+                        - updated_by
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        format: int32
+                      next_page:
+                        type: integer
+                        format: int32
+                        nullable: true
+                      prev_page:
+                        type: integer
+                        format: int32
+                        nullable: true
+                      total_pages:
+                        type: integer
+                        format: int32
+                      total_count:
+                        type: integer
+                        format: int32
+                required:
+                  - data
+                  - meta
+  "/api/v1/encounter_type_facility_section_mappings/facility_sections":
+    get:
+      summary: Get facility sections based on  encounter type id
+      description: Creates facility sections based on the specified encounter type ID
+      parameters:
+        - in: body
+          name: body
+          description: Request body for gettingfacility section
+          required: true
+          schema:
+            type: object
+            properties:
+              encounter_type_id:
+                type: integer
+                format: int64
+            required:
+              - encounter_type_id
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: The unique identifier of the facility section.
+                    name:
+                      type: string
+                      description: The name of the facility section.
+              example:
+                - id: 1
+                  name: CWC
+                - id: 2
+                  name: CW HDU
+                - id: 3
+                  name: CWB
+                - id: 7
+                  name: CWA
+                - id: 9
+                  name: Theatre
+                - id: 10
+                  name: Dialysis Unit
+
+      tags:
+        - Create an Order
   "/api/v1/interfacer/fetch_results":
     get:
       summary: fetch_results interfacer
