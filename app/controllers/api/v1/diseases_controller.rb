@@ -25,11 +25,8 @@ class Api::V1::DiseasesController < ApplicationController
 
   # PATCH/PUT /api/v1/diseases/1
   def update
-    if @disease.update(disease_params)
-      render json: @disease
-    else
-      render json: @disease.errors, status: :unprocessable_entity
-    end
+    @disease.update!(disease_params)
+    render json: @disease, status: :ok
   end
 
   # DELETE /api/v1/diseases/1
