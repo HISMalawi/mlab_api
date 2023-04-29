@@ -24,7 +24,7 @@ paths:
                   phone:
                     type: string
                 example:
-                    - name: "Kamuzu Central Hospital"
+                      name: "Kamuzu Central Hospital"
                       code: "KCH"
                       address: "P.O BOX 21, Lilongwe"
                       phone: "+2651123435, +2651123424"
@@ -331,8 +331,6 @@ paths:
                     properties:
                       sending_facility:
                         type: integer
-                      destination_facility:
-                        type: string
                       encounter_type:
                         type: integer
                       facility_section:
@@ -348,7 +346,7 @@ paths:
                         type: string
                       sample_collected_time:
                         type: string
-                        format: date
+                        format: date-time
                       tracking_number:
                         type: string
                   tests:
