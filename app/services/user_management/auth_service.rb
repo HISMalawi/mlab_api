@@ -37,7 +37,6 @@ module UserManagement
       end
 
       def authenticate(token)
-        token = token.split(' ')[1]
         begin
           decoded = jwt_token_decode(token)
           current_user = User.find(decoded[:user_id])
