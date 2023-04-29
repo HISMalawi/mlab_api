@@ -48,6 +48,75 @@ paths:
                 example:
                     - id: 1
                       name: "stat"
+  "/api/v1/clients/search_dde":
+    get:
+      summary: Search for clients by first name, last name, and gender
+      tags:
+        - Create an Order
+      requestBody:
+        description: JSON object containing search parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  description: First name of the client
+                last_name:
+                  type: string
+                  description: Last name of the client
+                gender:
+                  type: string
+                  enum: [M, F]
+                  description: Gender of the client (M for male, F for female)
+              required:
+                - first_name
+                - last_name
+                - gender
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    source:
+                      type: string
+                      description: Source of the client information
+                    client_id:
+                      type: integer
+                      description: ID of the client
+                    first_name:
+                      type: string
+                      description: First name of the client
+                    middle_name:
+                      type: string
+                      description: Middle name of the client
+                    last_name:
+                      type: string
+                      description: Last name of the client
+                    sex:
+                      type: string
+                      enum: [M, F, O]
+                      description: Gender of the client
+                    date_of_birth:
+                      type: string
+                      format: date
+                      description: Date of birth of the client
+                    birth_date_estimated:
+                      type: boolean
+                      description: Whether the birth date is estimated
+                    uuid:
+                      type: string
+                      description: UUID of the client
+                    physical_address:
+                      type: string
+                      description: Physical address of the client
   "/api/v1/clients":
     post:
       summary: create_a_client
@@ -79,6 +148,8 @@ paths:
                         type: string
                       sex:
                         type: string
+                        enum: [M, F]
+                        description: Gender of the client (M for male, F for female)
                       date_of_birth:
                         type: string
                         format: date
