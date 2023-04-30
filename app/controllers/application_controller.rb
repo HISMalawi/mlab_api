@@ -18,7 +18,8 @@ class ApplicationController < ActionController::API
   end
 
   def paginate data
-    page, limit = params[:page] || 1, params[:per_page] || 10
+    page, limit, paginate = params[:page] || 1, params[:per_page] || 10, params[:paginate] || false
+    return data if paginate
     results = PaginationService.paginate(data, page: page, limit: limit)
     {data: results, meta: PaginationService.pagination_metadata(results)}
   end

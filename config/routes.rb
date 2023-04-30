@@ -35,6 +35,7 @@ Rails.application.routes.draw do
       resources :test_panels
       resources :test_results
       resources :facilities
+      resources :facility_sections
       resources :statuses
       resources :status_reasons
       resources :tests
