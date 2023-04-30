@@ -3,8 +3,8 @@ class Api::V1::SurveillancesController < ApplicationController
 
   # GET /api/v1/surveillances
   def index
-    @api_v1_surveillances = LabConfiguration::SurveillanceService.get_surveillances
-    render json: @api_v1_surveillances
+    @surveillances = Surveillance.all
+    render json: @surveillances
   end
 
   # GET /api/v1/surveillances/1
@@ -16,8 +16,7 @@ class Api::V1::SurveillancesController < ApplicationController
   # POST /api/v1/surveillances
   def create
     accepted = params.require(:surveillance).permit(data: [:diseases_id, :test_types_id]).to_h
-    Rails.logger.info accepted
-    render json: LabConfiguration::SurveillanceService.create_surveillance(accepted[:data])
+    render json: accepted[:data].map { |sv| Surveillance.find_or_create_by!(**sv) }
   end
 
   # PATCH/PUT /api/v1/surveillances/1
