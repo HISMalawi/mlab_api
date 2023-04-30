@@ -35,6 +35,10 @@ orders.each do |order_|
   end
   p = Person.where(first_name: , middle_name: , last_name: , date_of_birth: order_.dob).pluck('id').first
   client = Client.where(person_id: p).first
+
+  # skip iteration if client is nil
+  next if client.nil?
+  
   encouter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, creator: creator,
     destination_id: facility.id, start_date: Time.now, encounter_type_id: EncounterType.find_by_name(order_.visit_type&.strip).id
   )

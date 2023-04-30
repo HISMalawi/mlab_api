@@ -11,7 +11,7 @@ ActiveRecord::Base.transaction do
   LOGGER.info("=========Creating Facilities===========")
 
   data = Iblis.find_by_sql("SELECT * FROM facilities")
-  mapped = data.map { |v| { id: v.id, name: v.name, creator: User.current.id, created_date: Date.today, updated_date: Date.today } }
+  mapped = data.map { |v| { name: v.name, creator: User.current.id, created_date: Date.today, updated_date: Date.today } }
  
   mapped.collect { |v| insert_to_db Facility, v }
 
