@@ -256,6 +256,59 @@ paths:
                 required:
                   - data
                   - meta
+    post:
+      summary: create visit types aka encounter types
+      tags:
+        - Create an Order
+      description: Create an Order API Endpoints
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+        description: JSON object containing search parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the encounter type
+                description:
+                  type: string
+                  description: Description of the encounter type
+                facility_sections:
+                  type: array
+                  description: Array of facility sections
+              required:
+                - name
+                - description
+                - facility_sections
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  facility_sections:
+                    name: string
+                    type: array
+                  
+                required:
+                  - id
+                  - name
+                  - description
+                  - facility_sections
   "/api/v1/encounter_type_facility_section_mappings/facility_sections":
     get:
       summary: Get facility sections based on  encounter type id
