@@ -124,7 +124,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_04_28_091010) do
     t.index ["voided_by"], name: "fk_rails_171f5ed44e"
   end
 
-  create_table "drug_organism_mappings", charset: "utf8mb4", force: :cascade do |t|
+  create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "drug_id", null: false
     t.bigint "organism_id", null: false
     t.integer "retired"

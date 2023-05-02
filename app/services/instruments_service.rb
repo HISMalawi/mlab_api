@@ -8,6 +8,8 @@ module InstrumentsService
         data = Instrument.where("name LIKE ?", "%#{search}%").offset((page.to_i - 1) * page_size.to_i).limit(page_size.to_i)
       end
 
+      data = data.order(id: :desc)
+
       total = Instrument.count
 
       { page: page.to_i,

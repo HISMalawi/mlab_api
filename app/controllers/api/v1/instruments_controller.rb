@@ -14,9 +14,9 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def update
-    updated = Instrument.find(params[:id]).update(instrument_params)
-    render json: instrument if updated and return
-    render json: updated.errors, status: :unprocessable_entity
+    instrument = Instrument.find(params[:id])
+    instrument.update(instrument_params)
+    render json: instrument, status: :ok
   end
 
   def destroy

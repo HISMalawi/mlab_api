@@ -69,7 +69,17 @@ Rails.application.routes.draw do
       end
 
       resources :diseases
-      resources :test_statuses
+      resources :test_statuses, only: %i[index] do
+        collection do
+          put "/:test_id/not_received" => "test_statuses#not_received"
+          put "/:test_id/started" => "test_statuses#started"
+          put "/:test_id/completed" => "test_statuses#completed"
+          put "/:test_id/verified" => "test_statuses#verified"
+          put "/:test_id/voided" => "test_statuses#voided"
+          put "/:test_id/not_done" => "test_statuses#not_done"
+          put "/:test_id/rejected" => "test_statuses#rejected"
+        end
+      end
       resources :global
       resources :priorities
       resources :surveillances

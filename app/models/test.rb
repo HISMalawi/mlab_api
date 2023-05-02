@@ -4,12 +4,18 @@ class Test < VoidableRecord
   belongs_to :test_type
   has_many :test_status
 
+  after_create :create_default_status
+
   def as_json(options = {})
     super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
   end
 
   def short_name
     test_type.short_name
+  end
+
+  def create_default_status
+    TestStatus.create(test_id: id, status_id: Status.find_by_name('pending').id, creator: User.current.id)
   end
 
   def indicators
