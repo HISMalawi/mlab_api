@@ -4,6 +4,12 @@ dde_service:
   username: username
   password: password
 
+nlims_service:
+  base_url: localhost
+  port: 3009
+  username: username
+  password: password
+
 # facility:
 #   name: Kamuzu Central Hospital
 #   code: KCH
