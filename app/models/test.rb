@@ -9,7 +9,12 @@ class Test < VoidableRecord
   end
 
   def indicators
-    test_type.test_indicators
+    test_type.test_indicators.as_json(only: %i[id name test_indicator_type])
+      .map { |i| i.merge(result: results(i['id'])) }
+  end
+
+  def results(indicator_id)
+    TestResult.where(test_id: id, test_indicator_id: indicator_id)&.last&.as_json(only: %i[id value result_date])
   end
 
   def request_origin
@@ -53,6 +58,6 @@ class Test < VoidableRecord
   end
 
   def client
-    order.encounter.client.person.as_json(only: %i[first_name middle_name last_name sex date_of_birth birth_date_estimated])
+    order.encounter.client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
   end
 end

@@ -8,11 +8,13 @@ class Api::V1::TestsController < ApplicationController
   end
 
   def create
-    Test.create!(test_params)
+    test = Test.create!(test_params)
+    render json: test, status: :created
   end
 
   def update
     Test.find(params[:id]).update!(test_params)
+    render json: Test.find(params[:id]), status: :ok
   end
 
   def destroy

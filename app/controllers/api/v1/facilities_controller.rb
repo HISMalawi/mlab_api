@@ -1,44 +1,30 @@
 class Api::V1::FacilitiesController < ApplicationController
-  before_action :set_facility, only: [:show, :update, :destroy]
-
   def index
-    @facilities = Facility.all
-    render json: @facilities
+    render json: paginate(Facility.all)
   end
   
   def show
-    render json: @facility
+    render json: Facility.find(params[:id])
   end
 
   def create
-    @facility = Facility.new(facility_params)
-
-    if @facility.save
-      render json: @facility, status: :created, location: [:api, :v1, @facility]
-    else
-      render json: @facility.errors, status: :unprocessable_entity
-    end
+    facility = Facility.create!(facility_params)
+    render json: facility, status: :created
   end
 
   def update
-    if @facility.update(facility_params)
-      render json: @facility
-    else
-      render json: @facility.errors, status: :unprocessable_entity
-    end
+    facility = Facility.find(params[:id]).update!(facility_params)
+    render json: facility, status: :ok
   end
 
   def destroy
-    @facility.destroy
+    Facility.find(params[:id]).void(params[:retired_reason])
+    render json: {message: MessageService::RECORD_DELETED}
   end
 
   private
 
-  def set_facility
-    @facility = Facility.find(params[:id])
-  end
-
   def facility_params
-    params.require(:facility).permit(:name, :retired, :retired_by, :retired_reason, :retired_date, :creator, :created_date, :updated_date)
+    params.permit(:name)
   end
 end
