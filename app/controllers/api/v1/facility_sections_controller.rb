@@ -10,16 +10,17 @@ class Api::V1::FacilitySectionsController < ApplicationController
 
   def create
     section = FacilitySection.create(facility_section_params)
-    render json: section
+    render json: section, status: :created
   end
 
   def update
     section = FacilitySection.find(params[:id]).update(facility_section_params)
-    render json: section
+    render json: section, status: :ok
   end
 
   def destroy
     FacilitySection.find(params[:id]).void(params[:retired_reason])
+    render json: MessageService::RECORD_DELETED, status: :ok
   end
 
   private
