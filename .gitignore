@@ -75,3 +75,4 @@ config/secrets.yml
 config/storage.yml
 config/cable.yml
 config/application.yml
+db/schema.rb

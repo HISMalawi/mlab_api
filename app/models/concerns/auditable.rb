@@ -30,14 +30,16 @@ module Auditable
   end
 
   def update_create_trail
-    unless respond_to?(:created_date) && respond_to?(:creator)
+    unless respond_to?(:created_date) && respond_to?(:creator) && respond_to?(:updated_date)
       Rails.logger.warn "Auditable model missing creator or date_created: #{self}"
       return
     end
     self.creator = User.current&.id if creator.nil? || creator.zero?
     Rails.logger.warn 'Auditable::update_create_trail called outside login' unless creator
 
-    self.created_date = Time.now
+    now = Time.now
+    self.created_date = now
+    self.updated_date = now
   end
 
   def auditable?

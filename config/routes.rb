@@ -72,6 +72,7 @@ Rails.application.routes.draw do
       resources :test_statuses
       resources :global
       resources :priorities
+      resources :surveillances
     end
   end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
+ActiveRecord::Schema[7.0].define(version: 2023_04_28_091010) do
   create_table "client_identifier_types", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -112,11 +112,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   end
 
   create_table "diseases", charset: "utf8mb4", force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "updated_by"
-    t.index ["updated_by"], name: "fk_rails_f656a116d9"
+    t.string "name", null: false
+    t.integer "voided", default: 0
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.bigint "creator", null: false
+    t.datetime "created_date", null: false
+    t.datetime "updated_date", null: false
+    t.index ["creator"], name: "fk_rails_28375b9bab"
+    t.index ["voided_by"], name: "fk_rails_171f5ed44e"
   end
 
   create_table "drug_organism_mappings", charset: "utf8mb4", force: :cascade do |t|
@@ -479,6 +484,22 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_239f1561e1"
   end
 
+  create_table "surveillances", charset: "utf8mb4", force: :cascade do |t|
+    t.bigint "test_types_id"
+    t.bigint "diseases_id"
+    t.integer "voided", default: 0
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.bigint "creator", null: false
+    t.datetime "created_date", null: false
+    t.datetime "updated_date", null: false
+    t.index ["creator"], name: "fk_rails_66eb7c6a50"
+    t.index ["diseases_id"], name: "index_surveillances_on_diseases_id"
+    t.index ["test_types_id"], name: "index_surveillances_on_test_types_id"
+    t.index ["voided_by"], name: "fk_rails_94adfec205"
+  end
+
   create_table "test_indicator_ranges", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_indicator_id", null: false
     t.integer "min_age"
@@ -763,6 +784,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "departments", "users", column: "retired_by"
   add_foreign_key "departments", "users", column: "updated_by"
   add_foreign_key "diseases", "users", column: "updated_by"
+  add_foreign_key "diseases", "users", column: "creator"
+  add_foreign_key "diseases", "users", column: "voided_by"
   add_foreign_key "drug_organism_mappings", "drugs"
   add_foreign_key "drug_organism_mappings", "organisms"
   add_foreign_key "drug_organism_mappings", "users", column: "creator"
@@ -840,6 +863,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "statuses", "users", column: "creator"
   add_foreign_key "statuses", "users", column: "retired_by"
   add_foreign_key "statuses", "users", column: "updated_by"
+  add_foreign_key "surveillances", "diseases", column: "diseases_id"
+  add_foreign_key "surveillances", "test_types", column: "test_types_id"
+  add_foreign_key "surveillances", "users", column: "creator"
+  add_foreign_key "surveillances", "users", column: "voided_by"
   add_foreign_key "test_indicator_ranges", "test_indicators"
   add_foreign_key "test_indicator_ranges", "users", column: "creator"
   add_foreign_key "test_indicator_ranges", "users", column: "retired_by"
