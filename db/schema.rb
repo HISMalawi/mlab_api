@@ -11,7 +11,7 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
-  create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "client_identifier_types", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -26,7 +26,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_7a8f7bbfc0"
   end
 
-  create_table "client_identifiers", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "client_identifiers", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "client_identifier_type_id", null: false
     t.string "value"
     t.bigint "client_id", null: false
@@ -45,7 +45,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_77f50c4288"
   end
 
-  create_table "client_order_print_trails", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "client_order_print_trails", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "order_id", null: false
     t.bigint "creator"
     t.integer "voided"
@@ -61,7 +61,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_d0e284cc0a"
   end
 
-  create_table "clients", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "clients", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "person_id", null: false
     t.binary "uuid"
     t.integer "voided"
@@ -78,7 +78,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_8ddb993c38"
   end
 
-  create_table "culture_observations", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "culture_observations", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_id", null: false
     t.text "description"
     t.datetime "observation_datetime"
@@ -96,7 +96,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_71c231eae4"
   end
 
-  create_table "departments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "departments", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -111,13 +111,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_f4ba61f503"
   end
 
-  create_table "diseases", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "diseases", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "updated_by"
+    t.index ["updated_by"], name: "fk_rails_f656a116d9"
   end
 
-  create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "drug_organism_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "drug_id", null: false
     t.bigint "organism_id", null: false
     t.integer "retired"
@@ -135,7 +137,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_f03d36516c"
   end
 
-  create_table "drugs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "drugs", charset: "utf8mb4", force: :cascade do |t|
     t.string "short_name"
     t.string "name"
     t.integer "retired"
@@ -151,22 +153,23 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_3650d0586d"
   end
 
-  create_table "encounter_type_facility_section_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "encounter_type_facility_section_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "creator"
     t.integer "voided"
     t.bigint "voided_by"
     t.string "voided_reason"
     t.datetime "voided_date"
     t.datetime "created_date"
-    t.datetime "updated_by"
     t.datetime "updated_date"
     t.bigint "facility_section_id", null: false
     t.bigint "encounter_type_id", null: false
+    t.index ["creator"], name: "fk_rails_0a2ba9e596"
     t.index ["encounter_type_id"], name: "fk_rails_2880469aa4"
     t.index ["facility_section_id"], name: "fk_rails_afdb26e1db"
+    t.index ["voided_by"], name: "fk_rails_f4b4388678"
   end
 
-  create_table "encounter_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "encounter_types", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "description"
     t.bigint "creator"
@@ -175,11 +178,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.string "voided_reason"
     t.datetime "voided_date"
     t.datetime "created_date"
-    t.datetime "updated_by"
     t.datetime "updated_date"
+    t.index ["creator"], name: "fk_rails_c085b6c147"
+    t.index ["voided_by"], name: "fk_rails_3b11e06173"
   end
 
-  create_table "encounters", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "encounters", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "client_id", null: false
     t.bigint "facility_id", null: false
     t.bigint "destination_id", null: false
@@ -206,7 +210,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_bd2826d55e"
   end
 
-  create_table "facilities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "facilities", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -221,7 +225,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_1f012546ff"
   end
 
-  create_table "facility_sections", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "facility_sections", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -236,7 +240,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_6bcb6255cf"
   end
 
-  create_table "globals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "globals", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "code"
     t.string "address"
@@ -248,10 +252,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.datetime "retired_date"
     t.datetime "created_date"
     t.datetime "updated_date"
-    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_bb30e1b9e2"
+    t.index ["retired_by"], name: "fk_rails_57610fb0a4"
   end
 
-  create_table "instrument_test_type_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "instrument_test_type_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "instrument_id", null: false
     t.bigint "test_type_id", null: false
     t.integer "retired"
@@ -269,7 +274,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_1c160e3ebc"
   end
 
-  create_table "instruments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "instruments", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "description"
     t.string "ip_address"
@@ -287,7 +292,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_030d937fe9"
   end
 
-  create_table "orders", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "orders", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "encounter_id", null: false
     t.bigint "priority_id", null: false
     t.string "accession_number"
@@ -310,7 +315,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_6891831a3d"
   end
 
-  create_table "organisms", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "organisms", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "description"
     t.integer "retired"
@@ -326,7 +331,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_03900b2cb0"
   end
 
-  create_table "people", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "people", charset: "utf8mb4", force: :cascade do |t|
     t.string "first_name"
     t.string "middle_name"
     t.string "last_name"
@@ -346,7 +351,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_a6e182138c"
   end
 
-  create_table "priorities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "priorities", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -361,7 +366,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_4aa71f1fd5"
   end
 
-  create_table "privileges", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "privileges", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "display_name"
     t.integer "retired"
@@ -377,7 +382,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_93ae80f87f"
   end
 
-  create_table "role_privilege_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "role_privilege_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "role_id", null: false
     t.bigint "privilege_id", null: false
     t.integer "voided"
@@ -395,7 +400,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_c02b7ac72f"
   end
 
-  create_table "roles", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "roles", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -410,7 +415,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_7b99252597"
   end
 
-  create_table "specimen", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "specimen", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "description"
     t.integer "retired"
@@ -426,7 +431,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_626b1bcbb9"
   end
 
-  create_table "specimen_test_type_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "specimen_test_type_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "specimen_id", null: false
     t.bigint "test_type_id", null: false
     t.integer "retired"
@@ -444,7 +449,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_0c4cfd257a"
   end
 
-  create_table "status_reasons", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "status_reasons", charset: "utf8mb4", force: :cascade do |t|
     t.text "description"
     t.integer "retired"
     t.bigint "retired_by"
@@ -459,7 +464,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_a65e4e7239"
   end
 
-  create_table "statuses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "statuses", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -474,7 +479,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_239f1561e1"
   end
 
-  create_table "test_indicator_ranges", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_indicator_ranges", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_indicator_id", null: false
     t.integer "min_age"
     t.integer "max_age"
@@ -497,7 +502,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_01f927bee0"
   end
 
-  create_table "test_indicators", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_indicators", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.bigint "test_type_id", null: false
     t.integer "test_indicator_type"
@@ -517,7 +522,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_692ced2c3a"
   end
 
-  create_table "test_panels", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_panels", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "short_name"
     t.string "description"
@@ -534,7 +539,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_508837b977"
   end
 
-  create_table "test_results", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_results", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_id", null: false
     t.bigint "test_indicator_id", null: false
     t.text "value"
@@ -554,7 +559,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_d60aefd51e"
   end
 
-  create_table "test_statuses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_statuses", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_id", null: false
     t.bigint "status_id", null: false
     t.bigint "status_reason_id"
@@ -574,7 +579,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_f6510b76c0"
   end
 
-  create_table "test_type_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_type_organism_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_type_id", null: false
     t.bigint "organism_id", null: false
     t.bigint "creator"
@@ -592,7 +597,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_30bc089809"
   end
 
-  create_table "test_type_panel_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_type_panel_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "test_type_id", null: false
     t.bigint "test_panel_id", null: false
     t.integer "voided"
@@ -610,7 +615,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_83dfe97307"
   end
 
-  create_table "test_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "test_types", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.string "short_name"
     t.bigint "department_id", null: false
@@ -629,7 +634,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_ae1e39de07"
   end
 
-  create_table "tests", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "tests", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "specimen_id", null: false
     t.bigint "order_id", null: false
     t.bigint "test_type_id", null: false
@@ -649,7 +654,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_1c50d4e771"
   end
 
-  create_table "user_department_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "user_department_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "department_id", null: false
     t.integer "retired"
@@ -667,7 +672,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["user_id"], name: "index_user_department_mappings_on_user_id"
   end
 
-  create_table "user_role_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "user_role_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "role_id", null: false
     t.integer "retired"
@@ -685,7 +690,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["user_id"], name: "index_user_role_mappings_on_user_id"
   end
 
-  create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "users", charset: "utf8mb4", force: :cascade do |t|
     t.bigint "person_id", null: false
     t.string "username"
     t.string "password"
@@ -705,7 +710,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
   end
 
-  create_table "visit_type_facility_section_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "visit_type_facility_section_mappings", charset: "utf8mb4", force: :cascade do |t|
     t.integer "retired"
     t.bigint "retired_by"
     t.string "retired_reason"
@@ -715,12 +720,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.datetime "created_date"
     t.bigint "facility_section_id", null: false
     t.bigint "visit_type_id", null: false
-    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_7fc43c315a"
     t.index ["facility_section_id"], name: "fk_rails_79cf966fd7"
+    t.index ["retired_by"], name: "fk_rails_663642c7d8"
     t.index ["visit_type_id"], name: "fk_rails_607bb2a066"
   end
 
-  create_table "visit_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+  create_table "visit_types", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -729,7 +735,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
-    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_8098698b0f"
+    t.index ["retired_by"], name: "fk_rails_c55e7d0885"
   end
 
   add_foreign_key "client_identifier_types", "users", column: "creator"
@@ -755,6 +762,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "departments", "users", column: "creator"
   add_foreign_key "departments", "users", column: "retired_by"
   add_foreign_key "departments", "users", column: "updated_by"
+  add_foreign_key "diseases", "users", column: "updated_by"
   add_foreign_key "drug_organism_mappings", "drugs"
   add_foreign_key "drug_organism_mappings", "organisms"
   add_foreign_key "drug_organism_mappings", "users", column: "creator"
@@ -765,6 +773,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "drugs", "users", column: "updated_by"
   add_foreign_key "encounter_type_facility_section_mappings", "encounter_types"
   add_foreign_key "encounter_type_facility_section_mappings", "facility_sections"
+  add_foreign_key "encounter_type_facility_section_mappings", "users", column: "creator"
+  add_foreign_key "encounter_type_facility_section_mappings", "users", column: "voided_by"
+  add_foreign_key "encounter_types", "users", column: "creator"
+  add_foreign_key "encounter_types", "users", column: "voided_by"
   add_foreign_key "encounters", "clients"
   add_foreign_key "encounters", "encounter_types"
   add_foreign_key "encounters", "facilities"
@@ -779,6 +791,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "facility_sections", "users", column: "creator"
   add_foreign_key "facility_sections", "users", column: "retired_by"
   add_foreign_key "facility_sections", "users", column: "updated_by"
+  add_foreign_key "globals", "users", column: "creator"
+  add_foreign_key "globals", "users", column: "retired_by"
   add_foreign_key "instrument_test_type_mappings", "instruments"
   add_foreign_key "instrument_test_type_mappings", "test_types"
   add_foreign_key "instrument_test_type_mappings", "users", column: "creator"
@@ -883,5 +897,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "users", "users", column: "updated_by"
   add_foreign_key "users", "users", column: "voided_by"
   add_foreign_key "visit_type_facility_section_mappings", "facility_sections"
+  add_foreign_key "visit_type_facility_section_mappings", "users", column: "creator"
+  add_foreign_key "visit_type_facility_section_mappings", "users", column: "retired_by"
   add_foreign_key "visit_type_facility_section_mappings", "visit_types"
+  add_foreign_key "visit_types", "users", column: "creator"
+  add_foreign_key "visit_types", "users", column: "retired_by"
 end
