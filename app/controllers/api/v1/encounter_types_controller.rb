@@ -19,7 +19,7 @@ module Api
 
       def destroy
         EncounterType.find(params[:id]).void(params[:retired_reason])
-        EncounterTypeFacilitySectionMapping.where(visit_type_id: params[:id]).each do |mapping|
+        EncounterTypeFacilitySectionMapping.where(encounter_type_id: params[:id]).each do |mapping|
           mapping.void(params[:retired_reason])
         end
         render json: { message: "Visit type successfully deleted" }, status: :ok
