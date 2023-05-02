@@ -38,7 +38,7 @@ module ClientManagement
                 )
         self.token = JSON.parse(response.body)['access_token']
         true
-      rescue RestClient::UnAuthorized
+      rescue RestClient::Unauthorized
         false
       end
     end
