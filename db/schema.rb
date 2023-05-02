@@ -10,8 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+<<<<<<< Updated upstream
 ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   create_table "client_identifier_types", charset: "utf8mb4", force: :cascade do |t|
+=======
+ActiveRecord::Schema[7.0].define(version: 2023_04_28_072459) do
+  create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+>>>>>>> Stashed changes
     t.string "name"
     t.integer "retired"
     t.bigint "retired_by"
@@ -111,6 +116,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["updated_by"], name: "fk_rails_f4ba61f503"
   end
 
+<<<<<<< Updated upstream
   create_table "diseases", charset: "utf8mb4", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -120,6 +126,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   end
 
   create_table "drug_organism_mappings", charset: "utf8mb4", force: :cascade do |t|
+=======
+  create_table "diseases", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+>>>>>>> Stashed changes
     t.bigint "drug_id", null: false
     t.bigint "organism_id", null: false
     t.integer "retired"
