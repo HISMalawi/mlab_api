@@ -15,8 +15,8 @@ module Api
 
       # POST /api/v1/diseases
       def create
-        @disease = Disease.create!(disease_params)
-        render json: @disease
+        diseases = params.require(:disease).permit(data: [:name]).to_h
+        render json: diseases[:data].map { |ds| Disease.find_or_create_by!(**ds) }
       end
 
       # PATCH/PUT /api/v1/diseases/1
