@@ -39,6 +39,7 @@ Rails.application.routes.draw do
       resources :statuses
       resources :status_reasons
       resources :tests
+      get '/printout/accession_number' => 'printout#print_accession_number'  
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'

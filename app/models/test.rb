@@ -8,6 +8,10 @@ class Test < VoidableRecord
     super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
   end
 
+  def short_name
+    test_type.short_name
+  end
+
   def indicators
     test_type.test_indicators.as_json(only: %i[id name test_indicator_type])
       .map { |i| i.merge(result: results(i['id'])) }

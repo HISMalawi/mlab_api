@@ -17,6 +17,7 @@ module MlabApi
     # in config/environments, which are processed later.
     #
     # config.time_zone = "Central Time (US & Canada)"
+    config.eager_load_paths << Rails.root.join('lib', 'zebra_printer', 'lib')
     config.eager_load_paths << Rails.root.join("bin", "iblis")
 
     # Only loads a smaller set of middleware suitable for API only apps.
