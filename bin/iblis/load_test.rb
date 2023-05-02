@@ -1,5 +1,7 @@
 Rails.logger = Logger.new(STDOUT)
-creator = 1
+
+User.current = User.first
+creator = User.current.id
 
 facility = Facility.create(name: 'test_facility', creator: creator)
 facility_section = FacilitySection.create(name: 'test_facility_section', creator: creator)
