@@ -4,14 +4,8 @@ module Api
       before_action :set_disease, only: %i[ show update destroy ]
 
       # GET /api/v1/diseases
-      def index
-        page, page_size = pagination.values_at(:page, :page_size)
-        total = Disease.count
-        @diseases = {page: page.to_i,
-                        page_size: page_size.to_i,
-                        total: total.to_i,
-                        data: Disease.limit(page_size.to_i).offset(page.to_i - 1).all}    
-        render json: @diseases
+      def index 
+        render json: Disease.all
       end
 
       # GET /api/v1/diseases/1
@@ -21,8 +15,8 @@ module Api
 
       # POST /api/v1/diseases
       def create
-        @disease = Disease.create!(disease_params)
-        render json: @disease
+        diseases = params.require(:disease).permit(data: [:name]).to_h
+        render json: diseases[:data].map { |ds| Disease.find_or_create_by!(**ds) }
       end
 
       # PATCH/PUT /api/v1/diseases/1
