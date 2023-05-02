@@ -173,8 +173,8 @@ paths:
     get:
       summary: get visit types aka encounter types
       tags:
-        - Create an Order
-      description: Create an Order API Endpoints
+        - Encounter Type (Visit Type)
+      description: Get all Encounter type
       security:
         - bearerAuth: []
       parameters: []
@@ -259,8 +259,8 @@ paths:
     post:
       summary: create visit types aka encounter types
       tags:
-        - Create an Order
-      description: Create an Order API Endpoints
+        - Encounter Type (Visit Type)
+      description: Create an encounter type
       security:
         - bearerAuth: []
       parameters: []
@@ -280,6 +280,8 @@ paths:
                   description: Description of the encounter type
                 facility_sections:
                   type: array
+                  items:
+                    type: integer
                   description: Array of facility sections
               required:
                 - name
@@ -303,12 +305,88 @@ paths:
                   facility_sections:
                     name: string
                     type: array
+                    items:
+                      type: object
                   
                 required:
                   - id
                   - name
                   - description
                   - facility_sections
+    put:
+      summary: update visit types aka encounter types
+      tags:
+        - Encounter Type (Visit Type)
+      description: Update an encounter type
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+        description: JSON object containing search parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the encounter type
+                description:
+                  type: string
+                  description: Description of the encounter type
+                facility_sections:
+                  type: array
+                  items:
+                    type: integer
+                  description: Array of facility sections
+              required:
+                - name
+                - facility_sections
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                  name:
+                    type: string
+                  description:
+                    type: string
+                  facility_sections:
+                    name: string
+                    type: array
+                    items:
+                      type: object
+                required:
+                  - name
+                  - facility_sections
+  "api/v1/encounter_types/{id}":
+    parameters:
+      - in: path
+        name: id
+        description: ID of the encounter type to delete
+        required: true
+        schema:
+          type: integer
+          format: int64
+    delete:
+      summary: delete visit type aka encounter type
+      tags:
+        - Encounter Type (Visit Type)
+      description: Delete an encounter type
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: JSON object containing search parameters
+      responses:
+        200:
+          description: successful
   "/api/v1/encounter_type_facility_section_mappings/facility_sections":
     get:
       summary: Get facility sections based on  encounter type id
