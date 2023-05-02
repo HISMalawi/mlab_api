@@ -1,6 +1,6 @@
 class Api::V1::TestsController < ApplicationController
   def index
-    render json: paginate(test_service.find_tests(params[:search]))
+    render json: paginate(test_service.find_tests(params[:search], params[:department_id]))
   end
   
   def show
