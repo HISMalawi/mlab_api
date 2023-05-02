@@ -1,39 +1,64 @@
 class Api::V1::TestStatusesController < ApplicationController
-  before_action :set_test_status, only: [:show, :update, :destroy]
+  before_action :test_status, only: %i[not_received pending completed started verified voided not_done rejected]
 
   def index
-    @test_statuses = TestStatus.all
-    render json: @test_statuses
+    test_id = params.require(:test_id)
+    render json: TestStatus.find_by_test_id(test_id)
+  end
+
+  def not_received
+    status = Status.find_by_name("not-received")
+    render json: update_status(status)
   end
   
-  def show
-    render json: @test_status
+  def pending
+    status = Status.find_by_name("pending")
+    render json: update_status(status)
   end
-
-  def create
-    @test_status = TestStatus.new(test_status_params)
-    if @test_status.save
-      render json: @test_status, status: :created, location: [:api, :v1, @test_status]
-    else
-      render json: @test_status.errors, status: :unprocessable_entity
-    end
+  
+  def completed
+    status = Status.find_by_name("completed")
+    render json: update_status(status)
   end
-
-  def update
-    render json: TestCatalog::TestStatusesService.update_test_status(@test_status, test_status_params)
+  
+  def started
+    status = Status.find_by_name("started")
+    render json: update_status(status)
   end
-
-  def destroy
-    @test_status.destroy
+  
+  def verified
+    status = Status.find_by_name("verified")
+    render json: update_status(status)
+  end
+  
+  def voided
+    status = Status.find_by_name("voided")
+    render json: update_status(status)
+  end
+  
+  def not_done
+    status = Status.find_by_name("not-done")
+    render json: update_status(status)
+  end
+  
+  def rejected
+    status = Status.find_by_name("test-rejected")
+    render json: update_status(status)
   end
 
   private
 
-  def set_test_status
-    @test_status = TestStatus.find(params[:id])
+  def test_status
+    TestStatus.find_by(test_id: params.require(:test_id))
+  end
+
+  def update_status(status)
+    updated = TestCatalog::TestStatusesService.update_test_status(test_status, status)
+    return Test.find(params.require(:test_id)) if updated
+    updated
   end
 
   def test_status_params
-    params.require(:test_status).permit(:test_id, :status_id, :status_reason_id, :creator, :voided, :voided_by, :voided_reason, :voided_date)
+    params.permit(:test_id, :status_id)
   end
 end
