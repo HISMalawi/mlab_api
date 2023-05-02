@@ -15,8 +15,8 @@ class Api::V1::SurveillancesController < ApplicationController
 
   # POST /api/v1/surveillances
   def create
-    accepted = params.require(:surveillance).permit(data: [:diseases_id, :test_types_id]).to_h
-    render json: accepted[:data].map { |sv| Surveillance.find_or_create_by!(**sv) }
+    accepted = params.require(:surveillance).permit(data: [:diseases_id, :test_types_id]).to_h 
+    render json: accepted[:data].map { |sv| Surveillance.find_or_create_by!(**sv.merge({creator: User.current.id})) }
   end
 
   # PATCH/PUT /api/v1/surveillances/1
