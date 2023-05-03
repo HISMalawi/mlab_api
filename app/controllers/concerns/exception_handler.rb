@@ -16,6 +16,10 @@ module ExceptionHandler
       render json: {error: e.message}, status: :unprocessable_entity
     end
 
+    rescue_from NlimsError do |e|
+      render json: { error: e.message }, status: :not_found
+    end
+
     rescue_from ActiveRecord::RecordNotUnique do |e|
       render json: { error: e.message }, status: :conflict
     end
