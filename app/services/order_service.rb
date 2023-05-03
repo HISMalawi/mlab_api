@@ -25,7 +25,8 @@ module OrderService
         facility_id: facility,
         destination_id: destination,
         facility_section_id: facility_section,
-        start_date: Time.now
+        start_date: Time.now,
+        encounter_type_id: encounterType.id
       )
     end
 
