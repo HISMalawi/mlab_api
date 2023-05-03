@@ -10,6 +10,19 @@ module Tests
             tests = tests.where(test_type_id: TestType.where(department_id: department_id).pluck(:id)) if department_id.present? && is_not_reception?(department_id)
             tests.order('orders.id DESC')
         end
+        
+        def client_report(person, from, to)
+            from, to = from.to_date || Date.to_date, to.to_date || Date.to_date
+            tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
+                .where(encounter: {start_date: from..to, },
+                       person: {id: person.id}
+                )
+            tests.order('orders.id DESC')
+            {
+                client: person,
+                tests: tests.as_json(minimal: true)
+            }
+        end
 
 
         private

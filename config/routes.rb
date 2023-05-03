@@ -38,7 +38,11 @@ Rails.application.routes.draw do
       resources :facility_sections
       resources :statuses
       resources :status_reasons
-      resources :tests
+      resources :tests do 
+        collection do
+          get '/:client_id/report' => 'tests#report'
+        end
+      end
       get '/printout/accession_number' => 'printout#print_accession_number' 
       get '/printout/tracking_number' => 'printout#print_tracking_number'
       resources :test_types do

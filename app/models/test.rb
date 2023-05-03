@@ -7,6 +7,9 @@ class Test < VoidableRecord
   after_create :create_default_status
 
   def as_json(options = {})
+    unless options[:methods].present?
+      return super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name status]))
+    end
     super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
   end
 
