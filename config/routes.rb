@@ -27,6 +27,7 @@ Rails.application.routes.draw do
           get '/facility_sections/' => 'encounter_type_facility_section_mappings#encounter_type_facility_sections'
         end
       end
+      resources :specimen_test_type_mappings
       resources :instruments
       resources :departments
       resources :privileges
