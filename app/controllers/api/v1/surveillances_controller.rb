@@ -9,7 +9,7 @@ class Api::V1::SurveillancesController < ApplicationController
     @surveillances = {page: page.to_i,
                     page_size: page_size.to_i,
                     total: total.to_i,
-                    data: Surveillance.limit(page_size.to_i).offset(page.to_i - 1).all}  
+                    data: Surveillance.limit(page_size.to_i).offset(page.to_i - 1).order(created_date: :desc).all}  
     render json: @surveillances
   end
 
