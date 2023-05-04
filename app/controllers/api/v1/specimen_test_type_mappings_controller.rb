@@ -2,12 +2,12 @@ class Api::V1::SpecimenTestTypeMappingsController < ApplicationController
   before_action :set_specimen_test_type_mapping, only: [:show, :update, :destroy]
 
   def index
-    @specimen_test_type_mappings = SpecimenTestTypeMapping.joins(:specimen, :test_type)
+    @specimen_test_type_mappings = paginate(SpecimenTestTypeMapping.joins(:specimen, :test_type)
                                                           .select('specimen_test_type_mappings.id,
                                                           specimen_test_type_mappings.test_type_id,
                                                           specimen_test_type_mappings.specimen_id,  
                                                           specimen_test_type_mappings.life_span, 
-                                                          specimen.name specimen_name, test_types.name test_type')
+                                                          specimen.name specimen_name, test_types.name test_type'))
     render json: @specimen_test_type_mappings
   end
   
