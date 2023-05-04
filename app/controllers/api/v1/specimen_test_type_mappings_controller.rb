@@ -6,7 +6,8 @@ class Api::V1::SpecimenTestTypeMappingsController < ApplicationController
                                                           .select('specimen_test_type_mappings.id,
                                                           specimen_test_type_mappings.test_type_id,
                                                           specimen_test_type_mappings.specimen_id,  
-                                                          specimen_test_type_mappings.life_span, 
+                                                          specimen_test_type_mappings.life_span,
+                                                          specimen_test_type_mappings.life_span_units,
                                                           specimen.name specimen_name, test_types.name test_type'))
     render json: @specimen_test_type_mappings
   end
