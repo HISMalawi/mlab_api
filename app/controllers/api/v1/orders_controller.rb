@@ -63,6 +63,7 @@ module Api
       def nlims
         config_data = YAML.load_file("#{Rails.root}/config/application.yml")
         nlims_config = config_data["nlims_service"] 
+        raise NlimsError, "nlims_service configuration not found" if nlims_config.nil?
         @nlims_service = Nlims::RemoteService.new(
           base_url: "#{nlims_config['base_url']}:#{nlims_config['port']}",
           token: '',
