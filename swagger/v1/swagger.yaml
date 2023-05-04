@@ -959,7 +959,42 @@ paths:
                     type: string
               example:
                 error: "Test type: Virreal Load from nlims not available in mlab"
-
+  "/organisms/get_organisms_based_test_type":
+    get:
+      summary: Get organisms based test type
+      tags:
+        - Organisms
+      parameters:
+        - in: body
+          name: test_type
+          description: Get organisms based test type
+          required: true
+          schema:
+            type: object
+            properties:
+              test_type:
+                type: string
+      responses:
+        '200':
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+              example:
+                - id: 1
+                  name: Haemophilus influenza
+                - id: 3
+                  name: Streptococcus pneumoniae
+                - id: 4
+                  name: Pseudomonas aeruginosa
 
 servers:
 - url: http://{defaultHost}
