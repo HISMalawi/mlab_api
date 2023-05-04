@@ -5,9 +5,23 @@ module Tests
             tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
             tests = tests.where("test_types.name LIKE ? or test_types.short_name LIKE ?", "%#{query}%", "%#{query}%") if query.present?
             tests = search_by_accession_number(tests, query) if query.present?
+            tests = search_by_tracking_number(tests, query) if query.present?
             tests = search_by_client(tests, query) if query.present?
             tests = tests.where(test_type_id: TestType.where(department_id: department_id).pluck(:id)) if department_id.present? && is_not_reception?(department_id)
             tests.order('orders.id DESC')
+        end
+        
+        def client_report(person, from, to)
+            from, to = from.to_date || Date.to_date, to.to_date || Date.to_date
+            tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
+                .where(encounter: {start_date: from..to, },
+                       person: {id: person.id}
+                )
+            tests.order('orders.id DESC')
+            {
+                client: person,
+                tests: tests.as_json(minimal: true)
+            }
         end
 
 
@@ -15,6 +29,10 @@ module Tests
 
             def is_not_reception?(department_id)
                 Department.find(department_id).name != 'Lab Reception'
+            end
+
+            def search_by_tracking_number(tests,query)
+                tests.or(Test.where("orders.tracking_number LIKE ?", "%#{query}%"))
             end
 
             def search_by_accession_number(tests,query)
