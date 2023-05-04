@@ -825,7 +825,7 @@ paths:
                     type: string
               example:
                 error: "Order not available in NLIMS"
-        401:
+        500:
           description: 
           content:
             application/json:
