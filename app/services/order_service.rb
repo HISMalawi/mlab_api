@@ -114,6 +114,7 @@ module OrderService
       zero_padding = 8
       year = Time.current.year.to_s.last(2)
       order_id = Order.last.id.to_s.rjust(zero_padding, '0')
+      order_id ||= 1
       side_code = GlobalService.current_location
       "#{side_code['code']}#{year}#{order_id}"
     end
