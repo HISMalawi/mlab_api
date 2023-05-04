@@ -33,7 +33,7 @@ class Api::V1::SpecimenTestTypeMappingsController < ApplicationController
 
   def update
     if @specimen_test_type_mapping.update(specimen_test_type_mapping_params)
-      render json: @specimen_test_type_mapping
+      render json: @specimen_test_type_mapping, include: [specimen: {only: :name}, test_type: {only: :name}]
     else
       render json: @specimen_test_type_mapping.errors, status: :unprocessable_entity
     end
