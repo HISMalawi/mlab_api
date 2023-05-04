@@ -58,7 +58,6 @@ module Nlims
                   headers: { content_type: :json, accept: :json , 'token': "#{token}"}
                 )
         response = JSON.parse(response.body)
-        puts response
         return nil if response['status'] == 401
         build_query_order_by_tracking_number_response(response['data'], tracking_number)
     end
@@ -70,7 +69,7 @@ module Nlims
         headers: { content_type: :json, accept: :json , 'token': "#{token}"}
       )
       response = JSON.parse(response.body)
-      puts response
+      response['message'] == 'results not available' ? [] : response['data']['results']
     end
 
     def build_query_order_by_tracking_number_response(response, tracking_number)
@@ -118,28 +117,9 @@ module Nlims
           last_name: last_name,
           sex: details['patient']['gender'],
           date_of_birth: details['patient']['dob']
-        }
+        },
+        results: query_results_by_tracking_number(tracking_number)
       }
-    end
-
-    def build_results_from_nlims(response)
-      result_obj = []
-      if response['message'] == 'results not available'
-        result_obj = []
-      else
-        response['data']['results'].each do |test_type, results|
-          test_obj = {test_type: test_type}
-          results.each do |indicator, result|
-            if indicator != 'result_date'
-            test_obj.merge({
-              indicator: indicator,
-              result: result
-            })
-            end
-          end
-          result_obj << test_obj
-        end
-      end
     end
 
     def merge_or_create_order(nlims_order)
