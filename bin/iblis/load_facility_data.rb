@@ -2,16 +2,23 @@ LOGGER = Logger.new(STDOUT)
 User.current = User.first
 
 def insert_to_db(model, values)
-  item = model.create!(name: values[:name])
-  item.update!(values)
-  item.save!
+  begin
+    item = model.new(values)
+    item.save!
+  rescue ActiveRecord::RecordInvalid => e
+    LOGGER.error("=========Error: Failed to create #{model} with values #{values}===========")
+    LOGGER.error("=========Error: #{e.message}===========")
+  rescue ActiveRecord::RecordNotUnique => e
+    LOGGER.error("=========Error: Failed to create #{model} with values #{values}===========")
+    LOGGER.error("=========Error: #{e.message}===========")
+  end
 end
 
 ActiveRecord::Base.transaction do
   LOGGER.info("=========Creating Facilities===========")
 
   data = Iblis.find_by_sql("SELECT * FROM facilities")
-  mapped = data.map { |v| { name: v.name, creator: User.current.id, created_date: Date.today, updated_date: Date.today } }
+  mapped = data.map { |v| {id: v.id, name: v.name, creator: User.current.id, created_date: Date.today, updated_date: Date.today } }
  
   mapped.collect { |v| insert_to_db Facility, v }
 
@@ -39,4 +46,12 @@ ActiveRecord::Base.transaction do
     item.save!
   end
   LOGGER.info("=========Encounter Types Mapped to Facility Sections===========")
+
+
+  Global.find_or_create_by(
+      name: Facility.first.name,
+      address: "P.O Box 34, Lilongwe",
+      phone: "+265323443",
+      code: 'KCH'
+  )
 end
