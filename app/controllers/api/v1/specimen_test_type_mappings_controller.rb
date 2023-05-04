@@ -44,6 +44,7 @@ class Api::V1::SpecimenTestTypeMappingsController < ApplicationController
   end
 
   def specimen_test_type_mapping_params
-    params.require(:specimen_test_type_mapping).permit(:specimen_id, :test_type_id, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
+    params.require([:life_span, :life_span_units])
+    params.require(:specimen_test_type_mapping).permit(:life_span,:life_span_units, :specimen_id, :test_type_id, :retired, :retired_by, :retired_reason, :retired_date, :creator, :updated_date, :created_date)
   end
 end
