@@ -25,17 +25,21 @@ module Nlims
     end
 
     def authenticate
-      response = RestClient::Request.execute(
-                method: :get,
-                url: "#{base_url }/api/v1/authenticate/#{username}/#{password}" ,
-                headers: { content_type: :json, accept: :json }
-              )
-      response = JSON.parse(response.body)
-      raise RestClient::Unauthorized if response['status'] == 401
-      return false if response['status'] != 200
-      self.token = response['data']['token']
-      re_authenticate
-      true
+      begin
+        response = RestClient::Request.execute(
+          method: :get,
+          url: "#{base_url }/api/v1/authenticate/#{username}/#{password}" ,
+          headers: { content_type: :json, accept: :json }
+        )
+        response = JSON.parse(response.body)
+        raise RestClient::Unauthorized if response['status'] == 401
+        return false if response['status'] != 200
+        self.token = response['data']['token']
+        re_authenticate
+        true
+      rescue RestClient::Unauthorized
+        false
+      end 
     end
 
 

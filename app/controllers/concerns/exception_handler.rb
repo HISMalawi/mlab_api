@@ -12,16 +12,20 @@ module ExceptionHandler
       render json: { error: e.message }, status: :unauthorized
     end
 
-    rescue_from raise Errno::ECONNREFUSED do |e|
+    rescue_from Errno::ECONNREFUSED do |e|
       render json: { error: e.message }, status: :internal_server_error
     end
 
     rescue_from ActiveRecord::RecordInvalid do |e|
       render json: {error: e.message}, status: :unprocessable_entity
     end
+    
+    rescue_from NlimsNotFoundError do |e|
+      render json: { error: e.message }, status: :not_found
+    end
 
     rescue_from NlimsError do |e|
-      render json: { error: e.message }, status: :not_found
+      render json: { error: e.message }, status: :unauthorized
     end
 
     rescue_from ActiveRecord::RecordNotUnique do |e|
