@@ -94,6 +94,7 @@ Rails.application.routes.draw do
       resources :global
       resources :priorities
       resources :surveillances
+      resources :culture_observations
     end
   end
 end
