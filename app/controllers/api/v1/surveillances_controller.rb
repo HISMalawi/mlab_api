@@ -3,13 +3,18 @@ class Api::V1::SurveillancesController < ApplicationController
 
   # GET /api/v1/surveillances
   def index
-    @surveillances = Surveillance.all
+    # @surveillances = LabConfiguration::SurveillanceService.get_surveillances(surveillance_params)
+    page, page_size = pagination.values_at(:page, :page_size)
+    total = Surveillance.count
+    @surveillances = {page: page.to_i,
+                    page_size: page_size.to_i,
+                    total: total.to_i,
+                    data: Surveillance.limit(page_size.to_i).offset(page.to_i - 1).order(created_date: :desc).all}  
     render json: @surveillances
   end
 
   # GET /api/v1/surveillances/1
   def show
-    @api_v1_surveillance = LabConfiguration::SurveillanceService.get_surveillances(params[:id])
     render json: @api_v1_surveillance
   end
 
@@ -35,7 +40,7 @@ class Api::V1::SurveillancesController < ApplicationController
 
   private
     def surveillance_params 
-      params.permit(:id, :test_types_id, :diseases_id)
+      params.permit(:id, :test_types_id, :diseases_id, :disease, :test_type, :surveillance, :format)
     end
 
     def surveillance_create_params 
@@ -54,5 +59,11 @@ class Api::V1::SurveillancesController < ApplicationController
     # Only allow a list of trusted parameters through.
     def api_v1_surveillance_params
       params.fetch(:api_v1_surveillance, {})
+    end
+
+    #pagination 
+    def pagination
+      params.require([:page, :page_size])
+      {page: params[:page], page_size: params[:page_size]}
     end
 end

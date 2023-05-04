@@ -12,6 +12,11 @@ class Api::V1::TestsController < ApplicationController
     render json: test, status: :created
   end
 
+  def report
+    from, to = params.values_at(:from, :to)
+    render json: test_service.client_report(Person.find(params[:client_id]), from, to), status: :ok
+  end
+
   def update
     Test.find(params[:id]).update!(test_params)
     render json: Test.find(params[:id]), status: :ok
