@@ -18,7 +18,7 @@ class Api::V1::SpecimenTestTypeMappingsController < ApplicationController
   end
   
   def show
-    render json: @specimen_test_type_mapping
+    render json: @specimen_test_type_mapping, include: [specimen: {only: :name}, test_type: {only: :name}]
   end
 
   def create
