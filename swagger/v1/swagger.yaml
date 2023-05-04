@@ -695,7 +695,7 @@ paths:
                   tracking_number:
                     type: string
   "/orders/search_order_from_nlims_by_tracking_number":
-    post:
+    get:
       summary: Search for an order by tracking number
       tags:
         - NLIMS SERVICE
