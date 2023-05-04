@@ -70,6 +70,8 @@ Rails.application.routes.draw do
         collection do
           get '/search_by_accession_or_tracking_number' => 'orders#search_by_accession_or_tracking_number'
           post '/add_test_to_order' => 'orders#add_test_to_order'
+          post '/merge_order_from_nlims' => 'orders#merge_order_from_nlims'
+          get '/search_order_from_nlims_by_tracking_number' => 'orders#search_order_from_nlims_by_tracking_number'
         end
       end
 

@@ -644,6 +644,323 @@ paths:
               - machine_name
               - measure_id
               - result
+  "/orders/add_test_to_order":
+    post:
+      summary: Add test to order
+      tags:
+        - Create an Order
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          description: Add test to order
+          required: true
+          schema:
+            type: object
+            properties:
+              order_id:
+                type: integer
+                format: int64
+              tests:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    specimen:
+                      type: integer
+                      format: int64
+                    test_type:
+                      type: string
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                  encounter_id:
+                    type: integer
+                    format: int64
+                  priority_id:
+                    type: integer
+                    format: int64
+                  accession_number:
+                    type: string
+                  tracking_number:
+                    type: string
+  "/orders/search_order_from_nlims_by_tracking_number":
+    post:
+      summary: Search for an order by tracking number
+      tags:
+        - NLIMS SERVICE
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: tracking_number
+          description: The tracking number of the order to search for
+          required: true
+          schema:
+            type: object
+            properties:
+              tracking_number:
+                type: string
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tests:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        test_type:
+                          type: string
+                        test_status:
+                          type: string
+                    description: The tests for the order
+                  tracking_number:
+                    type: string
+                    description: The tracking number for the order
+                  specimen:
+                    type: string
+                    description: The specimen for the order
+                  order_status:
+                    type: string
+                    description: The status of the order
+                  facility_section:
+                    type: string
+                    description: The facility section where the order was placed
+                  sending_facility:
+                    type: string
+                    description: The facility that sent the order
+                  receiving_facility:
+                    type: string
+                    description: The facility that received the order
+                  order_created_date:
+                    type: string
+                    format: date-time
+                    description: The date and time the order was created
+                  priority:
+                    type: string
+                    description: The priority of the order
+                  requested_by:
+                    type: string
+                    description: The name of the person who requested the order
+                  collected_by:
+                    type: string
+                    description: The name of the person who collected the specimen
+                  patient_identifiers:
+                    type: object
+                    properties:
+                      art_regimen:
+                        type: string
+                        description: The ART regimen for the patient, if available
+                      arv_number:
+                        type: string
+                        description: The ARV number for the patient, if available
+                      art_start_date:
+                        type: string
+                        format: date
+                        description: The date the patient started ART, if available
+                      npid:
+                        type: string
+                        description: The national patient identifier for the patient
+                    description: The patient identifiers for the order
+                  patient:
+                    type: object
+                    properties:
+                      first_name:
+                        type: string
+                        description: The first name of the patient
+                      middle_name:
+                        type: string
+                        description: The middle name of the patient
+                      last_name:
+                        type: string
+                        description: The last name of the patient
+                      sex:
+                        type: string
+                        description: The sex of the patient
+                      date_of_birth:
+                        type: string
+                        format: date
+                        description: The date of birth of the patient
+                    description: The patient information for the order
+                  results:
+                    type: object
+                    properties:
+                      ABO Blood Grouping:
+                        type: object
+                        properties:
+                          Grouping:
+                            type: string
+                            description: The result of the ABO Blood Grouping test
+                          result_date:
+                            type: string
+                            format: date
+                            description: The date the ABO Blood Grouping test result was obtained
+                        description: The result of the ABO Blood Grouping test
+                    description: The results of the tests for the order
+        404:
+          description: 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Order not available in NLIMS"
+        401:
+          description: 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Unable to authenticate to nlims service"
+        500:
+          description: 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Connection refused - Nlims service is not available"
+  "/orders/merge_order_from_nlims":
+    post:
+      summary: Search for an order in the NLIMS by tracking number
+      tags:
+        - NLIMS SERVICE
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: search_criteria
+          description: The search criteria for the order
+          required: true
+          schema:
+            type: object
+            properties:
+              tests:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    test_type:
+                      type: string
+                    test_status:
+                      type: string
+              tracking_number:
+                type: string
+              specimen:
+                type: string
+              order_status:
+                type: string
+              facility_section:
+                type: string
+              sending_facility:
+                type: string
+              receiving_facility:
+                type: string
+              order_created_date:
+                type: string
+                format: date-time
+              priority:
+                type: string
+              requested_by:
+                type: string
+              collected_by:
+                type: string
+              patient_identifiers:
+                type: object
+                properties:
+                  art_regimen:
+                    type: string
+                  arv_number:
+                    type: string
+                  art_start_date:
+                    type: string
+                    format: date-time
+                  npid:
+                    type: string
+              patient:
+                type: object
+                properties:
+                  first_name:
+                    type: string
+                  middle_name:
+                    type: string
+                  last_name:
+                    type: string
+                  sex:
+                    type: string
+                  date_of_birth:
+                    type: string
+                    format: date
+      responses:
+        201:
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                  encounter_id:
+                    type: integer
+                    format: int64
+                  priority_id:
+                    type: integer
+                    format: int64
+                  accession_number:
+                    type: string
+                  tracking_number:
+                    type: string
+                  requested_by:
+                    type: string
+                  sample_collected_time:
+                    type: string
+                    format: date-time
+                  collected_by:
+                    type: string
+        404:
+          description: 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Test type: Virreal Load from nlims not available in mlab"
+
+
 servers:
 - url: http://{defaultHost}
   variables:
