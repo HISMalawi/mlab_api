@@ -1,6 +1,6 @@
 class EncounterType < VoidableRecord
   self.primary_key = 'id'
-  validates_presence_of :name
+  validates :name, presence: true, uniqueness: true
   has_many :encounter_type_facility_section_mappings
   has_many :facility_sections, through: :encounter_type_facility_section_mappings
 

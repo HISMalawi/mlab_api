@@ -100,7 +100,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   end
 
   create_table "diseases", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-<<<<<<< Updated upstream
     t.string "name", null: false
     t.integer "voided", default: 0
     t.bigint "voided_by"
@@ -111,13 +110,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.datetime "updated_date", null: false
     t.index ["creator"], name: "fk_rails_28375b9bab"
     t.index ["voided_by"], name: "fk_rails_171f5ed44e"
-=======
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "updated_by"
-    t.index ["updated_by"], name: "fk_rails_f656a116d9"
->>>>>>> Stashed changes
   end
 
   create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -715,12 +707,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "culture_observations", "users", column: "voided_by"
   add_foreign_key "departments", "users", column: "creator"
   add_foreign_key "departments", "users", column: "retired_by"
-<<<<<<< Updated upstream
   add_foreign_key "diseases", "users", column: "creator"
   add_foreign_key "diseases", "users", column: "voided_by"
-=======
-  add_foreign_key "diseases", "users", column: "updated_by"
->>>>>>> Stashed changes
   add_foreign_key "drug_organism_mappings", "drugs"
   add_foreign_key "drug_organism_mappings", "organisms"
   add_foreign_key "drug_organism_mappings", "users", column: "creator"
