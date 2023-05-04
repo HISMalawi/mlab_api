@@ -64,6 +64,7 @@ module Api
       def dde
         config_data = YAML.load_file("#{Rails.root}/config/application.yml")
         dde_config = config_data["dde_service"] 
+        raise DdeError, "DDE service configuration not found" if dde_config.nil?
         @dde_service = ClientManagement::DdeService.new(
           base_url: "#{dde_config['base_url']}:#{dde_config['port']}",
           token: '',
