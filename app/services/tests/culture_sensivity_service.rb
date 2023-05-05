@@ -41,7 +41,10 @@ module Tests
             test_id: organism["test_id"],
             organism_id: organism["organism_id"],
             name: Organism.find(organism["organism_id"]).name,
-            drugs: results.select { |r| r["organism_id"] == organism["organism_id"] }
+            drugs: results.select { |r| r["organism_id"] == organism["organism_id"] }.map do |drug|
+              drug["name"] = Drug.find(drug["drug_id"]).name
+              drug
+            end
           }
         end
         data.uniq { |r| r["organism_id"] }
