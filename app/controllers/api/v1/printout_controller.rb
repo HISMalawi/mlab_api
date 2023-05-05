@@ -15,9 +15,20 @@ class Api::V1::PrintoutController < ApplicationController
       person = order.encounter.client.person
       label = PrintoutService.print_tracking_number(person, order)
       send_data label, type: "application/label;charset=utf-8",
-      stream: false,
-      filename: "#{person.id}-#{SecureRandom.hex(12)}.lbl",
-      disposition: "inline",
-      refresh: "1; url=#{params[:redirect_to]}"
+                      stream: false,
+                      filename: "#{person.id}-#{SecureRandom.hex(12)}.lbl",
+                      disposition: "inline",
+                      refresh: "1; url=#{params[:redirect_to]}"
+    end
+
+    def print_zebra_report
+      order = Order.find_by_accession_number(params[:accession_number])
+      person = order.encounter.client.person
+      label  = PrintoutService.print_zebra_report(person, order)
+      send_data label, type: "application/label;charset=utf-8",
+                      stream: false,
+                      filename: "#{person.id}-#{SecureRandom.hex(12)}.lbl",
+                      disposition: "inline",
+                      refresh: "1; url=#{params[:redirect_to]}"
     end
 end
