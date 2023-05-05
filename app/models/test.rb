@@ -75,7 +75,9 @@ class Test < VoidableRecord
   end
 
   def client
-    order.encounter.client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
+    order_ = order.encounter.client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
+    order_['id'] = order.encounter.client.id
+    order_
   end
 
   def suscept_test_result
