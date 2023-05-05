@@ -32,7 +32,11 @@ Rails.application.routes.draw do
       resources :departments
       resources :privileges
       resources :drugs
-      resources :organisms
+      resources :organisms do
+        collection do
+          get '/get_organisms_based_test_type' => 'organisms#get_organisms_based_test_type'
+        end
+      end
       resources :test_panels
       resources :test_results
       resources :facilities
@@ -91,6 +95,13 @@ Rails.application.routes.draw do
       resources :global
       resources :priorities
       resources :surveillances
+      resources :culture_observations do 
+        collection do
+          post '/drug_susceptibility_test_results' => "culture_observations#drug_susceptibility_test_results"
+          put '/drug_susceptibility_test_results/delete' => "culture_observations#delete_drug_susceptibility_test_results"
+          get '/get_drug_susceptibility_test_results' => "culture_observations#get_drug_susceptibility_test_results"
+        end
+      end
     end
   end
 end
