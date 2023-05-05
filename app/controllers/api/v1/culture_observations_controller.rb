@@ -1,5 +1,6 @@
 class Api::V1::CultureObservationsController < ApplicationController
   before_action :set_culture_observation, only: [:show, :update, :destroy]
+  before_action :check_drug_param, only: [:drug_susceptibility_test_results]
 
   def index
     @culture_observations = CultureObservation.where(test_id: params.require(:test_id))
@@ -16,7 +17,14 @@ class Api::V1::CultureObservationsController < ApplicationController
       description: params[:description],
       observation_datetime: Time.now
     )
-    render json: Tests::CultureSensivityService.get_culture_obs(@culture_observation), status: :created
+    test_id = @culture_observation.test_id
+    render json: Tests::CultureSensivityService.culture_ob_all(CultureObservation.where(test_id: test_id)), status: :created
+  end
+
+  def drug_susceptibility_test_results
+    results = Tests::CultureSensivityService.drug_susceptibility_test_results(params)
+    raise ActiveRecord::StatementInvalid if results.nil?
+    render json: DrugSusceptibility.where(test_id: results.test_id), status: :created
   end
 
   def update
@@ -35,6 +43,11 @@ class Api::V1::CultureObservationsController < ApplicationController
 
   private
 
+  def check_drug_param
+    unless params.has_key?('drugs') && params[:drugs].is_a?(Array)
+      raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for drugs"
+    end
+  end
   def set_culture_observation
     @culture_observation = CultureObservation.find(params[:id])
   end

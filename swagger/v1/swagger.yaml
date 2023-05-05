@@ -995,6 +995,139 @@ paths:
                   name: Streptococcus pneumoniae
                 - id: 4
                   name: Pseudomonas aeruginosa
+  "/culture_observations/drug_susceptibility_test_results":
+    post:
+      summary: Save drug susceptibility results
+      tags:
+        - Culture Observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+           schema:
+              type: object
+              properties:
+                test_id:
+                  type: integer
+                  example: 4
+                organism_id:
+                  type: integer
+                  example: 1
+                drugs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      drug_id:
+                        type: integer
+                        example: 1
+                      zone:
+                        type: integer
+                        example: 1
+                      interpretation:
+                        type: string
+                        example: "R"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    test_id:
+                      type: integer
+                    organism_id:
+                      type: integer
+                    drug_id:
+                      type: integer
+                    zone:
+                      type: string
+                    interpretation:
+                      type: string
+              example:
+                - id: 1
+                  test_id: 1
+                  organism_id: 1
+                  drug_id: 1
+                  zone: "1"
+                  interpretation: "23324"
+  "/culture_observations":
+    post:
+      summary: Create Culture Observation
+      tags:
+        - Culture Observation
+      description: Creates Culture Observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_id:
+                  type: string
+                  example: "1"
+                description:
+                  type: string
+                  example: "dhfdhf"
+              required:
+                - test_id
+                - description
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    culture_obs_id:
+                      type: integer
+                      example: 1
+                    user:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: "administrator"
+                        first_name:
+                          type: string
+                          example: "LIMS"
+                        middle_name:
+                          type: string
+                          example: ""
+                        last_name:
+                          type: string
+                          example: "Administrator"
+                        sex:
+                          type: string
+                          example: "M"
+                      required:
+                        - id
+                        - username
+                        - first_name
+                        - last_name
+                        - sex
+                    test_type:
+                      type: string
+                      example: "FBC"
+                    description:
+                      type: string
+                      example: "1ewrfs"
+                    observation_date:
+                      type: string
+                      format: date-time
+                      example: "2023-04-29T10:33:32.701Z"
 
 servers:
 - url: http://{defaultHost}

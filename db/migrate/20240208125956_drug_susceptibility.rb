@@ -5,7 +5,7 @@ class DrugSusceptibility < ActiveRecord::Migration[7.0]
       t.references :organism, index: true, foreign_key: true
       t.references :drug, index: true, foreign_key: true
       t.string :zone
-      t.string :interpreation
+      t.string :interpretation
       t.integer :voided
       t.bigint :voided_by
       t.string :voided_reason
