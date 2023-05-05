@@ -35,8 +35,19 @@ module Tests
 
       def get_drug_susceptibility_test_results(test_id)
         culture_obs = CultureObservation.where(test_id:)
-        results = DrugSusceptibility.where(test_id:)
-        serialiaze_drug_suscep_test_results(results, culture_obs)
+        results = DrugSusceptibility.where(test_id:).as_json
+        data = results.collect do |organism|
+          {
+            test_id: organism["test_id"],
+            organism_id: organism["organism_id"],
+            name: Organism.find(organism["organism_id"]).name,
+            drugs: results.select { |r| r["organism_id"] == organism["organism_id"] }.map do |drug|
+              drug["name"] = Drug.find(drug["drug_id"]).name
+              drug
+            end
+          }
+        end
+        data.uniq { |r| r["organism_id"] }
       end
 
       def delete_drug_susceptibility_test_results(params)
