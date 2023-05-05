@@ -88,6 +88,13 @@ Rails.application.routes.draw do
       resources :global
       resources :priorities
       resources :surveillances
+      resources :order_statuses, only: %i[index] do 
+        collection do 
+          put "/:order_id/rejected" => "order_statuses#specimen_rejected"
+          put "/:order_id/accepted" => "order_statuses#specimen_accepted"
+          put "/:order_id/not-collected" => "order_statuses#specimen_not_collected"
+        end
+      end
     end
   end
 end
