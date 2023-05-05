@@ -22,9 +22,7 @@ class Api::V1::CultureObservationsController < ApplicationController
   end
 
   def drug_susceptibility_test_results
-    results = Tests::CultureSensivityService.drug_susceptibility_test_results(params)
-    raise ActiveRecord::StatementInvalid if results.nil?
-    render json: DrugSusceptibility.where(test_id: results.test_id), status: :created
+    render json: Tests::CultureSensivityService.drug_susceptibility_test_results(params), status: :created
   end
 
   def get_drug_susceptibility_test_results
