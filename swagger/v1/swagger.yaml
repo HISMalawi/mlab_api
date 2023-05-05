@@ -1128,7 +1128,126 @@ paths:
                       type: string
                       format: date-time
                       example: "2023-04-29T10:33:32.701Z"
-
+  "/culture_observations/drug_susceptibility_test_results/delete":
+    put:
+      summary: Delete drug susceptibility result record 
+      tags:
+        - Culture Observation
+      description: Delete drug susceptibility result record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_id:
+                  type: integer
+                  description: The id of the test
+                  example: 4
+                organism_id:
+                  type: integer
+                  description: The id of the organism
+                  example: 1
+              required:
+                - test_id
+                - organism_id
+      responses:
+        '200':
+          description: Record deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The success message
+                    example: Record deleted successfully
+  "/culture_observations/get_drug_susceptibility_test_results":
+    get:
+      summary: Get Culture Observation and Drug Susceptibility Test Result
+      tags:
+        - Culture Observation
+      description: Returns culture observation and drug susceptibility test results for a given test ID.
+      parameters:
+        - in: body
+          name: test_id
+          description: Test ID to retrieve culture observation and drug susceptibility test results.
+          required: true
+          schema:
+            type: object
+            properties:
+              test_id:
+                type: string
+              example:
+                test_id: "1"
+      responses:
+        200:
+          description: Sucessful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  culture_observations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        culture_obs_id:
+                          type: integer
+                        user:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            username:
+                              type: string
+                            first_name:
+                              type: string
+                            middle_name:
+                              type: string
+                            last_name:
+                              type: string
+                            sex:
+                              type: string
+                      example:
+                        culture_obs_id: 1
+                        user:
+                          id: 1
+                          username: "administrator"
+                          first_name: "LIMS"
+                          middle_name: ""
+                          last_name: "Administrator"
+                          sex: "M"
+                  drug_suscep_test_results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        test_id:
+                          type: integer
+                        organism_id:
+                          type: integer
+                        organism_name:
+                          type: string
+                        drug_id:
+                          type: integer
+                        drug_name:
+                          type: string
+                        zone:
+                          type: string
+                        interpretation:
+                          type: string
+                      example:
+                        test_id: 1
+                        organism_id: 1
+                        organism_name: "Haemophilus influenza"
+                        drug_id: 1
+                        drug_name: "Amoxicillin/Clavulanate"
+                        zone: "1"
+                        interpretation: "23324"                  
 servers:
 - url: http://{defaultHost}
   variables:

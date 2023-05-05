@@ -97,6 +97,8 @@ Rails.application.routes.draw do
       resources :culture_observations do 
         collection do
           post '/drug_susceptibility_test_results' => "culture_observations#drug_susceptibility_test_results"
+          put '/drug_susceptibility_test_results/delete' => "culture_observations#delete_drug_susceptibility_test_results"
+          get '/get_drug_susceptibility_test_results' => "culture_observations#get_drug_susceptibility_test_results"
         end
       end
     end

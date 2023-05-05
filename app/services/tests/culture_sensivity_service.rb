@@ -23,15 +23,49 @@ module Tests
       def drug_susceptibility_test_results(params)
         @response = nil
         params[:drugs].each do |drug|
-          @response = DrugSusceptibility.create!(
+          @response = DrugSusceptibility.find_or_create_by(
             test_id: params.require(:test_id),
             organism_id: params.require(:organism_id),
             drug_id: drug[:drug_id],
-            zone: drug[:zone],
-            interpretation: drug[:interpretation]
           )
+          @response.update!(zone: drug[:zone], interpretation: drug[:interpretation])
         end
         @response 
+      end
+
+      def get_drug_susceptibility_test_results(params)
+        culture_obs = CultureObservation.where(params.require(:test_id))
+        results = DrugSusceptibility.where(params.require(:test_id))
+        serialiaze_drug_suscep_test_results(results, culture_obs)
+      end
+
+      def delete_drug_susceptibility_test_results(params)
+        drug_suscep_test_results = DrugSusceptibility.where(
+          test_id: params.require(:test_id),
+          organism_id: params.require(:organism_id)
+        )
+        drug_suscep_test_results.each do |drug_suscep_test_result|
+          drug_suscep_test_result.void('Deleted the test susceptibility results')
+        end
+      end
+
+      def serialiaze_drug_suscep_test_results(results, culture_obs)
+        results_ = []
+        results.each do |result|
+          results_ << {
+            test_id: result.test_id,
+            organism_id: result.organism_id,
+            organism_name: result.organism.name,
+            drug_id: result.drug_id,
+            drug_name: result.drug.name,
+            zone: result.zone,
+            interpretation: result.interpretation
+          }
+        end
+        {
+          culture_observations: culture_ob_all(culture_obs),
+          drug_suscep_test_results: results_
+        } 
       end
 
     end

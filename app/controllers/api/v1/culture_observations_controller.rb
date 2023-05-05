@@ -27,6 +27,15 @@ class Api::V1::CultureObservationsController < ApplicationController
     render json: DrugSusceptibility.where(test_id: results.test_id), status: :created
   end
 
+  def get_drug_susceptibility_test_results
+    render json: Tests::CultureSensivityService.get_drug_susceptibility_test_results(params)
+  end
+
+  def delete_drug_susceptibility_test_results
+    Tests::CultureSensivityService.delete_drug_susceptibility_test_results(params)
+    render json: {message: MessageService::RECORD_DELETED}
+  end
+
   def update
     @culture_observation.update!(
       test_id: params[:test_id],
@@ -38,7 +47,7 @@ class Api::V1::CultureObservationsController < ApplicationController
 
   def destroy
     @culture_observation.void(params.require(:reason))
-    render json: MessageService::RECORD_DELETED
+    render json: {message: MessageService::RECORD_DELETED}
   end
 
   private
