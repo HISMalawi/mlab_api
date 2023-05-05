@@ -17,6 +17,12 @@ module TestCatalog
         serialize_organism_drug(organism, drugs)
       end
 
+      def get_organisms_based_test_type(test_type)
+        test_type = TestType.find_by_name(test_type)
+        raise ActiveRecord::RecordNotFound if test_type.nil?
+        TestTypeOrganismMapping.joins(:organism).where(test_type_id: test_type.id).select('organisms.id, organisms.name')
+      end
+
       def update_organism(organism, organism_params, params)
         ActiveRecord::Base.transaction do 
           organism.update!(organism_params)

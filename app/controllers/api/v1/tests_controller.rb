@@ -13,8 +13,8 @@ class Api::V1::TestsController < ApplicationController
   end
 
   def report
-    from, to = params.values_at(:from, :to)
-    render json: test_service.client_report(Person.find(params[:client_id]), from, to), status: :ok
+    from, to, order_id = params.values_at(:from, :to, :order_id)
+    render json: test_service.client_report(Client.find(params[:client_id]), from, to, order_id), status: :ok
   end
 
   def update

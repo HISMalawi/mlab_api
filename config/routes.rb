@@ -27,11 +27,16 @@ Rails.application.routes.draw do
           get '/facility_sections/' => 'encounter_type_facility_section_mappings#encounter_type_facility_sections'
         end
       end
+      resources :specimen_test_type_mappings
       resources :instruments
       resources :departments
       resources :privileges
       resources :drugs
-      resources :organisms
+      resources :organisms do
+        collection do
+          get '/get_organisms_based_test_type' => 'organisms#get_organisms_based_test_type'
+        end
+      end
       resources :test_panels
       resources :test_results
       resources :facilities
@@ -70,6 +75,8 @@ Rails.application.routes.draw do
         collection do
           get '/search_by_accession_or_tracking_number' => 'orders#search_by_accession_or_tracking_number'
           post '/add_test_to_order' => 'orders#add_test_to_order'
+          post '/merge_order_from_nlims' => 'orders#merge_order_from_nlims'
+          get '/search_order_from_nlims_by_tracking_number' => 'orders#search_order_from_nlims_by_tracking_number'
         end
       end
 
@@ -93,6 +100,13 @@ Rails.application.routes.draw do
           put "/:order_id/rejected" => "order_statuses#specimen_rejected"
           put "/:order_id/accepted" => "order_statuses#specimen_accepted"
           put "/:order_id/not-collected" => "order_statuses#specimen_not_collected"
+        end
+      end
+      resources :culture_observations do 
+        collection do
+          post '/drug_susceptibility_test_results' => "culture_observations#drug_susceptibility_test_results"
+          put '/drug_susceptibility_test_results/delete' => "culture_observations#delete_drug_susceptibility_test_results"
+          get '/get_drug_susceptibility_test_results' => "culture_observations#get_drug_susceptibility_test_results"
         end
       end
     end

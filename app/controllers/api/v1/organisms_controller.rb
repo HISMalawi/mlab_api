@@ -12,6 +12,10 @@ module Api
       def show
         render json: TestCatalog::OrganismService.show_organism(@organism)
       end
+
+      def get_organisms_based_test_type
+       render json: TestCatalog::OrganismService.get_organisms_based_test_type(params.require(:test_type))
+      end
     
       def create
         @organism = TestCatalog::OrganismService.create_organism(organism_params, params)

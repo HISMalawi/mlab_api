@@ -3,8 +3,8 @@ Rails.logger = Logger.new(STDOUT)
 User.current = User.first
 creator = User.current.id
 
-facility = Facility.create(name: 'test_facility', creator: creator)
-facility_section = FacilitySection.create(name: 'test_facility_section', creator: creator)
+facility = Facility.first
+facility_section = FacilitySection.first
 priority = Priority.create(name: 'test_priority', creator: creator)
 
 # clients
@@ -41,11 +41,11 @@ orders.each do |order_|
   # skip iteration if client is nil
   next if client.nil?
   
-  encouter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, creator: creator,
+  encounter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, creator: creator,
     destination_id: facility.id, start_date: Time.now, encounter_type_id: EncounterType.find_by_name(order_.visit_type&.strip).id
   )
   
-  order = Order.find_or_create_by(encounter_id: encouter.id, priority_id: priority.id, accession_number: order_.accession_number, 
+  order = Order.find_or_create_by(encounter_id: encounter.id, priority_id: priority.id, accession_number: order_.accession_number, 
     tracking_number: order_.tracking_number, creator: creator)
   
   specimen = Specimen.find_by_name(order_.sp_name)
@@ -54,7 +54,5 @@ orders.each do |order_|
 
   Rails.logger.info("Loading Test")
   
-  test = Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id, creator: creator)
-
-  TestStatus.create!(test_id: test.id, status_id: Status.find_by_name('pending').id, creator: creator)
+  Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id, creator: creator)
 end

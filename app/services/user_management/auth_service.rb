@@ -37,8 +37,9 @@ module UserManagement
       end
 
       def authenticate(token)
+        bearer_token = token.split(' ').last
         begin
-          decoded = jwt_token_decode(token)
+          decoded = jwt_token_decode(bearer_token)
           current_user = User.find(decoded[:user_id])
           return false if decoded[:exp] < Time.now.to_i
           current_user
