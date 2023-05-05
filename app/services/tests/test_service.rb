@@ -11,12 +11,15 @@ module Tests
             tests.order('orders.id DESC')
         end
         
-        def client_report(person, from, to)
-            from, to = from.to_date || Date.to_date, to.to_date || Date.to_date
+        def client_report(person, from=Date.today, to=Date.today, order_id=nil)
+            
             tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
-                .where(encounter: {start_date: from..to, },
-                       person: {id: person.id}
-                )
+                        .where(person: {id: person.id})
+            
+            tests = tests.where(orders: {id: order_id}) if order_id.present?
+
+            tests = tests.where(encounter: {start_date: from..to}) if order_id.nil?
+
             tests.order('orders.id DESC')
             {
                 client: person,
