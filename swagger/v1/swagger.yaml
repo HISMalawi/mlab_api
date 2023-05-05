@@ -695,7 +695,7 @@ paths:
                   tracking_number:
                     type: string
   "/orders/search_order_from_nlims_by_tracking_number":
-    post:
+    get:
       summary: Search for an order by tracking number
       tags:
         - NLIMS SERVICE
@@ -825,7 +825,7 @@ paths:
                     type: string
               example:
                 error: "Order not available in NLIMS"
-        401:
+        500:
           description: 
           content:
             application/json:
@@ -959,8 +959,295 @@ paths:
                     type: string
               example:
                 error: "Test type: Virreal Load from nlims not available in mlab"
-
-
+  "/organisms/get_organisms_based_test_type":
+    get:
+      summary: Get organisms based test type
+      tags:
+        - Organisms
+      parameters:
+        - in: body
+          name: test_type
+          description: Get organisms based test type
+          required: true
+          schema:
+            type: object
+            properties:
+              test_type:
+                type: string
+      responses:
+        '200':
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+              example:
+                - id: 1
+                  name: Haemophilus influenza
+                - id: 3
+                  name: Streptococcus pneumoniae
+                - id: 4
+                  name: Pseudomonas aeruginosa
+  "/culture_observations/drug_susceptibility_test_results":
+    post:
+      summary: Save drug susceptibility results
+      tags:
+        - Culture Observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+           schema:
+              type: object
+              properties:
+                test_id:
+                  type: integer
+                  example: 4
+                organism_id:
+                  type: integer
+                  example: 1
+                drugs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      drug_id:
+                        type: integer
+                        example: 1
+                      zone:
+                        type: integer
+                        example: 1
+                      interpretation:
+                        type: string
+                        example: "R"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    test_id:
+                      type: integer
+                    organism_id:
+                      type: integer
+                    drug_id:
+                      type: integer
+                    zone:
+                      type: string
+                    interpretation:
+                      type: string
+              example:
+                - id: 1
+                  test_id: 1
+                  organism_id: 1
+                  drug_id: 1
+                  zone: "1"
+                  interpretation: "23324"
+  "/culture_observations":
+    post:
+      summary: Create Culture Observation
+      tags:
+        - Culture Observation
+      description: Creates Culture Observation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_id:
+                  type: string
+                  example: "1"
+                description:
+                  type: string
+                  example: "dhfdhf"
+              required:
+                - test_id
+                - description
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    culture_obs_id:
+                      type: integer
+                      example: 1
+                    user:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: "administrator"
+                        first_name:
+                          type: string
+                          example: "LIMS"
+                        middle_name:
+                          type: string
+                          example: ""
+                        last_name:
+                          type: string
+                          example: "Administrator"
+                        sex:
+                          type: string
+                          example: "M"
+                      required:
+                        - id
+                        - username
+                        - first_name
+                        - last_name
+                        - sex
+                    test_type:
+                      type: string
+                      example: "FBC"
+                    description:
+                      type: string
+                      example: "1ewrfs"
+                    observation_date:
+                      type: string
+                      format: date-time
+                      example: "2023-04-29T10:33:32.701Z"
+  "/culture_observations/drug_susceptibility_test_results/delete":
+    put:
+      summary: Delete drug susceptibility result record 
+      tags:
+        - Culture Observation
+      description: Delete drug susceptibility result record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                test_id:
+                  type: integer
+                  description: The id of the test
+                  example: 4
+                organism_id:
+                  type: integer
+                  description: The id of the organism
+                  example: 1
+              required:
+                - test_id
+                - organism_id
+      responses:
+        '200':
+          description: Record deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: The success message
+                    example: Record deleted successfully
+  "/culture_observations/get_drug_susceptibility_test_results":
+    get:
+      summary: Get Culture Observation and Drug Susceptibility Test Result
+      tags:
+        - Culture Observation
+      description: Returns culture observation and drug susceptibility test results for a given test ID.
+      parameters:
+        - in: body
+          name: test_id
+          description: Test ID to retrieve culture observation and drug susceptibility test results.
+          required: true
+          schema:
+            type: object
+            properties:
+              test_id:
+                type: string
+              example:
+                test_id: "1"
+      responses:
+        200:
+          description: Sucessful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  culture_observations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        culture_obs_id:
+                          type: integer
+                        user:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            username:
+                              type: string
+                            first_name:
+                              type: string
+                            middle_name:
+                              type: string
+                            last_name:
+                              type: string
+                            sex:
+                              type: string
+                      example:
+                        culture_obs_id: 1
+                        user:
+                          id: 1
+                          username: "administrator"
+                          first_name: "LIMS"
+                          middle_name: ""
+                          last_name: "Administrator"
+                          sex: "M"
+                  drug_suscep_test_results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        test_id:
+                          type: integer
+                        organism_id:
+                          type: integer
+                        organism_name:
+                          type: string
+                        drug_id:
+                          type: integer
+                        drug_name:
+                          type: string
+                        zone:
+                          type: string
+                        interpretation:
+                          type: string
+                      example:
+                        test_id: 1
+                        organism_id: 1
+                        organism_name: "Haemophilus influenza"
+                        drug_id: 1
+                        drug_name: "Amoxicillin/Clavulanate"
+                        zone: "1"
+                        interpretation: "23324"                  
 servers:
 - url: http://{defaultHost}
   variables:

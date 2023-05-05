@@ -13,7 +13,7 @@ module Api
       end
     
       def create
-        @drug = Drug.create!(drug_params)
+        @drug = Drug.find_or_create_by!(name: drug_params[:name], short_name: drug_params[:short_name])
         render json: @drug, status: :created
       end
     

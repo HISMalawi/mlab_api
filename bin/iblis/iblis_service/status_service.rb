@@ -6,7 +6,13 @@ module IblisService
         iblis_test_statuses = Iblis.find_by_sql("SELECT * FROM test_statuses")
         iblis_test_statuses.each do |status|
           Rails.logger.info("=========Creating Status: #{status.name}===========")
-          Status.create!(name: status.name, retired: 0, creator: 1, created_date: Time.now, updated_date: Time.now)
+          Status.find_or_create_by!(name: status.name, retired: 0, creator: 1)
+        end
+
+        iblis_specimen_status = Iblis.find_by_sql("SELECT * FROM specimen_statuses")
+        iblis_specimen_status.each do |status| 
+          Rails.logger.info("=========Creating Order Status: #{status.name}===========")
+          Status.find_or_create_by!(name: status.name, retired: 0, creator: 1)
         end
       end
 
