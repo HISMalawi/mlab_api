@@ -28,7 +28,7 @@ class Api::V1::CultureObservationsController < ApplicationController
   end
 
   def get_drug_susceptibility_test_results
-    render json: Tests::CultureSensivityService.get_drug_susceptibility_test_results(params)
+    render json: Tests::CultureSensivityService.get_drug_susceptibility_test_results(params.require(:test_id))
   end
 
   def delete_drug_susceptibility_test_results

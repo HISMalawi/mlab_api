@@ -7,7 +7,7 @@ class Test < VoidableRecord
   after_create :create_default_status
 
   def as_json(options = {})
-    super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status]))
+    super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number tracking_number requested_by test_type_name expected_turn_around_time client status suscept_test_result]))
   end
 
   def short_name
@@ -69,5 +69,9 @@ class Test < VoidableRecord
 
   def client
     order.encounter.client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
+  end
+
+  def suscept_test_result
+    Tests::CultureSensivityService.get_drug_susceptibility_test_results(id)
   end
 end

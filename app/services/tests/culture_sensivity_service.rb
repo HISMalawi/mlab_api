@@ -33,9 +33,9 @@ module Tests
         @response 
       end
 
-      def get_drug_susceptibility_test_results(params)
-        culture_obs = CultureObservation.where(params.require(:test_id))
-        results = DrugSusceptibility.where(params.require(:test_id))
+      def get_drug_susceptibility_test_results(test_id)
+        culture_obs = CultureObservation.where(test_id:)
+        results = DrugSusceptibility.where(test_id:)
         serialiaze_drug_suscep_test_results(results, culture_obs)
       end
 
