@@ -34,7 +34,6 @@ module Tests
       end
 
       def get_drug_susceptibility_test_results(test_id)
-        culture_obs = CultureObservation.where(test_id:)
         results = DrugSusceptibility.where(test_id:).as_json
         data = results.collect do |organism|
           {
@@ -48,6 +47,11 @@ module Tests
           }
         end
         data.uniq { |r| r["organism_id"] }
+      end
+
+      def culture_observation(test_id)
+        culture_obs = CultureObservation.where(test_id:)
+        culture_ob_all(culture_obs)
       end
 
       def delete_drug_susceptibility_test_results(params)
