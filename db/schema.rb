@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125958) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -100,11 +100,16 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   end
 
   create_table "diseases", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
-    t.string "name"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "updated_by"
-    t.index ["updated_by"], name: "fk_rails_f656a116d9"
+    t.string "name", null: false
+    t.integer "voided", default: 0
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.bigint "creator", null: false
+    t.datetime "created_date", null: false
+    t.datetime "updated_date", null: false
+    t.index ["creator"], name: "fk_rails_28375b9bab"
+    t.index ["voided_by"], name: "fk_rails_171f5ed44e"
   end
 
   create_table "drug_organism_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -121,6 +126,28 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["drug_id"], name: "index_drug_organism_mappings_on_drug_id"
     t.index ["organism_id"], name: "index_drug_organism_mappings_on_organism_id"
     t.index ["retired_by"], name: "fk_rails_9129054208"
+  end
+
+  create_table "drug_susceptibilities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "test_id"
+    t.bigint "organism_id"
+    t.bigint "drug_id"
+    t.string "zone"
+    t.string "interpretation"
+    t.integer "voided"
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.bigint "creator"
+    t.datetime "created_date"
+    t.datetime "updated_date"
+    t.bigint "updated_by"
+    t.index ["creator"], name: "fk_rails_abbf6ef5f4"
+    t.index ["drug_id"], name: "index_drug_susceptibilities_on_drug_id"
+    t.index ["organism_id"], name: "index_drug_susceptibilities_on_organism_id"
+    t.index ["test_id"], name: "index_drug_susceptibilities_on_test_id"
+    t.index ["updated_by"], name: "fk_rails_eccdf633c6"
+    t.index ["voided_by"], name: "fk_rails_7531bd17a0"
   end
 
   create_table "drugs", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -266,6 +293,24 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
     t.index ["retired_by"], name: "fk_rails_b85ba53bf5"
   end
 
+  create_table "order_statuses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "status_id", null: false
+    t.bigint "status_reason_id", null: false
+    t.bigint "creator", null: false
+    t.integer "voided", default: 0
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.datetime "created_date", null: false
+    t.datetime "updated_date", null: false
+    t.index ["creator"], name: "fk_rails_0510d94594"
+    t.index ["order_id"], name: "index_order_statuses_on_order_id"
+    t.index ["status_id"], name: "index_order_statuses_on_status_id"
+    t.index ["status_reason_id"], name: "index_order_statuses_on_status_reason_id"
+    t.index ["voided_by"], name: "fk_rails_8d4fff77b7"
+  end
+
   create_table "orders", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "encounter_id", null: false
     t.bigint "priority_id", null: false
@@ -392,6 +437,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   create_table "specimen_test_type_mappings", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "specimen_id", null: false
     t.bigint "test_type_id", null: false
+    t.integer "life_span"
+    t.column "life_span_units", "enum('mins','hours','days','months')"
     t.integer "retired"
     t.bigint "retired_by"
     t.string "retired_reason"
@@ -702,11 +749,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "culture_observations", "users", column: "voided_by"
   add_foreign_key "departments", "users", column: "creator"
   add_foreign_key "departments", "users", column: "retired_by"
-  add_foreign_key "diseases", "users", column: "updated_by"
+  add_foreign_key "diseases", "users", column: "creator"
+  add_foreign_key "diseases", "users", column: "voided_by"
   add_foreign_key "drug_organism_mappings", "drugs"
   add_foreign_key "drug_organism_mappings", "organisms"
   add_foreign_key "drug_organism_mappings", "users", column: "creator"
   add_foreign_key "drug_organism_mappings", "users", column: "retired_by"
+  add_foreign_key "drug_susceptibilities", "drugs"
+  add_foreign_key "drug_susceptibilities", "organisms"
+  add_foreign_key "drug_susceptibilities", "tests"
+  add_foreign_key "drug_susceptibilities", "users", column: "creator"
+  add_foreign_key "drug_susceptibilities", "users", column: "updated_by"
+  add_foreign_key "drug_susceptibilities", "users", column: "voided_by"
   add_foreign_key "drugs", "users", column: "creator"
   add_foreign_key "drugs", "users", column: "retired_by"
   add_foreign_key "encounter_type_facility_section_mappings", "encounter_types"
@@ -734,6 +788,11 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125955) do
   add_foreign_key "instrument_test_type_mappings", "users", column: "retired_by"
   add_foreign_key "instruments", "users", column: "creator"
   add_foreign_key "instruments", "users", column: "retired_by"
+  add_foreign_key "order_statuses", "orders"
+  add_foreign_key "order_statuses", "status_reasons"
+  add_foreign_key "order_statuses", "statuses"
+  add_foreign_key "order_statuses", "users", column: "creator"
+  add_foreign_key "order_statuses", "users", column: "voided_by"
   add_foreign_key "orders", "encounters"
   add_foreign_key "orders", "priorities"
   add_foreign_key "orders", "users", column: "creator"

@@ -39,7 +39,8 @@ class Test < VoidableRecord
   end
 
   def requesting_ward
-    order.encounter.facility_section.name
+    ward = order.encounter.facility_section
+    ward.nil? ? '' : ward.name
   end
 
   def specimen_type
