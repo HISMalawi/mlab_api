@@ -6,6 +6,11 @@ class Api::V1::TestStatusesController < ApplicationController
     render json: TestStatus.find_by_test_id(test_id)
   end
 
+  def get_test_statuses
+    render json: Status.where("name not like '%specimen%'")
+  end
+
+
   def not_received
     status = Status.find_by_name("not-received")
     render json: update_status(status)

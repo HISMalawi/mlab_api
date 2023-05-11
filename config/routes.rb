@@ -84,6 +84,7 @@ Rails.application.routes.draw do
       resources :diseases
       resources :test_statuses, only: %i[index] do
         collection do
+          get '/all' => 'test_statuses#get_test_statuses'
           put "/:test_id/not_received" => "test_statuses#not_received"
           put "/:test_id/started" => "test_statuses#started"
           put "/:test_id/completed" => "test_statuses#completed"
