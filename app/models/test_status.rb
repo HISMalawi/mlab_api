@@ -1,11 +1,17 @@
+# frozen_string_literal: true
+
+# Test status model
 class TestStatus < VoidableRecord
   validates :status_reason_id, presence: false
   validates :status_id, presence: true
-  
   belongs_to :test
   belongs_to :status
 
   def as_json(options = {})
-    super(options.merge(methods: :status, only: %i[id test_id status_id status_reason_id]))
+    super(options.merge(methods: %i[status initiator], only: %i[id test_id status_id creator status_reason_id]))
+  end
+
+  def initiator
+    UserManagement::UserService.find_user(creator)
   end
 end

@@ -2,6 +2,9 @@ class Test < VoidableRecord
   belongs_to :specimen
   belongs_to :order
   belongs_to :test_type
+
+  has_one :current_test_status
+
   has_many :test_status
 
   after_create :create_default_status
@@ -9,7 +12,7 @@ class Test < VoidableRecord
   def as_json(options = {})
     super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number 
     tracking_number requested_by test_type_name expected_turn_around_time client status suscept_test_result 
-    culture_observation
+    culture_observation status_trail
     ]))
   end
 
@@ -46,12 +49,17 @@ class Test < VoidableRecord
     ward.nil? ? '' : ward.name
   end
 
+  def status_trail
+    TestStatus.where(test_id: id)
+  end
+
   def specimen_type
     specimen&.name
   end
 
   def status
-    test_status&.last&.status&.name
+    current_test_status&.name
+    # test_status&.last&.status&.name
   end
 
   def accession_number
