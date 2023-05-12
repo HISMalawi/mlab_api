@@ -12,6 +12,6 @@ class TestStatus < VoidableRecord
   end
 
   def initiator
-    UserManagement::UserService.find_user(creator)
+    User.find_by_id(creator).username
   end
 end
