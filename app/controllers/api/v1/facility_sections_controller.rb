@@ -1,7 +1,14 @@
 class Api::V1::FacilitySectionsController < ApplicationController
 
   def index
-    render json: paginate(FacilitySection.all)
+    if params[:search].present?
+      facility_sections = FacilitySection.where(
+        "name LIKE '%#{params[:search]}%'"
+      )
+    else
+      facility_sections = FacilitySection.all
+    end
+    render json: paginate(facility_sections)
   end
   
   def show
