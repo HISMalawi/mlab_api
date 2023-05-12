@@ -1,6 +1,13 @@
 class Api::V1::FacilitiesController < ApplicationController
   def index
-    render json: paginate(Facility.all)
+    if params[:search].present?
+      facilities = Facility.where(
+        "name LIKE '%#{params[:search]}%'"
+      )
+    else
+      facilities = Facility.all
+    end
+    render json: paginate(facilities)
   end
   
   def show
