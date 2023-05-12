@@ -10,10 +10,13 @@ class Test < VoidableRecord
   after_create :create_default_status
 
   def as_json(options = {})
-    super(options.merge(methods: %i[indicators request_origin requesting_ward specimen_type accession_number 
-    tracking_number requested_by test_type_name expected_turn_around_time client status suscept_test_result 
-    culture_observation status_trail
-    ]))
+      methods = %i[request_origin requesting_ward specimen_type accession_number 
+                  tracking_number requested_by test_type_name client status status_trail]
+      unless options[:minimal]
+        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result]
+      end
+
+      super(options.merge(methods: methods))
   end
 
   def short_name
@@ -58,8 +61,7 @@ class Test < VoidableRecord
   end
 
   def status
-    current_test_status&.name
-    # test_status&.last&.status&.name
+    test_status&.last&.status&.name
   end
 
   def accession_number

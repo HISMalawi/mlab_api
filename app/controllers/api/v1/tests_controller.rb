@@ -14,6 +14,7 @@ module Api
             params[:end_date]
           )
         )
+        tests = tests.as_json(minimal: true) if params.include?(:minimal)
         render json: tests
       end
 
