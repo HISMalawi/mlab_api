@@ -30,7 +30,7 @@ module Tests
       tests.order('orders.id DESC')
       {
         person: client.person,
-        tests: tests.as_json(minimal: true)
+        tests: tests
       }
     end
 
