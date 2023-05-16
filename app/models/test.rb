@@ -10,10 +10,10 @@ class Test < VoidableRecord
   after_create :create_default_status
 
   def as_json(options = {})
-      methods = %i[request_origin requesting_ward specimen_type accession_number 
-                  tracking_number requested_by test_type_name client status status_trail]
+      methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by 
+                  tracking_number requested_by test_type_name client status]
       unless options[:minimal]
-        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result]
+        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail]
       end
 
       super(options.merge(methods: methods))
@@ -54,6 +54,33 @@ class Test < VoidableRecord
 
   def status_trail
     TestStatus.where(test_id: id)
+  end
+
+  def completed_by
+    status_trail = status_trail()
+    c = {}
+    status_trail.each do |status|
+      if status.status_id == 4
+        user = User.find_by_id(status.creator)
+        c[:id] = user.id
+        c[:username] =  user.username
+        c[:is_super_admin] = is_super_admin?(user)
+        c[:status_id] = status.status_id
+      end
+    end
+    c
+  end
+
+  def is_super_admin?(user)
+    roles = UserRoleMapping.where(user_id: user.id)
+    is_super_admin = false
+    roles.as_json.each do |role|
+      if role["role_name"] == "Superuser"
+        is_super_admin = true
+        break
+      end
+    end
+    is_super_admin
   end
 
   def specimen_type

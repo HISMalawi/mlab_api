@@ -12,6 +12,11 @@ class TestStatus < VoidableRecord
   end
 
   def initiator
-    User.find_by_id(creator).username
+    user = User.find_by_id(creator)
+    {
+      username: user.username,
+      first_name: user.person.first_name,
+      last_name: user.person.last_name
+    }
   end
 end
