@@ -10,7 +10,7 @@ class Test < VoidableRecord
   after_create :create_default_status
 
   def as_json(options = {})
-      methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by 
+      methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by
                   tracking_number requested_by test_type_name client status]
       unless options[:minimal]
         methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail]
@@ -29,8 +29,8 @@ class Test < VoidableRecord
 
   def indicators
     test_type.test_indicators.as_json(only: %i[id name test_indicator_type])
-      .map do |i| 
-        i.merge!(result: results(i['id'])) 
+      .map do |i|
+        i.merge!(result: results(i['id']))
         i.merge!(indicator_ranges: indicator_ranges(i['id']))
       end
   end
@@ -75,7 +75,7 @@ class Test < VoidableRecord
     roles = UserRoleMapping.where(user_id: user.id)
     is_super_admin = false
     roles.as_json.each do |role|
-      if role["role_name"] == "Superuser"
+      if role["role_name"] == "Superuser" || role['role_name'] == 'Superadmin'
         is_super_admin = true
         break
       end
