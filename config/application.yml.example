@@ -10,8 +10,5 @@ nlims_service:
   username: username
   password: password
 
-# facility:
-#   name: Kamuzu Central Hospital
-#   code: KCH
-#   address: P.O BOX 21, Lilongwe
-#   phone: +2651123435, +2651123424
+default:
+  accession_number_length: true 
