@@ -42,11 +42,11 @@ module ClientManagement
         end
       end
 
-      def update_client(client, params)
+      def update_client(client, params, identifier_params)
         ActiveRecord::Base.transaction do
           person = client.person
           person.update!(params[:person])
-          params[:client_identifiers].each do |identifier|
+          identifier_params[:client_identifiers].each do |identifier|
             client_identifier_type = ClientIdentifierType.find_by_name(identifier[:type])
             unless client_identifier_type.nil?
               client_identifier = ClientIdentifier.find_or_initialize_by(client_identifier_type_id: client_identifier_type.id, client_id: client.id)
