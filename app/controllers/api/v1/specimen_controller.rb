@@ -15,6 +15,7 @@ module Api
       def specimen_test_type
         specimen = Specimen.find(params[:specimen_id])
         test_types = SpecimenTestTypeMapping.joins(:test_type).where(specimen_id: specimen.id)
+        test_types = test_types.where("test_types.department_id = #{params[:department_id]}") if !params[:department_id].blank?
         test_panel = TestTypePanelMapping.joins(:test_panel).joins(:test_type).where(test_type_id: test_types).pluck('test_panels.name')
         test_types = test_types.pluck('name') + (test_panel)
         render json: test_types.uniq
