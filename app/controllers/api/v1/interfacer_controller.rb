@@ -19,14 +19,14 @@ module Api
       def create
         values = allowed_params.to_h
         Rails.logger.info(values)
-        write_service.new(specimen_id: values[:specimen_id], machine_name: values[:machine_name], measure_id: values[:measure_id], result: values[:result]).write
+        write_service.new(accession_number: values[:accession_number], machine_name: values[:machine_name], measure_id: values[:measure_id], result: values[:result]).write
         render json: { message: 'success' }, status: :ok
       end
 
       private
 
       def allowed_params
-        params.permit(:specimen_id, :machine_name, :measure_id, :result)
+        params.permit(:accession_number, :machine_name, :measure_id, :result)
       end
 
       def write_service
