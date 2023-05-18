@@ -17,7 +17,7 @@ class Api::V1::InstrumentsController < ApplicationController
 
   def update
     instrument = Instrument.find(params[:id])
-    instrument.update(instrument_params)
+    InstrumentsService.update_instrument(instrument, instrument_params, params[:test_types])
     render json: instrument, status: :ok
   end
 

@@ -35,5 +35,23 @@ module InstrumentsService
       @instrument
     end
 
+    def update_instrument(instrument, instrument_params, test_types)
+      ActiveRecord::Base.transaction do
+        instrument.update!(instrument_params)
+        test_types.each do |test_type_id|
+          unless test_type_id.is_a?(Integer)
+            raise ArgumentError, "Test type id must be an integer"
+          end
+          InstrumentTestTypeMapping.find_or_create_by!(
+            instrument_id: instrument.id,
+            test_type_id:
+          )
+        end
+        InstrumentTestTypeMapping.where(instrument_id: instrument.id).where.not(test_type_id: test_types).each do |instrument_test_type_mapping|
+          instrument_test_type_mapping.void('Removed from instrument_test_type_mapping')
+        end
+      end
+    end
+
   end
 end
