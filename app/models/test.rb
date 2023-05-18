@@ -11,7 +11,7 @@ class Test < VoidableRecord
 
   def as_json(options = {})
       methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by
-                  tracking_number requested_by test_type_name client status]
+                  tracking_number requested_by test_type_name client status order_status]
       unless options[:minimal]
         methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail is_machine_oriented]
       end
@@ -93,6 +93,10 @@ class Test < VoidableRecord
 
   def status
     test_status&.last&.status&.name
+  end
+
+  def order_status
+    OrderStatus.where(order_id: order.id)&.last&.status&.name
   end
 
   def accession_number
