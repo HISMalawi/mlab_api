@@ -20,7 +20,7 @@ module Api
 
       private
       def order_params 
-        params.require(:order_status).permit(:order_id, :status_id, :status_reason_id)
+        params.require(:order_status).permit(:order_id, :status_id, :status_reason_id, :person_talked_to)
       end
 
     end

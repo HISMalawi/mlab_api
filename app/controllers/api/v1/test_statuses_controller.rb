@@ -57,8 +57,16 @@ class Api::V1::TestStatusesController < ApplicationController
     TestStatus.find_by(test_id: params.require(:test_id))
   end
 
+  def person_talked_to
+    params[:person_talked_to]
+  end
+
+  def reason
+    params[:status_reason_id]
+  end
+
   def update_status(status)
-    updated = TestCatalog::TestStatusesService.update_test_status(test_status, status)
+    updated = TestCatalog::TestStatusesService.update_test_status(test_status, status, reason, person_talked_to)
     return Test.find(params.require(:test_id)) if updated
     updated
   end

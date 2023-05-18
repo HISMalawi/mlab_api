@@ -13,7 +13,7 @@ class Test < VoidableRecord
       methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by
                   tracking_number requested_by test_type_name client status order_status]
       unless options[:minimal]
-        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail is_machine_oriented]
+        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail is_machine_oriented order_status_trail]
       end
 
       super(options.merge(methods: methods))
@@ -58,6 +58,10 @@ class Test < VoidableRecord
 
   def status_trail
     TestStatus.where(test_id: id)
+  end
+
+  def order_status_trail
+    OrderStatus.where(order_id: order.id)
   end
 
   def completed_by

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125960) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -304,6 +304,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125960) do
     t.datetime "voided_date"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.string "person_talked_to"
     t.index ["creator"], name: "fk_rails_0510d94594"
     t.index ["order_id"], name: "index_order_statuses_on_order_id"
     t.index ["status_id"], name: "index_order_statuses_on_status_id"
@@ -578,6 +579,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125960) do
     t.datetime "voided_date"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.string "person_talked_to"
     t.index ["creator"], name: "fk_rails_0adac8ee6b"
     t.index ["status_id"], name: "index_test_statuses_on_status_id"
     t.index ["status_reason_id"], name: "index_test_statuses_on_status_reason_id"
