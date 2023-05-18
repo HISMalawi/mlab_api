@@ -11,13 +11,13 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def create
-    instrument = InstrumentsService.create_instrument(instrument_params, params[:test_types])
+    instrument = InstrumentsService.create_instrument(instrument_params, params[:supported_tests])
     render json: instrument, status: :created
   end
 
   def update
     instrument = Instrument.find(params[:id])
-    InstrumentsService.update_instrument(instrument, instrument_params, params[:test_types])
+    InstrumentsService.update_instrument(instrument, instrument_params, params[:supported_tests])
     render json: instrument, status: :ok
   end
 
@@ -33,8 +33,8 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def check_test_params
-    unless params.has_key?('test_types') && params[:test_types].is_a?(Array)
-      raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for test_types"
+    unless params.has_key?('supported_tests') && params[:supported_tests].is_a?(Array)
+      raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for supported_tests"
     end
   end
 
