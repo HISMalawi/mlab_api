@@ -49,7 +49,7 @@ module OrderService
         test_type = TestType.find_by_name(test_param[:test_type])
         test_panel = TestPanel.find_by_name(test_param[:test_type])
         if test_panel.nil?
-          Test.create!(
+          Test.find_or_create_by!(
             specimen_id: test_param[:specimen],
             order_id: order_id,
             test_type_id: test_type.id
@@ -57,7 +57,7 @@ module OrderService
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
           member_test_types.each do |test_type|
-            Test.create!(
+            Test.find_or_create_by!(
               specimen_id: test_param[:specimen],
               order_id: order_id,
               test_type_id: test_type,
