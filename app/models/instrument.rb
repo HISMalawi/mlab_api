@@ -10,6 +10,9 @@ class Instrument < RetirableRecord
 
 
   def supported_tests
-    test_types.pluck(:name).join(', ')
+    test_types.select(
+      'test_types.id',
+      'test_types.name'
+    )
   end
 end
