@@ -7,7 +7,10 @@ module Api
     
       def index
         @users = User.all.page(params[:page]).per(params[:per_page])
-        render json: UserManagement::UserService.serialize_users(@users)
+        render json: {
+          data: UserManagement::UserService.serialize_users(@users),
+          meta: PaginationService.pagination_metadata(@users)
+        }
       end
       
       def show
