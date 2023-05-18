@@ -13,7 +13,7 @@ class Test < VoidableRecord
       methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by
                   tracking_number requested_by test_type_name client status]
       unless options[:minimal]
-        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail]
+        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail is_machine_oriented]
       end
 
       super(options.merge(methods: methods))
@@ -21,6 +21,10 @@ class Test < VoidableRecord
 
   def short_name
     test_type.short_name
+  end
+
+  def is_machine_oriented
+    !InstrumentTestTypeMapping.where(test_type_id: test_type.id).empty?
   end
 
   def create_default_status
