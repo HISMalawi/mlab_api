@@ -115,7 +115,7 @@ module OrderService
       zero_padding = 8
       sentinel = 99999999
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
-      default_accession_number_length = config_data['default']["accession_number_length"]
+      default_accession_number_length = config_data['default'].nil? ? true : config_data['default']["accession_number_length"]
       unless default_accession_number_length
         zero_padding = 6
         sentinel = 999999
