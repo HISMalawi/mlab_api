@@ -54,6 +54,7 @@ Rails.application.routes.draw do
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'
+          get '/machine_oriented' => 'test_types#check_if_machine_oriented'
         end
       end
       resources :users do

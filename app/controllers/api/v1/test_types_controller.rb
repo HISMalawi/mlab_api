@@ -26,6 +26,10 @@ module Api
       def show
         render json: TestCatalog::TestTypes::ShowService.show_test_type(@test_type)
       end
+
+      def check_if_machine_oriented
+        render json: {is_machine_oriented: is_machine_oriented?(params.require(:test_type_id))}
+      end
     
       def create
         test_type = TestCatalog::TestTypes::CreateService.create_test_type(test_type_params, params)
@@ -46,6 +50,10 @@ module Api
     
       def set_test_type
         @test_type = TestType.find(params[:id])
+      end
+
+      def is_machine_oriented?(test_type_id)
+        !InstrumentTestTypeMapping.where(test_type_id:).empty?
       end
     
       def test_type_params
