@@ -18,5 +18,22 @@ module InstrumentsService
         filtered: filtered || 0,
         data: data }
     end
+
+    def create_instrument(instrument_params, test_types)
+      ActiveRecord::Base.transaction do
+        @instrument = Instrument.create!(instrument_params)
+        test_types.each do |test_type_id|
+          unless test_type_id.is_a?(Integer)
+            raise ArgumentError, "Test type id must be an integer"
+          end
+          InstrumentTestTypeMapping.create!(
+            instrument_id: @instrument.id,
+            test_type_id:
+          )
+        end
+      end
+      @instrument
+    end
+
   end
 end

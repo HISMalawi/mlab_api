@@ -1,4 +1,6 @@
 class Api::V1::InstrumentsController < ApplicationController
+  before_action :check_test_params, only: [:create, :update]
+
   def index
     page, page_size, search = pagination.values_at(:page, :page_size, :search)
     render json: InstrumentsService.find(page, page_size, search)
@@ -9,7 +11,7 @@ class Api::V1::InstrumentsController < ApplicationController
   end
 
   def create
-    instrument = Instrument.create(instrument_params)
+    instrument = InstrumentsService.create_instrument(instrument_params, params[:test_types])
     render json: instrument, status: :created
   end
 
@@ -28,6 +30,12 @@ class Api::V1::InstrumentsController < ApplicationController
 
   def instrument_params
     params.permit(:name, :description, :ip_address, :hostname)
+  end
+
+  def check_test_params
+    unless params.has_key?('test_types') && params[:test_types].is_a?(Array)
+      raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for test_types"
+    end
   end
 
   def pagination

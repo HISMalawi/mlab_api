@@ -12,6 +12,10 @@ module ExceptionHandler
       render json: {error: e.message}, status: :internal_server_error
     end
 
+    rescue_from ArgumentError do |e|
+      render json: {error: e.message}, status: :unprocessable_entity
+    end
+
     rescue_from UnAuthorized do |e|
       render json: { error: e.message }, status: :unauthorized
     end
