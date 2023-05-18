@@ -18,10 +18,11 @@ class Api::V1::TestResultsController < ApplicationController
       results = indicators.collect do |indicator_obj|
         indicator = indicator_obj[:indicator]
         value = indicator_obj[:value]
+        machine_name = indicator_obj[:machine_name]
         unless TestIndicator.find_by_id(indicator).present?
           render json: {message: "Indicator with id #{indicator} not does not exists"}, status: :bad_request and return
         end
-        TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value: value, result_date: Time.now)
+        TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value: value, result_date: Time.now, machine_name: machine_name)
       end
     end
     render json: results
@@ -40,6 +41,6 @@ class Api::V1::TestResultsController < ApplicationController
   private
 
   def test_result_params
-    params.permit(:test_id, test_indicators: %i[indicator value])
+    params.permit(:test_id, test_indicators: %i[indicator value machine_name])
   end
 end

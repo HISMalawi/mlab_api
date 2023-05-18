@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125959) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125960) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -296,14 +296,14 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125959) do
   create_table "order_statuses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "order_id", null: false
     t.bigint "status_id", null: false
-    t.bigint "status_reason_id", null: false
-    t.bigint "creator", null: false
-    t.integer "voided", default: 0
+    t.bigint "status_reason_id"
+    t.bigint "creator"
+    t.integer "voided"
     t.bigint "voided_by"
     t.string "voided_reason"
     t.datetime "voided_date"
-    t.datetime "created_date", null: false
-    t.datetime "updated_date", null: false
+    t.datetime "created_date"
+    t.datetime "updated_date"
     t.index ["creator"], name: "fk_rails_0510d94594"
     t.index ["order_id"], name: "index_order_statuses_on_order_id"
     t.index ["status_id"], name: "index_order_statuses_on_status_id"
@@ -560,6 +560,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125959) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.string "machine_name"
     t.index ["creator"], name: "fk_rails_e31692d4ca"
     t.index ["test_id"], name: "index_test_results_on_test_id"
     t.index ["test_indicator_id"], name: "index_test_results_on_test_indicator_id"

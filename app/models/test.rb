@@ -40,7 +40,7 @@ class Test < VoidableRecord
   end
 
   def results(indicator_id)
-    TestResult.where(test_id: id, test_indicator_id: indicator_id)&.last&.as_json(only: %i[id value result_date])
+    TestResult.where(test_id: id, test_indicator_id: indicator_id)&.last&.as_json(only: %i[id value result_date machine_name])
   end
 
   def indicator_ranges(indicator_id)
