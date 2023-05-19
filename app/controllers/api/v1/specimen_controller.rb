@@ -15,7 +15,7 @@ module Api
       def specimen_test_type
         specimen = Specimen.find(params[:specimen_id])
         test_types = SpecimenTestTypeMapping.joins(:test_type).where(specimen_id: specimen.id)
-        test_types = test_types.where("test_types.department_id = #{params[:department_id]}") if !params[:department_id].blank?
+        test_types = filter_test_types_by_department(params[:department_id], test_types) if !params[:department_id].blank?
         test_panel = TestTypePanelMapping.joins(:test_panel).joins(:test_type).where(test_type_id: test_types).pluck('test_panels.name')
         test_types = test_types.pluck('name') + (test_panel)
         render json: test_types.uniq
@@ -40,6 +40,14 @@ module Api
     
       def set_specimen
         @specimen = Specimen.find(params[:id])
+      end
+
+      def filter_test_types_by_department(department_id, test_types)
+        department = Department.find(department_id)&.name
+        unless department == 'Lab Reception'
+          test_types = test_types.where("test_types.department_id = #{department_id}")
+        end
+        test_types
       end
     
       def specimen_params
