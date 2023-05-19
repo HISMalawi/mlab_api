@@ -14,17 +14,17 @@ module OrderStatusesService
         person_talked_to: person_talked_to
       })
       
-      if ["specimen-accepted"].include?(status_name.downcase) 
-        tests = Test.where(:order_id => order_id).pluck(:id)
-        if tests.present?
-          tests.each do |tid| 
-            TestStatus.find_or_create_by!({
-              test_id: tid,
-              status_id: Status.find_by(name: 'pending')&.id
-            })
-          end
-        end
-      end
+      # if ["specimen-accepted"].include?(status_name.downcase) 
+      #   tests = Test.where(:order_id => order_id).pluck(:id)
+      #   if tests.present?
+      #     tests.each do |tid| 
+      #       TestStatus.find_or_create_by!({
+      #         test_id: tid,
+      #         status_id: Status.find_by(name: 'pending')&.id
+      #       })
+      #     end
+      #   end
+      # end
 
       order_status
     end
