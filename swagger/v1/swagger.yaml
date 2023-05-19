@@ -478,6 +478,11 @@ paths:
           description: "ID of the specimen for which test types are to be retrieved"
           required: true
           type: integer
+        - in: query
+          name: department_id
+          description: "ID of the department for which test types are to be retrieved"
+          required: false
+          type: integer
       responses:
         200:
           description: Successful
