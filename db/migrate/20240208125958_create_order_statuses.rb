@@ -3,7 +3,7 @@ class CreateOrderStatuses < ActiveRecord::Migration[7.0]
     create_table :order_statuses do |t|
       t.references :order, null: false, foreign_key: true
       t.references :status, null: false, foreign_key: true
-      t.references :status_reason, null: false, foreign_key: true
+      t.references :status_reason, null: true, foreign_key: true
       t.bigint :creator, null: false
       t.integer :voided, default: false
       t.bigint :voided_by, null: true
