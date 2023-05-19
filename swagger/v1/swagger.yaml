@@ -7,6 +7,61 @@ paths:
   "api/v1/global":
     get:
       summary: Returns the details of a hospital.
+      tags: 
+        - Facility Details
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  code:
+                    type: string
+                  address:
+                    type: string
+                  phone:
+                    type: string
+                example:
+                      id: 1
+                      name: "Kamuzu Central Hospital"
+                      code: "KCH"
+                      address: "P.O BOX 21, Lilongwe"
+                      phone: "+2651123435, +2651123424"
+  "api/v1/global/:id":
+    put:
+      summary: Edit the details of a hospital.
+      tags: 
+        - Facility Details
+      parameters: []
+      requestBody:
+        description: JSON object containing updation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: name of the facility
+                code:
+                  type: string
+                  description: site code of the facility
+                address:
+                  type: string
+                  description: p.o box or p/bag address of the facility
+                phone:
+                  type: string
+                  description: phone numbers of the facility
+              required:
+                - name
+                - code
+                - address
+                - phone 
       responses:
         200:
           description: Successful
@@ -27,7 +82,7 @@ paths:
                       name: "Kamuzu Central Hospital"
                       code: "KCH"
                       address: "P.O BOX 21, Lilongwe"
-                      phone: "+2651123435, +2651123424"
+                      phone: "+265000000, +265000000"
   "api/v1/priorities":
     get:
       summary: Returns order priolities.
