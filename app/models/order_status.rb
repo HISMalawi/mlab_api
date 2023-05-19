@@ -2,9 +2,9 @@ class OrderStatus < VoidableRecord
   validates :status_id, presence: true 
   validates :status_reason_id, presence: false
 
-  belongs_to :order
-  belongs_to :status
-  belongs_to :status_reason
+  belongs_to :order, optional: true
+  belongs_to :status, optional: true
+  belongs_to :status_reason, optional: true
 
   def as_json(options = {})
     super(options.merge(methods: %i[status initiator statuses_reason], only: %i[id order_id status_id creator status_reason_id]))
