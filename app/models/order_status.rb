@@ -7,7 +7,7 @@ class OrderStatus < VoidableRecord
   belongs_to :status_reason, optional: true
 
   def as_json(options = {})
-    super(options.merge(methods: %i[status initiator statuses_reason], only: %i[id order_id status_id creator status_reason_id]))
+    super(options.merge(methods: %i[status initiator statuses_reason], only: %i[id order_id status_id creator status_reason_id created_date]))
   end
 
   def initiator
