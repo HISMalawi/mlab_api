@@ -5,18 +5,14 @@ module TestCatalog::TestStatusesService
     def update_test_status(test_status, status, reason=nil, person_talked_to=nil) 
       unless test_status.blank? 
         void_results(test_status, reason) if status.name == 'test-rejected'
-        new_test_status = TestStatus.new(
+        new_test_status = TestStatus.find_or_create!(
           test_id: test_status.test_id,
-          status_id: status.id,
-          creator: User.current.id, 
+          status_id: status.id
+        )
+        new_test_status.update!(
           status_reason_id: reason,
           person_talked_to: person_talked_to
         )
-        if new_test_status.save 
-          new_test_status
-        else
-          new_test_status.errors
-        end
       end 
     end
 
