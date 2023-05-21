@@ -20,17 +20,20 @@ module Tests
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
-      tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
-                  .where(client: { id: client.id })
-
-      tests = tests.where(orders: { id: order_id }) if order_id.present?
-
-      tests = tests.where(encounter: { start_date: from..to }) if order_id.nil?
-
-      tests.order('orders.id DESC')
+      orders = Order.joins(encounter: [client: [:person]]).where(client: {id: client.id}, id: order_id) if order_id.present?
+      orders = Order.joins(encounter: [client: [:person]]).where(
+        client: {id: client.id}, 
+        encounter: { start_date: Date.parse(from).beginning_of_day..Date.parse(to).end_of_day }
+        ) if (order_id.nil? && !from.nil?)
+      orders= Order.joins(encounter: [client: [:person]]).where(client: {id: client.id})
+      person = client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
+      client_identifiers = ClientIdentifier.where(client_id: client.id)
       {
-        person: client.person,
-        tests: tests
+        client: {
+          person: person,
+          client_identifiers: client_identifiers
+        },
+        orders: orders
       }
     end
 
