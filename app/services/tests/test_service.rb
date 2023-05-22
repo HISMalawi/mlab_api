@@ -3,7 +3,7 @@
 module Tests
   class TestService
     def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil)
-      tests = Test.joins(:test_type, :current_test_status, order: [encounter: [client: [:person]]])
+      tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
       if query.present?
         tests = tests.where('test_types.name LIKE ? or test_types.short_name LIKE ?', "%#{query}%",
                             "%#{query}%")

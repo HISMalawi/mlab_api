@@ -3,8 +3,6 @@ class Test < VoidableRecord
   belongs_to :order
   belongs_to :test_type
 
-  has_one :current_test_status
-
   has_many :test_status
 
   after_create :create_default_status
