@@ -1,11 +1,11 @@
-module TestCatalog::TestStatusesService 
-  class << self 
+module TestCatalog::TestStatusesService
+  class << self
 
     #updates test status (with reason)
-    def update_test_status(test_status, status, reason=nil, person_talked_to=nil) 
-      unless test_status.blank? 
+    def update_test_status(test_status, status, reason=nil, person_talked_to=nil)
+      unless test_status.blank?
         void_results(test_status, reason) if status.name == 'test-rejected'
-        new_test_status = TestStatus.find_or_create!(
+        new_test_status = TestStatus.find_or_create_by!(
           test_id: test_status.test_id,
           status_id: status.id
         )
@@ -13,7 +13,7 @@ module TestCatalog::TestStatusesService
           status_reason_id: reason,
           person_talked_to: person_talked_to
         )
-      end 
+      end
     end
 
     # Void results for test rejected action on test with status completed
