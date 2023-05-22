@@ -16,7 +16,9 @@ cd config
 # Edit the default block database in database.yml and iblis_db block database accordingly
 1. cp database.yml.example database.yml  
 
-# Edit dde and nlims block accordingly 
+# Edit dde_service and nlims_service block accordingly
+# If you are on a site that need 8 character long sample id(accession number), setting accession_number_length to false in default block of this file  
+   otherwise the default length is 10 characters
 2. cp application.yml.example application.yml
 ```
 
@@ -32,5 +34,6 @@ cd config
 ```
 * Database initialization
 ```
+# Run this command to migrate data from iblis databae you have created to the database that mlab will be using
 bash load_iblis_data.sh 
 ```
