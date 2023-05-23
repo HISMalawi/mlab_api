@@ -55,6 +55,23 @@ module PrintoutService
       label.draw_line(25, 165, 760, 1)
       label.print(1)
     end
+
+    def print_a4_patient_report(uploaded_file, printer_name)
+      directory_name = 'patient_reports'
+      begin
+        Dir.mkdir("tmp/#{directory_name}") unless File.exist?(directory_name)          
+      rescue Errno::EEXIST
+        puts "Could not create dir, already exists"
+      end
+      file_path = Rails.root.join('tmp', directory_name, uploaded_file.original_filename)
+      File.open(file_path, 'wb') do |file|
+        file.write(uploaded_file.read)
+      end
+      # system("nohup lp -d #{printer_name} #{file_path} > /dev/null 2>&1")
+      print_job = system("nohup lp -d '#{printer_name}' '#{file_path}' > log/printing.log 2>&1")
+      system("nohup rm #{file_path}") if print_job
+      print_job
+    end
   end
 
 end

@@ -31,4 +31,15 @@ class Api::V1::PrintoutController < ApplicationController
                       disposition: "inline",
                       refresh: "1; url=#{params[:redirect_to]}"
     end
+
+    def print_patient_report
+      uploaded_file = params.require(:pdf)
+      printer_name = params.require(:printer_name)
+      printed = PrintoutService.print_a4_patient_report(uploaded_file, printer_name)
+      render json: { printed: printed }
+    end
+
+    def available_a4_printer
+      render json: Printer.all
+    end
 end
