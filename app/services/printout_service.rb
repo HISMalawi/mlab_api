@@ -61,7 +61,7 @@ module PrintoutService
       begin
         Dir.mkdir("tmp/#{directory_name}") unless File.exist?(directory_name)          
       rescue Errno::EEXIST
-        puts "Could not create dir, already exists"
+        
       end
       file_path = Rails.root.join('tmp', directory_name, uploaded_file.original_filename)
       File.open(file_path, 'wb') do |file|
