@@ -21,7 +21,7 @@ orders = Iblis.find_by_sql("SELECT
       patients p on v.patient_id = p.id
           INNER JOIN
       test_types tt ON tt.id = t.test_type_id
-      inner join specimen_types st on st.id=sp.specimen_type_id order by sp.id limit 1000
+      inner join specimen_types st on st.id=sp.specimen_type_id order by sp.id limit 10000
     ")
 
 orders.each do |order_|

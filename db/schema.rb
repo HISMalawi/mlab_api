@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125974) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -20,6 +20,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_76d55355c3"
     t.index ["retired_by"], name: "fk_rails_19fcfd1174"
   end
@@ -35,6 +36,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["client_id"], name: "index_client_identifiers_on_client_id"
     t.index ["client_identifier_type_id"], name: "index_client_identifiers_on_client_identifier_type_id"
     t.index ["creator"], name: "fk_rails_1d6a18d6aa"
@@ -50,6 +52,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "voided_date"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f6852eeed6"
     t.index ["order_id"], name: "index_client_order_print_trails_on_order_id"
     t.index ["voided_by"], name: "fk_rails_d0e284cc0a"
@@ -65,6 +68,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_8bd1def1b3"
     t.index ["person_id"], name: "index_clients_on_person_id"
     t.index ["voided_by"], name: "fk_rails_8ddb993c38"
@@ -81,6 +85,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_336ba6c926"
     t.index ["test_id"], name: "index_culture_observations_on_test_id"
     t.index ["voided_by"], name: "fk_rails_71c231eae4"
@@ -95,6 +100,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_7aef731b14"
     t.index ["retired_by"], name: "fk_rails_07e4d2e8c0"
   end
@@ -108,6 +114,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator", null: false
     t.datetime "created_date", null: false
     t.datetime "updated_date", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_28375b9bab"
     t.index ["voided_by"], name: "fk_rails_171f5ed44e"
   end
@@ -122,6 +129,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_0800e412cf"
     t.index ["drug_id"], name: "index_drug_organism_mappings_on_drug_id"
     t.index ["organism_id"], name: "index_drug_organism_mappings_on_organism_id"
@@ -160,6 +168,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f659be91a8"
     t.index ["retired_by"], name: "fk_rails_6c278e75fd"
   end
@@ -174,6 +183,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "updated_date"
     t.bigint "facility_section_id", null: false
     t.bigint "encounter_type_id", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_0a2ba9e596"
     t.index ["encounter_type_id"], name: "fk_rails_2880469aa4"
     t.index ["facility_section_id"], name: "fk_rails_afdb26e1db"
@@ -190,6 +200,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "voided_date"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_c085b6c147"
     t.index ["voided_by"], name: "fk_rails_3b11e06173"
   end
@@ -210,6 +221,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "updated_date"
     t.string "uuid"
     t.bigint "encounter_type_id"
+    t.bigint "updated_by"
     t.index ["client_id"], name: "index_encounters_on_client_id"
     t.index ["creator"], name: "fk_rails_d942b30673"
     t.index ["destination_id"], name: "index_encounters_on_destination_id"
@@ -228,6 +240,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_d28145efac"
     t.index ["retired_by"], name: "fk_rails_e319067bf9"
   end
@@ -241,6 +254,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_72da1deecd"
     t.index ["retired_by"], name: "fk_rails_2b632c0b11"
   end
@@ -257,6 +271,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "retired_date"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_bb30e1b9e2"
     t.index ["retired_by"], name: "fk_rails_57610fb0a4"
   end
@@ -271,6 +286,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_d97721fc8d"
     t.index ["instrument_id"], name: "index_instrument_test_type_mappings_on_instrument_id"
     t.index ["retired_by"], name: "fk_rails_051201364f"
@@ -289,6 +305,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_31d4d000b3"
     t.index ["retired_by"], name: "fk_rails_b85ba53bf5"
   end
@@ -297,14 +314,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "order_id", null: false
     t.bigint "status_id", null: false
     t.bigint "status_reason_id"
-    t.bigint "creator"
-    t.integer "voided"
+    t.bigint "creator", null: false
+    t.integer "voided", default: 0
     t.bigint "voided_by"
     t.string "voided_reason"
     t.datetime "voided_date"
-    t.datetime "created_date"
-    t.datetime "updated_date"
+    t.datetime "created_date", null: false
+    t.datetime "updated_date", null: false
     t.string "person_talked_to"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_0510d94594"
     t.index ["order_id"], name: "index_order_statuses_on_order_id"
     t.index ["status_id"], name: "index_order_statuses_on_status_id"
@@ -327,6 +345,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "voided_date"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_58c783a090"
     t.index ["encounter_id"], name: "index_orders_on_encounter_id"
     t.index ["priority_id"], name: "index_orders_on_priority_id"
@@ -343,6 +362,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_112492a36b"
     t.index ["retired_by"], name: "fk_rails_0ca4fdfa97"
   end
@@ -361,8 +381,22 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_4a9413ff3e"
     t.index ["voided_by"], name: "fk_rails_a6e182138c"
+  end
+
+  create_table "printers", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.string "name"
+    t.text "description"
+    t.integer "voided"
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.bigint "creator"
+    t.datetime "created_date"
+    t.datetime "updated_date"
+    t.bigint "updated_by"
   end
 
   create_table "priorities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -374,6 +408,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_555d2a3bd5"
     t.index ["retired_by"], name: "fk_rails_b0bb8c2a6e"
   end
@@ -388,6 +423,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_13b25d4d99"
     t.index ["retired_by"], name: "fk_rails_74d4b13f40"
   end
@@ -402,6 +438,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_d72d795e2e"
     t.index ["privilege_id"], name: "index_role_privilege_mappings_on_privilege_id"
     t.index ["role_id"], name: "index_role_privilege_mappings_on_role_id"
@@ -417,6 +454,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f0b260e680"
     t.index ["retired_by"], name: "fk_rails_aa96010497"
   end
@@ -431,6 +469,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_3d6fc047ad"
     t.index ["retired_by"], name: "fk_rails_10ee122152"
   end
@@ -447,6 +486,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_c40492fbeb"
     t.index ["retired_by"], name: "fk_rails_47458cb1ed"
     t.index ["specimen_id"], name: "index_specimen_test_type_mappings_on_specimen_id"
@@ -462,6 +502,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_a051adf67c"
     t.index ["retired_by"], name: "fk_rails_7181c23722"
   end
@@ -475,6 +516,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_03b122d8ec"
     t.index ["retired_by"], name: "fk_rails_dc1b2e5f4a"
   end
@@ -489,6 +531,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator", null: false
     t.datetime "created_date", null: false
     t.datetime "updated_date", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_66eb7c6a50"
     t.index ["diseases_id"], name: "index_surveillances_on_diseases_id"
     t.index ["test_types_id"], name: "index_surveillances_on_test_types_id"
@@ -511,6 +554,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_822a0e09d9"
     t.index ["retired_by"], name: "fk_rails_c7a13cd42e"
     t.index ["test_indicator_id"], name: "index_test_indicator_ranges_on_test_indicator_id"
@@ -529,6 +573,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fda346a95f"
     t.index ["retired_by"], name: "fk_rails_8fea8a0952"
     t.index ["test_type_id"], name: "index_test_indicators_on_test_type_id"
@@ -545,6 +590,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_f9cb5cd94a"
     t.index ["retired_by"], name: "fk_rails_37372fa1a2"
   end
@@ -562,6 +608,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "created_date"
     t.datetime "updated_date"
     t.string "machine_name"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_e31692d4ca"
     t.index ["test_id"], name: "index_test_results_on_test_id"
     t.index ["test_indicator_id"], name: "index_test_results_on_test_indicator_id"
@@ -580,6 +627,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "created_date"
     t.datetime "updated_date"
     t.string "person_talked_to"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_0adac8ee6b"
     t.index ["status_id"], name: "index_test_statuses_on_status_id"
     t.index ["status_reason_id"], name: "index_test_statuses_on_status_reason_id"
@@ -597,6 +645,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "retired_date"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_30264e8cf9"
     t.index ["organism_id"], name: "index_test_type_organism_mappings_on_organism_id"
     t.index ["retired_by"], name: "fk_rails_eb65b8696d"
@@ -613,6 +662,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_3c1b4cdb96"
     t.index ["test_panel_id"], name: "index_test_type_panel_mappings_on_test_panel_id"
     t.index ["test_type_id"], name: "index_test_type_panel_mappings_on_test_type_id"
@@ -631,6 +681,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fc31efdaf6"
     t.index ["department_id"], name: "index_test_types_on_department_id"
     t.index ["retired_by"], name: "fk_rails_e098721114"
@@ -648,6 +699,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_9e21c12cab"
     t.index ["order_id"], name: "index_tests_on_order_id"
     t.index ["specimen_id"], name: "index_tests_on_specimen_id"
@@ -666,6 +718,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_749595bdf9"
     t.index ["department_id"], name: "index_user_department_mappings_on_department_id"
     t.index ["retired_by"], name: "fk_rails_700d5dc05d"
@@ -682,6 +735,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "updated_date"
     t.datetime "created_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_70a7a9087a"
     t.index ["retired_by"], name: "fk_rails_7009c0ebef"
     t.index ["role_id"], name: "index_user_role_mappings_on_role_id"
@@ -701,6 +755,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "created_date"
     t.datetime "updated_date"
     t.integer "is_active"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_fd256d8564"
     t.index ["person_id"], name: "index_users_on_person_id"
     t.index ["voided_by"], name: "fk_rails_10e8c3ab59"
@@ -716,6 +771,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.datetime "created_date"
     t.bigint "facility_section_id", null: false
     t.bigint "visit_type_id", null: false
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_7fc43c315a"
     t.index ["facility_section_id"], name: "fk_rails_79cf966fd7"
     t.index ["retired_by"], name: "fk_rails_663642c7d8"
@@ -731,6 +787,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125962) do
     t.bigint "creator"
     t.datetime "created_date"
     t.datetime "updated_date"
+    t.bigint "updated_by"
     t.index ["creator"], name: "fk_rails_8098698b0f"
     t.index ["retired_by"], name: "fk_rails_c55e7d0885"
   end
