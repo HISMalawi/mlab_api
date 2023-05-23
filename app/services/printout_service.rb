@@ -56,7 +56,7 @@ module PrintoutService
       label.print(1)
     end
 
-    def print_a4_patient_report(uploaded_file, printer_name)
+    def print_a4_patient_report(uploaded_file, printer_name, order_id)
       directory_name = 'patient_reports'
       begin
         Dir.mkdir("tmp/#{directory_name}") unless File.exist?(directory_name)          
@@ -69,8 +69,14 @@ module PrintoutService
       end
       # system("nohup lp -d #{printer_name} #{file_path} > /dev/null 2>&1")
       print_job = system("nohup lp -d '#{printer_name}' '#{file_path}' > log/printing.log 2>&1")
-      system("nohup rm #{file_path}") if print_job
+      if print_job
+        system("nohup rm #{file_path}")
+        tracking_a4_print_count(order_id)
       print_job
+    end
+
+    def tracking_a4_print_count(order_id)
+      ClientOrderPrintTrail.create!(order_id: order_id)
     end
   end
 

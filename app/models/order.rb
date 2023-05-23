@@ -2,6 +2,7 @@ class Order < VoidableRecord
   belongs_to :encounter
   belongs_to :priority
   has_many :tests
+  has_many :client_order_print_trails
 
   after_create :create_default_status
 
@@ -15,6 +16,7 @@ class Order < VoidableRecord
       specimen: specimen_test_type[:specimen],
       test_types: specimen_test_type[:test_types],
       order_status: order_status,
+      print_count: print_count,
       order_status_trail: order_status_trail,
       request_origin: request_origin,
       requesting_ward: requesting_ward,
@@ -52,6 +54,10 @@ class Order < VoidableRecord
 
   def request_origin
     EncounterType.find(encounter.encounter_type_id).name
+  end
+
+  def print_count
+    client_order_print_trails.count
   end
 
   def requesting_ward
