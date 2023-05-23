@@ -22,7 +22,7 @@ module Auditable
   # Saves current user after every save
   def update_change_trail
     unless respond_to?(:updated_by) && respond_to?(:updated_date)
-      Rails.logger.warn "Auditable model missing changed_by or date_changed: #{self}"
+      Rails.logger.warn "Auditable model missing updated_by or updated_date: #{self}"
       return
     end
     self.updated_by = User.current&.id
