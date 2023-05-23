@@ -112,6 +112,7 @@ Rails.application.routes.draw do
           get '/get_drug_susceptibility_test_results' => "culture_observations#get_drug_susceptibility_test_results"
         end
       end
+      resources :printers
     end
   end
 end

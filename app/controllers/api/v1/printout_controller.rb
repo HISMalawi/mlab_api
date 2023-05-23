@@ -38,8 +38,4 @@ class Api::V1::PrintoutController < ApplicationController
       printed = PrintoutService.print_a4_patient_report(uploaded_file, printer_name)
       render json: { printed: printed }
     end
-
-    def available_a4_printer
-      render json: Printer.all
-    end
 end
