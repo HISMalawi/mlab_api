@@ -72,6 +72,7 @@ module PrintoutService
       if print_job
         system("nohup rm #{file_path}")
         tracking_a4_print_count(order_id)
+      end
       print_job
     end
 
