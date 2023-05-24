@@ -11,7 +11,7 @@ module Tests
           observation_date: culture_ob.observation_datetime
         }
       end
-    
+
       def culture_ob_all(culture_obs)
         c_obj = []
         culture_obs.each do |culture_ob|
@@ -30,7 +30,7 @@ module Tests
           d.update!(zone: drug[:zone], interpretation: drug[:interpretation])
           d
         end
-        response 
+        response
       end
 
       def get_drug_susceptibility_test_results(test_id)
@@ -46,7 +46,7 @@ module Tests
             end
           }
         end
-        data.uniq { |r| r["organism_id"] }
+        data.uniq { |r| r[:organism_id] }
       end
 
       def culture_observation(test_id)
@@ -80,7 +80,7 @@ module Tests
         {
           culture_observations: culture_ob_all(culture_obs),
           drug_suscep_test_results: results_
-        } 
+        }
       end
 
     end
