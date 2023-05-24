@@ -7,7 +7,7 @@ module TestCatalog
           unless reason
             raise ActionController::ParameterMissing, 'retired_reason'
           end
-          ExpectedTat.where(test_type_id: test_type.id).void(reason)
+          ExpectedTat.where(test_type_id: test_type.id).first.void(reason)
           test_type.void(reason)
           SpecimenTestTypeMapping.where(test_type_id: test_type.id).each do |specimen_test_type|
             specimen_test_type.void(reason)
