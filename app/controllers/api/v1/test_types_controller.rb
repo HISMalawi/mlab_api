@@ -49,7 +49,7 @@ module Api
       end
     
       def test_type_params
-        params.require(:test_type).permit(:name, :short_name, :department_id, :expected_turn_around_time)
+        params.require(:test_type).permit(:name, :short_name, :department_id)
       end
 
       def check_specimen_indicator_params

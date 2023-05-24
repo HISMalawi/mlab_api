@@ -5,7 +5,13 @@ module TestCatalog
 
         def create_test_type(test_type_params, params)
           ActiveRecord::Base.transaction do
-            test_type = TestType.create!(**test_type_params)
+            test_type = TestType.create!(test_type_params)
+            expected_tat = params.require(:expected_turn_around_time)
+            ExpectedTat.create!(
+              test_type_id: test_type.id,
+              value: expected_tat[:value],
+              unit: expected_tat[:duration]
+            )
             create_specimen_test_type_mapping(test_type.id, params[:specimens])
             params[:indicators].each do |indicator_param|
               create_test_indicator(test_type.id, indicator_param)

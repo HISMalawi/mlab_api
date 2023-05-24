@@ -31,9 +31,10 @@ ActiveRecord::Base.transaction do
   test_types.each do |test_type|
     department = Department.find_by_name(test_type.dept)
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
-    mlap_test_type = TestType.create(name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, expected_turn_around_time: test_type.targetTAT, creator: 1, created_date: test_type.created_at, updated_date: test_type.updated_at)
-   IblisService::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
-   IblisService::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
+    mlap_test_type = TestType.create(name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, creator: 1, created_date: test_type.created_at, updated_date: test_type.updated_at)
+    expected_tat = ExpectedTat.create!(test_type_id: mlap_test_type.id, value: test_type.targetTAT, creator: 1)
+    IblisService::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
+    IblisService::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
   end
   # Map test types with specimen
   testtypes_specimens = Iblis.find_by_sql("SELECT tt.name AS test_type, spt.name AS specimen FROM test_types tt

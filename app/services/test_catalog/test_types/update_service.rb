@@ -5,6 +5,11 @@ module TestCatalog
         
        def update_test_type(test_type, test_type_params, params)
           ActiveRecord::Base.transaction do
+            expected_tat = params.require(:expected_turn_around_time)
+            ExpectedTat.where(test_type_id: test_type.id).first.update!(
+              value: expected_tat[:value],
+              unit: expected_tat[:duration]
+            )
             test_type.update!(test_type_params)
             update_specimen_test_type_mapping(test_type.id, params[:specimens])
             update_test_type_organism_mapping(test_type.id, params[:organisms])

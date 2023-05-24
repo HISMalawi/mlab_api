@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125974) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125976) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -229,6 +229,21 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125974) do
     t.index ["facility_id"], name: "index_encounters_on_facility_id"
     t.index ["facility_section_id"], name: "index_encounters_on_facility_section_id"
     t.index ["voided_by"], name: "fk_rails_bd2826d55e"
+  end
+
+  create_table "expected_tats", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "test_type_id", null: false
+    t.string "value"
+    t.string "unit"
+    t.integer "voided"
+    t.bigint "voided_by"
+    t.string "voided_reason"
+    t.datetime "voided_date"
+    t.bigint "creator"
+    t.datetime "created_date"
+    t.datetime "updated_date"
+    t.bigint "updated_by"
+    t.index ["test_type_id"], name: "index_expected_tats_on_test_type_id"
   end
 
   create_table "facilities", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -673,7 +688,6 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125974) do
     t.string "name"
     t.string "short_name"
     t.bigint "department_id", null: false
-    t.decimal "expected_turn_around_time", precision: 65, scale: 2
     t.integer "retired"
     t.bigint "retired_by"
     t.string "retired_reason"
@@ -836,6 +850,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125974) do
   add_foreign_key "encounters", "facility_sections"
   add_foreign_key "encounters", "users", column: "creator"
   add_foreign_key "encounters", "users", column: "voided_by"
+  add_foreign_key "expected_tats", "test_types"
   add_foreign_key "facilities", "users", column: "creator"
   add_foreign_key "facilities", "users", column: "retired_by"
   add_foreign_key "facility_sections", "users", column: "creator"
