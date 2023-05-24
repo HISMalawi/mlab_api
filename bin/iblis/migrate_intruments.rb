@@ -49,8 +49,8 @@ def get_instruments
         i.updated_at,
         group_concat(tt.name) tests
     FROM
-        iblis.instruments i
-    LEFT JOIN iblis.instrument_testtypes it 
+        instruments i
+    LEFT JOIN instrument_testtypes it 
     ON
         i.id = it.instrument_id
     LEFT JOIN test_types tt 
