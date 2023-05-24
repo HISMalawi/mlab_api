@@ -51,7 +51,7 @@ module UserManagement
       end
   
       def login(username, password, department)
-        user = User.find_by_username(username)
+        user = User.find_by("BINARY username = ?", username)
         if user && user.active? &&  basic_authentication(user, password)
            unless user_departments?(user, department)
             return false
@@ -63,7 +63,7 @@ module UserManagement
       end
   
       def application_login(username, password)
-        user = User.find_by_username(username)
+        user = User.find_by("BINARY username = ?", username)
         unless user && user.active? &&  basic_authentication(user, password)
           return nil
         end
