@@ -13,6 +13,7 @@ class ApplicationController < ActionController::API
       errors = ['Invalid or expired authentication token']
       raise UnAuthorized, errors
     end
+    raise UnAuthorized unless authorized_user.active?
     User.current = authorized_user
     true
   end
