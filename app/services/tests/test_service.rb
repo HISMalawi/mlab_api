@@ -58,7 +58,7 @@ module Tests
     end
 
     def search_by_test_status(tests, query)
-      tests.where('current_test_status.name = (?)', query.to_s)
+      tests.joins(:current_test_status).where('current_test_status.name = (?)', query.to_s)
     end
 
     def filter_by_date(tests, start_date, end_date)
