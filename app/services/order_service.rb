@@ -13,7 +13,7 @@ module OrderService
       client_id = client.id
       end
       g = Global.find(params[:encounter][:sending_facility])
-      facility = Facility.find_by_name(g.name).id
+      facility = Facility.find_or_create_by!(name: g.name).id
       facility_section = params[:encounter][:facility_section]
       encounterType = EncounterType.find(params[:encounter][:encounter_type])
       destination = facility
