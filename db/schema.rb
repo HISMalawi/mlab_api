@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_08_125976) do
+ActiveRecord::Schema[7.0].define(version: 2024_02_08_125977) do
   create_table "client_identifier_types", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "name"
     t.integer "retired"
@@ -696,6 +696,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_08_125976) do
     t.datetime "updated_date"
     t.datetime "created_date"
     t.bigint "updated_by"
+    t.boolean "print_device"
     t.index ["creator"], name: "fk_rails_fc31efdaf6"
     t.index ["department_id"], name: "index_test_types_on_department_id"
     t.index ["retired_by"], name: "fk_rails_e098721114"

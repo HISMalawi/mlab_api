@@ -10,6 +10,7 @@ module TestCatalog
             name: test_type.name,
             short_name: test_type.short_name,
             expected_turn_around_time: ExpectedTat.where(test_type_id: test_type.id).first,
+            print_device: test_type.print_device,
             created_date: test_type.created_date,
             retired: test_type.retired,
             retired_reason: test_type.retired_reason,

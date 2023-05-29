@@ -11,7 +11,7 @@ class Test < VoidableRecord
 
   def as_json(options = {})
     if options[:client_report]
-      methods = %i[status indicators culture_observation test_type_name expected_turn_around_time suscept_test_result status_trail]
+      methods = %i[status indicators culture_observation test_type_name print_device expected_turn_around_time suscept_test_result status_trail]
     else
       methods = %i[test_panel_name request_origin requesting_ward specimen_type accession_number  completed_by
         tracking_number requested_by test_type_name client status order_status]
@@ -124,6 +124,10 @@ class Test < VoidableRecord
 
   def test_type_name
     test_type.name
+  end
+
+  def print_device
+    test_type.print_device
   end
 
   def test_type_short_name
