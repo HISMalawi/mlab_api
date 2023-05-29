@@ -5,6 +5,7 @@ class Test < VoidableRecord
 
   has_many :test_status
   has_one :current_test_status
+  belongs_to :test_panel, optional: true
 
   after_create :create_default_status
 
@@ -12,7 +13,7 @@ class Test < VoidableRecord
     if options[:client_report]
       methods = %i[status indicators culture_observation test_type_name expected_turn_around_time suscept_test_result status_trail]
     else
-      methods = %i[request_origin requesting_ward specimen_type accession_number  completed_by
+      methods = %i[test_panel_name request_origin requesting_ward specimen_type accession_number  completed_by
         tracking_number requested_by test_type_name client status order_status]
       unless options[:minimal]
         methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail is_machine_oriented order_status_trail]
@@ -60,6 +61,10 @@ class Test < VoidableRecord
 
   def status_trail
     TestStatus.where(test_id: id)
+  end
+
+  def test_panel_name
+    test_panel_id.nil? ? nil : test_panel.name
   end
 
   def order_status_trail
