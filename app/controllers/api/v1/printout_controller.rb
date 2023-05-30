@@ -22,9 +22,9 @@ class Api::V1::PrintoutController < ApplicationController
     end
 
     def print_zebra_report
-      order = Order.find_by_accession_number(params[:accession_number])
+      order = Order.find(params[:order_id])
       person = order.encounter.client.person
-      label  = PrintoutService.print_zebra_report(person, order)
+      label  = PrintoutService.print_zebra_report(person, order, params[:tests])
       send_data label, type: "application/label;charset=utf-8",
                       stream: false,
                       filename: "#{person.id}-#{SecureRandom.hex(12)}.lbl",
