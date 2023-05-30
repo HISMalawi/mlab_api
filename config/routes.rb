@@ -50,7 +50,7 @@ Rails.application.routes.draw do
       end
       get '/printout/accession_number' => 'printout#print_accession_number' 
       get '/printout/tracking_number' => 'printout#print_tracking_number'
-      get '/printout/patient_zebra_report'   => 'printout#print_zebra_report'
+      post '/printout/patient_zebra_report'   => 'printout#print_zebra_report'
       post '/printout/patient_report' => 'printout#print_patient_report'
       resources :test_types do
         collection do
