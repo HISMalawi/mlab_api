@@ -8,7 +8,7 @@ module TestCatalog
             expected_tat = params.require(:expected_turn_around_time)
             ExpectedTat.find_or_create_by!(test_type_id: test_type.id).update!(
               value: expected_tat[:value],
-              unit: expected_tat[:duration]
+              unit: expected_tat[:unit]
             )
             test_type.update!(test_type_params)
             update_specimen_test_type_mapping(test_type.id, params[:specimens])

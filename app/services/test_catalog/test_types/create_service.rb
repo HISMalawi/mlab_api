@@ -10,7 +10,7 @@ module TestCatalog
             ExpectedTat.create!(
               test_type_id: test_type.id,
               value: expected_tat[:value],
-              unit: expected_tat[:duration]
+              unit: expected_tat[:unit]
             )
             create_specimen_test_type_mapping(test_type.id, params[:specimens])
             params[:indicators].each do |indicator_param|
