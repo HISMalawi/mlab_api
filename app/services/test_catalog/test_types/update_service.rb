@@ -6,7 +6,7 @@ module TestCatalog
        def update_test_type(test_type, test_type_params, params)
           ActiveRecord::Base.transaction do
             expected_tat = params.require(:expected_turn_around_time)
-            ExpectedTat.where(test_type_id: test_type.id).first.update!(
+            ExpectedTat.find_or_create_by!(test_type_id: test_type.id).update!(
               value: expected_tat[:value],
               unit: expected_tat[:duration]
             )
