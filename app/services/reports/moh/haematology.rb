@@ -3,7 +3,8 @@ module Reports
     module Haematology
       class  << self
 
-        def generate_report(year, department)
+        def generate_report(year)
+          department = "Haematology"
           counts = MohReport.select(
             "month",
             "COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)') THEN test_id END) AS fbc",
