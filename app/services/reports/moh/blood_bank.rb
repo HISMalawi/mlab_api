@@ -1,0 +1,3 @@
+module ReportsMoh
+  class
+end
