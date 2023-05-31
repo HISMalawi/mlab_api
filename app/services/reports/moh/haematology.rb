@@ -10,7 +10,7 @@ module Reports
             "COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)') THEN test_id END) AS fbc",
             "COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)') AND test_indicator_name = 'HGB' THEN test_id END) AS hgb_o_bd_excluded",
             "COUNT(DISTINCT CASE WHEN test_type IN ('Hemoglobin', 'Heamoglobin','Haemoglobin') 
-              AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') THEN test_id END) AS hgb_only_Hemacue",
+              AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') THEN test_id END) AS hgb_only_hemacue",
             "COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin') 
               AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 THEN test_id END) AS patient_with_hb_less_or_equal_6",
           ).where(
@@ -23,9 +23,11 @@ module Reports
         def serialize_report(counts)
           report = {}
           counts.each do |count|
-          report[count.month] = {
-            full_blood_count: count.fbc,
-              hgb_only_blod_donor_excluded: count.hgb_o_bd_excluded
+            report[Date::MONTHNAMES[count.month.to_i].downcase] = {
+              "Full Blood Count": count.fbc,
+              "Heamoglobin only (blood donors excluded)": count.hgb_o_bd_excluded,
+              "Heamoglobin only (Hemacue)": count.hgb_only_hemacue,
+              "Patients with Hb ≤ 6.0g/dl": count.patient_with_hb_less_or_equal_6
             }
           end
           report 
