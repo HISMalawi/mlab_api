@@ -2,12 +2,14 @@
 
 # create a new view
 class CreateViewMohReport < ActiveRecord::Migration[7.0]
-  def change
+  def up
     execute <<-SQL
       CREATE VIEW moh_report AS
       SELECT
         t.id AS test_id,
-        t.created_date,
+        t.created_date AS created_date,
+        substr(t.created_date,1,4) AS year,
+        substr(t.created_date,6,2) AS month,
         tt.name AS test_type,
         cts.status_id,
         cts.name AS status_name,
@@ -29,6 +31,12 @@ class CreateViewMohReport < ActiveRecord::Migration[7.0]
       INNER JOIN departments dp ON dp.id = tt.department_id
       WHERE
         tr.value IS NOT NULL AND tr.value <> '' AND cts.status_id in (4, 5)
+    SQL
+  end
+
+  def down
+    execute <<-SQL
+      DROP VIEW IF EXISTS moh_report
     SQL
   end
 end
