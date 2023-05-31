@@ -40,10 +40,14 @@ ActiveRecord::Base.transaction do
 
   visittype_wards_mapped.each do |v|
     LOGGER.info("=========Mapping Encounter Type #{v[:encounter_type_id]} to Facility Section #{v[:facility_section_id]}===========")
-    item = EncounterTypeFacilitySectionMapping.find_or_create_by(facility_section_id: v[:facility_section_id], encounter_type_id: v[:encounter_type_id]) rescue nil
-    next if item.blank?
-    item.update!(v)
-    item.save!
+    begin
+      item = EncounterTypeFacilitySectionMapping.find_or_create_by(facility_section_id: v[:facility_section_id], encounter_type_id: v[:encounter_type_id]) rescue nil
+      next if item.blank?
+      item.update!(v)
+      item.save!
+    rescue => exception
+      puts exception
+    end
   end
   LOGGER.info("=========Encounter Types Mapped to Facility Sections===========")
 
