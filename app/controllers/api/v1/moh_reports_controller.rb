@@ -4,9 +4,15 @@ module Api
       skip_before_action :authorize_request
       
       def haematology
-        year = params[:year]
-        report = Reports::Moh::Haematology.generate_report(year)
-        render json: report
+        moh_haematology_report = haema_report
+        moh_haematology_report.generate_report
+        render json: moh_haematology_report.report
+      end
+
+      private
+
+      def haema_report
+        Reports::Moh::Haematology.new(params.require(:year))
       end
       
     end
