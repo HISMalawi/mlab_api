@@ -115,6 +115,7 @@ Rails.application.routes.draw do
       resources :printers
       resources :moh_reports do
         collection do
+          get '/report_indicators' => "moh_reports#report_indicators"
           get '/haematology' => "moh_reports#haematology"
         end
       end

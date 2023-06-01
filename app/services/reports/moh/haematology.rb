@@ -1,13 +1,12 @@
 module Reports
   module Moh
     class Haematology
+      attr_reader :report, :report_indicator
+      attr_accessor :year
 
-      attr_reader :report, :report_indicator, :year
-
-      def initialize(year)
+      def initialize
         @report = {}
         @report_indicator = []
-        @year = year
         initialize_report_counts
         report_indicators
       end
