@@ -7,9 +7,7 @@ class CreateViewMohReport < ActiveRecord::Migration[7.0]
       CREATE VIEW moh_report AS
       SELECT
         t.id AS test_id,
-        t.created_date AS created_date,
-        YEAR(t.created_date) AS year,
-        MONTHNAME(t.created_date) AS month,
+        DATE(t.created_date) AS created_date,
         tt.name AS test_type,
         cts.status_id,
         cts.name AS status_name,

@@ -4,7 +4,7 @@ class CreateMohReportDataMaterialized < ActiveRecord::Migration[7.0]
       t.datetime :created_date
       t.string :indicator
       t.integer :total
-      t.string :deparment
+      t.string :department
     end
   end
 end

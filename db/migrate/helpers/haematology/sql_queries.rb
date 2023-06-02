@@ -11,9 +11,9 @@ module Haematology
       parameterized_name = report_indicator.parameterize.underscore
       <<-SQL
             SELECT created_date AS created_date, '#{parameterized_name}' AS indicator,
-            #{send("calculate_#{parameterized_name}")} AS total, department AS department
+            #{send("calculate_#{parameterized_name}")} AS total, 'Haematology' AS department
             FROM moh_report
-            WHERE department = 'Haematology'
+            WHERE TRIM(department) IN ('Haematology', 'Paediatric Lab')
             GROUP BY created_date
       SQL
     end

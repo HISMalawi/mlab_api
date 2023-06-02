@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Migration for creating table refresher schedule
 class CreateRefreshMaterializedViewMohReportEvent < ActiveRecord::Migration[7.0]
   def up
     execute <<-SQL
@@ -5,9 +8,12 @@ class CreateRefreshMaterializedViewMohReportEvent < ActiveRecord::Migration[7.0]
       ON SCHEDULE EVERY 1 MINUTE
       COMMENT 'Refreshes the materialized moh report data'
       DO
-        REPLACE INTO moh_report_data_materialized
-        SELECT FLOOR(RAND() * 10000000) AS id, created_date, indicator, total, department
-        FROM moh_report_data;
+        BEGIN
+          DELETE FROM moh_report_data_materialized;
+          INSERT INTO moh_report_data_materialized (created_date, indicator, total, department)
+          SELECT created_date, indicator, total, department
+          FROM moh_report_data;
+        END
     SQL
   end
 
