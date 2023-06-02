@@ -16,43 +16,11 @@ module Reports
       end
 
       def generate_report
-        department = 'Haematology'
-        counts = MohReport.select(<<-SQL
-          month,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)') THEN test_id END) AS full_blood_count,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)') AND test_indicator_name = 'HGB' THEN test_id END) AS heamoglobin_only_blood_donors_excluded,
-          COUNT(DISTINCT CASE WHEN test_type IN ('Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') THEN test_id END) AS heamoglobin_only_hemacue,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 THEN test_id END) AS patients_with_hb_6_0g_dl,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 THEN#{' '}
-            (CASE WHEN test_type = 'Cross-match' AND test_indicator_name = 'Pack ABO Group' THEN test_id END)
-            END) AS patients_with_hb_6_0g_dl_who_were_transfused,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result > 6 THEN test_id END) AS patients_with_hb_6_0_g_dl,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result > 6 THEN#{' '}
-            (CASE WHEN test_type = 'Cross-match' AND test_indicator_name = 'Pack ABO Group' THEN test_id END)
-            END) AS patients_with_hb_6_0_g_dl_who_were_transfused,
-          COUNT(DISTINCT CASE WHEN test_type = 'Manual Differential & Cell Morphology' THEN test_id END) AS wbc_manual_count,#{' '}
-          COUNT(DISTINCT CASE WHEN test_type = 'Manual Differential & Cell Morphology' THEN test_id END) AS manual_wbc_differential,
-          COUNT(DISTINCT CASE WHEN test_type IN ('ESR','ESR Peads') THEN test_id END) AS erythrocyte_sedimentation_rate_esr,
-          COUNT(DISTINCT CASE WHEN test_type = 'Sickling Test' THEN test_id END) AS sickling_test,
-          COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC(Paeds)') AND test_indicator_name = 'RET#' THEN test_id END) AS reticulocyte_count,
-          COUNT(DISTINCT CASE WHEN test_type = 'Prothrombin Time' THEN test_id END) AS prothrombin_time_pt,
-          COUNT(DISTINCT CASE WHEN test_type = 'APTT' THEN test_id END) AS activated_partial_thromboplastin_time_aptt,
-          COUNT(DISTINCT CASE WHEN test_type = 'INR' THEN test_id END) AS international_normalized_ratio_inr,
-          COUNT(DISTINCT CASE WHEN test_type = 'Bleeding Time'  THEN test_id END) AS bleeding_cloting_time,
-          COUNT(DISTINCT CASE WHEN test_type = 'CD4' AND test_indicator_name = 'CD4 Count' THEN test_id END) AS cd4_absolute_count,
-          COUNT(DISTINCT CASE WHEN test_type = 'CD4' AND test_indicator_name = 'CD4 %' THEN test_id END) AS cd4_percentage,
-          COUNT(DISTINCT CASE WHEN test_type = 'Manual Differential & Cell Morphology' THEN test_id END) AS blood_film_for_red_cell_morphology
-        SQL
-                                 )
-                          .where(department:, year: @year)
-                          .group(:month)
-
-        update_report_counts(counts)
+        report_data = MohReportDataMaterialized
+                      .select('MONTHNAME(created_date) AS month, SUM(total) AS total, indicator')
+                      .where("YEAR(created_date) = #{year} AND department IN ('Haematology', 'Paediatric Lab')")
+                      .group('MONTHNAME(created_date), indicator')
+        update_report_counts(report_data)
       end
 
       private
@@ -79,11 +47,11 @@ module Reports
       def update_report_counts(counts)
         counts.each do |count|
           month_name = count.month.downcase
-          @report[month_name] = {}
-          REPORT_INDICATORS.each do |indicator|
-            @report[month_name][indicator.to_sym] = count.send(indicator.parameterize.underscore)
+          REPORT_INDICATORS.each do |_indicator|
+            @report[month_name][count.indicator.to_sym] = count.total
           end
         end
+        @report
       end
     end
   end

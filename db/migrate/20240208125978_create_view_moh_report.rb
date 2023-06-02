@@ -15,7 +15,7 @@ class CreateViewMohReport < ActiveRecord::Migration[7.0]
         tr.value AS result,
         p.date_of_birth AS dob,
         fs.name AS ward,
-        dp.name AS department
+        TRIM(dp.name) AS department
       FROM tests t
       INNER JOIN test_types tt ON t.test_type_id = tt.id
       INNER JOIN current_test_status cts ON cts.test_id = t.id AND cts.status_id in (4, 5)

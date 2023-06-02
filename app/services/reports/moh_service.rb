@@ -18,7 +18,6 @@ module Reports
         haema_report = Reports::Moh::Haematology.new
         haema_report.year = year
         haema_report.generate_report
-        haema_report.report
       end
     end
   end
