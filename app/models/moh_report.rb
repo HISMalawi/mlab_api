@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Moh model definition
 class MohReport < ApplicationRecord
   self.table_name  = 'moh_report'
   self.primary_key = 'test_id'
