@@ -13,6 +13,7 @@ class Order < VoidableRecord
   def as_json(options = {})
     specimen_test_type = specimen_test_type()
     super(options).merge({
+      client: encounter.as_json['client'],
       specimen: specimen_test_type[:specimen],
       test_types: specimen_test_type[:test_types],
       order_status: order_status,
