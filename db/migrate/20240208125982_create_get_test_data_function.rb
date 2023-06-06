@@ -6,7 +6,7 @@ class CreateGetTestDataFunction < ActiveRecord::Migration[7.0]
       BEGIN
         DROP TABLE IF EXISTS moh_report_mat_view;
         CREATE TABLE moh_report_mat_view (
-          id INT PRIMARY KEY,
+          id INT,
           test_id INT,
           created_date DATE,
           test_type VARCHAR(255),

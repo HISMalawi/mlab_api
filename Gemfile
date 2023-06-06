@@ -27,6 +27,9 @@ gem 'bcrypt', '~> 3.1.7'
 # JWT
 gem 'jwt'
 
+# Sidekiq
+gem 'sidekiq'
+
 # Pagination
 gem 'kaminari'
 

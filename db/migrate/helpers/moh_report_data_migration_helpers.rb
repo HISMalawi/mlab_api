@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'sql_queries'
-
 # Helper module that create migration helper functions
 module MohReportDataMigrationHelpers
-  include SqlQueries
+  include Reports::Moh::MigrationHelpers::SqlQueries
 
   def create_moh_report_aggregate_data_procedure
     execute <<-SQL
