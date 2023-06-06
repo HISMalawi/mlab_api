@@ -30,6 +30,9 @@ gem 'jwt'
 # Pagination
 gem 'kaminari'
 
+# Threading
+gem 'parallel'
+
 # Rest Client
 gem 'rest-client', '~> 2.1'
 

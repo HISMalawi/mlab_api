@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# Module defines methods for blood bank generating reports
+# Module defines methods for haematology generating reports
 module Reports
-  # Generates blood bank reports
+  # Generates haematology reports
   module Moh
     # Haematology report class
     class Haematology

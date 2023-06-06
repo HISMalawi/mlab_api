@@ -1,19 +1,35 @@
 # frozen_string_literal: true
 
-require_relative 'haematology/sql_queries'
+require_relative 'sql_queries'
 
 # Helper module that create migration helper functions
 module MohReportDataMigrationHelpers
-  include Haematology::SqlQueries
-  def create_moh_report_data_view
+  include SqlQueries
+
+  def create_moh_report_aggregate_data_procedure
     execute <<-SQL
-      CREATE OR REPLACE VIEW moh_report_data AS
-      #{union_query}
+      
+      CREATE PROCEDURE populate_moh_report_aggregate_data()
+      BEGIN
+        DROP TABLE IF EXISTS moh_report_aggregate_data;
+        CREATE TABLE moh_report_aggregate_data (
+          created_date DATE,
+          indicator VARCHAR(255),
+          total INT,
+          department VARCHAR(255)
+        );
+
+        INSERT INTO moh_report_aggregate_data
+        (#{union_query});
+          
+        SELECT * FROM moh_report_aggregate_data;
+      END
     SQL
   end
 
-  def drop_report_data_view
-    execute 'DROP VIEW IF EXISTS moh_report_data'
+  def drop_report_data_procedure
+    execute "DROP PROCEDURE IF EXISTS populate_moh_report_aggregate_data"
+    execute "DROP TABLE IF EXISTS moh_report_aggregate_data"
   end
 
   def union_query

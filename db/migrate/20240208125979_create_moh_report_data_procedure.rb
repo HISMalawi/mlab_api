@@ -3,13 +3,13 @@
 require_relative 'helpers/moh_report_data_migration_helpers'
 
 # Migration that create a view name moh_report_data
-class CreateMohReportDataView < ActiveRecord::Migration[7.0]
+class CreateMohReportDataProcedure < ActiveRecord::Migration[7.0]
   include MohReportDataMigrationHelpers
   def up
-    create_moh_report_data_view
+    create_moh_report_aggregate_data_procedure
   end
 
   def down
-    drop_report_data_view
+    drop_report_data_procedure
   end
 end
