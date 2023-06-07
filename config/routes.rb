@@ -121,6 +121,7 @@ Rails.application.routes.draw do
           get '/biochemistry' => "moh_reports#biochemistry"
           get '/parasitology' => "moh_reports#parasitology"
           get '/microbiology' => "moh_reports#microbiology"
+          get '/serology' => "moh_reports#serology"
         end
       end
     end
