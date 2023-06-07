@@ -88,7 +88,8 @@ module ClientManagement
           sex: person.sex,
           date_of_birth: person.date_of_birth,
           birth_date_estimated: person.birth_date_estimated,
-          uuid: client.uuid
+          uuid: client.uuid,
+          created_at: client.created_date
         }
         client_identifiers.each do | client_identifier|
           client_hash["#{client_identifier.name}"] = client_identifier.value
