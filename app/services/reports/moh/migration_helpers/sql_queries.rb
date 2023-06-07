@@ -11,6 +11,7 @@ module Reports
         include Reports::Moh::MigrationHelpers::HaematologyIndicatorCalculations
         include Reports::Moh::MigrationHelpers::SerologyIndicatorCalculations
         include Reports::Moh::MigrationHelpers::ParasitologyIndicatorCalculations
+        include Reports::Moh::MigrationHelpers::MicrobiologyIndicatorCalculations
         
 
         def generate_query(report_indicator, year, department)
@@ -55,6 +56,18 @@ module Reports
           report_indicators.each do |report_indicator|
             report_years.each do |year|
               queries.push(generate_query(report_indicator, year, 'Parasitology'))
+            end
+          end
+          queries
+        end
+
+        def microbiology_queries
+          queries = []
+          report_indicators = Reports::Moh::Microbiology.new.report_indicator
+          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
+          report_indicators.each do |report_indicator|
+            report_years.each do |year|
+              queries.push(generate_query(report_indicator, year, 'Microbiology'))
             end
           end
           queries

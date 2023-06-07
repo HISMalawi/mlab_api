@@ -12,6 +12,10 @@ class TestResult < VoidableRecord
   end
 
   def insert_record_into_moh_report_mat_view
-    MohReportMatViewJob.perform_async(test.id, id)
+    begin
+      MohReportMatViewJob.perform_async(test.id, id)
+    rescue Errno::ECONNREFUSED
+      puts 'Error: Redis connection failed'
+    end
   end
 end
