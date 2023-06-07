@@ -10,7 +10,9 @@ module Reports
       module SqlQueries
         include Reports::Moh::MigrationHelpers::HaematologyIndicatorCalculations
         include Reports::Moh::MigrationHelpers::SerologyIndicatorCalculations
+        include Reports::Moh::MigrationHelpers::ParasitologyIndicatorCalculations
         
+
         def generate_query(report_indicator, year, department)
           parameterized_name = report_indicator.parameterize.underscore
           <<-SQL
@@ -41,6 +43,18 @@ module Reports
           report_indicators.each do |report_indicator|
             report_years.each do |year|
               queries.push(generate_query(report_indicator, year, 'Serology'))
+            end
+          end
+          queries
+        end
+
+        def parasitology_queries
+          queries = []
+          report_indicators = Reports::Moh::Parasitology.new.report_indicator
+          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
+          report_indicators.each do |report_indicator|
+            report_years.each do |year|
+              queries.push(generate_query(report_indicator, year, 'Parasitology'))
             end
           end
           queries

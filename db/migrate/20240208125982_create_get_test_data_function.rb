@@ -29,7 +29,7 @@ class CreateGetTestDataFunction < ActiveRecord::Migration[7.0]
           cts.status_id,
           cts.name AS status_name,
           ti.name AS test_indicator_name,
-          tr.value AS result,
+          TRIM(tr.value) AS result,
           p.date_of_birth AS dob,
           fs.name AS ward,
           TRIM(dp.name) AS department,
@@ -38,7 +38,8 @@ class CreateGetTestDataFunction < ActiveRecord::Migration[7.0]
         INNER JOIN test_types tt ON t.test_type_id = tt.id
         INNER JOIN current_test_status cts ON cts.test_id = t.id AND cts.status_id IN (4, 5)
         INNER JOIN test_indicators ti ON ti.test_type_id = tt.id
-        INNER JOIN test_results tr ON tr.test_id = t.id AND ti.id = tr.test_indicator_id AND tr.value IS NOT NULL AND tr.value <> '' AND tr.voided = 0
+        INNER JOIN test_results tr ON tr.test_id = t.id AND ti.id = tr.test_indicator_id AND tr.value IS NOT NULL 
+          AND tr.value NOT IN ('', '0') AND tr.voided = 0
         INNER JOIN orders o ON o.id = t.order_id AND o.voided = 0
         INNER JOIN encounters e ON e.id = o.encounter_id AND e.voided = 0
         INNER JOIN encounter_types ets ON e.encounter_type_id = ets.id
