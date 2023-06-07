@@ -119,6 +119,7 @@ Rails.application.routes.draw do
           get '/haematology' => "moh_reports#haematology"
           get '/blood_bank' => "moh_reports#blood_bank"
           get '/biochemistry' => "moh_reports#biochemistry"
+          get '/parasitology' => "moh_reports#parasitology"
         end
       end
     end

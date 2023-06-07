@@ -5,7 +5,7 @@ module Api
   module V1
     # Controller that handles all requests pertaining to MoH Reports
     class MohReportsController < ApplicationController
-      # skip_before_action :authorize_request, only: [:biochemistry]
+      # skip_before_action :authorize_request
       def report_indicators
         department = params.require(:department)
         render json: Reports::MohService.report_indicators(department)
@@ -24,6 +24,11 @@ module Api
       def biochemistry
         year = params.require(:year)
         render json: Reports::MohService.generate_biochemistry_report(year)
+      end
+
+      def parasitology
+        year = params.require(:year)
+        render json: Reports::MohService.generate_parasitology_report(year)
       end
     end
   end

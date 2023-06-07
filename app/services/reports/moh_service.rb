@@ -13,6 +13,8 @@ module Reports
           Reports::Moh::BloodBank.new.report_indicator
         when 'biochemistry'
           Reports::Moh::Biochemistry.new.report_indicator
+        when 'parasitology'
+          Reports::Moh::Parasitology.new.report_indicator
         else
           []
         end
@@ -34,6 +36,12 @@ module Reports
         biochemistry_report = Reports::Moh::Biochemistry.new
         biochemistry_report.year = year
         biochemistry_report.generate_report
+      end
+
+      def generate_parasitology_report(year)
+        parasitology_report = Reports::Moh::Parasitology.new
+        parasitology_report.year = year
+        parasitology_report.generate_report
       end
     end
   end
