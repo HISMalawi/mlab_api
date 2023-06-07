@@ -4,6 +4,7 @@
 module Reports
   # Generates Biochemistry reports
   module Moh
+    # Biochemistry reports
     class Biochemistry
       attr_reader :report, :report_indicator
       attr_accessor :year

@@ -4,6 +4,7 @@
 module Reports
   # Generates Microbiology reports
   module Moh
+    # Microbiology reports
     class Microbiology
       attr_reader :report, :report_indicator
       attr_accessor :year

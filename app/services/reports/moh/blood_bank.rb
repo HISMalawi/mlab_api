@@ -4,6 +4,7 @@
 module Reports
   # Generates blood bank reports
   module Moh
+    # bloodbank reports
     class BloodBank
       attr_reader :report, :report_indicator
       attr_accessor :year
