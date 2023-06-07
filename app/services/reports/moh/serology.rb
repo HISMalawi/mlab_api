@@ -40,8 +40,8 @@ module Reports
         'HIV PEP positives tests',
         'Prostate Specific Antigen (PSA) tests',
         'PSA Positive',
-        'SARs- COVID-19 rapid antigen tests',
-        'SARs-COVID 19 Positive',
+        'SARs-COVID-19 rapid antigen tests',
+        'SARs-COVID-19 Positive',
         'Serum Crag',
         'Serum Crag Positive'
       ].freeze

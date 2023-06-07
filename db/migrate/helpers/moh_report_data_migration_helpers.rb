@@ -31,7 +31,7 @@ module MohReportDataMigrationHelpers
   end
 
   def union_query
-    indicator_queries = haematology_queries
+    indicator_queries = haematology_queries.concat(serology_queries)
 
     indicator_queries.join(' UNION ALL ')
   end

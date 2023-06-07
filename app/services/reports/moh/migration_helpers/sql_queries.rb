@@ -9,6 +9,8 @@ module Reports
       # # SQL queries for creating counts of indicators per created_date
       module SqlQueries
         include Reports::Moh::MigrationHelpers::HaematologyIndicatorCalculations
+        include Reports::Moh::MigrationHelpers::SerologyIndicatorCalculations
+        
         def generate_query(report_indicator, year, department)
           parameterized_name = report_indicator.parameterize.underscore
           <<-SQL
@@ -22,11 +24,23 @@ module Reports
 
         def haematology_queries
           queries = []
-          report_indicators = Reports::Moh::ReportUtils::HEMATOLOGY_REPORT_INDICATORS
+          report_indicators = Reports::Moh::Haematology.new.report_indicator
           report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
           report_indicators.each do |report_indicator|
             report_years.each do |year|
               queries.push(generate_query(report_indicator, year, 'Haematology'))
+            end
+          end
+          queries
+        end
+
+        def serology_queries
+          queries = []
+          report_indicators = Reports::Moh::Serology.new.report_indicator
+          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
+          report_indicators.each do |report_indicator|
+            report_years.each do |year|
+              queries.push(generate_query(report_indicator, year, 'Serology'))
             end
           end
           queries
