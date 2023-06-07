@@ -117,6 +117,7 @@ Rails.application.routes.draw do
         collection do
           get '/report_indicators' => "moh_reports#report_indicators"
           get '/haematology' => "moh_reports#haematology"
+          get '/blood_bank' => "moh_reports#blood_bank"
         end
       end
     end

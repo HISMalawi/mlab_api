@@ -18,7 +18,7 @@ module Reports
       def generate_report
         report_data = MohReportDataMaterialized
                       .select('MONTHNAME(created_date) AS month, SUM(total) AS total, indicator')
-                      .where("YEAR(created_date) = #{year} AND department IN ('Haematology', 'Paediatric Lab')")
+                      .where("YEAR(created_date) = #{year} AND department = 'Haematology'")
                       .group('MONTHNAME(created_date), indicator')
         update_report_counts(report_data)
       end
