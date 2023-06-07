@@ -11,6 +11,8 @@ module Reports
           Reports::Moh::Haematology.new.report_indicator
         when 'blood bank'
           Reports::Moh::BloodBank.new.report_indicator
+        when 'biochemistry'
+          Reports::Moh::Biochemistry.new.report_indicator
         else
           []
         end
@@ -26,6 +28,12 @@ module Reports
         blood_bank_report = Reports::Moh::BloodBank.new
         blood_bank_report.year = year
         blood_bank_report.generate_report
+      end
+
+      def generate_biochemistry_report(year)
+        biochemistry_report = Reports::Moh::Biochemistry.new
+        biochemistry_report.year = year
+        biochemistry_report.generate_report
       end
     end
   end
