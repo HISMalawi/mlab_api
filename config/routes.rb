@@ -120,6 +120,7 @@ Rails.application.routes.draw do
           get '/blood_bank' => "moh_reports#blood_bank"
           get '/biochemistry' => "moh_reports#biochemistry"
           get '/parasitology' => "moh_reports#parasitology"
+          get '/microbiology' => "moh_reports#microbiology"
         end
       end
     end

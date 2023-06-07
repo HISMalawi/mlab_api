@@ -15,6 +15,8 @@ module Reports
           Reports::Moh::Biochemistry.new.report_indicator
         when 'parasitology'
           Reports::Moh::Parasitology.new.report_indicator
+        when 'microbiology'
+          Reports::Moh::Microbiology.new.report_indicator
         else
           []
         end
@@ -42,6 +44,12 @@ module Reports
         parasitology_report = Reports::Moh::Parasitology.new
         parasitology_report.year = year
         parasitology_report.generate_report
+      end
+
+      def generate_microbiology_report(year)
+        microbiology_report = Reports::Moh::Microbiology.new
+        microbiology_report.year = year
+        microbiology_report.generate_report
       end
     end
   end
