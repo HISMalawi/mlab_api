@@ -33,16 +33,16 @@ module Reports
 
         def calculate_patients_with_hb_6_0g_dl
           <<-RUBY
-        COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC (Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-        AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id END)
+            COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC (Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
+            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id END)
           RUBY
         end
 
         def calculate_patients_with_hb_6_0g_dl_who_were_transfused
           <<-RUBY
-        COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC (Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
-        AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 THEN#{' '}
-        (CASE WHEN test_type = 'Cross-match' AND test_indicator_name = 'Pack ABO Group' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id END)
+            COUNT(DISTINCT CASE WHEN test_type IN ('FBC', 'FBC (Paeds)', 'Hemoglobin', 'Heamoglobin','Haemoglobin')#{' '}
+            AND test_indicator_name IN ('Hemoglobin','Haemoglobin','HGB', 'Hb') AND result <= 6 THEN#{' '}
+            (CASE WHEN test_type = 'Cross-match' AND test_indicator_name = 'Pack ABO Group' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id END)
         END)
           RUBY
         end
