@@ -18,8 +18,8 @@ module Reports
           parameterized_name = report_indicator.parameterize.underscore
           <<-SQL
                 SELECT created_date AS created_date, '#{report_indicator}' AS indicator,
-                #{send("calculate_#{parameterized_name}")} AS total, '#{department}' AS department
-                FROM moh_report_mat_view
+                #{send("calculate_#{parameterized_name}")} AS total, '#{department}' AS department, NOW() AS updated_at
+                FROM report_raw_data
                 WHERE YEAR(created_date) = '#{year}'
                 GROUP BY created_date
           SQL
