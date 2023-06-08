@@ -12,7 +12,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') THEN test_id
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -24,7 +24,7 @@ module Reports
               AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') 
               AND result NOT IN ('NMPS', 'Negative', 'no malaria palasite seen', 'No malaria parasites seen', 
                 'No tryps seen', 'No parasite seen', 'NPS') AND result NOT LIKE '%No parasi%'
-              THEN test_id
+              AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -33,7 +33,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) <= 5) THEN test_id
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) <= 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -42,7 +42,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) > 5) THEN test_id
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) > 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -54,7 +54,7 @@ module Reports
               AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) <= 5) 
               AND result NOT IN ('NMPS', 'Negative', 'no malaria palasite seen', 'No malaria parasites seen', 
                 'No tryps seen', 'No parasite seen', 'NPS') AND result NOT LIKE '%No parasi%'
-              THEN test_id
+              AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -66,7 +66,7 @@ module Reports
               AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) > 5) 
               AND result NOT IN ('NMPS', 'Negative', 'no malaria palasite seen', 'No malaria parasites seen', 
                 'No tryps seen', 'No parasite seen', 'NPS') AND result NOT LIKE '%No parasi%'
-              THEN test_id
+              AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -75,7 +75,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND dob IS NULL THEN test_id
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND dob IS NULL AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -87,7 +87,7 @@ module Reports
               AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND dob IS NULL
               AND result NOT IN ('NMPS', 'Negative', 'no malaria palasite seen', 'No malaria parasites seen', 
                 'No tryps seen', 'No parasite seen', 'NPS') AND result NOT LIKE '%No parasi%'
-              THEN test_id
+              AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -96,7 +96,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' THEN test_id
+              AND test_indicator_name = 'MRDT' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -105,7 +105,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND result = 'Positive' THEN test_id
+              AND test_indicator_name = 'MRDT' AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -114,7 +114,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) <= 5) THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((created_date - dob) <= 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -123,7 +123,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) <= 5) AND result = 'Positive' THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((created_date - dob) <= 5) AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -132,7 +132,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) > 5) THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((created_date - dob) > 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -141,7 +141,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) > 5) AND result = 'Positive' THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((created_date - dob) > 5) AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -150,7 +150,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND result = 'Invalid' THEN test_id
+              AND test_indicator_name = 'MRDT' AND result = 'Invalid' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -158,7 +158,7 @@ module Reports
         def calculate_trypanosome_tests
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Trypanosome tests' THEN test_id
+              WHEN test_type = 'Trypanosome tests' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -166,7 +166,7 @@ module Reports
         def calculate_positive_tests
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Trypanosome tests' AND result = 'Positive' THEN test_id
+              WHEN test_type = 'Trypanosome tests' AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -174,7 +174,7 @@ module Reports
         def calculate_urine_microscopy_total
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type IN ('Urine Microscopy', 'Urine Microscopy (Paeds)') THEN test_id
+              WHEN test_type IN ('Urine Microscopy', 'Urine Microscopy (Paeds)') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -182,7 +182,7 @@ module Reports
         def calculate_schistosome_haematobium
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type IN ('Schistosome Haematobiums', 'Schistosome Haematobium') THEN test_id
+              WHEN test_type IN ('Schistosome Haematobiums', 'Schistosome Haematobium') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -190,7 +190,7 @@ module Reports
         def calculate_other_urine_parasites
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Other urine parasites' THEN test_id
+              WHEN test_type = 'Other urine parasites' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -198,7 +198,7 @@ module Reports
         def calculate_urine_chemistry_count
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type IN ('Urine Chemistries', 'Urine chemistry (paeds)') THEN test_id
+              WHEN test_type IN ('Urine Chemistries', 'Urine chemistry (paeds)') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -206,7 +206,7 @@ module Reports
         def calculate_semen_analysis_count
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Semen Analysis' THEN test_id
+              WHEN test_type = 'Semen Analysis' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -214,7 +214,7 @@ module Reports
         def calculate_blood_parasites_count
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Blood Parasites Screen' THEN test_id
+              WHEN test_type = 'Blood Parasites Screen' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -223,7 +223,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type = 'Blood Parasites Screen' AND result NOT LIKE  '%no%'
-              AND result NOT IN ('NMPS', 'NPS') THEN test_id
+              AND result NOT IN ('NMPS', 'NPS') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -232,7 +232,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Stool Analysis', 'Stool Analysis (Paeds)') AND test_indicator_name = 'Microscopy'
-              THEN test_id
+              AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -253,7 +253,7 @@ module Reports
                       SELECT 'No cells' UNION
                       SELECT 'No pala') exclude_results
                 WHERE result LIKE CONCAT('%', exclude_results.results, '%'))
-              THEN test_id
+              AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end

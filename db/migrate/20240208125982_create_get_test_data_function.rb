@@ -6,12 +6,14 @@ class CreateGetTestDataFunction < ActiveRecord::Migration[7.0]
       BEGIN
         DROP TABLE IF EXISTS moh_report_mat_view;
         CREATE TABLE moh_report_mat_view (
-          id INT,
           test_id INT,
           created_date DATE,
           test_type VARCHAR(255),
+          specimen VARCHAR(255),
           status_id INT,
           status_name VARCHAR(255),
+          order_status_id INT,
+          order_status_name VARCHAR(255),
           test_indicator_name VARCHAR(255),
           result VARCHAR(255),
           dob DATE,
@@ -22,12 +24,14 @@ class CreateGetTestDataFunction < ActiveRecord::Migration[7.0]
 
         INSERT INTO moh_report_mat_view
         SELECT
-          tr.id AS id,
           t.id AS test_id,
           DATE(t.created_date) AS created_date,
           tt.name AS test_type,
+          spt.name AS specimen,
           cts.status_id,
           cts.name AS status_name,
+          cos.status_id AS order_status_id,
+          cos.name AS order_status_name,
           ti.name AS test_indicator_name,
           TRIM(tr.value) AS result,
           p.date_of_birth AS dob,
@@ -36,9 +40,11 @@ class CreateGetTestDataFunction < ActiveRecord::Migration[7.0]
           ets.name AS encounter_type
         FROM tests t
         INNER JOIN test_types tt ON t.test_type_id = tt.id
-        INNER JOIN current_test_status cts ON cts.test_id = t.id AND cts.status_id IN (4, 5)
+        INNER JOIN specimen spt ON t.specimen_id = spt.id
+        INNER JOIN current_test_status cts ON cts.test_id = t.id AND cts.status_id
+        INNER JOIN current_order_status cos ON cos.order_id = t.order_id AND cos.status_id IN (10, 11)
         INNER JOIN test_indicators ti ON ti.test_type_id = tt.id
-        INNER JOIN test_results tr ON tr.test_id = t.id AND ti.id = tr.test_indicator_id AND tr.value IS NOT NULL 
+        LEFT JOIN test_results tr ON tr.test_id = t.id AND ti.id = tr.test_indicator_id AND tr.value IS NOT NULL 
           AND tr.value NOT IN ('', '0') AND tr.voided = 0
         INNER JOIN orders o ON o.id = t.order_id AND o.voided = 0
         INNER JOIN encounters e ON e.id = o.encounter_id AND e.voided = 0

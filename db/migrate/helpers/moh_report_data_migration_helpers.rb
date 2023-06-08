@@ -34,7 +34,7 @@ module MohReportDataMigrationHelpers
     indicator_queries = haematology_queries
                         .concat(serology_queries)
                         .concat(parasitology_queries)
-                        # .concat(microbiology_queries)
+                        .concat(microbiology_queries)
 
     indicator_queries.join(' UNION ALL ')
   end
