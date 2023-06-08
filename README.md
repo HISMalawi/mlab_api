@@ -52,3 +52,8 @@ cd config
 # Run this command to migrate data from iblis databae you have created to the database that mlab will be using
 bash load_iblis_data.sh 
 ```
+
+* Initialize the reports
+```
+ rails r bin/moh_report_init.rb
+```
