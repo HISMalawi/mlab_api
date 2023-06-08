@@ -4,7 +4,22 @@ SETUP MLAB API
 ```
 ruby: 3.2.0
 mysql: 8
+redis: > 6
 ```
+
+# Run this command to Install redis
+```
+sudo apt install lsb-release curl gpg  
+curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg  
+echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list  
+sudo apt-get update  
+sudo apt-get install redis
+```
+# Check if redis is running and its version
+``` redis-server -v  
+   sudo systemctl status redis
+```
+
 * System dependencies
 ```
 bundle install
