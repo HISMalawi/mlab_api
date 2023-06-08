@@ -180,7 +180,7 @@ module Nlims
       facility_details = load_facility_details_from_nlims(nlims_order)
       order = Order.where(tracking_number: nlims_order[:tracking_number]).first
       if order.nil?
-        encounter = create_encounter_from_nlims(client_id, facility_details)
+        encounter = create_encounter_from_nlims(client_id, facility_details, nlims_order[:priority])
         order = create_order_from_nlims(encounter.id, nlims_order)
       end
     end
@@ -201,11 +201,13 @@ module Nlims
       Priority.find_or_create_by(name: priority).id
     end
 
-    def create_encounter_from_nlims(client_id, facility_details)
+    def create_encounter_from_nlims(client_id, facility_details, priority)
+      encounter_type_id = EncounterType.find_or_create_by(name: priority)
       Encounter.create!(client_id: , facility_id: facility_details[:sending_facility],
         destination_id: facility_details[:destination_facility],
         facility_section_id: facility_details[:facility_section],
-        start_date: Time.now
+        start_date: Time.now,
+        encounter_type_id:
       )
     end
 
