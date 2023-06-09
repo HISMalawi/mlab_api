@@ -10,8 +10,8 @@ module Reports
       module ExecuteQueries
         include Reports::Moh::MigrationHelpers::SqlQueries
 
-        def insert_into_moh_data_report_table(department)
-          queries = send("#{department}_queries")
+        def insert_into_moh_data_report_table(department:, action: 'init', time_filter: Date.today.to_s)
+          queries = get_queries(department: department, action: action, time_filter: time_filter)
           queries = queries.join(' UNION ALL ')
           ActiveRecord::Base.connection.execute(<<-SQL
             INSERT IGNORE INTO moh_report_data
@@ -24,6 +24,7 @@ module Reports
           ActiveRecord::Base.connection.execute(<<-SQL
             INSERT IGNORE INTO report_raw_data
             SELECT
+              CONCAT(t.id, ti.id, cts.status_id) AS id,
               t.id AS test_id,
               DATE(t.created_date) AS created_date,
               tt.name AS test_type,

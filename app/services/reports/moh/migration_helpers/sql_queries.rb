@@ -15,87 +15,41 @@ module Reports
         include Reports::Moh::MigrationHelpers::BloodBankIndicatorCalculations
         include Reports::Moh::MigrationHelpers::BiochemistryIndicatorCalculations
 
-        def generate_query(report_indicator, year, department)
+        def generate_query(report_indicator, time_filter, department)
           parameterized_name = report_indicator.parameterize.underscore
-          <<-SQL
-                SELECT created_date AS created_date, '#{report_indicator}' AS indicator,
+          query = "SELECT created_date AS created_date, '#{report_indicator}' AS indicator,
                 #{send("calculate_#{parameterized_name}")} AS total, '#{department}' AS department, NOW() AS updated_at
-                FROM report_raw_data
-                WHERE YEAR(created_date) = '#{year}'
-                GROUP BY created_date
-          SQL
+                FROM report_raw_data"
+          query << if valid_date?(time_filter)
+                     " WHERE created_date = '#{time_filter}'
+                GROUP BY created_date "
+                   else
+                     " WHERE YEAR(created_date) = '#{time_filter}'
+            GROUP BY created_date "
+                   end
         end
 
-        def haematology_queries
+        def get_queries(department:, action:, time_filter:)
           queries = []
-          report_indicators = Reports::Moh::Haematology.new.report_indicator
-          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
+          report_indicators = Reports::MohService.report_indicators(department)
+          report_years = action == 'update' ? [] : Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
           report_indicators.each do |report_indicator|
-            report_years.each do |year|
-              queries.push(generate_query(report_indicator, year, 'Haematology'))
+            if !report_years.empty?
+              report_years.each do |year|
+                queries.push(generate_query(report_indicator, year, department))
+              end
+            else
+              queries.push(generate_query(report_indicator, time_filter, department))
             end
           end
           queries
         end
 
-        def serology_queries
-          queries = []
-          report_indicators = Reports::Moh::Serology.new.report_indicator
-          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
-          report_indicators.each do |report_indicator|
-            report_years.each do |year|
-              queries.push(generate_query(report_indicator, year, 'Serology'))
-            end
-          end
-          queries
-        end
-
-        def parasitology_queries
-          queries = []
-          report_indicators = Reports::Moh::Parasitology.new.report_indicator
-          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
-          report_indicators.each do |report_indicator|
-            report_years.each do |year|
-              queries.push(generate_query(report_indicator, year, 'Parasitology'))
-            end
-          end
-          queries
-        end
-
-        def microbiology_queries
-          queries = []
-          report_indicators = Reports::Moh::Microbiology.new.report_indicator
-          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
-          report_indicators.each do |report_indicator|
-            report_years.each do |year|
-              queries.push(generate_query(report_indicator, year, 'Microbiology'))
-            end
-          end
-          queries
-        end
-
-        def bloodbank_queries
-          queries = []
-          report_indicators = Reports::Moh::BloodBank.new.report_indicator
-          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
-          report_indicators.each do |report_indicator|
-            report_years.each do |year|
-              queries.push(generate_query(report_indicator, year, 'Blood Bank'))
-            end
-          end
-          queries
-        end
-
-        def biochemistry_queries
-          queries = []
-          report_indicators = Reports::Moh::Biochemistry.new.report_indicator
-          report_years = Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
-          report_indicators.each do |report_indicator|
-            report_years.each do |year|
-              queries.push(generate_query(report_indicator, year, 'Biochemistry'))
-            end
-          end
-          queries
+        def valid_date?(string)
+          Date.parse(string)
+          true
+        rescue ArgumentError
+          false
         end
       end
     end

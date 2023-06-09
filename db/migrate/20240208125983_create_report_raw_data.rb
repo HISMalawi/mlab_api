@@ -3,7 +3,7 @@
 # Reports flat table
 class CreateReportRawData < ActiveRecord::Migration[7.0]
   def change
-    create_table :report_raw_data, id: false do |t|
+    create_table :report_raw_data do |t|
       t.integer :test_id
       t.date    :created_date
       t.string  :test_type
