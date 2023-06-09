@@ -35,7 +35,11 @@ class OrderStatus < VoidableRecord
   def insert_into_report_data_raw
     test_ids = Test.where(order_id: order.id).pluck(:id)
     test_ids.each do |test_id|
-      InsertIntoReportRawDataJob.perform_at(2.minutes.from_now, test_id)
+      begin
+        InsertIntoReportRawDataJob.perform_at(2.minutes.from_now, test_id)
+      rescue => exception
+        Rails.logger.error "Redis -- #{exception.message} -- Check that redis is installed and running"
+      end
     end
   end
 end

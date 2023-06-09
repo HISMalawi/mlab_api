@@ -50,6 +50,10 @@ class ReportRawData < ApplicationRecord
 
   def update_moh_report_data
     creates_date = self.created_date.nil? ? '' : self.created_date
-    UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date.strftime("%Y-%m-%d").to_s)
+    begin
+      UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date.strftime("%Y-%m-%d").to_s)
+    rescue => exception
+      Rails.logger.error "Redis -- #{exception.message} -- Check that redis is installed and running"
+    end
   end
 end

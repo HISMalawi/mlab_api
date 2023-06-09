@@ -35,6 +35,10 @@ class TestStatus < VoidableRecord
   end
 
   def insert_into_report_data_raw
-    InsertIntoReportRawDataJob.perform_at(2.minutes.from_now, test.id)
+    begin
+      InsertIntoReportRawDataJob.perform_at(2.minutes.from_now, test.id)
+    rescue => exception
+      Rails.logger.error "Redis -- #{exception.message} -- Check that redis is installed and running"
+    end
   end
 end

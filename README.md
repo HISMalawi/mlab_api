@@ -17,7 +17,7 @@ sudo apt-get install redis
 ```
 * Check if redis is running and its version
 ``` redis-server -v  
-   sudo systemctl status redis
+   sudo systemctl status redis-server
 ```
 
 * System dependencies
