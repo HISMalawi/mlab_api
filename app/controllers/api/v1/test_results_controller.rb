@@ -22,7 +22,13 @@ class Api::V1::TestResultsController < ApplicationController
         unless TestIndicator.find_by_id(indicator).present?
           render json: {message: "Indicator with id #{indicator} not does not exists"}, status: :bad_request and return
         end
-        TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value: value, result_date: Time.now, machine_name: machine_name)
+        test_result = TestResult.find_by(test_id: permitted[:test_id], test_indicator_id: indicator)
+        if test_result.nil?
+          TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value: value, result_date: Time.now, machine_name: machine_name)
+        else
+          test_result.void('Edited')
+          TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value: value, result_date: Time.now, machine_name: machine_name)
+        end
       end
     end
     render json: results
