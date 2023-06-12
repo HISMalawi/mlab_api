@@ -44,16 +44,6 @@ class ReportRawData < ApplicationRecord
     WHERE t.voided = 0 AND t.id = #{test_id}
     SQL
     records = find_by_sql(query)
-    ReportRawData.upsert_all(records.map(&:attributes), returning: false)
-    ReportRawData.where(test_id: test_id).each(&:update_moh_report_data)
-  end
-
-  def update_moh_report_data
-    creates_date = self.created_date.nil? ? '' : self.created_date
-    begin
-      UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date.strftime("%Y-%m-%d").to_s)
-    rescue => exception
-      Rails.logger.error "Redis -- #{exception.message} -- Check that redis is installed and running"
-    end
+    ReportRawData.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   end
 end

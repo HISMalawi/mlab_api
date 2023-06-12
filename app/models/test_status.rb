@@ -8,10 +8,11 @@ class TestStatus < VoidableRecord
   belongs_to :status
   belongs_to :status_reason, optional: true
 
-  after_create :insert_into_report_data_raw
+  after_commit :insert_into_report_data_raw, on: :create
 
   def as_json(options = {})
-    super(options.merge(methods: %i[status initiator statuses_reason], only: %i[id test_id status_id creator status_reason_id created_date]))
+    super(options.merge(methods: %i[status initiator statuses_reason],
+                        only: %i[id test_id status_id creator status_reason_id created_date]))
   end
 
   def initiator
@@ -26,7 +27,7 @@ class TestStatus < VoidableRecord
   def statuses_reason
     status_reason_ = {}
     unless status_reason_id.nil?
-      status_reason_= {
+      status_reason_ = {
         id: status_reason_id,
         name: status_reason.description
       }
@@ -36,9 +37,11 @@ class TestStatus < VoidableRecord
 
   def insert_into_report_data_raw
     begin
-      InsertIntoReportRawDataJob.perform_at(2.minutes.from_now, test.id)
-    rescue => exception
-      Rails.logger.error "Redis -- #{exception.message} -- Check that redis is installed and running"
+      created_date = test.created_date.nil? ? '' : test.created_date.strftime('%Y-%m-%d').to_s
+      InsertIntoReportRawDataJob.perform_at(1.minutes.from_now, test.id)
+      UpdateMohReportDataJob.perform_at(3.minutes.from_now, created_date)
+    rescue => e
+      Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
     end
   end
 end

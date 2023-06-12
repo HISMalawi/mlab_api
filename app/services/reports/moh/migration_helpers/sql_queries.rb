@@ -32,7 +32,7 @@ module Reports
         def get_queries(department:, action:, time_filter:)
           queries = []
           report_indicators = Reports::MohService.report_indicators(department)
-          report_years = action == 'update' ? [] : Reports::Moh::ReportUtils::LOAD_PROCEDURE_YEARS_DATA
+          report_years = action == 'update' ? [] : Reports::Moh::ReportUtils.report_years
           report_indicators.each do |report_indicator|
             if !report_years.empty?
               report_years.each do |year|

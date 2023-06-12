@@ -13,16 +13,12 @@ module Reports
         def insert_into_moh_data_report_table(department:, action: 'init', time_filter: Date.today.to_s)
           queries = get_queries(department: department, action: action, time_filter: time_filter)
           queries = queries.join(' UNION ALL ')
-          ActiveRecord::Base.connection.execute(<<-SQL
-            INSERT IGNORE INTO moh_report_data
-            (#{queries})
-            SQL
-          )
+          records = ReportRawData.find_by_sql(queries)
+          MohReportDataMaterialized.upsert_all(records.map{ |record| record.attributes.except("id") }, returning: false) unless records.empty?
         end
 
         def insert_into_report_raw_data_table
-          ActiveRecord::Base.connection.execute(<<-SQL
-            INSERT IGNORE INTO report_raw_data
+          records = ReportRawData.find_by_sql(<<-SQL
             SELECT
               CONCAT(t.id, ti.id, cts.status_id) AS id,
               t.id AS test_id,
@@ -59,6 +55,7 @@ module Reports
             WHERE t.voided = 0
             SQL
           )
+          ReportRawData.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
         end
       end
     end
