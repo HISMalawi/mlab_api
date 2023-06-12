@@ -132,7 +132,7 @@ module Nlims
       facility_details = load_facility_details_from_nlims(nlims_order)
       order = Order.where(tracking_number: nlims_order[:tracking_number]).first
       if order.nil?
-        encounter = create_encounter_from_nlims(client.id, facility_details)
+        encounter = create_encounter_from_nlims(client.id, facility_details, nlims_order[:priority])
         order = create_order_from_nlims(encounter.id, nlims_order)
         # HANDLE SPECIMEN STATUS
         specimen = Specimen.find_by_name(nlims_order[:specimen])
@@ -176,14 +176,14 @@ module Nlims
       end
     end
 
-    def create_order_from_nlims(nlims_order, client_id)
-      facility_details = load_facility_details_from_nlims(nlims_order)
-      order = Order.where(tracking_number: nlims_order[:tracking_number]).first
-      if order.nil?
-        encounter = create_encounter_from_nlims(client_id, facility_details, nlims_order[:priority])
-        order = create_order_from_nlims(encounter.id, nlims_order)
-      end
-    end
+    # def create_order_from_nlims(nlims_order, client_id)
+    #   facility_details = load_facility_details_from_nlims(nlims_order)
+    #   order = Order.where(tracking_number: nlims_order[:tracking_number]).first
+    #   if order.nil?
+    #     encounter = create_encounter_from_nlims(client_id, facility_details, nlims_order[:priority])
+    #     order = create_order_from_nlims(encounter.id, nlims_order)
+    #   end
+    # end
 
     def load_facility_details_from_nlims(nlims_order)
       f_section = nlims_order[:facility_section]
@@ -202,7 +202,7 @@ module Nlims
     end
 
     def create_encounter_from_nlims(client_id, facility_details, priority)
-      encounter_type_id = EncounterType.find_or_create_by(name: priority)
+      encounter_type_id = EncounterType.find_or_create_by(name: 'Referral').id
       Encounter.create!(client_id: , facility_id: facility_details[:sending_facility],
         destination_id: facility_details[:destination_facility],
         facility_section_id: facility_details[:facility_section],
