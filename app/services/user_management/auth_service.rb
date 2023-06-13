@@ -3,11 +3,10 @@
 module UserManagement
   module AuthService
     SECRET_KEY = Rails.application.secrets.secret_key_base
-    TOKEN_VALID_TIME = 6.hours.from_now
+    TOKEN_VALID_TIME = 6.hours
 
     class << self
       def jwt_token_encode(payload)
-        payload[:exp] = TOKEN_VALID_TIME.to_i
         JWT.encode(payload, SECRET_KEY)
       end
   
@@ -56,7 +55,8 @@ module UserManagement
            unless user_departments?(user, department)
             return false
            end
-          return {token: jwt_token_encode(user_id: user.id), expiry_time: TOKEN_VALID_TIME, user: UserManagement::UserService.find_user(user.id)}
+          exp = Time.now + TOKEN_VALID_TIME
+          return {token: jwt_token_encode({user_id: user.id, exp: exp.to_i}), expiry_time: exp, user: UserManagement::UserService.find_user(user.id)}
         else
           return nil
         end
@@ -67,13 +67,15 @@ module UserManagement
         unless user && user.active? &&  basic_authentication(user, password)
           return nil
         end
-        return {token: jwt_token_encode(user_id: user.id), expiry_time: TOKEN_VALID_TIME, user: UserManagement::UserService.find_user(user.id)}
+        exp = Time.now + TOKEN_VALID_TIME
+        return {token: jwt_token_encode({user_id: user.id, exp: exp.to_i}), expiry_time: exp, user: UserManagement::UserService.find_user(user.id)}
       end
 
       def refresh_token
+        exp = Time.now + TOKEN_VALID_TIME
         {
-          token: UserManagement::AuthService.jwt_token_encode(user_id: User.current.id), 
-          expiry_time: UserManagement::AuthService::TOKEN_VALID_TIME,
+          token: UserManagement::AuthService.jwt_token_encode(user_id: User.current.id, exp: exp.to_i), 
+          expiry_time: exp,
           user: UserManagement::UserService.find_user(User.current.id)
         }
       end
