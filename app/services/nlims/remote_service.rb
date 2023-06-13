@@ -134,11 +134,26 @@ module Nlims
       if order.nil?
         encounter = create_encounter_from_nlims(client.id, facility_details, nlims_order[:priority])
         order = create_order_from_nlims(encounter.id, nlims_order)
-        # HANDLE SPECIMEN STATUS
+        set_order_status_to_accepted(order.id)
         specimen = Specimen.find_by_name(nlims_order[:specimen])
-        create_test_from_nlims(order.id, nlims_order[:tests], specimen.id)
+        create_test_from_nlims(order.id, nlims_order[:tests], specimen.id, nlims_order[:results])
+        save_results_from_nlims(order.id, nlims_order[:results]) unless nlims_order[:results].empty?
       end
       order
+    end
+
+    def save_results_from_nlims(order_id, results)
+      tests = Test.where(order_id:)
+      tests.each do |test|
+        result = results["#{test.test_type.name}"]
+        result.each do |key, value|
+          if key != 'result_date'
+            test_indicator = TestIndicator.find_by_name(key)
+            TestResult.create!(test_id: test.id, test_indicator_id: test_indicator.id, value:,
+              result_date: result['result_date'])
+          end
+        end
+      end
     end
 
     def find_or_create_client(nlims_order)
@@ -159,6 +174,15 @@ module Nlims
       end
     end
 
+    def set_order_status_to_accepted(order_id)
+      specimen_accepted = Status.find_by_name('specimen-accepted')
+      OrderStatus.find_or_create_by!(order_id:, status_id: specimen_accepted.id)
+    end
+
+    def set_test_status(test_id, status_id)
+      TestStatus.find_or_create_by!(test_id:, status_id: )
+    end
+
     def check_specimen(specimen)
       sp = Specimen.find_by_name(specimen)
       sp.nil? ? false : true
@@ -175,15 +199,6 @@ module Nlims
         raise NlimsError, "Test type: #{test_[:test_type]} from nlims not available in mlab" unless check_test_type(test_[:test_type])
       end
     end
-
-    # def create_order_from_nlims(nlims_order, client_id)
-    #   facility_details = load_facility_details_from_nlims(nlims_order)
-    #   order = Order.where(tracking_number: nlims_order[:tracking_number]).first
-    #   if order.nil?
-    #     encounter = create_encounter_from_nlims(client_id, facility_details, nlims_order[:priority])
-    #     order = create_order_from_nlims(encounter.id, nlims_order)
-    #   end
-    # end
 
     def load_facility_details_from_nlims(nlims_order)
       f_section = nlims_order[:facility_section]
@@ -222,25 +237,33 @@ module Nlims
       )
     end
 
-    def create_test_from_nlims(order_id, tests, specimen_id)
+    def create_test_from_nlims(order_id, tests, specimen_id, results)
       tests.each do |test_|
         test_type = TestType.find_by_name(test_[:test_type])
         test_panel = TestPanel.find_by_name(test_[:test_type])
         if test_panel.nil?
-          Test.create!(
+          t_ = Test.create!(
             specimen_id: ,
             order_id: order_id,
             test_type_id: test_type.id
           )
+          unless results.empty?
+            status = Status.find_by_name(test_[:test_status])
+            set_test_status(t_.id, status.id) if !status.nil?
+          end
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
           member_test_types.each do |test_type|
-            Test.create!(
+            t_ = Test.create!(
               specimen_id: ,
               order_id: order_id,
               test_type_id: test_type,
               test_panel_id: test_panel.id
             )
+            unless results.empty?
+              status = Status.find_by_name(test_[:test_status])
+              set_test_status(t_.id, status.id) if !status.nil?
+            end
           end
         end
       end
