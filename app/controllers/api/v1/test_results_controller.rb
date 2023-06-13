@@ -16,6 +16,7 @@ module Api
 
       def create
         permitted = test_result_params
+        test_id = permitted[:test_id]
         indicators = permitted[:test_indicators]
         unless permitted.key?(:test_id) && permitted.key?(:test_indicators)
           render json: { message: MessageService::MISSING_REQUIRED_PARAMETERS }, status: :bad_request and return
@@ -24,17 +25,19 @@ module Api
         results = []
         ActiveRecord::Base.transaction do
           results = indicators.collect do |indicator_obj|
-            indicator = indicator_obj[:indicator]
+            test_indicator_id = indicator_obj[:indicator]
             value = indicator_obj[:value]
             machine_name = indicator_obj[:machine_name]
-            unless TestIndicator.find_by_id(indicator).present?
-              render json: { message: "Indicator with id #{indicator} not does not exists" },
+            unless TestIndicator.find_by_id(test_indicator_id).present?
+              render json: { message: "Indicator with id #{test_indicator_id} not does not exists" },
                      status: :bad_request and return
             end
 
-            test_result = TestResult.find_by(test_id: permitted[:test_id], test_indicator_id: indicator)
+            # Handle cross match results with same pack number
+            void_previous_x_matches(test_id, 126, value) if Test.find(test_id).test_type_id == 30
+            test_result = TestResult.find_by(test_id:, test_indicator_id:)
             test_result&.void('Edited')
-            TestResult.create!(test_id: permitted[:test_id], test_indicator_id: indicator, value:,
+            TestResult.create!(test_id:, test_indicator_id:, value:,
                                result_date: Time.now, machine_name:)
           end
         end
@@ -55,6 +58,12 @@ module Api
 
       def test_result_params
         params.permit(:test_id, test_indicators: %i[indicator value machine_name])
+      end
+
+      def void_previous_x_matches(test_id, test_indicator_id, value)
+        TestResult.where(test_indicator_id:, value:).order(created_date: :desc).limit(15000) do |result|
+          result.void("Voided due to having same pack number result as #{test_id}")
+        end
       end
     end
   end
