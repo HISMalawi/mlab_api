@@ -158,7 +158,7 @@ module Reports
         def calculate_trypanosome_tests
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Trypanosome tests' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              WHEN test_type IN ('Trypanosome tests', 'TRYPANOSOMIASIS') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -166,7 +166,7 @@ module Reports
         def calculate_positive_tests
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Trypanosome tests' AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              WHEN test_type IN ('Trypanosome tests', 'TRYPANOSOMIASIS') AND result IN ('Positive', 'Seen') AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
