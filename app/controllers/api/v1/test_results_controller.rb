@@ -61,8 +61,10 @@ module Api
       end
 
       def void_previous_x_matches(test_id, test_indicator_id, value)
-        TestResult.where(test_indicator_id:, value:).order(created_date: :desc).limit(15000) do |result|
-          result.void("Voided due to having same pack number result as #{test_id}")
+        unless value.blank?
+          TestResult.where(test_indicator_id:, value:).order(created_date: :desc).limit(15000) do |result|
+            result.void("Voided due to having same pack number result as #{test_id}")
+          end
         end
       end
     end
