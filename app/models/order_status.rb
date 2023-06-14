@@ -42,7 +42,7 @@ class OrderStatus < VoidableRecord
       test_ids = Test.where(order_id: order.id).pluck(:id)
       test_ids.each do |test_id|
         begin  
-          InsertIntoReportRawDataJob.perform_at(1.minutes.from_now, test_id)
+          InsertIntoReportRawDataJob.perform_async(test_id)
         rescue => e
           Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
         end
@@ -54,7 +54,7 @@ class OrderStatus < VoidableRecord
     if ['specimen-accepted', 'specimen-rejected'].include?(Status.find_by(id: status_id).name)
       begin
         created_date = order.created_date.nil? ? '' : order.created_date.strftime('%Y-%m-%d').to_s
-        UpdateMohReportDataJob.perform_at(3.minutes.from_now, created_date)
+        UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
       rescue => e
         Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
       end
