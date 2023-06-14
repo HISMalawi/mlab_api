@@ -82,7 +82,11 @@ module PrintoutService
     end
 
     def tracking_a4_print_count(order_id)
-      ClientOrderPrintTrail.create!(order_id: order_id)
+      if order_id.is_a?(Array)
+        order_id.each do |id|
+          ClientOrderPrintTrail.create!(order_id: id)
+        end
+      end
     end
   end
 
