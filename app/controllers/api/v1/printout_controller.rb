@@ -33,7 +33,6 @@ class Api::V1::PrintoutController < ApplicationController
     end
 
     def print_patient_report
-      debugger
       uploaded_file = params.require(:pdf)
       printer_name = params.require(:printer_name)
       order_ids = params.require(:order_ids)
