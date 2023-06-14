@@ -33,10 +33,12 @@ class Api::V1::PrintoutController < ApplicationController
     end
 
     def print_patient_report
+      debugger
       uploaded_file = params.require(:pdf)
       printer_name = params.require(:printer_name)
-      order_id = params.require(:order_id) 
-      printed = PrintoutService.print_a4_patient_report(uploaded_file, printer_name, order_id)
+      order_ids = params.require(:order_ids)
+      order_ids = order_ids.is_a?(String) ? JSON.parse(order_ids) : order_ids
+      printed = PrintoutService.print_a4_patient_report(uploaded_file, printer_name, order_ids)
       render json: { printed: printed }
     end
 end
