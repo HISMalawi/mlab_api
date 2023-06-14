@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
   mount Rswag::Ui::Engine => '/'
   mount Rswag::Api::Engine => '/'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-  
+
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       resources :interfacer, only: %i[create] do
@@ -11,7 +13,7 @@ Rails.application.routes.draw do
           get '/result_available/' => 'interfacer#result_available'
         end
       end
-      resources :specimen do 
+      resources :specimen do
         collection do
           get '/test_types/' => 'specimen#specimen_test_type'
         end
@@ -43,14 +45,14 @@ Rails.application.routes.draw do
       resources :facility_sections
       resources :statuses
       resources :status_reasons
-      resources :tests do 
+      resources :tests do
         collection do
           get '/:client_id/report' => 'tests#report'
         end
       end
-      get '/printout/accession_number' => 'printout#print_accession_number' 
+      get '/printout/accession_number' => 'printout#print_accession_number'
       get '/printout/tracking_number' => 'printout#print_tracking_number'
-      post '/printout/patient_zebra_report'   => 'printout#print_zebra_report'
+      post '/printout/patient_zebra_report' => 'printout#print_zebra_report'
       post '/printout/patient_report' => 'printout#print_patient_report'
       post '/printout/general_report' => 'printout#print_general_report'
       resources :test_types do
@@ -74,7 +76,7 @@ Rails.application.routes.draw do
           get '/search_dde' => 'clients#dde_search_client'
         end
       end
-      resources :orders  do 
+      resources :orders do
         collection do
           get '/search_by_accession_or_tracking_number' => 'orders#search_by_accession_or_tracking_number'
           post '/add_test_to_order' => 'orders#add_test_to_order'
@@ -87,42 +89,47 @@ Rails.application.routes.draw do
       resources :test_statuses, only: %i[index] do
         collection do
           get '/all' => 'test_statuses#get_test_statuses'
-          put "/:test_id/not_received" => "test_statuses#not_received"
-          put "/:test_id/started" => "test_statuses#started"
-          put "/:test_id/completed" => "test_statuses#completed"
-          put "/:test_id/verified" => "test_statuses#verified"
-          put "/:test_id/voided" => "test_statuses#voided"
-          put "/:test_id/not_done" => "test_statuses#not_done"
-          put "/:test_id/rejected" => "test_statuses#rejected"
+          put '/:test_id/not_received' => 'test_statuses#not_received'
+          put '/:test_id/started' => 'test_statuses#started'
+          put '/:test_id/completed' => 'test_statuses#completed'
+          put '/:test_id/verified' => 'test_statuses#verified'
+          put '/:test_id/voided' => 'test_statuses#voided'
+          put '/:test_id/not_done' => 'test_statuses#not_done'
+          put '/:test_id/rejected' => 'test_statuses#rejected'
         end
       end
       resources :global
       resources :priorities
       resources :surveillances
-      resources :order_statuses, only: %i[index] do 
-        collection do 
-          put "/rejected" => "order_statuses#specimen_rejected"
-          put "/accepted" => "order_statuses#specimen_accepted"
-          put "/not-collected" => "order_statuses#specimen_not_collected"
+      resources :order_statuses, only: %i[index] do
+        collection do
+          put '/rejected' => 'order_statuses#specimen_rejected'
+          put '/accepted' => 'order_statuses#specimen_accepted'
+          put '/not-collected' => 'order_statuses#specimen_not_collected'
         end
       end
-      resources :culture_observations do 
+      resources :culture_observations do
         collection do
-          post '/drug_susceptibility_test_results' => "culture_observations#drug_susceptibility_test_results"
-          put '/drug_susceptibility_test_results/delete' => "culture_observations#delete_drug_susceptibility_test_results"
-          get '/get_drug_susceptibility_test_results' => "culture_observations#get_drug_susceptibility_test_results"
+          post '/drug_susceptibility_test_results' => 'culture_observations#drug_susceptibility_test_results'
+          put '/drug_susceptibility_test_results/delete' => 'culture_observations#delete_drug_susceptibility_test_results'
+          get '/get_drug_susceptibility_test_results' => 'culture_observations#get_drug_susceptibility_test_results'
         end
       end
       resources :printers
       resources :moh_reports do
         collection do
-          get '/report_indicators' => "moh_reports#report_indicators"
-          get '/haematology' => "moh_reports#haematology"
-          get '/blood_bank' => "moh_reports#blood_bank"
-          get '/biochemistry' => "moh_reports#biochemistry"
-          get '/parasitology' => "moh_reports#parasitology"
-          get '/microbiology' => "moh_reports#microbiology"
-          get '/serology' => "moh_reports#serology"
+          get '/report_indicators' => 'moh_reports#report_indicators'
+          get '/haematology' => 'moh_reports#haematology'
+          get '/blood_bank' => 'moh_reports#blood_bank'
+          get '/biochemistry' => 'moh_reports#biochemistry'
+          get '/parasitology' => 'moh_reports#parasitology'
+          get '/microbiology' => 'moh_reports#microbiology'
+          get '/serology' => 'moh_reports#serology'
+        end
+      end
+      resources :reports do
+        collection do
+          get '/daily_reports/daily_log' => 'daily_reports#daily_log'
         end
       end
       resources :reports do
