@@ -4,28 +4,28 @@ module Api
       before_action :set_user, only: [:show, :update, :destroy, :activate, :change_username, :update_password]
       before_action :run_validations, only: [:create, :update]
       before_action :check_username, only: [:create]
-    
+
       def index
         if params[:search].blank?
           @users = User.all.page(params[:page]).per(params[:per_page])
         else
-          @users = User.search(params[:search]).page(params[:page]).page(params[:per_page])
+          @users = User.search(params[:search]).page(params[:page]).per(params[:per_page])
         end
         render json: {
           data: UserManagement::UserService.serialize_users(@users),
           meta: PaginationService.pagination_metadata(@users)
         }
       end
-      
+
       def show
         render json: UserManagement::UserService.find_user(@user.id)
       end
-    
+
       def create
         @user = UserManagement::UserService.create_user(user_params)
         render json: UserManagement::UserService.find_user(@user.id), status: :created
       end
-    
+
       def update
         UserManagement::UserService.update_user(@user, user_params)
         unless @user.username == user_params[:user][:username]
@@ -55,7 +55,7 @@ module Api
           raise UnAuthorized, 'User not equal to logged in user'
         end
       end
-    
+
       def destroy
         @user.deactivate
         render json: {message: MessageService::RECORD_DELETED}
@@ -65,9 +65,9 @@ module Api
         @user.activate
         render json: {message: MessageService::RECORD_ACTIVATED}
       end
-    
+
       private
-    
+
       def set_user
         @user = User.find(params[:id])
       end
@@ -75,7 +75,7 @@ module Api
       def user_params
         params.permit(user: %i[username password old_password], person: %i[first_name middle_name last_name sex date_of_birth], roles: [], departments: [])
       end
-    
+
       def run_validations
         unless params.has_key?('departments') && params[:departments].is_a?(Array)
           raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for departments"
@@ -84,13 +84,13 @@ module Api
           raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << " for roles"
         end
       end
-      
+
       def check_username
         if UserManagement::UserService.username_exists?(params[:user][:username])
           raise ActiveRecord::RecordNotUnique, "Username already exists"
         end
       end
     end
-    
+
   end
 end
