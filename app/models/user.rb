@@ -23,6 +23,10 @@ class User < VoidableRecord
     self.save!
   end
 
+  def self.search(search_term)
+    joins(:person).where("users.username LIKE '%#{search_term}%' OR CONCAT(people.first_name, ' ', people.last_name) LIKE '%#{search_term}%'")
+  end  
+
   def self.current
     Thread.current['current_user']
   end

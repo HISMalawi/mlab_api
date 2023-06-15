@@ -6,7 +6,11 @@ module Api
       before_action :check_username, only: [:create]
     
       def index
-        @users = User.all.page(params[:page]).per(params[:per_page])
+        if params[:search].blank?
+          @users = User.all.page(params[:page]).per(params[:per_page])
+        else
+          @users = User.search(params[:search]).page(params[:page]).page(params[:per_page])
+        end
         render json: {
           data: UserManagement::UserService.serialize_users(@users),
           meta: PaginationService.pagination_metadata(@users)
