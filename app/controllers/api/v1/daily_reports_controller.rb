@@ -12,8 +12,9 @@ module Api
         department = params[:department]
         test_status = params[:test_status]
         report_type = params[:report_type]
+        test_type = params[:test_type]
         records = Reports::DailyReport::DailyLog
-            .generate_report(report_type,{from:, to:, test_status:, department:})
+            .generate_report(report_type,{from:, to:, test_status:, department:, test_type:})
         render json: records
       end
     end

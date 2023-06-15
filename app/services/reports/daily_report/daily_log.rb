@@ -10,24 +10,25 @@ module Reports
         def generate_report(report_type, options = {})
           case report_type
           when 'test_record'
-            test_record(options[:from], options[:to], options[:test_status], options[:department])
+            test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
           else
             []
           end
           
         end
 
-        def test_record(from, to, test_status, department)
+        def test_record(from, to, test_status, department, test_type)
           from = from.present? ? from : Date.today
           to = to.present? ? to : Date.today
           test_status = test_status.present? ? "'#{test_status}'" : "'completed', 'verified'"
-          depart_condition = department.present? ? " AND rrd.department = '#{department}' " : ' '          
+          depart_condition = department.present? ? " AND rrd.department = '#{department}' " : ' '
+          test_type_condition = test_type.present? ? " AND rrd.test_type = '#{test_type}' " : ' '         
           collection = ReportRawData.find_by_sql("
             SELECT * FROM report_raw_data rrd INNER JOIN (
               SELECT test_id, MAX(status_created_date) status_created_date FROM report_raw_data
                 GROUP BY test_id
             ) mrrd ON mrrd.test_id = rrd.test_id AND rrd.status_created_date=mrrd.status_created_date
-            AND rrd.created_date BETWEEN '#{from}' AND '#{to}' #{depart_condition}
+            AND rrd.created_date BETWEEN '#{from}' AND '#{to}' #{depart_condition} #{test_type_condition}
             AND rrd.status_name IN (#{test_status})
           ")
           { 
