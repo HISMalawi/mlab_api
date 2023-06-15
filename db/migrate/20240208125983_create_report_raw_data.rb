@@ -17,20 +17,20 @@ class CreateReportRawData < ActiveRecord::Migration[7.0]
       t.string  :specimen
       t.integer :status_id
       t.string  :status_name
-      t.date    :status_created_date
+      t.datetime    :status_created_date
       t.string  :status_creator
       t.string  :status_rejection_reason
       t.string  :status_person_talked_to
       t.integer :order_status_id
       t.string  :order_status_name
-      t.date    :order_status_created_date
+      t.datetime    :order_status_created_date
       t.string  :order_status_creator
       t.string  :order_rejection_reason
       t.string  :order_person_talked_to
       t.integer :test_indicator_id
       t.string  :test_indicator_name
       t.string  :result
-      t.date    :result_date
+      t.datetime    :result_date
       t.string  :ward
       t.string  :department
       t.datetime :updated_at
