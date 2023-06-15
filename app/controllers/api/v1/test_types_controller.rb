@@ -22,6 +22,11 @@ module Api
       def test_indicator_types
         render json: TestCatalog::TestTypes::TestIndicatorType.show_test_indicator_types
       end 
+
+      def department_test_types
+        department_id = params.require(:department_id)
+        render json: TestType.where(department_id:)
+      end
     
       def show
         render json: TestCatalog::TestTypes::ShowService.show_test_type(@test_type)

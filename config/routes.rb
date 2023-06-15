@@ -58,6 +58,7 @@ Rails.application.routes.draw do
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'
+          get '/by_department' => 'test_types#department_test_types'
         end
       end
       resources :users do
