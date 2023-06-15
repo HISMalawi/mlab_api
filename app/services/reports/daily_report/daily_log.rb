@@ -58,6 +58,7 @@ module Reports
           {
             from:,
             to:,
+            visits: ReportRawData.where(created_date: from..to.strftime("%Y-%m-%d")).distinct(:encounter_id).count,
             data: serialize_patient_record(collection)
           }
         end
