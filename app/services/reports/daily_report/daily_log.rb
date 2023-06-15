@@ -19,7 +19,7 @@ module Reports
         def test_record(from, to, test_status, department, test_type)
           from = from.present? ? from : Date.today
           to = to.present? ? to : Date.today
-          test_status = test_status.present? ? "'#{test_status}'" : "'completed', 'verified'"
+          test_status = (test_status.present?) ? "'#{test_status}'" : "'completed', 'verified'"
           test_status_condition = test_status.downcase == "'all'" ? ' ' : "AND rrd.status_name IN (#{test_status})"
           depart_condition = department.present? ? " AND rrd.department = '#{department}' " : ' '
           test_type_condition = test_type.present? ? " AND rrd.test_type = '#{test_type}' " : ' '
@@ -36,6 +36,7 @@ module Reports
             to:,
             test_status: test_status.gsub(/'/, '').split(', '),
             department:,
+            test_type: test_type,
             data: serialize_test_record(collection)
           }
         end
@@ -60,7 +61,11 @@ module Reports
                 receipt_date: hash[:order_status_created_date],
                 test: hash[:test_type],
                 test_status: hash[:status_name],
+                test_status_date: hash[:test_status_created_date],
                 order_status: hash[:order_status_name],
+                department: hash[:department],
+                rejection_reason: hash[:status_rejection_reason],
+                person_talked_to: hash[:status_person_talked_to],
                 performed_by: performed_by.nil? ? '' : User.find(performed_by.creator).person.fullname,
                 authorized_by: authorized_by.nil? ? '' : User.find(authorized_by.creator).person.fullname,
                 remarks: '',
