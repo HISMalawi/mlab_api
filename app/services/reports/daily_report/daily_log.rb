@@ -11,6 +11,8 @@ module Reports
           case report_type
           when 'test_record'
             test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
+          when 'patient_record'
+            patient_record(options[:from], options[:to])
           else
             []
           end
@@ -38,6 +40,25 @@ module Reports
             department:,
             test_type: test_type,
             data: serialize_test_record(collection)
+          }
+        end
+
+        def patient_record(from, to)
+          from = from.present? ? from : Date.today
+          to = to.present? ? to : Date.today
+          collection = ReportRawData.find_by_sql("
+            SELECT DISTINCT(rrd.test_id) test_id, rrd.patient_no, rrd.patient_name, rrd.accession_number, rrd.specimen,
+            rrd.test_type, rrd.dob, rrd.gender
+             FROM report_raw_data rrd INNER JOIN (
+              SELECT test_id, MAX(status_created_date) status_created_date FROM report_raw_data
+                GROUP BY test_id, accession_number, test_type, specimen
+            ) mrrd ON mrrd.test_id = rrd.test_id AND rrd.status_created_date=mrrd.status_created_date
+            AND rrd.created_date BETWEEN '#{from}' AND '#{to}'
+          ")
+          {
+            from:,
+            to:,
+            data: serialize_patient_record(collection)
           }
         end
 
@@ -74,6 +95,35 @@ module Reports
               }
             else
               unique_hashes[test_id][:results][test_indicator_name] = result
+            end
+          end
+          unique_hashes.values
+        end
+
+        def serialize_patient_record(collection)
+          unique_hashes = {}
+          accession_numbers = []
+          specimen = []
+          tests = []
+          collection.each do |hash|
+            patient_id = hash[:patient_no]
+            if unique_hashes[patient_id].nil?
+              accession_numbers =  accession_numbers.push(hash[:accession_number])
+              specimen = specimen.push(hash[:specimen])
+              tests = tests.push(hash[:test_type])
+              unique_hashes[patient_id] = {
+                patient_id: ,
+                patient_name: hash[:patient_name],
+                accession_numbers:,
+                specimen: hash[:specimen],
+                tests: ,
+                dob: hash[:dob],
+                gender: hash[:gender]
+              }
+            else
+              unique_hashes[patient_id][:accession_numbers] = accession_numbers.push(hash[:accession_number])
+              unique_hashes[patient_id][:specimen] = specimen.push(hash[:specimen])
+              unique_hashes[patient_id][:tests] = tests.push(hash[:test_type])
             end
           end
           unique_hashes.values
