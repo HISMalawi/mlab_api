@@ -28,11 +28,11 @@ def load_people(offset, limit)
         NULL AS voided_by,
         NULL AS voided_reason,
         NULL AS voided_reason,
-        p.created_by AS creator,
+      IF(p.created_by = 0, 1, p.created_by) AS creator,
         p.created_at AS created_date,
         p.updated_at AS updated_date,
-        p.created_by AS updated_by
-    FROM patients p
+      IF(p.created_by = 0, 1, p.created_by)  AS updated_by
+    FROM patients p LIMIT #{limit} OFFSET #{offset}
   ")
 end
 def load_clients(offset, limit)
@@ -45,11 +45,11 @@ def load_clients(offset, limit)
       NULL AS voided_by,
       NULL AS voided_reason,
       NULL AS voided_reason,
-      p.created_by AS creator,
+      IF(p.created_by = 0, 1, p.created_by) AS creator,
       p.created_at AS created_date,
       p.updated_at AS updated_date,
-      p.created_by AS updated_by
-    FROM patients p
+      IF(p.created_by = 0, 1, p.created_by) AS updated_by
+    FROM patients p LIMIT #{limit} OFFSET #{offset}
   ")
 end
 
@@ -59,6 +59,44 @@ def get_count
      count(*) AS count
     FROM patients p
   ")[0]
+end
+
+def update_user_details
+  ActiveRecord::Base.transaction do
+    # Load Users
+    users = Iblis.find_by_sql("SELECT * FROM users")
+    users.each do |user|
+      sex = user.gender == 0 ? 'M' : 'F'
+      name = user.name.split()
+      middle_name = ''
+      if name.length > 1
+        first_name = name[0]
+        last_name = name.length> 2 ? name[2] : name[1]
+        middle_name = name[1] if name.length > 2
+      else
+        first_name = name[0]
+        last_name = name[0]
+      end
+      person = Person.where(first_name: first_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at).first
+      if person.nil?
+        Rails.logger.info("=========Loading Person: #{user.name}===========")
+        person = Person.create!(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at)
+      end
+      if UserManagement::UserService.username_exists? user.username
+        mlab_user = User.find_by_username(user.username)
+        mlab_user.update(person_id: person.id)
+      else
+        Rails.logger.info("=========Loading User: #{user.username}===========")
+        mlab_user = User.new(id: user.id, person_id: person.id, username: user.username, password: user.password, is_active:0)
+        if mlab_user.save!
+          if !user.deleted_at.nil?
+            Rails.logger.info("=========Voiding  deleted User: #{user.username}===========")
+            mlab_user.update!(is_active: 1)
+          end
+        end 
+      end
+    end
+  end
 end
 
 Rails.logger.info("Starting to process people....")
@@ -76,5 +114,6 @@ loop do
   offset += batch_size
   count -= 1000
 end
+update_user_details
 
 
