@@ -3,6 +3,7 @@
 # create a new view
 class CreateCurrentTestStatusView < ActiveRecord::Migration[7.0]
   def up
+    execute "DROP VIEW IF EXISTS current_test_status"
     execute <<-SQL
     CREATE VIEW current_test_status AS
     SELECT ts.test_id, ts.status_id, s.name, ts.created_date, ts.updated_date, 

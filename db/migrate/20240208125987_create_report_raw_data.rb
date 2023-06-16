@@ -2,7 +2,9 @@
 
 # Reports flat table
 class CreateReportRawData < ActiveRecord::Migration[7.0]
-  def change
+
+  def up
+    drop_table :report_raw_data if table_exists?(:report_raw_data)
     create_table :report_raw_data do |t|
       t.integer :test_id
       t.integer :encounter_id
@@ -36,5 +38,9 @@ class CreateReportRawData < ActiveRecord::Migration[7.0]
       t.datetime :updated_at
     end
     add_index :report_raw_data, [:test_id, :test_indicator_id, :status_id], unique: true, name: 'report_raw_data_index_unique_keys'
+  end
+
+  def down
+    drop_table :report_raw_data
   end
 end

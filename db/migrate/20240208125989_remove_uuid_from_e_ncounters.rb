@@ -1,0 +1,5 @@
+class RemoveUuidFromENcounters < ActiveRecord::Migration[7.0]
+  def change
+    remove_column :encounters, :uuid, :string
+  end
+end
