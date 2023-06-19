@@ -29,7 +29,7 @@ module Reports
               MONTHNAME(created_date) AS month
             FROM
               report_raw_data
-            WHERE created_date BETWEEN '#{from}' AND '#{to}' #{department}
+            WHERE created_date BETWEEN '#{from}' AND '#{to}' #{department} AND status_id IN (4, 5)
             GROUP BY department , test_type , MONTHNAME(created_date)"
           )
         end
