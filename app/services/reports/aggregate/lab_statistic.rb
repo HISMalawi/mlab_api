@@ -7,7 +7,10 @@ module Reports
     # LabStatistic reports module
     module LabStatistic
       class << self
-        def generate_report(from: Date.today.strftime('%Y-%m-%d'), to: Date.today.strftime('%Y-%m-%d'), department: nil)
+        def generate_report(from: nil, to: nil, department: nil)
+          today = Date.today.strftime('%Y-%m-%d')
+          from = from.present? ? from : today
+          to = to.present? ? to : today
           department = department.present? ? " AND department = '#{department}'" : ''
           data = query_data(from, to, department)
           {
@@ -22,7 +25,7 @@ module Reports
             "SELECT
               department,
               test_type,
-              COUNT(*) AS total,
+              COUNT(DISTINCT(test_id)) AS total,
               MONTHNAME(created_date) AS month
             FROM
               report_raw_data
@@ -32,15 +35,16 @@ module Reports
         end
 
         def sanitize_data(data)
-          data.group_by { |item| item[:department] }.map do |department, items|
-            key = items.first[:test_type]
-            value = items.map { |item| [item[:month], item[:total]] }.to_h
-
+          result = data.group_by { |item| item[:department] }.map do |depart, items|
+            tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
+              test_items.map { |item| [item[:month], item[:total]] }.to_h
+            end
+          
             {
-              department:,
-              key.to_sym => value
+              depart => tests
             }
           end
+          result
         end
       end
     end

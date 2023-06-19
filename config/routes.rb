@@ -124,6 +124,11 @@ Rails.application.routes.draw do
           get '/serology' => "moh_reports#serology"
         end
       end
+      resources :reports do
+        collection do
+          get '/aggregate/lab_statistics' => 'aggregate_report#lab_statistics'
+        end
+      end
     end
   end
 end
