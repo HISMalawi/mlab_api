@@ -7,7 +7,7 @@ module IblisService
       def create_drug
         iblis_drugs = Iblis.find_by_sql("SELECT * FROM drugs")
         iblis_drugs.each do |drug|
-          mlab_drug = Drug.new(name: drug.name, retired: 0, creator: 1, created_date: drug.created_at, updated_date: drug.updated_at)
+          mlab_drug = Drug.new(id: drug.id, name: drug.name, retired: 0, creator: 1, created_date: drug.created_at, updated_date: drug.updated_at)
           if mlab_drug.save!
             Rails.logger.info("=========Creating Drug: #{mlab_drug.name}===========")
             if !drug.deleted_at.nil?
@@ -20,7 +20,7 @@ module IblisService
       def create_organism
         iblis_organisms = Iblis.find_by_sql("SELECT * FROM organisms")
         iblis_organisms.each do |organism|
-          mlab_organism = Organism.new(name: organism.name, description: organism.description, retired: 0, creator: 1, created_date: organism.created_at, updated_date: organism.updated_at)
+          mlab_organism = Organism.new(id: organism.id, name: organism.name, description: organism.description, retired: 0, creator: 1, created_date: organism.created_at, updated_date: organism.updated_at)
           if mlab_organism.save!
             Rails.logger.info("=========Creating Organism: #{mlab_organism.name}===========")
             if !organism.deleted_at.nil?
