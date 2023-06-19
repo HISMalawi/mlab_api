@@ -14,6 +14,19 @@ ActiveRecord::Base.transaction do
     end
   end
 
+  priorities  = Iblis.find_by_sql("SELECT DISTINCT priority
+    FROM (
+      SELECT priority
+      FROM specimens
+      ORDER BY id DESC
+      LIMIT 10000
+    ) AS subquery
+    GROUP BY priority;
+    ")
+  priorities.each do |priority|
+    Priority.find_or_create_by!(name: priority)
+  end
+
   # Load specimen
   specimes = Iblis.find_by_sql("SELECT * FROM specimen_types")
   specimes.each do | specimen |
