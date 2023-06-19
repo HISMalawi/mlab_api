@@ -24,7 +24,7 @@ ActiveRecord::Base.transaction do
     GROUP BY priority;
     ")
   priorities.each do |priority|
-    Priority.find_or_create_by!(name: priority)
+    Priority.find_or_create_by!(name: priority.priority)
   end
 
   # Load specimen

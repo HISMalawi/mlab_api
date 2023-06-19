@@ -5,11 +5,12 @@ def get_records(offset, limit)
     "SELECT DISTINCT
     s.id,
     t.visit_id AS encounter_id,
+    1 AS priority_id,
     s.accession_number,
     s.tracking_number,
     t.requested_by,
     s.date_of_collection AS sample_collected_time,
-    s.drawn_by_name AS collectd_by,
+    s.drawn_by_name AS collected_by,
     t.created_by AS creator,
     0 AS voided,
     NULL AS voided_by,
@@ -26,13 +27,21 @@ FROM
   )
 end
 
+def get_priorities(offset, limit)
+  Iblis.find_by_sql("SELECT id, priority from specimens LIMIT #{limit} OFFSET #{offset}")
+end
+
+def get_total
+  Iblis.find_by_sql("SELECT count(*) AS count from specimens")[0]
+end
+
 def get_count
   Iblis.find_by_sql("SELECT count(*) AS count from specimens s inner join tests t on t.specimen_id=s.id")[0]
 end
 
 Rails.logger.info("Starting to process....")
 total_records = get_count.count
-batch_size = 1000
+batch_size = 10000
 offset = 0
 count = total_records
 loop do
@@ -41,7 +50,22 @@ loop do
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  => (step 2 of 7)")
   Order.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
-  count -= 1000
+  count -= 10000
+end
+
+batch_size = 10000
+offset = 0
+total_records = get_total.count
+count = total_records
+loop do
+  records = get_priorities(offset, batch_size)
+  break if records.empty?
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  => (step 3 of 7)")
+  Parallel.map(records, in_threads: 4) do |record|
+    Order.where(id: record.id).first.update(priority_id: Priority.find_or_create_by(name: record.priority).id)
+  end
+  offset += batch_size
+  count -= 10000
 end
 
 
