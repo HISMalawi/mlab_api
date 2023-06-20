@@ -224,8 +224,3 @@ module Reports
     end
   end
 end
-
-
-# today = Date.today.strftime('%Y-%m-%d')
-#           from = from.present? ? from : today
-#           to = to.present? ? to : today

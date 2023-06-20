@@ -136,6 +136,7 @@ Rails.application.routes.draw do
       resources :reports do
         collection do
           get '/aggregate/lab_statistics' => 'aggregate_report#lab_statistics'
+          get '/aggregate/malaria_report' => 'aggregate_report#malaria_report'
         end
       end
     end
