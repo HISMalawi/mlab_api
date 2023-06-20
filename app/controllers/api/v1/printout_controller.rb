@@ -36,8 +36,17 @@ class Api::V1::PrintoutController < ApplicationController
       uploaded_file = params.require(:pdf)
       printer_name = params.require(:printer_name)
       order_ids = params.require(:order_ids)
+      directory_name = 'patient_reports'
       order_ids = order_ids.is_a?(String) ? JSON.parse(order_ids) : order_ids
-      printed = PrintoutService.print_a4_patient_report(uploaded_file, printer_name, order_ids)
+      printed = PrintoutService.print_patient_report(uploaded_file, printer_name, directory_name, order_ids)
+      render json: { printed: printed }
+    end
+
+    def print_general_report
+      uploaded_file = params.require(:pdf)
+      printer_name = params.require(:printer_name)
+      directory_name = 'general_reports'
+      printed = PrintoutService.print_general_report(uploaded_file, printer_name, directory_name)
       render json: { printed: printed }
     end
 end

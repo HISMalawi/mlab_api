@@ -61,12 +61,20 @@ module PrintoutService
       label.print(1)
     end
 
-    def print_a4_patient_report(uploaded_file, printer_name, order_ids)
-      directory_name = 'patient_reports'
+    def print_patient_report(uploaded_file, printer_name, directory_name, order_ids)
+      print_job = a4_printing(uploaded_file, printer_name, directory_name)
+      tracking_a4_print_count(order_ids) if print_job
+      print_job
+    end
+
+    def print_general_report(uploaded_file, printer_name, directory_name)
+      a4_printing(uploaded_file, printer_name, directory_name)
+    end
+
+    def a4_printing(uploaded_file, printer_name, directory_name)
       begin
-        Dir.mkdir("tmp/#{directory_name}") unless File.exist?(directory_name)          
+        Dir.mkdir("tmp/#{directory_name}") unless File.exist?("tmp/#{directory_name}")          
       rescue Errno::EEXIST
-        
       end
       file_path = Rails.root.join('tmp', directory_name, uploaded_file.original_filename)
       File.open(file_path, 'wb') do |file|
@@ -74,10 +82,7 @@ module PrintoutService
       end
       # system("nohup lp -d #{printer_name} #{file_path} > /dev/null 2>&1")
       print_job = system("nohup lp -d '#{printer_name}' '#{file_path}' > log/printing.log 2>&1")
-      if print_job
-        system("nohup rm #{file_path}")
-        tracking_a4_print_count(order_ids)
-      end
+      system("nohup rm #{file_path}") if print_job
       print_job
     end
 
