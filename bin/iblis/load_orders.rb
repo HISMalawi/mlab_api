@@ -1,11 +1,13 @@
-Rails.logger = Logger.new(STDOUT)
+# frozen_string_literal: true
 
-def get_records(offset, limit)
+Rails.logger = Logger.new($stdout)
+
+def iblis_orders(offset, limit)
   Iblis.find_by_sql(
     "SELECT DISTINCT
     s.id,
     t.visit_id AS encounter_id,
-    1 AS priority_id,
+    s.priority,
     s.accession_number,
     s.tracking_number,
     t.requested_by,
@@ -27,48 +29,28 @@ FROM
   )
 end
 
-def get_priorities(offset, limit)
-  Iblis.find_by_sql("SELECT id, priority from specimens LIMIT #{limit} OFFSET #{offset}")
+def orders_count
+  Iblis.find_by_sql('SELECT count(*) AS count from specimens s inner join tests t on t.specimen_id=s.id')[0]
 end
 
-def get_total
-  Iblis.find_by_sql("SELECT count(*) AS count from specimens")[0]
-end
-
-def get_count
-  Iblis.find_by_sql("SELECT count(*) AS count from specimens s inner join tests t on t.specimen_id=s.id")[0]
-end
-
-Rails.logger.info("Starting to process....")
-total_records = get_count.count
-batch_size = 10000
+Rails.logger.info('Starting to process....')
+total_records = orders_count.count
+batch_size = 10_000
 offset = 0
 count = total_records
 loop do
-  records = get_records(offset, batch_size)
+  records = iblis_orders(offset, batch_size)
   break if records.empty?
+
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  => (step 2 of 7)")
-  Order.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
-  offset += batch_size
-  count -= 10000
-end
-
-batch_size = 10000
-offset = 0
-total_records = get_total.count
-count = total_records
-loop do
-  records = get_priorities(offset, batch_size)
-  break if records.empty?
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  => (step 3 of 7)")
-  Parallel.map(records, in_threads: 4) do |record|
-    Order.where(id: record.id).first.update(priority_id: Priority.find_or_create_by(name: record.priority).id)
+  unless records.empty?
+    Order.upsert_all(records.map do |record|
+                       record.attributes.merge('priority_id' => Priority.find_or_create_by(name: record.priority).id)
+                       .except('priority')
+                     end, returning: false)
   end
   offset += batch_size
-  count -= 10000
+  count -= batch_size
 end
 
-
 # Handle the case of test status of the orders
-
-

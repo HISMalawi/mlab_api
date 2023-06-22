@@ -101,7 +101,7 @@ end
 
 Rails.logger.info("Starting to process people....")
 total_records = get_count.count
-batch_size = 1000
+batch_size = 10000
 offset = 0
 count = total_records
 loop do
@@ -112,7 +112,7 @@ loop do
   Person.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   Client.upsert_all(c_records.map(&:attributes), returning: false) unless c_records.empty?
   offset += batch_size
-  count -= 1000
+  count -= batch_size
 end
 update_user_details
 

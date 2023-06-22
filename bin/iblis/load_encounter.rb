@@ -70,7 +70,7 @@ def get_count
 end
 Rails.logger.info("Starting to process....")
 total_records = get_count.count
-batch_size = 1000
+batch_size = 10000
 offset = 0
 count = total_records
 loop do
@@ -79,7 +79,7 @@ loop do
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}")
   Encounter.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
-  count -= 1000
+  count -= batch_size
 end
 
 
