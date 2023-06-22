@@ -6,7 +6,7 @@ def iblis_test(offset, limit)
   Iblis.find_by_sql("
     SELECT
       t.id,
-      t.specimen_id AS order_id,
+      s.id AS order_id,
       s.specimen_type_id AS specimen_id,
       t.test_type_id,
       tp.panel_type_id AS test_panel_id,
