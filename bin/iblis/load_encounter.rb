@@ -14,7 +14,7 @@ def get_records(offset, limit)
       NULL AS voided_by,
       NULL AS voided_reason,
       NULL AS voided_date,
-      1 AS creator,
+      t.created_by AS creator,
       v.created_at AS created_date,
       v.updated_at AS updated_date,
       ovw.visit_type_id AS encounter_type_id,

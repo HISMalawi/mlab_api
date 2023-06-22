@@ -6,11 +6,11 @@ def insert_to_db(values)
     encounter_type = EncounterType.new(values)
     encounter_type.save!
   rescue ActiveRecord::RecordInvalid => e
-    LOGGER.error("=========Error: Failed to create #{model} with values #{values}===========")
-    LOGGER.error("=========Error: #{e.message}===========")
+    Rails.logger.info("=========Error: Failed to create with values #{values}===========")
+    Rails.logger.info("=========Error: #{e.message}===========")
   rescue ActiveRecord::RecordNotUnique => e
-    LOGGER.error("=========Error: Failed to create #{model} with values #{values}===========")
-    LOGGER.error("=========Error: #{e.message}===========")
+    Rails.logger.info("=========Error: Failed to createwith values #{values}===========")
+    Rails.logger.info("=========Error: #{e.message}===========")
   end
 end
 

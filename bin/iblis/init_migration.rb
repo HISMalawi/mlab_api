@@ -1,3 +1,5 @@
+Rails.logger = Logger.new(STDOUT)
+
 users = Iblis.find_by_sql("SELECT * FROM users LIMIT 1")
 users.each do |user|
   sex = user.gender == 0 ? 'M' : 'F'

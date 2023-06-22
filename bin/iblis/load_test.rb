@@ -1,58 +1,53 @@
-Rails.logger = Logger.new(STDOUT)
+# frozen_string_literal: true
 
-User.current = User.first
-creator = User.current.id
+Rails.logger = Logger.new($stdout)
 
-facility = Facility.first
-facility_section = FacilitySection.first
-priority = Priority.create(name: 'test_priority', creator: creator)
-
-# clients
-orders = Iblis.find_by_sql("SELECT 
-
-  sp.accession_number, sp.tracking_number, tt.name as t_name, p.name, p.dob, st.name as sp_name, v.visit_type
+def iblis_test(offset, limit)
+  Iblis.find_by_sql("
+    SELECT
+      t.id,
+      t.specimen_id AS order_id,
+      s.specimen_type_id AS specimen_id,
+      t.test_type_id,
+      tp.panel_type_id AS test_panel_id,
+      0 AS voided,
+      NULL AS voided_by,
+      NULL AS voided_reason,
+      NULL AS voided_date,
+      t.created_by AS creator,
+      t.created_by AS updated_by,
+      t.time_created AS created_date,
+    t.time_created AS updated_date
     FROM
-      specimens sp
+      tests t
           INNER JOIN
-      tests t ON sp.id = t.specimen_id
-          INNER JOIN
-      visits v on v.id=t.visit_id
-          INNER JOIN
-      patients p on v.patient_id = p.id
-          INNER JOIN
-      test_types tt ON tt.id = t.test_type_id
-      inner join specimen_types st on st.id=sp.specimen_type_id order by sp.id limit 10000
-    ")
+      specimens s ON s.id = t.specimen_id
+          LEFT JOIN
+      test_panels tp ON tp.id = t.panel_id
+    LIMIT #{limit} OFFSET #{offset}
+  ")
+end
 
-orders.each do |order_|
-  name = order_.name.split(' ')
-  if name.length > 2
-    first_name = name[0]
-    middle_name = name[1]
-    last_name = name[2]
-  else
-    first_name = name[0]
-    middle_name = ''
-    last_name = name[1]
-  end
-  p = Person.where(first_name: , middle_name: , last_name: , date_of_birth: order_.dob).pluck('id').first
-  client = Client.where(person_id: p).first
+def iblis_test_count
+  Iblis.find_by_sql("
+    SELECT
+      count(*) AS count
+    FROM
+      tests t
+  ")[0]
+end
 
-  # skip iteration if client is nil
-  next if client.nil?
-  
-  encounter = Encounter.create(client_id: client.id, facility_id: facility.id, facility_section_id: facility_section.id, creator: creator,
-    destination_id: facility.id, start_date: Time.now, encounter_type_id: EncounterType.find_by_name(order_.visit_type&.strip).id
-  )
-  
-  order = Order.find_or_create_by(encounter_id: encounter.id, priority_id: priority.id, accession_number: order_.accession_number, 
-    tracking_number: order_.tracking_number, creator: creator)
-  
-  specimen = Specimen.find_by_name(order_.sp_name)
-  
-  test_type = TestType.find_by_name(order_.t_name)
+Rails.logger.info('Starting to process....')
+total_records = iblis_test_count.count
+batch_size = 1_000
+offset = 0
+count = total_records
+loop do
+  records = iblis_test(offset, batch_size)
+  break if records.empty?
 
-  Rails.logger.info("Loading Test")
-  
-  Test.create(specimen_id: specimen.id, test_type_id: test_type.id, order_id: order.id, creator: creator)
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}")
+  Test.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
+  offset += batch_size
+  count -= batch_size
 end
