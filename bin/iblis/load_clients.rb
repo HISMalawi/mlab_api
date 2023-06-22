@@ -16,7 +16,7 @@ def load_people(offset, limit)
     SELECT
       p.id AS id,
         SUBSTRING_INDEX(SUBSTRING_INDEX(p.name, ' ', 1), ' ', -1) AS first_name,
-        null AS middle_name,
+        '' AS middle_name,
         SUBSTRING_INDEX(p.name, ' ', -1) AS last_name,
         CASE 
             WHEN p.gender = 0 THEN 'M'
