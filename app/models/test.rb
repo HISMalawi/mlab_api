@@ -51,7 +51,8 @@ class Test < VoidableRecord
   end
 
   def request_origin
-    EncounterType.find(order.encounter.encounter_type_id).name
+    encounter_type = EncounterType.find_by(id: order.encounter.encounter_type_id)
+    encounter_type.nil? ? '' : encounter_type.name
   end
 
   def requesting_ward

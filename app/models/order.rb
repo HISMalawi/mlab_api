@@ -55,7 +55,8 @@ class Order < VoidableRecord
   end
 
   def request_origin
-    EncounterType.find(encounter.encounter_type_id).name
+    encounter_type = EncounterType.find_by(id: encounter.encounter_type_id)
+    encounter_type.nil? ? '' : encounter_type.name
   end
 
   def print_count
