@@ -19,9 +19,9 @@ def iblis_test(offset, limit)
       t.time_created AS created_date,
     t.time_created AS updated_date
     FROM
-      tests t
-          INNER JOIN
-      specimens s ON s.id = t.specimen_id
+      specimens s
+    INNER JOIN
+      tests t ON s.id = t.specimen_id
           LEFT JOIN
       test_panels tp ON tp.id = t.panel_id
     LIMIT #{limit} OFFSET #{offset}
