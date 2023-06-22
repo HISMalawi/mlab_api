@@ -46,7 +46,7 @@ loop do
   records = iblis_test(offset, batch_size)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --TESTS-- step(4 of 9)")
   Test.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size

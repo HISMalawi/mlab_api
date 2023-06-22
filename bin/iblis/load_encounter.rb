@@ -76,7 +76,7 @@ count = total_records
 loop do
   records = get_records(offset, batch_size)
   break if records.empty?
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  --Encounters-- (step 1 of 9)")
   Encounter.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size

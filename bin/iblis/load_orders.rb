@@ -83,7 +83,7 @@ loop do
   records = iblis_orders(offset, batch_size, priority_id)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  => (step 2 of 7)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --ORDERS--  => (step 2 of 9)")
   unless records.empty?
     Order.upsert_all(records.map(&:attributes), returning: false)
   end
@@ -100,7 +100,7 @@ loop do
   records = iblis_orders_with_stat(offset, batch_size, priority_id)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count}  => (step 2 of 7)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Update Orders--  => (step 3 of 9)")
   unless records.empty?
     Order.upsert_all(records.map(&:attributes), returning: false)
   end
