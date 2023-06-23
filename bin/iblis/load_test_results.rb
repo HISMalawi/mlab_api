@@ -51,10 +51,11 @@ end
 creator = User.first.id
 Rails.logger.info('Starting to process....')
 total_records = iblis_test_result_count.count
-batch_size = 10_000
+batch_size = 50_000
 offset = 0
 count = total_records
 loop do
+  ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0")
   records = iblis_test_result(offset, batch_size, creator)
   break if records.empty?
 
@@ -62,4 +63,6 @@ loop do
   TestResult.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size
+  ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1")
 end
+ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1")
