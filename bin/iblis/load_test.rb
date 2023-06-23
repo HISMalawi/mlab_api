@@ -223,3 +223,6 @@ loop do
   offset += batch_size
   count -= batch_size
 end
+
+
+# Handle not done status

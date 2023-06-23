@@ -31,7 +31,7 @@ ActiveRecord::Base.transaction do
   specimes = Iblis.find_by_sql("SELECT * FROM specimen_types")
   specimes.each do | specimen |
     Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
-    Specimen.create(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
+    Specimen.find_or_create_by!(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
   end
 
    # Create Drugs and Organisms and map them
@@ -44,8 +44,8 @@ ActiveRecord::Base.transaction do
   test_types.each do |test_type|
     department = Department.find_by_name(test_type.dept)
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
-    mlap_test_type = TestType.create(id: test_type.id, name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, creator: user_id, created_date: test_type.created_at, updated_date: test_type.updated_at)
-    expected_tat = ExpectedTat.create!(test_type_id: mlap_test_type.id, value: test_type.targetTAT, creator: user_id)
+    mlap_test_type = TestType.find_or_create_by(id: test_type.id, name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, creator: user_id, created_date: test_type.created_at, updated_date: test_type.updated_at)
+    expected_tat = ExpectedTat.find_or_create_by!(test_type_id: mlap_test_type.id, value: test_type.targetTAT, creator: user_id)
     IblisService::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
     IblisService::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
   end
