@@ -172,7 +172,7 @@ loop do
   records = iblis_orders(offset, batch_size, priority_id)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --ORDERS--  => (step 2 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --ORDERS--  => (step 3 of 10)")
   unless records.empty?
     Order.upsert_all(records.map(&:attributes), returning: false)
   end
@@ -189,7 +189,7 @@ loop do
   records = iblis_orders_with_stat(offset, batch_size, priority_id)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Update Orders--  => (step 3 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Update Orders--  => (step 4 of 10)")
   unless records.empty?
     Order.upsert_all(records.map(&:attributes), returning: false)
   end
@@ -208,7 +208,7 @@ loop do
   records = iblis_orders_statuses(offset, batch_size, specimen_not_collected, specimen_accepted)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Orders Statuses--  => (step 4 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Orders Statuses--  => (step 5 of 10)")
   unless records.empty?
     OrderStatus.insert_all(records.map(&:attributes), returning: false)
   end
@@ -225,7 +225,7 @@ loop do
   records = iblis_orders_status_rejected(offset, batch_size, specimen_rejected)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Rejected Orders Statuses--  => (step 5 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Rejected Orders Statuses--  => (step 6 of 10)")
   unless records.empty?
     OrderStatus.upsert_all(records.map { |record| record.attributes.merge('status_reason_id' => StatusReason.find_or_create_by(description: record.reason).id).except('reason') }, returning: false)
   end

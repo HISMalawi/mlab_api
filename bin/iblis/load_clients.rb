@@ -108,7 +108,7 @@ loop do
   records = load_people(offset, batch_size)
   c_records = load_clients(offset, batch_size)
   break if records.empty?
-  Rails.logger.info("Processing batch  #{offset} of #{total_records} clients: Remaining - #{count}")
+  Rails.logger.info("Processing batch  #{offset} of #{total_records}: Remaining - #{count} --CLIENTS-- step(1 of 10)")
   Person.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   Client.upsert_all(c_records.map(&:attributes), returning: false) unless c_records.empty?
   offset += batch_size

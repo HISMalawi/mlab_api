@@ -52,7 +52,7 @@ loop do
   records = iblis_print_trail(offset, batch_size, creator)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Print Trail-- step(9 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Print Trail-- step(10 of 10)")
   ClientOrderPrintTrail.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size

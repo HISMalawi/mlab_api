@@ -190,7 +190,7 @@ loop do
   records = iblis_test(offset, batch_size)
   break if records.empty?
 
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --TESTS-- step(6 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --TESTS-- step(7 of 10)")
   Test.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size
@@ -216,7 +216,7 @@ loop do
   records << completed_records unless completed_records.empty?
   records << verified_records unless verified_records.empty?
   break if records.empty?
-  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --TESTS STATUSES-- step(7 of 9)")
+  Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --TESTS STATUSES-- step(8 of 10)")
   Parallel.map(records, in_processes: 4) do |record|
     TestStatus.upsert_all(record.map(&:attributes), returning: false) unless record.empty?
   end
