@@ -108,7 +108,7 @@ class Test < VoidableRecord
   end
 
   def order_status
-    OrderStatus.where(order_id: order.id).order(created_date: :desc)&.last&.status&.name
+    OrderStatus.where(order_id: order.id).order(created_date: :desc)&.first&.status&.name
   end
 
   def accession_number
