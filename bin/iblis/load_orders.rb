@@ -11,7 +11,10 @@ def iblis_orders(offset, limit, priority_id)
     s.accession_number,
     s.tracking_number,
     t.requested_by,
-    s.date_of_collection AS sample_collected_time,
+    CASE
+      WHEN s.date_of_collection = '0000-00-00 00:00:00' THEN t.time_created
+      ELSE s.date_of_collection
+    END AS sample_collected_time,
     s.drawn_by_name AS collected_by,
     t.created_by AS creator,
     0 AS voided,
@@ -39,7 +42,7 @@ def iblis_orders_with_stat(offset, limit, priority_id)
       s.tracking_number,
       t.requested_by,
       CASE
-        WHEN s.date_of_collection = '0000-00-00 00:00:00' THEN '1971-01-01 00:00:00'
+        WHEN s.date_of_collection = '0000-00-00 00:00:00' THEN t.time_created
         ELSE s.date_of_collection
       END AS sample_collected_time,
       s.drawn_by_name AS collected_by,
