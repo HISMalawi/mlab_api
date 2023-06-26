@@ -42,6 +42,7 @@ def iblis_print_trail_count
   ")[0]
 end
 
+ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0")
 creator = User.first.id
 Rails.logger.info('Starting to process....')
 total_records = iblis_print_trail_count.count
@@ -57,3 +58,4 @@ loop do
   offset += batch_size
   count -= batch_size
 end
+ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1")
