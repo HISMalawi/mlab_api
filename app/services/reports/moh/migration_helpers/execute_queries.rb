@@ -21,8 +21,8 @@ module Reports
                                                end, returning: false)
         end
 
-        def insert_into_report_raw_data_table
-          ReportRawData.insert_data
+        def insert_into_report_raw_data_table(test_id)
+          ReportRawData.insert_data(test_id:)
         end
       end
     end

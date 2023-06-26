@@ -3,20 +3,20 @@
 module Tests
   class TestService
     def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil)
-      tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
+      tests = Test.joins(:test_type)
       if query.present?
         tests = tests.where('test_types.name LIKE ? or test_types.short_name LIKE ?', "%#{query}%",
                             "%#{query}%")
       end
-      tests = search_by_accession_number(tests, query) if query.present?
-      tests = search_by_tracking_number(tests, query) if query.present?
-      tests = search_by_client(tests, query) if query.present?
-      tests = search_by_test_status(tests, test_status) if test_status.present?
+      # tests = search_by_accession_number(tests, query) if query.present?
+      # tests = search_by_tracking_number(tests, query) if query.present?
+      # tests = search_by_client(tests, query) if query.present?
+      # tests = search_by_test_status(tests, test_status) if test_status.present?
       if department_id.present? && is_not_reception?(department_id)
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
       tests = filter_by_date(tests, start_date, end_date) if start_date.present?
-      tests.order('orders.id DESC')
+      tests.order('tests.created_date DESC')
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
