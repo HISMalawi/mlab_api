@@ -23,14 +23,8 @@ def iblis_test_result(offset, limit, creator)
         WHEN t.tested_by = 0 THEN #{creator}
         ELSE t.tested_by
       END AS  updated_by,
-      CASE
-        WHEN tr.time_entered = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-        ELSE tr.time_entered
-      END AS created_date,
-      CASE
-        WHEN tr.time_entered = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-        ELSE tr.time_entered
-      END AS updated_date
+      tr.time_entered AS created_date,
+      tr.time_entered AS updated_date
     FROM
       test_results tr
           INNER JOIN

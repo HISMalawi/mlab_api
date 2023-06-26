@@ -16,14 +16,8 @@ def iblis_test(offset, limit)
       NULL AS voided_date,
       t.created_by AS creator,
       t.created_by AS updated_by,
-      CASE
-          WHEN t.time_created = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_created
-      END AS created_date,
-      CASE
-        WHEN t.time_created = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-        ELSE t.time_created
-      END AS updated_date
+      t.time_created AS created_date,
+      t.time_created AS updated_date
     FROM
       specimens s
     INNER JOIN
@@ -53,14 +47,8 @@ def iblis_created_test_status(offset, limit, created_status, creator)
       NULL AS voided_date,
       NULL AS status_reason_id,
       NULL AS person_talked_to,
-      CASE
-          WHEN t.time_created = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_created
-      END AS created_date,
-      CASE
-          WHEN t.time_created = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_created
-      END AS updated_date
+      t.time_created AS created_date,
+      t.time_created AS updated_date
     FROM
       tests t
     WHERE t.time_created IS NOT NULL
@@ -87,14 +75,8 @@ def iblis_started_test_status(offset, limit, started_status, creator)
       NULL AS voided_date,
       NULL AS status_reason_id,
       NULL AS person_talked_to,
-      CASE
-          WHEN t.time_started = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_started
-      END AS created_date,
-      CASE
-          WHEN t.time_started = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_started
-      END AS updated_date
+      t.time_started AS created_date,
+      t.time_started AS updated_date
     FROM
       tests t
     WHERE t.time_started IS NOT NULL
@@ -121,14 +103,8 @@ def iblis_completed_test_status(offset, limit, completed_status, creator)
       NULL AS voided_date,
       NULL AS status_reason_id,
       NULL AS person_talked_to,
-      CASE
-          WHEN t.time_completed = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_completed
-      END AS created_date,
-      CASE
-          WHEN t.time_completed = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_completed
-      END AS updated_date
+      t.time_completed AS created_date,
+      t.time_completed AS updated_date
     FROM
       tests t
     WHERE t.time_completed IS NOT NULL
@@ -155,14 +131,8 @@ def iblis_verified_test_status(offset, limit, verified_status, creator)
       NULL AS voided_date,
       NULL AS status_reason_id,
       NULL AS person_talked_to,
-      CASE
-          WHEN t.time_verified = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_verified
-      END AS created_date,
-      CASE
-          WHEN t.time_verified = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE t.time_verified
-      END AS updated_date
+      t.time_verified AS created_date,
+      t.time_verified AS updated_date
     FROM
       tests t
     WHERE t.time_verified IS NOT NULL

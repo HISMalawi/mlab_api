@@ -11,10 +11,7 @@ def iblis_orders(offset, limit, priority_id)
     s.accession_number,
     s.tracking_number,
     t.requested_by,
-    CASE
-      WHEN s.date_of_collection = '0000-00-00 00:00:00' THEN t.time_created
-      ELSE s.date_of_collection
-    END AS sample_collected_time,
+    COALESCE(DATE(s.date_of_collection), t.time_created) AS sample_collected_time,
     s.drawn_by_name AS collected_by,
     t.created_by AS creator,
     0 AS voided,
@@ -41,10 +38,7 @@ def iblis_orders_with_stat(offset, limit, priority_id)
       s.accession_number,
       s.tracking_number,
       t.requested_by,
-      CASE
-        WHEN s.date_of_collection = '0000-00-00 00:00:00' THEN t.time_created
-        ELSE s.date_of_collection
-      END AS sample_collected_time,
+      COALESCE(DATE(s.date_of_collection), t.time_created) AS sample_collected_time,
       s.drawn_by_name AS collected_by,
       t.created_by AS creator,
       0 AS voided,
@@ -90,18 +84,8 @@ def iblis_orders_statuses(offset, limit, specimen_not_collected, specimen_accept
       NULL AS voided_by,
       NULL AS voided_reason,
       NULL AS voided_date,
-      CASE
-          WHEN s.time_accepted IS NULL THEN t.time_created
-          WHEN s.time_accepted IS NULL AND t.time_created IS NULL THEN '2016-01-01 06:06:06'
-          WHEN s.time_accepted = '0000-00-00 00:00:00' OR t.time_created = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE s.time_accepted
-      END AS created_date,
-      CASE
-          WHEN s.time_accepted IS NULL THEN t.time_created
-          WHEN s.time_accepted IS NULL AND t.time_created IS NULL THEN '2016-01-01 06:06:06'
-          WHEN s.time_accepted = '0000-00-00 00:00:00' OR t.time_created = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE s.time_accepted
-      END AS updated_date,
+      COALESCE(DATE(s.time_accepted), t.time_created) AS created_date,
+      COALESCE(DATE(s.time_accepted), t.time_created) AS updated_date,
       NULL AS person_talked_to,
       s.accepted_by AS updated_by
     FROM
@@ -126,14 +110,8 @@ def iblis_orders_status_rejected(offset, limit, specimen_rejected)
       NULL AS voided_date,
       rr.reason AS reason,
       s.reject_explained_to AS person_talked_to,
-      CASE
-          WHEN s.time_rejected = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE s.time_rejected
-      END AS created_date,
-      CASE
-          WHEN s.time_rejected = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-          ELSE s.time_rejected
-      END AS updated_date
+      COALESCE(DATE(s.time_rejected), '2016-05-23 06:47:12.000000') AS created_date,
+      COALESCE(DATE(s.time_rejected), '2016-05-23 06:47:12.000000') AS updated_date
     FROM
       specimens s
     INNER JOIN rejection_reasons rr ON rr.id = s.rejection_reason_id
