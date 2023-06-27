@@ -2,21 +2,18 @@
 
 module Tests
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil)
-      tests = Test.joins(:test_type, order: [encounter: [client: [:person]]])
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = Date.today, limit =  1000)
       if query.present?
-        tests = tests.where('test_types.name LIKE ? or test_types.short_name LIKE ?', "%#{query}%",
-                            "%#{query}%")
+        tests = Test.where(id: search_string_test_ids(query))
+      else
+        tests = Test.limit(limit).order('tests.created_date DESC')
       end
-      tests = search_by_accession_number(tests, query) if query.present?
-      tests = search_by_tracking_number(tests, query) if query.present?
-      tests = search_by_client(tests, query) if query.present?
-      tests = search_by_test_status(tests, test_status) if test_status.present?
+      tests = filter_by_date(tests, start_date, end_date) if start_date.present?
       if department_id.present? && is_not_reception?(department_id)
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
-      tests = filter_by_date(tests, start_date, end_date) if start_date.present?
-      tests.order('orders.id DESC')
+      tests = search_by_test_status(tests, test_status) if test_status.present?
+      tests.order('tests.created_date DESC')
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
@@ -61,11 +58,36 @@ module Tests
     end
 
     def search_by_test_status(tests, query)
-      tests.joins(:current_test_status).where('current_test_status.name = (?)', query.to_s)
+      status = Status.find_by(name: query)
+      test_statuses = TestStatus.where(status_id: status.id, test_id: tests.ids).group(:test_id)
+        .select("test_id, MAX(created_date) created_date") unless status.nil?
+      tests.where(id: test_statuses.pluck(:test_id))
     end
 
     def filter_by_date(tests, start_date, end_date)
       tests.where(created_date: Date.parse(start_date).beginning_of_day..Date.parse(end_date).end_of_day)
+    end
+
+    def search_string_test_ids(q_string)
+      acc_number = GlobalService.current_location.code << q_string
+      Test.find_by_sql("
+        SELECT t.id FROM tests t WHERE t.order_id IN (SELECT o.id FROM orders o
+        WHERE o.accession_number = '#{acc_number}' OR o.tracking_number = '#{q_string}')
+        OR t.order_id IN (#{client_query(q_string)}) OR t.test_type_id IN
+        (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{q_string}%')
+        ORDER BY t.created_date DESC LIMIT 1000").pluck(:id)
+    end
+
+    def client_query(query)
+      name = query.split(' ')
+      first_name = name.first
+      last_name = name.last
+      "SELECT oo.id FROM orders oo WHERE oo.encounter_id IN (SELECT DISTINCT e.id FROM encounters e WHERE
+        e.client_id IN ((SELECT DISTINCT c.id FROM clients c WHERE c.person_id IN (SELECT DISTINCT p.id FROM people p
+          WHERE (p.first_name LIKE '%#{first_name}%' AND p.last_name LIKE '%#{last_name}%')
+          OR (p.first_name LIKE '%#{first_name}%' AND p.last_name LIKE '%#{last_name}%') OR (
+          CONCAT(p.first_name, p.middle_name, p.last_name) LIKE '%#{first_name}%'
+        )))))"
     end
 
     def client_service
