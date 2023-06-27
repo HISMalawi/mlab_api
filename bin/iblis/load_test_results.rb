@@ -41,7 +41,7 @@ def iblis_test_result_count
       test_results
   ")[0]
 end
-
+ActiveRecord::Base.connection.execute("SET sql_mode='NO_ZERO_DATE'")
 creator = User.first.id
 Rails.logger.info('Starting to process....')
 total_records = iblis_test_result_count.count
@@ -60,3 +60,4 @@ loop do
   ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1")
 end
 ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=1")
+ActiveRecord::Base.connection.execute("SET sql_mode=''")

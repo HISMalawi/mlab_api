@@ -110,10 +110,11 @@ def iblis_orders_status_rejected(offset, limit, specimen_rejected)
       NULL AS voided_date,
       rr.reason AS reason,
       s.reject_explained_to AS person_talked_to,
-      COALESCE(DATE(s.time_rejected), '2016-05-23 06:47:12.000000') AS created_date,
-      COALESCE(DATE(s.time_rejected), '2016-05-23 06:47:12.000000') AS updated_date
+      COALESCE(DATE(s.time_rejected), t.time_created) AS created_date,
+      COALESCE(DATE(s.time_rejected), t.time_created) AS updated_date
     FROM
       specimens s
+    INNER JOIN tests t ON t.specimen_id = s.id
     INNER JOIN rejection_reasons rr ON rr.id = s.rejection_reason_id
     WHERE s.time_rejected IS NOT NULL
     LIMIT #{limit} OFFSET #{offset}
@@ -147,6 +148,7 @@ def orders_count
 end
 
 Rails.logger.info('Starting to process....')
+ActiveRecord::Base.connection.execute("SET sql_mode='NO_ZERO_DATE'")
 total_records = orders_count.count
 batch_size = 10_000
 offset = 0
@@ -216,3 +218,4 @@ loop do
   offset += batch_size
   count -= batch_size
 end
+ActiveRecord::Base.connection.execute("SET sql_mode=''")
