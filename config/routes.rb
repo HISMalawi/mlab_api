@@ -53,6 +53,7 @@ Rails.application.routes.draw do
       end
 
       get '/analytics/lab_config' => 'analytics#lab_config_summary'
+      get '/analytics/clients' => 'analytics#clients_summary'
 
       get '/printout/accession_number' => 'printout#print_accession_number'
       get '/printout/tracking_number' => 'printout#print_tracking_number'
