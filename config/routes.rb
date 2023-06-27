@@ -52,6 +52,8 @@ Rails.application.routes.draw do
         end
       end
 
+      get '/analytics/lab_config' => 'analytics#lab_config_summary'
+
       get '/printout/accession_number' => 'printout#print_accession_number'
       get '/printout/tracking_number' => 'printout#print_tracking_number'
       post '/printout/patient_zebra_report' => 'printout#print_zebra_report'
