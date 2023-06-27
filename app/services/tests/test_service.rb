@@ -29,7 +29,7 @@ module Tests
           client: {id: client.id}) if (order_id.blank? && from.blank?)
       person = client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
       client_identifiers = ClientIdentifier.where(client_id: client.id)
-      
+
       {
         client: {
           person: person,
@@ -37,6 +37,20 @@ module Tests
         },
         orders: orders.order(id: :desc)
       }
+    end
+
+    def tests_count
+      Test.all.count
+    end
+
+    def test_statuses_count
+      statuses_count = {}
+      statuses = Status.all
+      statuses.each do |status|
+        test_count = CurrentTestStatus.where(status_id: status[:id]).count
+        statuses_count[status[:name]] = test_count
+      end
+      statuses_count
     end
 
     private
