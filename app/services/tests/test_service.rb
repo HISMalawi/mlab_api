@@ -80,9 +80,5 @@ module Tests
           CONCAT(p.first_name, p.middle_name, p.last_name) LIKE '%#{first_name}%'
         )))))"
     end
-
-    def client_service
-      ClientManagement::ClientService
-    end
   end
 end
