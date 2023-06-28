@@ -4,197 +4,32 @@ info:
   title: API V1
   version: v1
 paths:
-  "api/v1/global":
-    get:
-      summary: Returns the details of a hospital.
-      tags: 
-        - Facility Details
-      responses:
-        200:
-          description: Successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  code:
-                    type: string
-                  address:
-                    type: string
-                  phone:
-                    type: string
-                example:
-                      id: 1
-                      name: "Kamuzu Central Hospital"
-                      code: "KCH"
-                      address: "P.O BOX 21, Lilongwe"
-                      phone: "+2651123435, +2651123424"
-  "api/v1/global/:id":
-    put:
-      summary: Edit the details of a hospital.
-      tags: 
-        - Facility Details
+  "/api/v1/auth/login":
+    post:
+      summary: Login to get jwt key
+      tags:
+      - Authentication
+      description: Authenticating a user
       parameters: []
-      requestBody:
-        description: JSON object containing updation parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: name of the facility
-                code:
-                  type: string
-                  description: site code of the facility
-                address:
-                  type: string
-                  description: p.o box or p/bag address of the facility
-                phone:
-                  type: string
-                  description: phone numbers of the facility
-              required:
-                - name
-                - code
-                - address
-                - phone 
-      responses:
-        200:
-          description: Successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  code:
-                    type: string
-                  address:
-                    type: string
-                  phone:
-                    type: string
-                example:
-                      name: "Kamuzu Central Hospital"
-                      code: "KCH"
-                      address: "P.O BOX 21, Lilongwe"
-                      phone: "+265000000, +265000000"
-  "api/v1/priorities":
-    get:
-      summary: Returns order priolities.
-      tags:
-        - Create an Order
-      responses:
-        200:
-          description: Successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  name:
-                    type: string
-                example:
-                    - id: 1
-                      name: "stat"
-  "/api/v1/clients/search_dde":
-    get:
-      summary: Search for clients by first name, last name, and gender
-      tags:
-        - Create an Order
-      requestBody:
-        description: JSON object containing search parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                first_name:
-                  type: string
-                  description: First name of the client
-                last_name:
-                  type: string
-                  description: Last name of the client
-                gender:
-                  type: string
-                  enum: [M, F]
-                  description: Gender of the client (M for male, F for female)
-              required:
-                - first_name
-                - last_name
-                - gender
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    source:
-                      type: string
-                      description: Source of the client information
-                    client_id:
-                      type: integer
-                      description: ID of the client
-                    first_name:
-                      type: string
-                      description: First name of the client
-                    middle_name:
-                      type: string
-                      description: Middle name of the client
-                    last_name:
-                      type: string
-                      description: Last name of the client
-                    sex:
-                      type: string
-                      enum: [M, F, O]
-                      description: Gender of the client
-                    date_of_birth:
-                      type: string
-                      format: date
-                      description: Date of birth of the client
-                    birth_date_estimated:
-                      type: boolean
-                      description: Whether the birth date is estimated
-                    uuid:
-                      type: string
-                      description: UUID of the client
-                    physical_address:
-                      type: string
-                      description: Physical address of the client
-  "/api/v1/clients":
-    post:
-      summary: create_a_client
-      tags:
-        - Create an Order
-      description: Create an Order API Endpoints
-      security:
-        - bearerAuth: []
-      parameters: []
-      requestBody:
+          description: Authentication successful
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  client:
+                  token:
+                    type: string
+                  expiry_time:
+                    type: string
+                  user:
                     type: object
                     properties:
-                      uuid:
+                      id:
+                        type: integer
+                      username:
                         type: string
-                  person:
-                    type: object
-                    properties:
                       first_name:
                         type: string
                       middle_name:
@@ -203,147 +38,241 @@ paths:
                         type: string
                       sex:
                         type: string
-                        enum: [M, F]
-                        description: Gender of the client (M for male, F for female)
+                      is_active:
+                        type: boolean
                       date_of_birth:
                         type: string
-                        format: date
                       birth_date_estimated:
-                        type: boolean
-                  client_identifiers:
-                    type: object
-                    properties:
-                      current_district:
                         type: string
-                        properties:
-                      current_village:
+                      voided:
+                        type: integer
+                      voided_reason:
                         type: string
-                        properties:
-                      current_traditional_authority:
-                        type: string
-                        properties:
-                      physical_address:
-                        type: string
-  "/api/v1/encounter_types":
-    get:
-      summary: get visit types aka encounter types
-      tags:
-        - Encounter Type (Visit Type)
-      description: Get all Encounter type
-      security:
-        - bearerAuth: []
-      parameters: []
-      responses:
-        200:
-          description: successful
+                      roles:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            role_id:
+                              type: integer
+                            role_name:
+                              type: string
+                      departments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            retired:
+                              type: integer
+                            retired_reason:
+                              type: string
+        '401':
+          description: UnAuthorized
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          format: int64
-                        name:
-                          type: string
-                        description:
-                          type: string
-                        creator:
-                          type: integer
-                          format: int64
-                        voided:
-                          type: integer
-                          format: int32
-                        voided_by:
-                          type: integer
-                          format: int64
-                          nullable: true
-                        voided_reason:
-                          type: string
-                          nullable: true
-                        voided_date:
-                          type: string
-                          format: date-time
-                          nullable: true
-                        created_date:
-                          type: string
-                          format: date-time
-                        updated_date:
-                          type: string
-                          format: date-time
-                        updated_by:
-                          type: integer
-                          format: int64
-                      required:
-                        - id
-                        - name
-                        - description
-                        - creator
-                        - voided
-                        - created_date
-                        - updated_date
-                        - updated_by
-                  meta:
-                    type: object
-                    properties:
-                      current_page:
-                        type: integer
-                        format: int32
-                      next_page:
-                        type: integer
-                        format: int32
-                        nullable: true
-                      prev_page:
-                        type: integer
-                        format: int32
-                        nullable: true
-                      total_pages:
-                        type: integer
-                        format: int32
-                      total_count:
-                        type: integer
-                        format: int32
-                required:
-                  - data
-                  - meta
+                  error:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                department:
+                  type: string
+              required:
+              - username
+              - password
+              - department
+  "/api/v1/auth/application_login":
     post:
-      summary: create visit types aka encounter types
+      summary: application login auth
       tags:
-        - Encounter Type (Visit Type)
-      description: Create an encounter type
-      security:
-        - bearerAuth: []
+      - Authentication
+      description: Authenticating a user
       parameters: []
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expiry_time:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      middle_name:
+                        type: string
+                      last_name:
+                        type: string
+                      sex:
+                        type: string
+                      is_active:
+                        type: boolean
+                      date_of_birth:
+                        type: string
+                      birth_date_estimated:
+                        type: string
+                      voided:
+                        type: integer
+                      voided_reason:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            role_id:
+                              type: integer
+                            role_name:
+                              type: string
+                      departments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            retired:
+                              type: integer
+                            retired_reason:
+                              type: string
+        '401':
+          description: UnAuthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
       requestBody:
-        description: JSON object containing search parameters
-        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                name:
+                username:
                   type: string
-                  description: Name of the encounter type
-                description:
+                password:
                   type: string
-                  description: Description of the encounter type
-                facility_sections:
-                  type: array
-                  items:
-                    type: integer
-                  description: Array of facility sections
               required:
-                - name
-                - description
-                - facility_sections
+              - username
+              - password
+  "/api/v1/auth/refresh_token":
+    get:
+      summary: refresh_token auth
+      tags:
+      - Authentication
+      description: Refresh token
+      security:
+      - bearerAuth: []
       responses:
-        200:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expiry_time:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      middle_name:
+                        type: string
+                      last_name:
+                        type: string
+                      sex:
+                        type: string
+                      is_active:
+                        type: boolean
+                      date_of_birth:
+                        type: string
+                      birth_date_estimated:
+                        type: string
+                      voided:
+                        type: integer
+                      voided_reason:
+                        type: string
+                      roles:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            role_id:
+                              type: integer
+                            role_name:
+                              type: string
+                      departments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                            retired:
+                              type: integer
+                            retired_reason:
+                              type: string
+        '401':
+          description: UnAuthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  "/api/v1/global":
+    get:
+      summary: Display site details
+      tags:
+      - Global
+      description: Manage site details
+      responses:
+        '200':
           description: successful
           content:
             application/json:
@@ -352,54 +281,26 @@ paths:
                 properties:
                   id:
                     type: integer
-                    format: int64
                   name:
                     type: string
-                  description:
+                  code:
                     type: string
-                  facility_sections:
-                    name: string
-                    type: array
-                    items:
-                      type: object
-                  
-                required:
-                  - id
-                  - name
-                  - description
-                  - facility_sections
-    put:
-      summary: update visit types aka encounter types
+                  address:
+                    type: string
+                  phone:
+                    type: string
+                  created_date:
+                    type: string
+    post:
+      summary: create site with details
       tags:
-        - Encounter Type (Visit Type)
-      description: Update an encounter type
+      - Global
+      description: Manage site details
       security:
-        - bearerAuth: []
+      - bearerAuth: []
       parameters: []
-      requestBody:
-        description: JSON object containing search parameters
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  description: Name of the encounter type
-                description:
-                  type: string
-                  description: Description of the encounter type
-                facility_sections:
-                  type: array
-                  items:
-                    type: integer
-                  description: Array of facility sections
-              required:
-                - name
-                - facility_sections
       responses:
-        200:
+        '200':
           description: successful
           content:
             application/json:
@@ -408,154 +309,107 @@ paths:
                 properties:
                   id:
                     type: integer
-                    format: int64
                   name:
                     type: string
-                  description:
+                  code:
                     type: string
-                  facility_sections:
-                    name: string
-                    type: array
-                    items:
-                      type: object
-                required:
-                  - name
-                  - facility_sections
-  "api/v1/encounter_types/{id}":
+                  address:
+                    type: string
+                  phone:
+                    type: string
+                  created_date:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                code:
+                  type: string
+                address:
+                  type: string
+                phone:
+                  type: string
+              required:
+              - name
+              - code
+              - address
+              - phone
+  "/api/v1/global/{id}":
     parameters:
-      - in: path
-        name: id
-        description: ID of the encounter type to delete
-        required: true
-        schema:
-          type: integer
-          format: int64
-    delete:
-      summary: delete visit type aka encounter type
+    - name: id
+      in: path
+      description: id
+      required: true
+      schema:
+        type: string
+    put:
+      summary: update site details
       tags:
-        - Encounter Type (Visit Type)
-      description: Delete an encounter type
+      - Global
+      description: Manage site details
       security:
-        - bearerAuth: []
+      - bearerAuth: []
+      parameters: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  code:
+                    type: string
+                  address:
+                    type: string
+                  phone:
+                    type: string
+                  created_date:
+                    type: string
       requestBody:
-        description: JSON object containing search parameters
-      responses:
-        200:
-          description: successful
-  "/api/v1/encounter_type_facility_section_mappings/facility_sections":
-    get:
-      summary: Get facility sections based on  encounter type id
-      description: Creates facility sections based on the specified encounter type ID
-      parameters:
-        - in: body
-          name: body
-          description: Request body for gettingfacility section
-          required: true
-          schema:
-            type: object
-            properties:
-              encounter_type_id:
-                type: integer
-                format: int64
-            required:
-              - encounter_type_id
-      responses:
-        200:
-          description: successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      format: int64
-                      description: The unique identifier of the facility section.
-                    name:
-                      type: string
-                      description: The name of the facility section.
-              example:
-                - id: 1
-                  name: CWC
-                - id: 2
-                  name: CW HDU
-                - id: 3
-                  name: CWB
-                - id: 7
-                  name: CWA
-                - id: 9
-                  name: Theatre
-                - id: 10
-                  name: Dialysis Unit
-
-      tags:
-        - Create an Order
-  "api/v1/specimen":
-    get:
-      summary: Retrieve a list of all specimens
-      description: Use this endpoint to retrieve a list of all specimens currently in the system.
-      produces:
-        - application/json
-      responses:
-        200:
-          description: successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                      format: int64
-                      description: The unique identifier of the facility section.
-                    name:
-                      type: string
-                      description: The name of the facility section.
-              example:
-                - id: 1
-                  name: Blood
-                  description: The description of the specimen
-                - id: 2
-                  name: Swabs
-                  description: The description of the specimen
-      tags:
-        - Create an Order
-  "api/v1/specimen/test_types":
-    get:
-      summary: "Retrieve test types for a given specimen"
-      parameters:
-        - in: query
-          name: specimen_id
-          description: "ID of the specimen for which test types are to be retrieved"
-          required: true
-          type: integer
-        - in: query
-          name: department_id
-          description: "ID of the department for which test types are to be retrieved"
-          required: false
-          type: integer
-      responses:
-        200:
-          description: Successful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
                   type: string
-              example:
-                - "Glucose"
-                - "Gram Stain"
-                - "Culture & Sensitivity"
-                - "Cell Count"
-                - "India Ink"
+                code:
+                  type: string
+                address:
+                  type: string
+                phone:
+                  type: string
+              required:
+              - name
+              - code
+              - address
+              - phone
+    delete:
+      summary: delete site details
       tags:
-        - Create an Order
-
+      - Global
+      description: Manage site details
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
   "/api/v1/interfacer/fetch_results":
     get:
       summary: fetch_results interfacer
@@ -588,58 +442,6 @@ paths:
                       type: string
                     indicator_name:
                       type: string
-  "/api/v1/orders":
-    post:
-      summary: create a new order
-      tags:
-        - Create an Order
-      description: Create an Order API Endpoints
-      security:
-        - bearerAuth: []
-      parameters: []
-      requestBody:
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  client:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                  encounter:
-                    type: object
-                    properties:
-                      sending_facility:
-                        type: integer
-                      encounter_type:
-                        type: integer
-                      facility_section:
-                        type: integer
-                  order:
-                    type: object
-                    properties:
-                      priority:
-                        type: integer
-                      requested_by:
-                        type: string
-                      collected_by:
-                        type: string
-                      sample_collected_time:
-                        type: string
-                        format: date-time
-                      tracking_number:
-                        type: string
-                  tests:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        specimen:
-                          type: integer
-                        test_type:
-                          type: string
   "/api/v1/interfacer/result_available":
     get:
       summary: result_available interfacer
@@ -704,610 +506,6 @@ paths:
               - machine_name
               - measure_id
               - result
-  "/orders/add_test_to_order":
-    post:
-      summary: Add test to order
-      tags:
-        - Create an Order
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          description: Add test to order
-          required: true
-          schema:
-            type: object
-            properties:
-              order_id:
-                type: integer
-                format: int64
-              tests:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    specimen:
-                      type: integer
-                      format: int64
-                    test_type:
-                      type: string
-      responses:
-        200:
-          description: Successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    format: int64
-                  encounter_id:
-                    type: integer
-                    format: int64
-                  priority_id:
-                    type: integer
-                    format: int64
-                  accession_number:
-                    type: string
-                  tracking_number:
-                    type: string
-  "/orders/search_order_from_nlims_by_tracking_number":
-    get:
-      summary: Search for an order by tracking number
-      tags:
-        - NLIMS SERVICE
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: tracking_number
-          description: The tracking number of the order to search for
-          required: true
-          schema:
-            type: object
-            properties:
-              tracking_number:
-                type: string
-      responses:
-        200:
-          description: Successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tests:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        test_type:
-                          type: string
-                        test_status:
-                          type: string
-                    description: The tests for the order
-                  tracking_number:
-                    type: string
-                    description: The tracking number for the order
-                  specimen:
-                    type: string
-                    description: The specimen for the order
-                  order_status:
-                    type: string
-                    description: The status of the order
-                  facility_section:
-                    type: string
-                    description: The facility section where the order was placed
-                  sending_facility:
-                    type: string
-                    description: The facility that sent the order
-                  receiving_facility:
-                    type: string
-                    description: The facility that received the order
-                  order_created_date:
-                    type: string
-                    format: date-time
-                    description: The date and time the order was created
-                  priority:
-                    type: string
-                    description: The priority of the order
-                  requested_by:
-                    type: string
-                    description: The name of the person who requested the order
-                  collected_by:
-                    type: string
-                    description: The name of the person who collected the specimen
-                  patient_identifiers:
-                    type: object
-                    properties:
-                      art_regimen:
-                        type: string
-                        description: The ART regimen for the patient, if available
-                      arv_number:
-                        type: string
-                        description: The ARV number for the patient, if available
-                      art_start_date:
-                        type: string
-                        format: date
-                        description: The date the patient started ART, if available
-                      npid:
-                        type: string
-                        description: The national patient identifier for the patient
-                    description: The patient identifiers for the order
-                  patient:
-                    type: object
-                    properties:
-                      first_name:
-                        type: string
-                        description: The first name of the patient
-                      middle_name:
-                        type: string
-                        description: The middle name of the patient
-                      last_name:
-                        type: string
-                        description: The last name of the patient
-                      sex:
-                        type: string
-                        description: The sex of the patient
-                      date_of_birth:
-                        type: string
-                        format: date
-                        description: The date of birth of the patient
-                    description: The patient information for the order
-                  results:
-                    type: object
-                    properties:
-                      ABO Blood Grouping:
-                        type: object
-                        properties:
-                          Grouping:
-                            type: string
-                            description: The result of the ABO Blood Grouping test
-                          result_date:
-                            type: string
-                            format: date
-                            description: The date the ABO Blood Grouping test result was obtained
-                        description: The result of the ABO Blood Grouping test
-                    description: The results of the tests for the order
-        404:
-          description: 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-              example:
-                error: "Order not available in NLIMS"
-        500:
-          description: 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-              example:
-                error: "Unable to authenticate to nlims service"
-        500:
-          description: 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-              example:
-                error: "Connection refused - Nlims service is not available"
-  "/orders/merge_order_from_nlims":
-    post:
-      summary: Search for an order in the NLIMS by tracking number
-      tags:
-        - NLIMS SERVICE
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: search_criteria
-          description: The search criteria for the order
-          required: true
-          schema:
-            type: object
-            properties:
-              tests:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    test_type:
-                      type: string
-                    test_status:
-                      type: string
-              tracking_number:
-                type: string
-              specimen:
-                type: string
-              order_status:
-                type: string
-              facility_section:
-                type: string
-              sending_facility:
-                type: string
-              receiving_facility:
-                type: string
-              order_created_date:
-                type: string
-                format: date-time
-              priority:
-                type: string
-              requested_by:
-                type: string
-              collected_by:
-                type: string
-              patient_identifiers:
-                type: object
-                properties:
-                  art_regimen:
-                    type: string
-                  arv_number:
-                    type: string
-                  art_start_date:
-                    type: string
-                    format: date-time
-                  npid:
-                    type: string
-              patient:
-                type: object
-                properties:
-                  first_name:
-                    type: string
-                  middle_name:
-                    type: string
-                  last_name:
-                    type: string
-                  sex:
-                    type: string
-                  date_of_birth:
-                    type: string
-                    format: date
-      responses:
-        201:
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                    format: int64
-                  encounter_id:
-                    type: integer
-                    format: int64
-                  priority_id:
-                    type: integer
-                    format: int64
-                  accession_number:
-                    type: string
-                  tracking_number:
-                    type: string
-                  requested_by:
-                    type: string
-                  sample_collected_time:
-                    type: string
-                    format: date-time
-                  collected_by:
-                    type: string
-        404:
-          description: 
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-              example:
-                error: "Test type: Virreal Load from nlims not available in mlab"
-  "/organisms/get_organisms_based_test_type":
-    get:
-      summary: Get organisms based test type
-      tags:
-        - Organisms
-      parameters:
-        - in: body
-          name: test_type
-          description: Get organisms based test type
-          required: true
-          schema:
-            type: object
-            properties:
-              test_type:
-                type: string
-      responses:
-        '200':
-          description: Succesful
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    name:
-                      type: string
-              example:
-                - id: 1
-                  name: Haemophilus influenza
-                - id: 3
-                  name: Streptococcus pneumoniae
-                - id: 4
-                  name: Pseudomonas aeruginosa
-  "/culture_observations/drug_susceptibility_test_results":
-    post:
-      summary: Save drug susceptibility results
-      tags:
-        - Culture Observation
-      requestBody:
-        required: true
-        content:
-          application/json:
-           schema:
-              type: object
-              properties:
-                test_id:
-                  type: integer
-                  example: 4
-                organism_id:
-                  type: integer
-                  example: 1
-                drugs:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      drug_id:
-                        type: integer
-                        example: 1
-                      zone:
-                        type: integer
-                        example: 1
-                      interpretation:
-                        type: string
-                        example: "R"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: integer
-                    test_id:
-                      type: integer
-                    organism_id:
-                      type: integer
-                    drug_id:
-                      type: integer
-                    zone:
-                      type: string
-                    interpretation:
-                      type: string
-              example:
-                - id: 1
-                  test_id: 1
-                  organism_id: 1
-                  drug_id: 1
-                  zone: "1"
-                  interpretation: "23324"
-  "/culture_observations":
-    post:
-      summary: Create Culture Observation
-      tags:
-        - Culture Observation
-      description: Creates Culture Observation
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                test_id:
-                  type: string
-                  example: "1"
-                description:
-                  type: string
-                  example: "dhfdhf"
-              required:
-                - test_id
-                - description
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    culture_obs_id:
-                      type: integer
-                      example: 1
-                    user:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 1
-                        username:
-                          type: string
-                          example: "administrator"
-                        first_name:
-                          type: string
-                          example: "LIMS"
-                        middle_name:
-                          type: string
-                          example: ""
-                        last_name:
-                          type: string
-                          example: "Administrator"
-                        sex:
-                          type: string
-                          example: "M"
-                      required:
-                        - id
-                        - username
-                        - first_name
-                        - last_name
-                        - sex
-                    test_type:
-                      type: string
-                      example: "FBC"
-                    description:
-                      type: string
-                      example: "1ewrfs"
-                    observation_date:
-                      type: string
-                      format: date-time
-                      example: "2023-04-29T10:33:32.701Z"
-  "/culture_observations/drug_susceptibility_test_results/delete":
-    put:
-      summary: Delete drug susceptibility result record 
-      tags:
-        - Culture Observation
-      description: Delete drug susceptibility result record
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                test_id:
-                  type: integer
-                  description: The id of the test
-                  example: 4
-                organism_id:
-                  type: integer
-                  description: The id of the organism
-                  example: 1
-              required:
-                - test_id
-                - organism_id
-      responses:
-        '200':
-          description: Record deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: The success message
-                    example: Record deleted successfully
-  "/culture_observations/get_drug_susceptibility_test_results":
-    get:
-      summary: Get Culture Observation and Drug Susceptibility Test Result
-      tags:
-        - Culture Observation
-      description: Returns culture observation and drug susceptibility test results for a given test ID.
-      parameters:
-        - in: body
-          name: test_id
-          description: Test ID to retrieve culture observation and drug susceptibility test results.
-          required: true
-          schema:
-            type: object
-            properties:
-              test_id:
-                type: string
-              example:
-                test_id: "1"
-      responses:
-        200:
-          description: Sucessful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  culture_observations:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        culture_obs_id:
-                          type: integer
-                        user:
-                          type: object
-                          properties:
-                            id:
-                              type: integer
-                            username:
-                              type: string
-                            first_name:
-                              type: string
-                            middle_name:
-                              type: string
-                            last_name:
-                              type: string
-                            sex:
-                              type: string
-                      example:
-                        culture_obs_id: 1
-                        user:
-                          id: 1
-                          username: "administrator"
-                          first_name: "LIMS"
-                          middle_name: ""
-                          last_name: "Administrator"
-                          sex: "M"
-                  drug_suscep_test_results:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        test_id:
-                          type: integer
-                        organism_id:
-                          type: integer
-                        organism_name:
-                          type: string
-                        drug_id:
-                          type: integer
-                        drug_name:
-                          type: string
-                        zone:
-                          type: string
-                        interpretation:
-                          type: string
-                      example:
-                        test_id: 1
-                        organism_id: 1
-                        organism_name: "Haemophilus influenza"
-                        drug_id: 1
-                        drug_name: "Amoxicillin/Clavulanate"
-                        zone: "1"
-                        interpretation: "23324"                  
 servers:
 - url: http://{defaultHost}
   variables:
