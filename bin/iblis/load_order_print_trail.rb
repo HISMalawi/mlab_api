@@ -19,14 +19,8 @@ def iblis_print_trail(offset, limit, creator)
         WHEN printed_by = 0 THEN #{creator}
         ELSE printed_by
       END AS  updated_by,
-      CASE
-        WHEN created_at = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-        ELSE created_at
-      END AS created_date,
-      CASE
-        WHEN updated_at = '0000-00-00 00:00:00' THEN '2016-01-01 06:06:06'
-        ELSE updated_at
-      END AS updated_date
+      COALESCE(DATE(created_at), '2016-05-23 06:47:12.000000') AS created_date,
+      COALESCE(DATE(created_at), '2016-05-23 06:47:12.000000') AS updated_date
     FROM
       patient_report_print_statuses
     LIMIT #{limit} OFFSET #{offset}
@@ -41,7 +35,6 @@ def iblis_print_trail_count
     patient_report_print_statuses
   ")[0]
 end
-
 ActiveRecord::Base.connection.execute("SET FOREIGN_KEY_CHECKS=0")
 creator = User.first.id
 Rails.logger.info('Starting to process....')

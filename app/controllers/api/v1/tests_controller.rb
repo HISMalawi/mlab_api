@@ -42,6 +42,14 @@ module Api
         render json: { message: MessageService::RECORD_DELETED }
       end
 
+      def get_tests_summary
+        test_service = Tests::TestService.new
+        total_tests_count = test_service.test_statuses_count
+        tests_count = test_service.tests_count
+
+        render json: { tests_count: tests_count, statuses_count: total_tests_count }
+      end
+
       private
 
       def test_service
@@ -51,6 +59,7 @@ module Api
       def test_params
         params.permit(:specimen_id, :order_id, :test_type_id)
       end
+
     end
   end
 end
