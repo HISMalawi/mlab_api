@@ -20,4 +20,3 @@ if ARGV.include?('--dev')
 else
   puts 'No --dev argument provided. Patient de-identification skipped.'
 end
-
