@@ -4,7 +4,7 @@ require 'client_management/bantu_soundex'
 
 module Tests
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = Date.today, limit =  1000)
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, limit =  1000)
       if query.present?
         tests = Test.where(id: search_string_test_ids(query))
       else
@@ -58,6 +58,7 @@ module Tests
     end
 
     def filter_by_date(tests, start_date, end_date)
+      end_date = end_date.present? ? end_date : Date.today
       tests.where(created_date: Date.parse(start_date).beginning_of_day..Date.parse(end_date).end_of_day)
     end
 
