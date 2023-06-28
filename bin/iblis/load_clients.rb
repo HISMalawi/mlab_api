@@ -31,7 +31,9 @@ def load_people(offset, limit)
       IF(p.created_by = 0, 1, p.created_by) AS creator,
         p.created_at AS created_date,
         p.updated_at AS updated_date,
-      IF(p.created_by = 0, 1, p.created_by)  AS updated_by
+      IF(p.created_by = 0, 1, p.created_by)  AS updated_by,
+      p.first_name_code AS first_name_soundex,
+      p.last_name_code AS last_name_soundex
     FROM patients p LIMIT #{limit} OFFSET #{offset}
   ")
 end

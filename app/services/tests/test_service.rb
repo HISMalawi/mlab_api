@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'client_management/bantu_soundex'
+
 module Tests
   class TestService
     def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = Date.today, limit =  1000)
@@ -71,13 +73,13 @@ module Tests
 
     def client_query(query)
       name = query.split(' ')
-      first_name = name.first
-      last_name = name.last
+      first_name = name.first.soundex
+      last_name = name.last.soundex
       "SELECT oo.id FROM orders oo WHERE oo.encounter_id IN (SELECT DISTINCT e.id FROM encounters e WHERE
         e.client_id IN ((SELECT DISTINCT c.id FROM clients c WHERE c.person_id IN (SELECT DISTINCT p.id FROM people p
-          WHERE (p.first_name LIKE '%#{first_name}%' AND p.last_name LIKE '%#{last_name}%')
-          OR (p.first_name LIKE '%#{first_name}%' AND p.last_name LIKE '%#{last_name}%') OR (
-          CONCAT(p.first_name, p.middle_name, p.last_name) LIKE '%#{first_name}%'
+          WHERE (p.first_name_soundex = '#{first_name}' AND p.last_name_soundex = '#{last_name}')
+          OR (p.first_name_soundex = '#{last_name}' AND p.last_name_soundex = '#{first_name}') OR (
+          CONCAT(p.first_name_soundex, p.last_name_soundex) = '#{first_name}'
         )))))"
     end
   end
