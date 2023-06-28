@@ -58,7 +58,7 @@ module Tests
     end
 
     def filter_by_date(tests, start_date, end_date)
-      end_date = end_date.present? ? end_date : Date.today..strftime("%Y-%m-%d")
+      end_date = end_date.present? ? end_date : Date.today.strftime("%Y-%m-%d")
       tests.where(created_date: Date.parse(start_date).beginning_of_day..Date.parse(end_date).end_of_day)
     end
 
