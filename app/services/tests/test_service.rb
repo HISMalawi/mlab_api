@@ -42,26 +42,17 @@ module Tests
       Department.find(department_id).name != 'Lab Reception'
     end
 
-    def search_by_tracking_number(tests, query)
-      tests.or(Test.where('orders.tracking_number LIKE ?', "%#{query}%"))
-    end
-
-    def search_by_accession_number(tests, query)
-      tests.or(Test.where('orders.accession_number LIKE ?', "%#{query}%"))
-    end
-
-    def search_by_client(tests, query)
-      clients = client_service.search_client(query, 1000)
-      return tests unless clients.present?
-
-      tests.or(Test.where('clients.id IN (?)', clients.map(&:id))) if clients.present?
-    end
-
     def search_by_test_status(tests, query)
       status = Status.find_by(name: query)
-      test_statuses = TestStatus.where(status_id: status.id, test_id: tests.ids).group(:test_id)
-        .select("test_id, MAX(created_date) created_date") unless status.nil?
-      tests.where(id: test_statuses.pluck(:test_id))
+      Test.joins(:test_status)
+          .where('test_statuses.created_date = (
+            SELECT MAX(created_date)
+            FROM test_statuses
+            WHERE test_statuses.test_id = tests.id
+            )')
+          .where(test_statuses: { test_id: tests.pluck(:id) })
+          .select('test_statuses.status_id, tests.*')
+          .where(test_statuses: { status_id: status.id })
     end
 
     def filter_by_date(tests, start_date, end_date)
