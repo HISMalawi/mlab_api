@@ -44,8 +44,8 @@ module Reports
         end
 
         def patient_record(from, to)
-          from = from.present? ? from : Date.today
-          to = to.present? ? to : Date.today
+          from = from.present? ? from : Date.today.strftime("%Y-%m-%d")
+          to = to.present? ? to : Date.today.strftime("%Y-%m-%d")
           collection = ReportRawData.find_by_sql("
             SELECT DISTINCT(rrd.test_id) test_id, rrd.patient_no, rrd.patient_name, rrd.accession_number, rrd.specimen,
             rrd.test_type, rrd.dob, rrd.gender
@@ -58,7 +58,7 @@ module Reports
           {
             from:,
             to:,
-            visits: ReportRawData.where(created_date: from..to.strftime("%Y-%m-%d")).distinct(:encounter_id).count,
+            visits: ReportRawData.where(created_date: from..to).distinct(:encounter_id).count,
             data: serialize_patient_record(collection)
           }
         end
