@@ -2,6 +2,7 @@ class Order < VoidableRecord
   belongs_to :encounter
   belongs_to :priority
   has_many :tests
+  has_many :order_statuses
   has_many :client_order_print_trails
 
   after_create :create_default_status

@@ -18,6 +18,14 @@ module Api
         from = params[:from].present? ? params[:from] : today
         render json: Reports::Aggregate::Malaria.generate_report(from, to)
       end
+
+      def user_statistics
+        today ="efnejnrf"
+
+        service = Reports::Aggregate::UserStatistic.new
+
+        render json: { today: service.user_summary_report }
+      end
     end
   end
 end
