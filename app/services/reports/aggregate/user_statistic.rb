@@ -1,7 +1,7 @@
 module Reports
   module Aggregate
     class UserStatistic
-      def user_summary_report
+      def generate_report
         users = User.all
         users_test_counts = users.map do |user|
           tests_completed = TestStatus.where(creator: user.id, status_id: Status.find_by_name('completed').id).count

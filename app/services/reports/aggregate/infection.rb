@@ -1,0 +1,64 @@
+module Reports
+  module Aggregate
+    class Infection
+      def generate_report(from: nil, to: nil, department: nil)
+        data = []
+        tests = Test.includes(:test_type).where(test_types: { department_id: department.present? ? department : '' }).where('tests.created_date >= ?', from).where('tests.created_date <= ?', to)
+        tests.each do |test|
+          test_type = test.test_type
+          next unless test_type
+          test_data = {
+            'Test Type' => test_type.name,
+            'indicators' => []
+          }
+          test.indicators.each do |indicator|
+            result = indicator['result']
+            sex = test.client['sex']
+            age = calculate_age(test.client['date_of_birth'], test.created_date)
+            indicator_data = {
+              'name' => indicator['name'],
+              'M' => {
+                '0-5' => 0,
+                '5-14' => 0,
+                '14-120' => 0
+              },
+              'F' => {
+                '0-5' => 0,
+                '5-14' => 0,
+                '14-120' => 0
+              }
+            }
+            increment_age_range(indicator_data, result, sex, age)
+            test_data['indicators'] << indicator_data
+          end
+          data << test_data
+        end
+        data
+      end
+
+      private
+
+      def calculate_age(date_of_birth, created_date)
+        age = 0
+        unless date_of_birth.nil?
+          birth_date = Date.parse(date_of_birth)
+          now = created_date
+          age = now.year - birth_date.year
+          age -= 1 if now < birth_date + age.years
+        end
+        age
+      end
+
+      def increment_age_range(indicator_data, result, sex, age)
+        sex_range = indicator_data[sex]
+        if age.between?(0, 5)
+          sex_range['0-5'] += result.nil? ? 1 : 0
+        elsif age.between?(6, 14)
+          sex_range['5-14'] += result.nil? ? 1 : 0
+        elsif age.between?(15, 120)
+          sex_range['14-120'] += result.nil? ? 1 : 0
+        end
+      end
+    end
+  end
+end
