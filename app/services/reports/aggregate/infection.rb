@@ -36,6 +36,19 @@ module Reports
         data
       end
 
+      def get_summary(department: nil)
+        department = department.present? ?  " WHERE t.department_id = #{department}" : ''
+        query = <<-SQL
+          SELECT t.name, COUNT(*) AS test_count
+          FROM tests AS ts
+          JOIN test_types AS t ON ts.test_type_id = t.id
+          #{department}
+          GROUP BY t.name
+        SQL
+        results = ActiveRecord::Base.connection.execute(query)
+        results
+      end
+
       private
 
       def calculate_age(date_of_birth, created_date)
