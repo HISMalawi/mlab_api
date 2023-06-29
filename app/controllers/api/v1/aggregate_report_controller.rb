@@ -20,11 +20,16 @@ module Api
       end
 
       def user_statistics
-        today ="efnejnrf"
-
         service = Reports::Aggregate::UserStatistic.new
+        render json: { data: service.generate_report }
+      end
 
-        render json: { today: service.user_summary_report }
+      def infection
+        from = params[:from]
+        to = params[:to]
+        department = params[:department]
+        service = Reports::Aggregate::Infection.new
+        render json: { data: service.generate_report(from:, to:, department:) }
       end
     end
   end

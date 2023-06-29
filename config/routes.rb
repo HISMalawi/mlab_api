@@ -143,6 +143,7 @@ Rails.application.routes.draw do
           get '/aggregate/lab_statistics' => 'aggregate_report#lab_statistics'
           get '/aggregate/malaria_report' => 'aggregate_report#malaria_report'
           get '/aggregate/user_statistics' => 'aggregate_report#user_statistics'
+          get '/aggregate/infection' => 'aggregate_report#infection'
         end
       end
     end
