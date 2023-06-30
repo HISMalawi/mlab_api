@@ -145,6 +145,7 @@ Rails.application.routes.draw do
           get '/aggregate/user_statistics' => 'aggregate_report#user_statistics'
           get '/aggregate/infection' => 'aggregate_report#infection'
           get '/aggregate/turn_around_time' => 'aggregate_report#turn_around_time'
+          get '/aggregate/rejected' => 'aggregate_report#rejected'
         end
       end
     end
