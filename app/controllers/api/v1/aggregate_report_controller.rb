@@ -39,6 +39,14 @@ module Api
         service = Reports::Aggregate::TurnAroundTime.new
         render json: { data: service.generate_report(from:, to:, department:)}
       end
+
+      def rejected
+        from = params[:from]
+        to = params[:to]
+        department = params[:department]
+        service = Reports::Aggregate::Rejected.new
+        render json: { data: service.generate_report(from:, to:, department:)}
+      end
     end
   end
 end

@@ -3,10 +3,10 @@ module Reports
     class TurnAroundTime
       def generate_report(from: nil, to: nil, department: nil)
         data = {}
-        test_types = TestType.where(department_id: department).limit(10)
+        test_types = TestType.where(department_id: department)
         tests = Test.includes(:test_type).where(test_types: { department_id: department })
         test_types.each do |test_type|
-          test_type_tests = tests.where(test_type_id: test_type.id).limit(20)
+          test_type_tests = tests.where(test_type_id: test_type.id)
           test_type_data = {
             'test_type' => test_type.name,
             'turn_around_time' => test_type.expected_turn_around_time.value,
