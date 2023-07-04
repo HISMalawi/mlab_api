@@ -47,6 +47,14 @@ module Api
         service = Reports::Aggregate::Rejected.new
         render json: { data: service.generate_report(from:, to:, department:)}
       end
+
+      def general_count
+        month = params[:month]
+        year = params[:year]
+        department = params[:department]
+        service = Reports::Aggregate::Culture::GeneralCount.new
+        render json: { data: service.generate_report(month:, year:, department:)}
+      end
     end
   end
 end
