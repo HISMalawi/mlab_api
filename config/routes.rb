@@ -147,6 +147,7 @@ Rails.application.routes.draw do
           get '/aggregate/turn_around_time' => 'aggregate_report#turn_around_time'
           get '/aggregate/rejected' => 'aggregate_report#rejected'
           get '/aggregate/culture/general_counts' => 'aggregate_report#general_count'
+          get '/aggregate/culture/wards_based_counts' => 'aggregate_report#wards_based_count'
         end
       end
     end
