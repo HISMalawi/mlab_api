@@ -63,6 +63,14 @@ module Api
         service = Reports::Aggregate::Culture::WardsBased.new
         render json: { data: service.generate_report(month:, year:, department:)}
       end
+
+      def organisms_based_count
+        month = params[:month]
+        year = params[:year]
+        department = params[:department]
+        service = Reports::Aggregate::Culture::OrganismsBased.new
+        render json: { data: service.generate_report(month:, year:, department:)}
+      end
     end
   end
 end
