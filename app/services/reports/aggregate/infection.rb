@@ -57,7 +57,9 @@ module Reports
           birth_date = Date.parse(date_of_birth)
           now = created_date
           age = now.year - birth_date.year
-          age -= 1 if now < birth_date + age.years
+          if now.month < birth_date.month || (now.month == birth_date.month && now.day < birth_date.day)
+            age -= 1
+          end
         end
         age
       end
