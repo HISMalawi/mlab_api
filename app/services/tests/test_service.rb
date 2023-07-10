@@ -2,16 +2,18 @@
 
 require 'client_management/bantu_soundex'
 
+# Module for managing tests related activities such as search, client report based on the test
 module Tests
+  # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, limit =  1000)
-      if query.present?
-        tests = Test.where(id: search_string_test_ids(query))
-      else
-        tests = Test.limit(limit).order('tests.created_date DESC')
-      end
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, limit = 1000)
+      tests = if query.present?
+                Test.where(id: search_string_test_ids(query))
+              else
+                Test.limit(limit).order('tests.created_date DESC')
+              end
       tests = filter_by_date(tests, start_date, end_date) if start_date.present?
-      if department_id.present? && is_not_reception?(department_id)
+      if department_id.present? && not_reception?(department_id)
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
@@ -19,20 +21,26 @@ module Tests
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
-      orders = Order.joins(encounter: [client: [:person]]).where(client: {id: client.id}, id: order_id) if order_id.present?
-      orders = Order.joins(encounter: [client: [:person]]).where(
-        client: {id: client.id},
-        encounter: { start_date: Date.parse(from).beginning_of_day..Date.parse(to).end_of_day }
-        ) if (order_id.blank? && !from.blank?)
-      orders = Order.joins(encounter: [client: [:person]]).where(
-          client: {id: client.id}) if (order_id.blank? && from.blank?)
-      person = client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
+      if order_id.present?
+        orders = Order.joins(encounter: [client: [:person]]).where(client: { id: client.id }, id: order_id)
+      end
+      if order_id.blank? && !from.blank?
+        orders = Order.joins(encounter: [client: [:person]]).where(
+          client: { id: client.id },
+          encounter: { start_date: Date.parse(from).beginning_of_day..Date.parse(to).end_of_day }
+        )
+      end
+      if order_id.blank? && from.blank?
+        orders = Order.joins(encounter: [client: [:person]]).where(client: { id: client.id })
+      end
+      person = client.person.as_json(
+        only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated]
+      )
       client_identifiers = ClientIdentifier.where(client_id: client.id)
-      
       {
         client: {
-          person: person,
-          client_identifiers: client_identifiers
+          person:,
+          client_identifiers:
         },
         orders: orders.order(id: :desc)
       }
@@ -40,7 +48,7 @@ module Tests
 
     private
 
-    def is_not_reception?(department_id)
+    def not_reception?(department_id)
       Department.find(department_id).name != 'Lab Reception'
     end
 
@@ -58,7 +66,7 @@ module Tests
     end
 
     def filter_by_date(tests, start_date, end_date)
-      end_date = end_date.present? ? end_date : Date.today.strftime("%Y-%m-%d")
+      end_date = end_date.present? ? end_date : Date.today.strftime('%Y-%m-%d')
       tests.where(created_date: Date.parse(start_date).beginning_of_day..Date.parse(end_date).end_of_day)
     end
 
