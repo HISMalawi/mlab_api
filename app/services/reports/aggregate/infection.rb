@@ -45,8 +45,7 @@ module Reports
           #{department}
           GROUP BY t.name
         SQL
-        results = ActiveRecord::Base.connection.execute(query)
-        results
+        ActiveRecord::Base.connection.execute(query)
       end
 
       private
