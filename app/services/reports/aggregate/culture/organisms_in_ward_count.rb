@@ -30,7 +30,7 @@ module Reports
               end
             end
           end
-          tests
+          data
         end
 
         private
