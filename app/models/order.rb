@@ -37,7 +37,8 @@ class Order < VoidableRecord
       specimen.push(test.specimen.name)
       test_t = test.test_type.short_name.blank? ? test.test_type.name : test.test_type.short_name
       test_types.push({
-        name: test_t
+        name: test_t,
+        department: test.test_type.department.name,
       })
     end
     {
