@@ -55,11 +55,12 @@ module Reports
             ) mrrd ON mrrd.test_id = rrd.test_id AND rrd.status_created_date=mrrd.status_created_date
             AND rrd.created_date BETWEEN '#{from}' AND '#{to}'
           ")
+          data = serialize_patient_record(collection)
           {
             from:,
             to:,
-            visits: ReportRawData.where(created_date: from..to).distinct(:encounter_id).count,
-            data: serialize_patient_record(collection)
+            visits: data.length,
+            data:
           }
         end
 
