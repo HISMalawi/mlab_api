@@ -102,32 +102,23 @@ module Reports
         end
 
         def serialize_patient_record(collection)
-          unique_hashes = {}
-          accession_numbers = []
-          specimen = []
-          tests = []
-          collection.each do |hash|
-            patient_id = hash[:patient_no]
-            if unique_hashes[patient_id].nil?
-              accession_numbers =  accession_numbers.push(hash[:accession_number])
-              specimen = specimen.push(hash[:specimen])
-              tests = tests.push(hash[:test_type])
-              unique_hashes[patient_id] = {
-                patient_id: ,
-                patient_name: hash[:patient_name],
-                accession_numbers:,
-                specimen: hash[:specimen],
-                tests: ,
-                dob: hash[:dob],
-                gender: hash[:gender]
-              }
-            else
-              unique_hashes[patient_id][:accession_numbers] = accession_numbers.push(hash[:accession_number])
-              unique_hashes[patient_id][:specimen] = specimen.push(hash[:specimen])
-              unique_hashes[patient_id][:tests] = tests.push(hash[:test_type])
-            end
+          merged_tests = []
+          grouped_tests = collection.group_by { |test| test[:accession_number] }
+          grouped_tests.each do |_accession_number, group|
+            merged_test = group.first.clone
+            test_type = group.map { |test| test[:test_type] }
+            merged_tests << {
+              test_id: merged_test[:test_id],
+              patient_no: merged_test[:patient_no],
+              patient_name: merged_test[:patient_name],
+              accession_number: merged_test[:accession_number],
+              specimen: merged_test[:specimen],
+              test_type:,
+              dob: merged_test[:dob],
+              gender: merged_test[:gender]
+            }
           end
-          unique_hashes.values
+          merged_tests
         end
       end
     end
