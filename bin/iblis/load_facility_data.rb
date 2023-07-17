@@ -56,6 +56,7 @@ ActiveRecord::Base.transaction do
       name: Facility.first.name,
       address: "P.O Box 34, Lilongwe",
       phone: "+265323443",
-      code: 'KCH'
+      code: 'KCH',
+      district: 'Lilongwe'
   )
 end
