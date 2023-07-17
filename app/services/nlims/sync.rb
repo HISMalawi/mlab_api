@@ -67,6 +67,49 @@ module Nlims
       end
     end
 
+    def self.update_order
+      orders = Order.find_by_sql("
+        SELECT o.tracking_number , cos.name AS status, cos.creator AS updater
+        FROM unsync_orders uo
+        INNER JOIN current_order_status cos
+        INNER JOIN orders o ON uo.test_or_order_id = o.id
+        WHERE uo.data_level = 'order' AND uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected'
+          AND uo.sync_status = 0 LIMIT 50
+        ")
+      orders.each do |order|
+        nlims = nlims_token
+        return if nlims[:token].blank?
+
+        first_name = order[:updater].split(' ')[0]
+        last_name = order[:updater].split(' ')[1]
+        payload = {
+          tracking_number: order[:tracking_number],
+          status: order.status.gsub!('-', '_'),
+          who_updated: {
+            first_name:,
+            last_name:,
+            id: nil
+          }
+        }
+        response = RestClient::Request.execute(
+          method: :post,
+          url: "#{nlims[:base_url]}/api/v1/update_order/",
+          headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
+          payload:
+        )
+        response = JSON.parse(response.body)
+        if response['error']
+          Rails.logger.error(response['message'])
+        elsif response['erorr'] == false && response[:message] == 'order updated successfuly'
+          unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
+                                           test_or_order_id: order[:id]).first
+          unsync_order.update(sync_status: 1)
+        end
+      end
+    end
+
+    
+
     def self.nlims_token
       token = ''
       base_url = ''
