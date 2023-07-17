@@ -21,7 +21,7 @@ module Nlims
         encounter = Encounter.find(order[:encounter_id])
         client = encounter.client.person
         payload = {
-          tracking_number: order[:tracking_number] + '-12',
+          tracking_number: order[:tracking_number],
           date_sample_drawn: order[:sample_collected_time].blank? ? order[:created_date] : order[:sample_collected_time],
           date_received: order[:created_date],
           health_facility_name: facility_details[:name],
@@ -32,7 +32,7 @@ module Nlims
           sample_type: tests.first.specimen_type,
           tests: tests.joins(:test_type).pluck('test_types.name'),
           sample_status: OrderStatus.where(order_id: order[:id]).order(created_date: :asc).first.status.name.gsub('-',
-                                                                                                                   '_'),
+                                                                                                                  '_'),
           sample_priority: priority,
           reason_for_test: priority,
           order_location: encounter.facility_section.name,
@@ -60,13 +60,13 @@ module Nlims
           payload: payload.to_json
         )
         response = JSON.parse(response.body)
-        if response['error']
-          Rails.logger.error(response['message'])
-        elsif response['erorr'] == false && response['message'] == 'order created successfuly'
+        if response['error'] == false && response['message'] == 'order created successfuly' || response['message'] == 'order already available'
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
                                            test_or_order_id: order[:id]).first
-          unsync_order.update(sync_status: 1)
-          Rails.logger.info('=======Successfully created orders in nlims=============')
+          unsync_order.update!(sync_status: 1)
+          Rails.logger.info("=======Successfully created orders in nlims:#{payload[:tracking_number]}=============")
+        else
+          Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
         end
       end
     end
@@ -76,7 +76,7 @@ module Nlims
       return if nlims[:token].blank?
 
       orders = Order.find_by_sql("
-        SELECT o.tracking_number , cos.name AS status, cos.creator AS updater
+        SELECT o.tracking_number , cos.name AS status, cos.creator AS updater, uo.test_or_order_id AS id
         FROM unsync_orders uo
         INNER JOIN current_order_status cos
         INNER JOIN orders o ON uo.test_or_order_id = o.id
@@ -103,13 +103,13 @@ module Nlims
           payload: payload.to_json
         )
         response = JSON.parse(response.body)
-        if response['error']
-          Rails.logger.error(response['message'])
-        elsif response['erorr'] == false && response[:message] == 'order updated successfuly'
+        if response['error'] == false && response['message'] == 'order updated successfuly'
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                            test_or_order_id: order[:id]).first
-          unsync_order.update(sync_status: 1)
-          Rails.logger.info('=======Successfully updated orders in nlims=============')
+          unsync_order.update!(sync_status: 1)
+          Rails.logger.info("=======Successfully updated orders in nlims: #{payload[:tracking_number]}=============")
+        else
+          Rails.logger.info("=======#{response['message']}:#{payload[:tracking_number]}=============")
         end
       end
     end
@@ -182,13 +182,13 @@ module Nlims
           payload: payload.to_json
         )
         response = JSON.parse(response.body)
-        if response['error']
-          Rails.logger.error(response['message'])
-        elsif response['erorr'] == false && response[:message] == 'test updated successfuly'
+        if response['error'] == false && response['message'] == 'test updated successfuly'
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: test_res[:test_status],
-                                           test_or_order_id: test_res[:id]).first
-          unsync_order.update(sync_status: 1)
-          Rails.logger.info('=======Successfully updated tests in nlims=============')
+                                           test_or_order_id: test_res[:test_id]).first
+          unsync_order.update!(sync_status: 1)
+          Rails.logger.info("=======Successfully updated tests in nlims:#{payload[:tracking_number]}=============")
+        else
+          Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
         end
       end
     end
