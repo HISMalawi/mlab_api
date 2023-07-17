@@ -78,10 +78,10 @@ module Nlims
       orders = Order.find_by_sql("
         SELECT o.tracking_number , cos.name AS status, cos.creator AS updater, uo.test_or_order_id AS id
         FROM unsync_orders uo
-        INNER JOIN current_order_status cos
+        INNER JOIN current_order_status cos ON cos.order_id = uo.test_or_order_id
         INNER JOIN orders o ON uo.test_or_order_id = o.id
-        WHERE uo.data_level = 'order' AND uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected'
-          AND uo.sync_status = 0 LIMIT 50
+        WHERE uo.data_level = 'order' AND (uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected')
+          AND uo.sync_status = 0
         ")
       orders.each do |order|
         Rails.logger.info('=======Updating orders in nlims=============')
