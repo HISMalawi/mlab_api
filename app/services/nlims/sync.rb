@@ -1,3 +1,4 @@
+Rails.logger = Logger.new(STDOUT)
 module Nlims
   module Sync
     def self.create_order
@@ -14,6 +15,7 @@ module Nlims
       )
       facility_details = GlobalService.current_location
       orders.each do |order|
+        Rails.logger.info('=======Creating orders in nlims=============')
         tests = Test.where(order_id: order[:id])
         priority = Priority.find(order[:priority_id]).name
         encounter = Encounter.find(order[:encounter_id])
@@ -23,13 +25,14 @@ module Nlims
           date_sample_drawn: order[:sample_collected_time].blank? ? order[:created_date] : order[:sample_collected_time],
           date_received: order[:created_date],
           health_facility_name: facility_details[:name],
-          # district: facility_details[:district],
+          district: facility_details[:district],
           target_lab: facility_details[:name],
           requesting_clinician: order[:requested_by],
           return_json: 'true',
           sample_type: tests.first.specimen_type,
           tests: tests.joins(:test_type).pluck('test_types.name'),
-          sample_status: OrderStatus.where(order_id: order[:id]).order(created_date: :asc).first.status.name.gsub!('-', '_'),
+          sample_status: OrderStatus.where(order_id: order[:id]).order(created_date: :asc).first.status.name.gsub('-',
+                                                                                                                   '_'),
           sample_priority: priority,
           reason_for_test: priority,
           order_location: encounter.facility_section.name,
@@ -54,7 +57,7 @@ module Nlims
           method: :post,
           url: "#{nlims[:base_url]}/api/v1/create_order/",
           headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
-          payload:
+          payload: payload.to_json
         )
         response = JSON.parse(response.body)
         if response['error']
@@ -63,11 +66,15 @@ module Nlims
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
                                            test_or_order_id: order[:id]).first
           unsync_order.update(sync_status: 1)
+          Rails.logger.info('=======Successfully created orders in nlims=============')
         end
       end
     end
 
     def self.update_order
+      nlims = nlims_token
+      return if nlims[:token].blank?
+
       orders = Order.find_by_sql("
         SELECT o.tracking_number , cos.name AS status, cos.creator AS updater
         FROM unsync_orders uo
@@ -77,14 +84,12 @@ module Nlims
           AND uo.sync_status = 0 LIMIT 50
         ")
       orders.each do |order|
-        nlims = nlims_token
-        return if nlims[:token].blank?
-
+        Rails.logger.info('=======Updating orders in nlims=============')
         first_name = order[:updater].split(' ')[0]
         last_name = order[:updater].split(' ')[1]
         payload = {
           tracking_number: order[:tracking_number],
-          status: order.status.gsub!('-', '_'),
+          status: order.status.gsub('-', '_'),
           who_updated: {
             first_name:,
             last_name:,
@@ -95,7 +100,7 @@ module Nlims
           method: :post,
           url: "#{nlims[:base_url]}/api/v1/update_order/",
           headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
-          payload:
+          payload: payload.to_json
         )
         response = JSON.parse(response.body)
         if response['error']
@@ -104,11 +109,89 @@ module Nlims
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                            test_or_order_id: order[:id]).first
           unsync_order.update(sync_status: 1)
+          Rails.logger.info('=======Successfully updated orders in nlims=============')
         end
       end
     end
 
-    
+    def self.update_test
+      nlims = nlims_token
+      return if nlims[:token].blank?
+
+      tests = Test.find_by_sql("
+          SELECT
+            o.id AS order_id, t.id AS test_id, o.tracking_number , uo.data_not_synced AS test_status,
+            uo.creator AS creator, uo.updated_date, uo.id
+          FROM
+            unsync_orders uo
+          INNER JOIN tests t ON t.id = uo.test_or_order_id
+          INNER JOIN orders o ON t.order_id  = o.id
+          WHERE
+            uo.data_level = 'test' AND uo.sync_status = 0 LIMIT 100
+      ")
+      tests.each do |test_res|
+        Rails.logger.info('=======Updating tests in nlims=============')
+        test_ = Test.where(id: test_res[:test_id]).first
+        test_name = test_.test_type_name
+        updater = User.where(id: test_res[:creator])
+        updater = if updater.empty?
+                    {
+                      first_name: '',
+                      last_name: ''
+                    }
+                  else
+                    updater.first.person
+                  end
+        first_name = updater[:first_name]
+        last_name = updater[:last_name]
+        result_date = test_res[:updated_date]
+        test_status = test_res[:test_status].gsub('-', '_')
+        test_status = 'verified' if test_status == 'result'
+        result_date = '' unless test_status == 'verified'
+        payload = {
+          tracking_number: test_res[:tracking_number],
+          test_status:,
+          test_name:,
+          result_date:,
+          who_updated: {
+            first_name:,
+            last_name:,
+            id: updater[:id]
+          }
+        }
+        if test_res[:test_status] == 'result' || test_res[:test_status] == 'verified'
+          test_results = TestResult.joins(:test_indicator).where(test_id: test_res[:test_id])
+                                   .select('test_indicators.name AS test_indicator, test_results.value AS result_value, test_results.id')
+          results = {}
+          unless test_results.empty?
+            test_results.each do |test_result|
+              test_indicator = test_result[:test_indicator]
+              test_indicator = 'Epithelial cells' if test_indicator == 'Epithelial cell'
+              test_indicator = 'Casts' if test_indicator == 'Cast'
+              test_indicator = 'Yeast cells' if test_indicator == 'Yeast cell'
+              test_indicator = 'Hepatitis B' if test_indicator == 'HepB'
+              results[test_indicator] = test_result[:result_value]
+            end
+          end
+          payload[:results] = results
+        end
+        response = RestClient::Request.execute(
+          method: :post,
+          url: "#{nlims[:base_url]}/api/v1/update_test/",
+          headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
+          payload: payload.to_json
+        )
+        response = JSON.parse(response.body)
+        if response['error']
+          Rails.logger.error(response['message'])
+        elsif response['erorr'] == false && response[:message] == 'test updated successfuly'
+          unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: test_res[:test_status],
+                                           test_or_order_id: test_res[:id]).first
+          unsync_order.update(sync_status: 1)
+          Rails.logger.info('=======Successfully updated tests in nlims=============')
+        end
+      end
+    end
 
     def self.nlims_token
       token = ''
@@ -137,99 +220,5 @@ module Nlims
         base_url:
       }
     end
-
-    def update_test
-      # for test statuses except verified
-      data = {
-        tracking_number: 'XKCH236E540',
-        test_status: 'completed',
-        test_name: 'FBC',
-        result_date: '',
-        who_updated: {
-          first_name: '',
-          last_name: '',
-          id: ''
-        },
-        test: {}
-      }
-
-      # for verified statuses
-      {
-        tracking_number: 'XKCH236E540',
-        test_status: 'verified',
-        test_name: 'FBC',
-        result_date: '',
-        who_updated: {
-          first_name: '',
-          last_name: '',
-          id: ''
-        },
-        results: {
-          RBC: '4.87',
-          HGB: '13.5',
-          HCT: '38.1',
-          MCV: '78.2',
-          MCH: '27.7',
-          MCHC: '35.4',
-          PLT: '294',
-          "RDW-SD": '37.6',
-          "RDW-CV": '13.4',
-          PDW: '11.8',
-          MPV: '10.4 +',
-          PCT: '0.31',
-          "NEUT%": '66.6 *',
-          "LYMPH%": '23.9 *',
-          "MONO%": '9 *',
-          "EO%": '0.2 *',
-          "BASO%": '0.3 *',
-          "NEUT#": '6.98 *',
-          "LYMPH#": '2.5 *',
-          "MONO#": '0.94 *',
-          "EO#": '0.02 *',
-          "BASO#": '0.03 *',
-          WBC: '10.47 *',
-          "P-LCC": '',
-          "P-LCR": '27.6',
-          "RET %": '',
-          "RET#": '',
-          "NRBC%": '0',
-          "NRBC#": '0'
-        },
-        test: {}
-      }
-    end
   end
 end
-
-# order = {
-#   tracking_number: "XMJD2200011009",
-#   district: "Lilongwe",
-#   health_facility_name: "Kamuzu Central Hospital Laboratory",
-#   sample_type: "Swabs",
-#   date_sample_drawn: "2022-08-10 12:45:48",
-#   sample_status: "specimen_not_collected",
-#   sample_priority: "Routine",
-#   art_start_date: "",
-#   date_received: "2022-08-10 12:45:48",
-#   requesting_clinician: "",
-#   return_json: "true",
-#   target_lab: "Kamuzu Central Hospital Laboratory",
-#   tests: ["HPV"],
-#   who_order_test_last_name: "",
-#   who_order_test_first_name: "",
-#   who_order_test_phone_number: "",
-#   who_order_test_id: nil,
-#   order_location: "MCH OPD",
-#   first_name: "MERCY",
-#   last_name: "NAKUNTHO",
-#   middle_name: "",
-#   reason_for_test: "Routine",
-#   date_of_birth: "1972-07-01",
-#   gender: 1,
-#   patient_residence: "",
-#   patient_location: "",
-#   patient_town: "",
-#   patient_district: "",
-#   national_patient_id: "",
-#   phone_number: ""
-# }
