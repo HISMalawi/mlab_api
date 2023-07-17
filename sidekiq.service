@@ -1,0 +1,15 @@
+[Unit]
+Description=Sidekiq
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/mlab_api
+ExecStart=/bin/bash -lc 'cd /var/www/mlab_api && rvm use 3.2.0 && bundle exec sidekiq'
+User=meduser
+UMask=0002
+RestartSec=1
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

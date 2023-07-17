@@ -14,7 +14,7 @@ module Api
         render json: @global, status: :created
       end
 
-      def show 
+      def show
         render json: @global
       end
     
@@ -37,7 +37,7 @@ module Api
       end
     
       def global_params
-        params.require(:global).permit(:name, :code, :address, :phone)
+        params.require(:global).permit(:name, :code, :address, :phone, :district)
       end
       
     end

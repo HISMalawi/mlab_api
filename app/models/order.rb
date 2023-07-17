@@ -5,6 +5,7 @@ class Order < VoidableRecord
   has_many :client_order_print_trails
 
   after_create :create_default_status
+  after_create :create_unsync_order
 
   def create_default_status
     OrderStatus.create!(order_id: id, status_id: Status.find_by_name('specimen-not-collected').id, creator: User.current.id)
@@ -37,7 +38,8 @@ class Order < VoidableRecord
       specimen.push(test.specimen.name)
       test_t = test.test_type.short_name.blank? ? test.test_type.name : test.test_type.short_name
       test_types.push({
-        name: test_t
+        name: test_t,
+        department: test.test_type.department.name,
       })
     end
     {
@@ -68,4 +70,12 @@ class Order < VoidableRecord
     ward.nil? ? '' : ward.name
   end
 
+  def create_unsync_order
+    UnsyncOrder.create(
+      test_or_order_id: id,
+      data_not_synced: 'new order',
+      data_level: 'order',
+      sync_status: 0
+    )
+  end
 end

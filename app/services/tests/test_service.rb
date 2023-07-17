@@ -46,6 +46,20 @@ module Tests
       }
     end
 
+    def tests_count
+      Test.all.count
+    end
+
+    def test_statuses_count
+      statuses_count = {}
+      statuses = Status.all
+      statuses.each do |status|
+        test_count = CurrentTestStatus.where(status_id: status[:id]).count
+        statuses_count[status[:name]] = test_count
+      end
+      statuses_count
+    end
+
     private
 
     def not_reception?(department_id)

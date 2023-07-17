@@ -44,8 +44,8 @@ module Reports
         end
 
         def patient_record(from, to)
-          from = from.present? ? from : Date.today
-          to = to.present? ? to : Date.today
+          from = from.present? ? from : Date.today.strftime("%Y-%m-%d")
+          to = to.present? ? to : Date.today.strftime("%Y-%m-%d")
           collection = ReportRawData.find_by_sql("
             SELECT DISTINCT(rrd.test_id) test_id, rrd.patient_no, rrd.patient_name, rrd.accession_number, rrd.specimen,
             rrd.test_type, rrd.dob, rrd.gender
@@ -55,11 +55,12 @@ module Reports
             ) mrrd ON mrrd.test_id = rrd.test_id AND rrd.status_created_date=mrrd.status_created_date
             AND rrd.created_date BETWEEN '#{from}' AND '#{to}'
           ")
+          data = serialize_patient_record(collection)
           {
             from:,
             to:,
-            visits: ReportRawData.where(created_date: from..to.strftime("%Y-%m-%d")).distinct(:encounter_id).count,
-            data: serialize_patient_record(collection)
+            visits: data.length,
+            data:
           }
         end
 
@@ -102,32 +103,23 @@ module Reports
         end
 
         def serialize_patient_record(collection)
-          unique_hashes = {}
-          accession_numbers = []
-          specimen = []
-          tests = []
-          collection.each do |hash|
-            patient_id = hash[:patient_no]
-            if unique_hashes[patient_id].nil?
-              accession_numbers =  accession_numbers.push(hash[:accession_number])
-              specimen = specimen.push(hash[:specimen])
-              tests = tests.push(hash[:test_type])
-              unique_hashes[patient_id] = {
-                patient_id: ,
-                patient_name: hash[:patient_name],
-                accession_numbers:,
-                specimen: hash[:specimen],
-                tests: ,
-                dob: hash[:dob],
-                gender: hash[:gender]
-              }
-            else
-              unique_hashes[patient_id][:accession_numbers] = accession_numbers.push(hash[:accession_number])
-              unique_hashes[patient_id][:specimen] = specimen.push(hash[:specimen])
-              unique_hashes[patient_id][:tests] = tests.push(hash[:test_type])
-            end
+          merged_tests = []
+          grouped_tests = collection.group_by { |test| test[:accession_number] }
+          grouped_tests.each do |_accession_number, group|
+            merged_test = group.first.clone
+            test_type = group.map { |test| test[:test_type] }
+            merged_tests << {
+              test_id: merged_test[:test_id],
+              patient_no: merged_test[:patient_no],
+              patient_name: merged_test[:patient_name],
+              accession_number: merged_test[:accession_number],
+              specimen: merged_test[:specimen],
+              test_type:,
+              dob: merged_test[:dob],
+              gender: merged_test[:gender]
+            }
           end
-          unique_hashes.values
+          merged_tests
         end
       end
     end

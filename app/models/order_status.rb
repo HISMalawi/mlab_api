@@ -11,6 +11,7 @@ class OrderStatus < VoidableRecord
 
   after_commit :insert_into_report_data_raw, on: :create
   after_commit :update_moh_report_data, on: :create
+  after_create :create_unsync_order
 
   def as_json(options = {})
     super(options.merge(methods: %i[status initiator statuses_reason],
@@ -58,6 +59,17 @@ class OrderStatus < VoidableRecord
       rescue => e
         Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
       end
+    end
+  end
+
+  def create_unsync_order
+    if ['specimen-accepted', 'specimen-rejected'].include?(Status.find_by(id: status_id).name)
+      UnsyncOrder.create(
+        test_or_order_id: order.id,
+        data_not_synced: Status.find_by(id: status_id).name,
+        data_level: 'order',
+        sync_status: 0
+      )
     end
   end
 end
