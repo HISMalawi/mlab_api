@@ -17,7 +17,7 @@ module Reports
       end
 
       def generate_report
-        report_data = insert_into_moh_data_report_table(department: 'Blood Bank', time_filter: year,
+        report_data = insert_into_moh_data_report_table(department: 'Biochemistry', time_filter: year,
                                                         action: 'update')
         update_report_counts(report_data)
       end
