@@ -6,6 +6,7 @@ module Reports
   module Moh
     # Biochemistry reports
     class Biochemistry
+      include Reports::Moh::MigrationHelpers::ExecuteQueries
       attr_reader :report, :report_indicator
       attr_accessor :year
 
@@ -16,10 +17,8 @@ module Reports
       end
 
       def generate_report
-        report_data = MohReportDataMaterialized
-                      .select('MONTHNAME(created_date) AS month, SUM(total) AS total, indicator')
-                      .where("YEAR(created_date) = #{year} AND department = 'Biochemistry'")
-                      .group('MONTHNAME(created_date), indicator')
+        report_data = insert_into_moh_data_report_table(department: 'Blood Bank', time_filter: year,
+                                                        action: 'update')
         update_report_counts(report_data)
       end
 
