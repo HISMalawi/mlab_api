@@ -1,12 +1,17 @@
+# frozen_string_literal: true
+
+require 'client_management/bantu_soundex'
+
+# Client management module
 module ClientManagement
+  # Client service module
   module ClientService
     class << self
-
       def get_client(client_id)
         client = Client.find(client_id)
         person = Person.find(client.person.id)
         client_identifiers = ClientIdentifier.joins(:client_identifier_type).where(client_id: client_id)
-        .select('client_identifiers.id, client_identifier_types.name, client_identifiers.value')
+          .select('client_identifiers.id, client_identifier_types.name, client_identifiers.value')
         serialize_client(client, person, client_identifiers)
       end
 
@@ -20,7 +25,9 @@ module ClientManagement
               last_name: params[:person][:last_name],
               sex: params[:person][:sex],
               date_of_birth: params[:person][:date_of_birth],
-              birth_date_estimated: params[:person][:birth_date_estimated]
+              birth_date_estimated: params[:person][:birth_date_estimated],
+              first_name_soundex: params[:person][:first_name].soundex,
+              last_name_soundex: params[:person][:last_name].soundex
             )
             uuid =  params[:client][:uuid]
             @client = Client.create!(person_id: person.id, uuid: uuid)
@@ -46,6 +53,7 @@ module ClientManagement
         ActiveRecord::Base.transaction do
           person = client.person
           person.update!(params[:person])
+          person.update!(first_name_soundex: person.first_name.soundex, last_name_soundex: person.last_name.soundex)
           identifier_params[:client_identifiers].each do |identifier|
             client_identifier_type = ClientIdentifierType.find_by_name(identifier[:type])
             unless client_identifier_type.nil?
