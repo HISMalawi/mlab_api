@@ -38,9 +38,9 @@ class TestStatus < VoidableRecord
 
   def insert_into_report_data_raw
     begin
-      created_date = test.created_date.nil? ? '' : test.created_date.strftime('%Y-%m-%d').to_s
+      # created_date = test.created_date.nil? ? '' : test.created_date.strftime('%Y-%m-%d').to_s
       InsertIntoReportRawDataJob.perform_async(test.id)
-      UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
+      # UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
     rescue => e
       Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
     end
