@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'client_management/bantu_soundex'
+
 module UserManagement
   module UserService
 
@@ -7,6 +9,7 @@ module UserManagement
       def create_user(user_params)
         ActiveRecord::Base.transaction do
           person = Person.create!(user_params[:person])
+          person.update!(first_name_soundex: person.first_name.soundex, last_name_soundex: person.last_name.soundex)
           user = User.new(user_params[:user])
           user.person = person
           user.is_active = 0
@@ -36,6 +39,7 @@ module UserManagement
           person = user.person
           updated_person = person.update!(user_params[:person])
           if updated_person
+            person.update!(first_name_soundex: person.first_name.soundex, last_name_soundex: person.last_name.soundex)
             update_roles(user.id, user_params[:roles])
             update_departments(user.id, user_params[:departments])
           end
