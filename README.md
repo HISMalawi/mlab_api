@@ -1,59 +1,159 @@
-# README
-SETUP MLAB API
-* System requirements  
-```
-ruby: 3.2.0
-mysql: 8
-redis: > 6
-```
+# mlab_api Installation Guide
 
-* Run this command to Install redis
-```
+This guide provides step-by-step instructions for installing and setting up `mlab_api`.
+
+## Requirements
+
+Before installing `mlab_api`, ensure that the following requirements are met:
+
+- Ruby 3.2.0
+- MySQL 8
+- Rails 7
+- Redis
+
+## Installing Redis
+
+1. Add the Redis repository:
+
+```shell
 sudo apt install lsb-release curl gpg  
 curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg  
 echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/redis.list  
 sudo apt-get update  
+```
+
+2. Install Redis:
+
+```shell
 sudo apt-get install redis
 ```
-* Check if redis is running and its version
-``` redis-server -v  
-   sudo systemctl status redis-server
+
+3. Enable and start the Redis server:
+
+```shell
+sudo systemctl enable --now redis-server
 ```
 
-* System dependencies
+4. Verify the status of the Redis server:
+
+```shell
+sudo systemctl status redis-server
 ```
+
+## Clone the Application and Checkout the Branch
+
+1. Clone the `mlab_api` repository:
+
+```shell
+git clone https://github.com/EGPAFMalawiHIS/mlab_api.git
+```
+
+2. Checkout the `dev_staging` branch:
+
+```shell
+git checkout dev_staging
+```
+
+## Configure Application Settings
+
+1. Copy the `application.yml.example` file to `application.yml`:
+
+```shell
+cp application.yml.example application.yml
+```
+
+2. Edit the `application.yml` file to configure the DDE and NLIMS settings:
+
+```shell
+vim application.yml
+```
+
+## Configure Database Connection Details
+
+1. For a new fresh setup without a previous iBLIS installation:
+
+   - Only set the database connections for the `default` block in `database.yml`.
+
+2. For sites that had iBLIS previously:
+
+   - Set up the database connections for both the `default` block and the `iblis_db` block found at the bottom of the `database.yml` file.
+   - The `iBLIS` block should be connected to MySQL 8 iBLIS database, which you will load from the iBLIS dump.
+
+## Set Up Encryption Key
+
+Copy the `master.key.example` file in the `config` folder to `master.key`:
+
+```shell
+cp master.key.example master.key
+```
+
+## Install Dependencies and Set Up `mlab_api` Database
+
+1. Install the required dependencies:
+
+```shell
+rvm use 3.2.0
 bundle install
 ```
-* Configuration (Edit configuration file in config folder accordingly)
-```
-cd config  
 
-# Edit the default block database in database.yml and iblis_db block database accordingly
-1. cp database.yml.example database.yml  
+2. Create and migrate the `mlab_api` database:
 
-# Edit dde_service and nlims_service block accordingly
-# If you are on a site that need 8 character long sample id(accession number), setting accession_number_length to false in default block of this file  
-   otherwise the default length is 10 characters
-2. cp application.yml.example application.yml
+```shell
+rails db:create db:migrate
 ```
 
-* Database creation
-```
-# Create the db specified in iblis_db block and load the old iblis dump to this db
-1. Use the manual process of creating and loading databases if you are setting up the app on a plantform not currently 
-   running IBLIS otherwise configure db configs for IBLIS app database in iblis_db block of database.yml found below the file.  
-   This will be used for migration of data 
+## Data Migration for Sites with Previous iBLIS Installation
 
-# Create default database for MLAB app set in the default block of database.yml
-2. rails db:create && rails db:migrate
-```
-* Database initialization
-```
-# Run this command to migrate data from iblis databae you have created to the database that mlab will be using
-bash load_iblis_data.sh 
+1. Create the iBLIS database as specified in the `iblis_db` block of `database.yml`.
+2. Load the iBLIS dump into this database.
+3. Run the migration scripts to migrate data from the iBLIS database to the `mlab_api` database:
+
+```shell
+bash load_iblis_data.sh
+rails r bin/moh_report_init.rb  # Run this in tmux
 ```
 
-* Initialize the reports
+## Data Initialization for Sites without Previous iBLIS Installation
+
+Run the following command to initialize the database:
+
+```shell
+rails r bin/setup/initialize_database.rb
 ```
- rails r bin/moh_report_init.rb
+
+## Configure Sidekiq Service
+
+1. Edit the `sidekiq.service` file and replace the following placeholders:
+   - `WorkingDirectory` with your app directory
+   - `ExecStart` with your app directory (listed in the file)
+   - `User` with your PC username
+
+```shell
+vim sidekiq.service
 ```
+
+2. Copy the `sidekiq.service` file to `/etc/systemd/system`:
+
+```shell
+cp sidekiq.service /etc/systemd/system
+```
+
+3. Start the Sidekiq service:
+
+```shell
+sudo systemctl start sidekiq.service
+```
+
+4. Verify the status of the Sidekiq service:
+
+```shell
+sudo systemctl status sidekiq.service
+```
+
+5. Enable the Sidekiq service to start on system boot:
+
+```shell
+sudo systemctl enable sidekiq.service
+```
+
+Congratulations! You have successfully installed and set up `mlab_api`.

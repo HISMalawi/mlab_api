@@ -7,7 +7,7 @@ class ReportRawData < ApplicationRecord
   after_create :update_moh_report_data
 
   def self.insert_data(test_id: nil)
-    condition = test_id.nil? ? '' : " AND t.id = #{test_id}"
+    condition = test_id.nil? ? '' : " AND t.id IN #{test_id}"
     query = <<~SQL
           SELECT#{' '}
           CONCAT(t.id, ti.id, cts.status_id) AS id,
