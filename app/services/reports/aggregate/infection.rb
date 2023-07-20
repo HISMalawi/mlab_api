@@ -8,15 +8,16 @@ module Reports
           test_type = test.test_type
           next unless test_type
           test_data = {
-            'Test Type' => test_type.name,
-            'indicators' => []
+            'test_type' => test_type.name,
+            'indicators' => [],
+            'genders' => [ {:name => 'male'}, {:name => 'female'}]
           }
           test.indicators.each do |indicator|
             result = indicator['result']
             sex = test.client['sex']
             age = calculate_age(test.client['date_of_birth'], test.created_date)
             indicator_data = {
-              'name' => indicator['name'],
+              'indicator' => indicator,
               'M' => {
                 '0-5' => 0,
                 '5-14' => 0,
