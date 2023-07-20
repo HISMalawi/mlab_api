@@ -62,7 +62,7 @@ git checkout dev_staging
 cp application.yml.example application.yml
 ```
 
-2. Edit the `application.yml` file to configure the DDE and NLIMS settings:
+2. Edit the `application.yml` file to configure the DDE and NLIMS settings and default settings:
 
 ```shell
 vim application.yml
@@ -154,6 +154,15 @@ sudo systemctl status sidekiq.service
 
 ```shell
 sudo systemctl enable sidekiq.service
+```
+
+6. Set cron job for pregenerating moh reports:
+```shell
+0 0 * * * /bin/bash -lc "cd /var/www/mlab_api && rvm use 3.2.0 && rails r bin/generate_moh_report.rb &"
+```
+6. Set cron job for syncing with NLIMS:
+```shell
+*/2 * * * *  /bin/bash -lc "cd /var/www/mlab_api && rvm use 3.2.0 && rails r bin/nlims_sync.rb &"
 ```
 
 Congratulations! You have successfully installed and set up `mlab_api`.

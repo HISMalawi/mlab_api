@@ -16,6 +16,22 @@ module Reports
           end
           range
         end
+
+        def check_if_file_exists(department, year)
+          file_path = Rails.root.join('public', "#{department}_#{year}_moh_report_data.json")
+          File.exist?(file_path) ? true : false
+        end
+
+        def get_file_path(department, year)
+          Rails.root.join('public', "#{department}_#{year}_moh_report_data.json")
+        end
+
+        def save_report_to_json(department, data, year)
+          file_path = Rails.root.join('public', "#{department}_#{year}_moh_report_data.json")
+          File.open(file_path, 'w') do |file|
+            file.write(JSON.generate(data))
+          end
+        end
       end
     end
   end

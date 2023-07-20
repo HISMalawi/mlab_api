@@ -19,7 +19,9 @@ module Reports
       def generate_report
         report_data = insert_into_moh_data_report_table(department: 'Biochemistry', time_filter: year,
                                                         action: 'update')
-        update_report_counts(report_data)
+        data = update_report_counts(report_data)
+        Reports::Moh::ReportUtils.save_report_to_json('Biochemistry', data, year)
+        data
       end
 
       private

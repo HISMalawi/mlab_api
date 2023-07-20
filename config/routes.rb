@@ -104,7 +104,11 @@ Rails.application.routes.draw do
           put '/:test_id/rejected' => 'test_statuses#rejected'
         end
       end
-      resources :global
+      resources :global do 
+        collection do
+          get 'current_api_tag' => 'global#current_git_tag'
+        end
+      end
       resources :priorities
       resources :surveillances
       resources :order_statuses, only: %i[index] do
