@@ -102,4 +102,18 @@ RSpec.describe 'api/v1/global', type: :request do
       end
     end
   end
+  path '/api/v1/global/current_api_tag' do
+    get('Get Api Git Tag') do
+      tags TAG_NAME
+      description TAG_DESCRIPTION
+      produces 'application/json'
+      response(200, 'successful') do
+        schema type: :object,
+               properties: {
+                git_tag: { type: :string }
+               }
+        run_test!
+      end
+    end
+  end
 end

@@ -410,6 +410,22 @@ paths:
                 properties:
                   message:
                     type: string
+  "/api/v1/global/current_api_tag":
+    get:
+      summary: Get Api Git Tag
+      tags:
+      - Global
+      description: Manage site details
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  git_tag:
+                    type: string
   "/api/v1/interfacer/fetch_results":
     get:
       summary: fetch_results interfacer
