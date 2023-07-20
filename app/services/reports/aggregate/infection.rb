@@ -37,12 +37,13 @@ module Reports
         data
       end
 
-      def get_summary(department: nil)
-        department = department.present? ?  " WHERE t.department_id = #{department}" : ''
+      def get_summary(department: nil, from: nil, to: nil)
+        department = department.present? ?  " AND t.department_id = #{department}" : ''
         query = <<-SQL
           SELECT t.name, COUNT(*) AS test_count
           FROM tests AS ts
           JOIN test_types AS t ON ts.test_type_id = t.id
+          WHERE (ts.created_date BETWEEN '#{from}' AND '#{to}')
           #{department}
           GROUP BY t.name
         SQL
