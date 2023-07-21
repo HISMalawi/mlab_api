@@ -23,11 +23,11 @@ class Test < VoidableRecord
   end
 
   def short_name
-    test_type.short_name
+    test_type&.short_name
   end
 
   def is_machine_oriented
-    !InstrumentTestTypeMapping.where(test_type_id: test_type.id).empty?
+    !InstrumentTestTypeMapping.where(test_type_id: test_type&.id).empty?
   end
 
   def create_default_status
@@ -35,7 +35,7 @@ class Test < VoidableRecord
   end
 
   def indicators
-    test_type.test_indicators.as_json(only: %i[id name test_indicator_type unit description])
+    test_type&.test_indicators.as_json(only: %i[id name test_indicator_type unit description])
       .map do |i|
         i.merge!(result: results(i['id']))
         i.merge!(indicator_ranges: indicator_ranges(i['id']))
@@ -52,7 +52,7 @@ class Test < VoidableRecord
 
   def request_origin
     encounter_type = EncounterType.find_by(id: order.encounter.encounter_type_id)
-    encounter_type.nil? ? '' : encounter_type.name
+    encounter_type.nil? ? '' : encounter_type&.name
   end
 
   def requesting_ward
@@ -124,19 +124,19 @@ class Test < VoidableRecord
   end
 
   def test_type_name
-    test_type.name
+    test_type&.name
   end
 
   def print_device
-    test_type.print_device
+    test_type&.print_device
   end
 
   def test_type_short_name
-    test_type.short_name
+    test_type&.short_name
   end
 
   def expected_turn_around_time
-    test_type.expected_turn_around_time
+    test_type&.expected_turn_around_time
   end
 
   def client
