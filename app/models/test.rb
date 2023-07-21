@@ -65,7 +65,7 @@ class Test < VoidableRecord
   end
 
   def test_panel_name
-    test_panel_id.nil? ? nil : test_panel.name
+    test_panel_id.nil? ? nil : test_panel&.name
   end
 
   def order_status_trail
