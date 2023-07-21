@@ -35,11 +35,13 @@ class Test < VoidableRecord
   end
 
   def indicators
-    test_type&.test_indicators.as_json(only: %i[id name test_indicator_type unit description])
+    unless test_type.nil?
+      test_type.test_indicators.as_json(only: %i[id name test_indicator_type unit description])
       .map do |i|
         i.merge!(result: results(i['id']))
         i.merge!(indicator_ranges: indicator_ranges(i['id']))
       end
+    end
   end
 
   def results(indicator_id)
