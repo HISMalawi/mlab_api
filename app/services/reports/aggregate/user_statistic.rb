@@ -45,18 +45,27 @@ module Reports
       end
 
       def patients_registry(from: nil, to: nil, user: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        user_patients = []
+        if user.nil?
+          clients = Client.includes(:person).all
+        else
+          clients = Client.includes(:person).where(creator: user)
+        end
+        user_patients = clients.map(&:person)
       end
+
 
       def specimen_registry(from: nil, to: nil, user: nil)
         users = user.nil? ? User.all : [User.find(user)]
         user_specimens = []
+
+        # get acc n, specimen type, patient no, patient, reg date---> reportdataraw then filter bv user/creator
       end
 
       def tests_registry(from: nil, to: nil, user: nil)
         users = user.nil? ? User.all : [User.find(user)]
         user_tests = []
+
+        # gets all tests performed by someone
       end
 
       def tests_performed(from: nil, to: nil, user: nil)
