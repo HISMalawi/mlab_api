@@ -85,6 +85,16 @@ module Api
         service = Reports::Aggregate::Culture::OrganismsInWardCount.new
         render json: { data: service.generate_report(month:, year:, department:)}
       end
+
+      def department_report
+        render json: department_report_service.generalize_depart_report
+      end
+
+      private
+
+      def department_report_service
+        Reports::Aggregate::DepartmentReport.new(params.require(:from), params.require(:to), params.require(:department))
+      end
     end
   end
 end
