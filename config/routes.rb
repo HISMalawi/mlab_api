@@ -104,7 +104,7 @@ Rails.application.routes.draw do
           put '/:test_id/rejected' => 'test_statuses#rejected'
         end
       end
-      resources :global do 
+      resources :global do
         collection do
           get 'current_api_tag' => 'global#current_git_tag'
         end
@@ -154,7 +154,7 @@ Rails.application.routes.draw do
           get '/aggregate/culture/wards_based_counts' => 'aggregate_report#wards_based_count'
           get '/aggregate/culture/organisms_based_counts' => 'aggregate_report#organisms_based_count'
           get '/aggregate/culture/organisms_wards_counts' => 'aggregate_report#organisms_in_wards_count'
-          get '/aggregate/department_report' => 'aggregate_report#department_report'
+          get '/aggregate/department' => 'aggregate_report#department_report'
         end
       end
     end
