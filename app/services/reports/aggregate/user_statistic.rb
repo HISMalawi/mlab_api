@@ -43,13 +43,14 @@ module Reports
         users_test_counts
       end
 
-      def patients_registry(from: nil, to: nil, user: nil)
+      def patients_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
+        clients = []
         if user.nil?
-          clients = Client.includes(:person).all
+          clients = PaginationService.paginate(Client.includes(:person).all, page: page, limit: limit)
         else
-          clients = Client.includes(:person).where(creator: user)
+          clients = PaginationService.paginate(Client.includes(:person).where(creator: user), page: page, limit: limit)
         end
-        user_patients = clients.map(&:person)
+        { client: clients.map(&:person), metadata: PaginationService.pagination_metadata(clients)}
       end
 
 
