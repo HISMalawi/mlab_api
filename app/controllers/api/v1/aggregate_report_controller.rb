@@ -25,7 +25,9 @@ module Api
         to = params[:to]
         user = params[:user]
         report_type = params[:report_type]
-        render json: { data: service.generate_report(from:, to:, user:, report_type:) }
+        limit = params[:limit]
+        page = params[:page]
+        render json: { data: service.generate_report(from:, to:, user:, report_type:, page:, limit:) }
       end
 
       def infection
