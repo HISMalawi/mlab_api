@@ -4,15 +4,15 @@ module Reports
       def generate_report(from: nil, to: nil, user: nil, report_type: nil, page: nil, limit: nil)
         data = {}
         if report_type == 'summary'
-          data = get_summary(from:, to:, user:)
+          data = get_summary(from:, to:, user:, page:, limit:)
         elsif report_type == 'patients_registry'
-          data = patients_registry(from:, to:, user:)
+          data = patients_registry(from:, to:, user:, page:, limit:)
         elsif report_type == 'tests_registry'
           data = tests_registry(from:, to:, user:, page:, limit:)
         elsif report_type == 'specimen_registry'
           data = specimen_registry(from:, to:, user:, page:, limit:)
         elsif report_type == 'tests_performed'
-          data = tests_performed(from:, to:, user:)
+          data = tests_performed(from:, to:, user:, page:, limit:)
         else
           raise ArgumentError, "Invalid report type, please specify"
         end
@@ -81,15 +81,19 @@ module Reports
         { 'tests' => data, 'metadata' => PaginationService.pagination_metadata(data) }
       end
 
-      def tests_performed(from: nil, to: nil, user: nil)
+      def tests_performed(from: nil, to: nil, user: nil, page: nil, limit: nil)
         users = user.nil? ? User.all : [User.find(user)]
-        user_tests = {}
+        data = []
+        tests = []
         users.each do |user|
-          user_tests <<  ReportRawData.where('created_date >= ? AND created_date <= ?', from, to).where(status_creator: user.full_name, status_id: 4).select(
+          data =  ReportRawData.where('created_date >= ? AND created_date <= ?', from, to).where(status_creator: user.full_name, status_id: 4).select(
                   'test_id, test_type,  patient_no, patient_name, accession_number, created_date', 'id'
                 ).distinct('test_id')
         end
-        user_tests
+        unless data.empty?
+          tests = PaginationService.paginate(data, page: page, limit: limit)
+        end
+        { 'tests' => tests, 'metadata' => PaginationService.pagination_metadata(tests) }
       end
     end
   end
