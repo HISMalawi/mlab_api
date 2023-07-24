@@ -10,7 +10,7 @@ module Reports
         elsif report_type == 'tests_registry'
           data = tests_registry(from:, to:, user:, page:, limit:)
         elsif report_type == 'specimen_registry'
-          data = specimen_registry(from:, to:, user:)
+          data = specimen_registry(from:, to:, user:, page:, limit:)
         elsif report_type == 'tests_performed'
           data = tests_performed(from:, to:, user:)
         else
@@ -54,11 +54,17 @@ module Reports
       end
 
 
-      def specimen_registry(from: nil, to: nil, user: nil)
+      def specimen_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
         users = user.nil? ? User.all : [User.find(user)]
-        user_specimens = []
-
-        # get acc n, specimen type, patient no, patient, reg date---> reportdataraw then filter bv user/creator
+        data = []
+        users.each do |creator|
+          data << ReportRawData.where(order_status_creator: creator.full_name).select(
+            'test_id, test_type, specimen,  patient_no, patient_name, accession_number, created_date', 'id'
+          ).distinct('test_id')
+        end
+        tests =  PaginationService.paginate(data, page, limit)
+        # { 'metadata' => PaginationService.pagination_metadata(tests) }
+        tests
       end
 
       def tests_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
@@ -68,7 +74,7 @@ module Reports
           if user.nil?
             data = PaginationService.paginate(Test.all, page, limit)
           else
-            data  = Test.where('creator', user).page(page).per(limit)
+            data  = PaginationService.paginate(Test.where('creator', user), page, limit)
           end
         end
         { 'tests' => data, 'metadata' => PaginationService.pagination_metadata(data) }
