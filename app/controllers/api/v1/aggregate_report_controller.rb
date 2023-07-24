@@ -21,7 +21,11 @@ module Api
 
       def user_statistics
         service = Reports::Aggregate::UserStatistic.new
-        render json: { data: service.generate_report }
+        from = params[:from]
+        to = params[:to]
+        user = params[:user]
+        report_type = params[:report_type]
+        render json: { data: service.generate_report(from:, to:, user:, report_type:) }
       end
 
       def infection
