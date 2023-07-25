@@ -21,16 +21,17 @@ module Reports
 
       private
 
-      def get_summary(from: nil, to: nil, user: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        users_test_counts = users.map do |user|
+      def get_summary(from: nil, to: nil, user: nil, page: nil, limit: nil)
+        users = PaginationService.paginate(user.nil? ? User.all : [User.find(user)], page: page, limit: limit)
+        data = []
+        users.each do |user|
           tests_completed = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('completed').id).count
           tests_received = Test.joins(order: :order_statuses).where(order_statuses: { creator: user.id }).where('order_statuses.status_id = ?', Status.find_by_name('specimen-accepted').id).count
           specimen_collected = OrderStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('pending').id).count
           specimen_rejected = OrderStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('specimen-rejected').id).count
           tests_performed = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('verified').id).count
           tests_authorized = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('verified').id).count
-          {
+          data << {
             user: user.username,
             tests_completed: tests_completed,
             tests_received: tests_received,
@@ -40,7 +41,7 @@ module Reports
             tests_authorized: tests_authorized
           }
         end
-        users_test_counts
+        { tests: data, metadata: PaginationService.pagination_metadata(users)}
       end
 
       def patients_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
