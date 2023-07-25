@@ -33,7 +33,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) <= 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((DATEDIFF(created_date, dob) /365) <= 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -42,7 +42,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) > 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((DATEDIFF(created_date, dob) /365) > 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -51,7 +51,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) <= 5) 
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((DATEDIFF(created_date, dob) /365) <= 5) 
               AND result NOT IN ('NMPS', 'Negative', 'no malaria palasite seen', 'No malaria parasites seen', 
                 'No tryps seen', 'No parasite seen', 'NPS') AND result NOT LIKE '%No parasi%'
               AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
@@ -63,7 +63,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film') 
-              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((created_date - dob) > 5) 
+              AND test_indicator_name IN ('Blood film', 'Results','Malaria Species') AND ((DATEDIFF(created_date, dob) /365) > 5) 
               AND result NOT IN ('NMPS', 'Negative', 'no malaria palasite seen', 'No malaria parasites seen', 
                 'No tryps seen', 'No parasite seen', 'NPS') AND result NOT LIKE '%No parasi%'
               AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
@@ -114,7 +114,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) <= 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((DATEDIFF(created_date, dob) /365) <= 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -123,7 +123,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) <= 5) AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((DATEDIFF(created_date, dob) /365) <= 5) AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -132,7 +132,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) > 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((DATEDIFF(created_date, dob) /365) > 5) AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
@@ -141,7 +141,7 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type IN ('Malaria Screening', 'Malaria Screening (Paeds)', 'MRDT ..', 'MRDT')
-              AND test_indicator_name = 'MRDT' AND ((created_date - dob) > 5) AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
+              AND test_indicator_name = 'MRDT' AND ((DATEDIFF(created_date, dob) /365) > 5) AND result = 'Positive' AND status_id IN (4, 5) AND result IS NOT NULL THEN test_id
             END)
           RUBY
         end
