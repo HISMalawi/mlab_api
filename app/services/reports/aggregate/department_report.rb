@@ -27,7 +27,7 @@ module Reports
 
       def generalize_depart_report
         data = ReportRawData.find_by_sql(@sql)
-        blood_bank_products = []
+        blood_bank_products = @department == 'Blood Bank' ? blood_bank_product_report : []
         critical_values = %w[Haematology Biochemistry Paediatric].include?(@department) ? department_critical_values : []
         {
           from:,
@@ -41,7 +41,39 @@ module Reports
       end
 
       def blood_bank_product_report
-
+        sql_query = <<-SQL
+            SELECT
+            rrd.result AS blood_product,
+            rrd.ward ,
+            CASE
+              WHEN (rrd.created_date - rrd.dob) <= 5 THEN '0-5'
+              WHEN (rrd.created_date - rrd.dob) > 5 AND (rrd.created_date - rrd.dob) < 14 THEN '6-14'
+              ELSE '15-120'
+            END AS age_range,
+            CASE 
+              WHEN rrd.gender = 'M' THEN 'Male'
+              ELSE 'Female'
+            END AS gender,
+            COUNT(DISTINCT rrd.test_id) AS count
+          FROM
+            report_raw_data rrd
+          WHERE
+            rrd.result IN ('Whole Blood', 'Packed Red Cells', 'Platelets', 'FFPs', 'Cryoprecipitate')
+            AND rrd.created_date BETWEEN '#{from}' AND '#{to}' AND rrd.department = '#{department}'
+          GROUP BY CASE
+              WHEN (rrd.created_date - rrd.dob) <= 5 THEN '0-5'
+              WHEN (rrd.created_date - rrd.dob) > 5 AND (rrd.created_date - rrd.dob) < 14 THEN '6-14'
+              ELSE '15-120'
+            END,
+            CASE
+              WHEN rrd.gender = 'M' THEN 'Male'
+              ELSE 'Female'
+            END,
+            rrd.result,
+            rrd.ward
+        SQL
+        data = ReportRawData.find_by_sql(sql_query)
+        serialize_blood_products(data)
       end
 
       def department_critical_values
@@ -101,12 +133,37 @@ module Reports
             test_indicator_name.to_sym => test_indicator_name_entries.group_by do |entry|
                               entry['critical_value_level'].downcase
                             end
-                                         .map do |test_type, test_type_entries|
+                                         .map do |critical_value, critical_value_entries|
                               {
-                                "critical_value_level": test_type,
-                                "ward": test_type_entries.map do |entry|
+                                "critical_value_level": critical_value,
+                                "ward": critical_value_entries.map do |entry|
                                           { entry['ward'] => entry['count'] }
                                         end.reduce({}, :merge)
+                              }
+                            end
+          }
+        end
+      end
+
+      def serialize_blood_products(data)
+        data.group_by { |entry| entry['blood_product'].downcase }.map do |blood_product, blood_product_entries|
+          {
+            blood_product.to_sym => blood_product_entries.group_by do |entry|
+                              entry['gender'].downcase
+                            end
+                                         .map do |gender, gender_entries|
+                              {
+                                "gender": gender,
+                                "ward": gender_entries.group_by do |entry|
+                                  entry['ward'].downcase
+                                end
+                                .map do |ward, entries|
+                                  {
+                                    ward.to_sym => entries.map do |entry|
+                                      {entry['age_range'] => entry['count']}
+                                    end.reduce({}, :merge)
+                                  }
+                                end
                               }
                             end
           }
