@@ -5,13 +5,13 @@ module Reports
         data = {}
         if report_type == 'summary'
           data = get_summary(from:, to:, user:, page:, limit:)
-        elsif report_type == 'patients_registry'
+        elsif report_type == 'patients registry'
           data = patients_registry(from:, to:, user:, page:, limit:)
-        elsif report_type == 'tests_registry'
+        elsif report_type == 'tests registry'
           data = tests_registry(from:, to:, user:, page:, limit:)
-        elsif report_type == 'specimen_registry'
+        elsif report_type == 'specimen registry'
           data = specimen_registry(from:, to:, user:, page:, limit:)
-        elsif report_type == 'tests_performed'
+        elsif report_type == 'tests performed'
           data = tests_performed(from:, to:, user:, page:, limit:)
         else
           raise ArgumentError, "Invalid report type, please specify"
@@ -51,7 +51,7 @@ module Reports
         else
           clients = PaginationService.paginate(Client.includes(:person).where(creator: user), page: page, limit: limit)
         end
-        { client: clients.map(&:person), metadata: PaginationService.pagination_metadata(clients)}
+        { tests: clients.map(&:person), metadata: PaginationService.pagination_metadata(clients)}
       end
 
 
@@ -75,27 +75,30 @@ module Reports
         data = []
         users.each do |user|
           if user.nil?
-            data = PaginationService.paginate(Test.all, page, limit)
+            data = PaginationService.paginate(Test.all, page: , limit:)
           else
-            data  = PaginationService.paginate(Test.where('creator', user), page, limit)
+            data  = PaginationService.paginate(Test.where('creator', user), page:, limit:)
           end
         end
-        { 'tests' => data, 'metadata' => PaginationService.pagination_metadata(data) }
+        {
+          tests: data,
+          metadata:  data.empty? ? data : PaginationService.pagination_metadata(data)
+        }
       end
 
       def tests_performed(from: nil, to: nil, user: nil, page: nil, limit: nil)
         users = user.nil? ? User.all : [User.find(user)]
         data = []
+        users_ = []
         tests = []
         users.each do |user|
-          data =  ReportRawData.where('created_date >= ? AND created_date <= ?', from, to).where(status_creator: user.full_name, status_id: 4).select(
+          users_ << user.full_name
+        end
+        data =  ReportRawData.where('created_date >= ? AND created_date <= ?', from, to).where(status_creator: users_, status_id: 4).select(
                   'test_id, test_type,  patient_no, patient_name, accession_number, created_date', 'id'
                 ).distinct('test_id')
-        end
-        unless data.empty?
-          tests = PaginationService.paginate(data, page: page, limit: limit)
-        end
-        { 'tests' => tests, 'metadata' => PaginationService.pagination_metadata(tests) }
+        tests = PaginationService.paginate(data, page: page, limit: limit)
+        { tests: tests, metadata: data.empty? ? data : PaginationService.pagination_metadata(tests) }
       end
     end
   end
