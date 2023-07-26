@@ -155,6 +155,7 @@ Rails.application.routes.draw do
           get '/aggregate/culture/organisms_based_counts' => 'aggregate_report#organisms_based_count'
           get '/aggregate/culture/organisms_wards_counts' => 'aggregate_report#organisms_in_wards_count'
           get '/aggregate/department' => 'aggregate_report#department_report'
+          get '/aggregate/tb_tests' => 'aggregate_report#tb_tests'
         end
       end
     end

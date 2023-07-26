@@ -84,6 +84,13 @@ module Api
         render json: department_report_service.generalize_depart_report
       end
 
+      def tb_tests
+        from = params[:from]
+        to = params[:to]
+        service = Reports::Aggregate::TbTests.new
+        render json: { data: service.generate_report(from:, to:)}
+      end
+
       private
 
       def department_report_service
