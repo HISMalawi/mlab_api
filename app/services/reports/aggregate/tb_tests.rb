@@ -10,14 +10,11 @@ module Reports
         WHERE department = 'Microbiology' and created_date BETWEEN '#{from}' AND '#{to}' and result is not null
         GROUP by monthname(created_date), result, test_indicator_name;
         SQL
-
-        # Use find_by_sql to execute the SQL query and get the data as an array of objects
         data = ReportRawData.find_by_sql(query)
         months = []
         data.each do |entry|
           months << entry.month
         end
-        # grouped_data
         {
           data: serialize_data(data),
           months: months.uniq
