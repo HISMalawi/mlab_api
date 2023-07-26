@@ -88,7 +88,7 @@ module Api
         from = params[:from]
         to = params[:to]
         service = Reports::Aggregate::TbTests.new
-        render json: { data: service.generate_report(from:, to:)}
+        render json: service.generate_report(from:, to:)
       end
 
       private
