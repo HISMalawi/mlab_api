@@ -2,8 +2,9 @@ module Reports
   module Aggregate
     module Culture
       class WardsBased
-        def generate_report(month: nil, year: nil, department: nil)
+        def generate_report(month: nil, year: nil)
           data = []
+          department = Department.find_by(name: 'Microbiology').id
           tests = Test.includes(test_type: :test_indicators)
             .where(test_types: { department_id: department, name: 'Culture & Sensitivity' })
             .where("MONTH((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", month)
