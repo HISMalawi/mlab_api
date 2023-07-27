@@ -51,9 +51,8 @@ module Api
       def general_count
         month = params[:month]
         year = params[:year]
-        department = params[:department]
         service = Reports::Aggregate::Culture::GeneralCount.new
-        render json: { data: service.generate_report(month:, year:, department:)}
+        render json: { data: service.generate_report(month:, year:)}
       end
 
       def wards_based_count
