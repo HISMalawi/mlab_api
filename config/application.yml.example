@@ -13,3 +13,4 @@ nlims_service:
 default:
   accession_number_length: true 
   pregenerate_report_moh_report: false
+  use_elasticsearch: true

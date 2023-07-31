@@ -8,7 +8,12 @@ module Tests
   class TestService
     def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, limit = 1000)
       tests = if query.present?
-                Test.where(id: search_string_test_ids(query))
+                if YAML.load_file("#{Rails.root}/config/application.yml")['default']['use_elasticsearch']
+                  es = ElasticSearchService.new
+                  Test.where(id: es.search(query))
+                else
+                  Test.where(id: search_string_test_ids(query))
+                end
               else
                 Test.limit(limit).order('tests.created_date DESC')
               end
