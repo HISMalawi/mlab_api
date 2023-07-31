@@ -8,6 +8,7 @@ class Test < VoidableRecord
   belongs_to :test_panel, optional: true
 
   after_create :create_default_status
+  after_create :update_elastic_search_index
 
   def as_json(options = {})
     if options[:client_report]
@@ -153,5 +154,10 @@ class Test < VoidableRecord
 
   def culture_observation
     Tests::CultureSensivityService.culture_observation(id)
+  end
+
+  def update_elastic_search_index
+    es = ElasticSearchService.new
+    es.update_index
   end
 end

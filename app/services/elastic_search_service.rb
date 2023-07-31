@@ -4,7 +4,6 @@ require 'elasticsearch'
 
 # ElasticSearchService module
 class ElasticSearchService
-
   def initialize
     @elasticsearch = Elasticsearch::Client.new
   end
@@ -20,17 +19,17 @@ class ElasticSearchService
         id: test.id,
         body: {
           test_id: test.id,
-          patient_name: test.order.encounter.client.person.fullname,
-          accession_number: test.order.accession_number,
-          tracking_number: test.order.tracking_number,
-          test_name: test.test_type.name,
-          location: test.order.encounter.facility_section.name,
+          patient_name: test&.order&.encounter&.client&.person&.fullname,
+          accession_number: test&.order&.accession_number,
+          tracking_number: test&.order&.tracking_number,
+          test_name: test&.test_type&.name,
+          location: test&.order&.encounter&.facility_section&.name,
           test_status: TestStatus.where(test_id: test.id).order(created_date: :desc).last&.status&.name,
           order_status: OrderStatus.where(order_id: test.order_id).order(created_date: :desc).last&.status&.name,
-          test_time_created: test.created_date
+          test_time_created: test&.created_date
         }
       )
-      puts "Indexing record---> tracking_number: #{test.order.tracking_number}"
+      puts "Indexing record---> tracking_number: #{test&.order&.tracking_number}"
     rescue => e
       puts e.message
     end
@@ -44,20 +43,20 @@ class ElasticSearchService
       tests.each do |test|
         @elasticsearch.create(
           index: 'tests',
-          id: test.id,
+          id: test&.id,
           body: {
-            test_id: test.id,
-            patient_name: test.order.encounter.client.person.fullname,
-            accession_number: test.order.accession_number,
-            tracking_number: test.order.tracking_number,
-            test_name: test.test_type.name,
-            location: test.order.encounter.facility_section.name,
+            test_id: test&.id,
+            patient_name: test&.order&.encounter&.client&.person&.fullname,
+            accession_number: test&.order&.accession_number,
+            tracking_number: test&.order&.tracking_number,
+            test_name: test&.test_type&.name,
+            location: test&.order&.encounter&.facility_section&.name,
             test_status: TestStatus.where(test_id: test.id).order(created_date: :desc).last&.status&.name,
             order_status: OrderStatus.where(order_id: test.order_id).order(created_date: :desc).last&.status&.name,
-            test_time_created: test.created_date
+            test_time_created: test&.created_date
           }
         )
-        puts "Updating record---> tracking_number: #{test.order.tracking_number}"
+        puts "Updating record---> tracking_number: #{test&.order&.tracking_number}"
       end
     rescue => e
       puts e.message
