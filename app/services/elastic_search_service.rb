@@ -9,6 +9,10 @@ class ElasticSearchService
     @elasticsearch = Elasticsearch::Client.new
   end
 
+  def ping
+    @elasticsearch.ping
+  end
+
   def index_test(test)
     begin
       @elasticsearch.index(

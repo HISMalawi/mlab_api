@@ -10,7 +10,11 @@ module Tests
       tests = if query.present?
                 if YAML.load_file("#{Rails.root}/config/application.yml")['default']['use_elasticsearch']
                   es = ElasticSearchService.new
-                  Test.where(id: es.search(query))
+                  if es.ping
+                    Test.where(id: es.search(query))
+                  else
+                    Test.where(id: search_string_test_ids(query))
+                  end
                 else
                   Test.where(id: search_string_test_ids(query))
                 end
