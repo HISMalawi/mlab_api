@@ -42,8 +42,9 @@ module Api
         from = params[:from]
         to = params[:to]
         department = params[:department]
+        unit = params[:unit]
         service = Reports::Aggregate::TurnAroundTime.new
-        render json: { data: service.generate_report(from:, to:, department:)}
+        render json: { data: service.generate_report(from:, to:, unit:, department:)}
       end
 
       def rejected

@@ -1,8 +1,8 @@
 module Reports
   module Aggregate
     class TurnAroundTime
-      def generate_report(from: nil, to: nil, department: nil)
-        data = {}
+      def generate_report(from: nil, to: nil, unit: nil, department: nil)
+        data = []
         test_types = TestType.where(department_id: department)
         tests = Test.includes(:test_type).where(test_types: { department_id: department })
         test_types.each do |test_type|
@@ -25,13 +25,25 @@ module Reports
               end
             end
             if created_date.present? && completed_date.present?
-              diff = (Time.parse(completed_date) - Time.parse(created_date)) / 1.hour
+              diff = (Time.parse(completed_date) - Time.parse(created_date))
+              case unit
+              when 'hour'
+                diff = diff / 1.hour
+              when 'minutes'
+                diff = diff / 1.minute
+              when 'days'
+                diff = diff / 1.day
+              when 'week'
+                diff = diff / 1.week
+              else
+                diff = diff / 1.hour
+              end
               diff_sum += diff.round
               count += 1
             end
           end
           test_type_data['average'] = diff_sum / count if count > 0
-          data[test_type.name] = test_type_data
+          data << test_type_data
         end
         data
       end
