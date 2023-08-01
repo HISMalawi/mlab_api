@@ -35,30 +35,43 @@ module PrintoutService
     end
 
     def print_zebra_report(person, order, test_ids)
-      specimen_name =  Test.joins(:specimen).where(order_id: order.id).pick(:name)
-      label = ZebraPrinter::Label.new
-      label.x = 250
-      label.font_size = 2
-      label.draw_text("#{person.fullname} ( #{person.sex},#{person.date_of_birth.strftime('%d/%b/%Y')}) | Pat.No: #{person.id} | Date: #{person.created_date.strftime('%d/%b/%Y')}", 53, 19, 0, 1, 1,1)
-      label.draw_line(25, 80, 760, 2)
-      label.draw_text("Sample Type:", 53, 56, 0, 1, 1, 2)
-      label.draw_text(" Sample ID:",325, 56, 0, 1, 1, 2)
-      label.draw_text("#{specimen_name}", 190, 56, 0, 1, 1, 2)
-      label.draw_text("#{order.accession_number}", 450, 56, 0, 1, 1, 2)
-
-      test_ids.each do |test_id|
-        test = Test.find(test_id)
-        test_type_name = test.test_type.name
-        test_results = TestResult.joins(:test_indicator).where(test_id: test.id).select('test_results.id, test_indicators.name, test_results.value, test_results.result_date')
-        label.draw_text("Test: #{test_type_name}",450, 56, 0, 1, 1)
-        label.draw_line(25, 85, 760, 1)
-        test_results.each do |test_result|
-          label.draw_text("#{test_result.name}", 53, 130, 0, 2, 1, 1)
-          label.draw_text("#{test_result.value}", 455, 130, 0, 2, 1, 1)
-          label.draw_line(25, 165, 760, 1)
-        end
+      accession_number = order.accession_number
+      patient = person.fullname
+      date = Date.today.strftime
+      ward = order.encounter&.facility_section&.name
+      by = User.where(id: TestStatus.where(test_id: test_ids, status_id: 4).first&.creator).first&.person&.fullname
+      pack_abo_group = TestResult.where(
+        test_id: Test.where(order_id: order.id),
+        test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
+      ).first&.value
+      test_results = TestResult.joins(:test_indicator).where(
+        test_id: Test.where(order_id: order.id)
+      ).where("test_indicators.name <> 'Grouping'").select('test_results.id, test_indicators.name, test_results.value,
+        test_results.result_date')
+      pack_abo_group = pack_abo_group.blank? ? '' : pack_abo_group
+      z_label = ZebraPrinter::Label.new
+      z_label.line_spacing = 1
+      left_align_from = 25
+      z_label.draw_text("Accession No: #{accession_number}", 25 + left_align_from, 19, 0, 1, 1, 2)
+      z_label.draw_text("ABO Group: #{pack_abo_group}", 320+ left_align_from, 19, 0, 1, 1, 2)
+      z_label.draw_text("Date: #{date}", 600 + left_align_from, 19, 0, 1, 1, 2)
+      line_y_position = 110
+      vertical_pos_reduct_by = 24
+      results_length = test_results.length + 1
+      results_length.times do
+        z_label.draw_line(25, line_y_position - vertical_pos_reduct_by, 760, 2)
+        line_y_position += 30
       end
-      label.print(1)
+      z_label.draw_line(785, 110-vertical_pos_reduct_by, 1, 26 * results_length)
+      z_label.draw_line(430, 110-vertical_pos_reduct_by, 1, 26 * results_length)
+      z_label.draw_text("Patient: #{patient}", 25 + left_align_from, 56, 0, 1, 1, 2)
+      z_label.draw_text("Ward: #{ward}", 310 + left_align_from, 56, 0, 1, 1, 2)
+      z_label.draw_text("By: #{by}", 520 + left_align_from, 56, 0, 1, 1, 2)
+      test_results.each_with_index do |test_result, index|
+        z_label.draw_text(test_result.name.to_s, 53, 116 + (index * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
+        z_label.draw_text(test_result.value.to_s, 455, 116 + (index * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
+      end
+      z_label.print(1)
     end
 
     def print_patient_report(uploaded_file, printer_name, directory_name, order_ids)
