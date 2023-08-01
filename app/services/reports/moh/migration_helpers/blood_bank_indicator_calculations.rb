@@ -20,7 +20,7 @@ module Reports
         def calculate_total_x_matched
           <<-RUBY
             COUNT(DISTINCT CASE
-              WHEN test_type = 'Cross-match' AND status_id IN (4, 5) AND result IS NOT NULL 
+              WHEN test_type = 'Cross-match' AND status_id IN (4, 5) AND result IS NOT NULL
               THEN test_id
             END)
           RUBY
@@ -40,9 +40,9 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type = 'Cross-match' AND status_id IN (4, 5) AND result IS NOT NULL AND
-              ward IN ('CWA', 'CWB', 'CWC', 'EM Nursery', 'Under 5 Clinic', 'ward 9','Paediatric Ward','Paeds Neuro',
+              (ward IN ('CWA', 'CWB', 'CWC', 'EM Nursery', 'Under 5 Clinic', 'ward 9','Paediatric Ward','Paeds Neuro',
                 "Children\'s ward", 'Nursery', 'Paediatric', 'Peads Special Care Ward', 'Paeds Medical','Peads Isolation Centre', 'Paediatric Surgical', 'Paediatric Medical','Paeds Orthopedic',
-                'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics', 'Peads Surgical Ward', 'Mercy James Paediatric Centre')
+                'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics', 'Peads Surgical Ward', 'Mercy James Paediatric Centre') OR (DATEDIFF(created_date, dob) /365) <= 5)
               THEN test_id
             END)
           RUBY
@@ -52,7 +52,10 @@ module Reports
           <<-RUBY
             COUNT(DISTINCT CASE
               WHEN test_type = 'Cross-match' AND status_id IN (4, 5) AND result IS NOT NULL
-              AND ward IN ('Others', 'Other')
+              AND  ward NOT IN ('CWA', 'CWB', 'CWC', 'EM Nursery', 'Under 5 Clinic', 'ward 9','Paediatric Ward','Paeds Neuro',
+                "Children\'s ward", 'Nursery', 'Paediatric', 'Peads Special Care Ward', 'Paeds Medical','Peads Isolation Centre', 'Paediatric Surgical', 'Paediatric Medical','Paeds Orthopedic',
+                'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics', 'Peads Surgical Ward', 'Mercy James Paediatric Centre','Labour', 'Labour Ward', 'EM LW', 'Maternity','PNW',
+                '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward')
               THEN test_id
             END)
           RUBY
