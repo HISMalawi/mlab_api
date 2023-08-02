@@ -10,9 +10,10 @@ module PrintoutService
 
     def barcode_label(person, order, is_accession_number= true)
       tests = order.tests.map do |test_|
-        unless test_.short_name.blank?
-          test_.short_name
+        if test_.short_name.blank?
           test_.test_type.name
+        else
+          test_.short_name
         end
       end
       data = is_accession_number ? order.accession_number.scan(/\d+/).first.to_i : order.tracking_number
