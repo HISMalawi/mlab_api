@@ -40,6 +40,38 @@ sudo systemctl enable --now redis-server
 sudo systemctl status redis-server
 ```
 
+## Installing ElasticSearch  
+1. Install Java
+```shell
+java -version # Check if java is already installed, if not install by running below commands
+sudo apt install default-jre
+sudo apt install default-jdk
+javac -version # Check if the installation was a success
+```
+2. Add elasticsearch repository
+```shel
+curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic.gpg
+echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list
+```
+
+3. Install Elasticsearch
+```shell
+sudo apt update
+sudo apt install elasticsearch
+sudo systemctl start elasticsearch
+```
+
+4. Test elasticsearch installation
+```shell
+curl -X GET 'http://localhost:9200'  #This should output something about name, cluster_name, tagline, version
+```
+
+5. Enable elasticsearch
+```shell
+sudo systemctl enable elasticsearch
+```
+
+
 ## Clone the Application and Checkout the Branch
 
 1. Clone the `mlab_api` repository:
@@ -48,10 +80,10 @@ sudo systemctl status redis-server
 git clone https://github.com/EGPAFMalawiHIS/mlab_api.git
 ```
 
-2. Checkout the `dev_staging` branch:
+2. Checkout the `main` branch:
 
 ```shell
-git checkout dev_staging
+git checkout main
 ```
 
 ## Configure Application Settings
@@ -110,7 +142,7 @@ rails db:create db:migrate
 
 ```shell
 bash load_iblis_data.sh
-rails r bin/moh_report_init.rb  # Run this in tmux
+rails r bin/moh_report_init.rb  # Run this in tmux as it may take time to complete
 ```
 
 ## Data Initialization for Sites without Previous iBLIS Installation
