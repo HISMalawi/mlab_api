@@ -1,37 +1,34 @@
 module PrintoutService
   class << self
     def print_accession_number(person, order)
-      tests = order.tests.map do |_test|
-        _test.short_name if !_test.short_name.blank?
-        _test.test_type.name
-      end
-      label = ZebraPrinter::Label.new
-      label.x = 250
-      label.font_size = 2
-      label.draw_multi_text(person.fullname)
-      label.draw_multi_text("#{person.date_of_birth}  #{person.sex}")
-      label.draw_multi_text("#{order.accession_number} * #{order.accession_number.scan(/\d+/).first.to_i}")
-      label.draw_barcode(250, 180, 0, 1, 5, 15, 120, false, order.accession_number.scan(/\d+/).first.to_i)
-      label.draw_multi_text("Col: #{order.created_date.strftime("%d/%b/%Y %H:%M")} #{User.find(order.creator).username}")
-      label.draw_multi_text(tests.join(", "))
-      label.print(1)
+      barcode_label(person, order).print(2)
     end
-    
+
     def print_tracking_number(person, order)
-      tests = order.tests.map do |_test|
-        _test.short_name if !_test.short_name.blank?
-        _test.test_type.name
+      barcode_label(person, order, false).print(2)
+    end
+
+    def barcode_label(person, order, is_accession_number= true)
+      tests = order.tests.map do |test_|
+        unless test_.short_name.blank?
+          test_.short_name
+          test_.test_type.name
+        end
       end
+      data = is_accession_number ? order.accession_number.scan(/\d+/).first.to_i : order.tracking_number
+      f_number = is_accession_number ? order.accession_number : order.tracking_number
       label = ZebraPrinter::Label.new
-      label.x = 250
-      label.font_size = 2
-      label.draw_multi_text(person.fullname)
-      label.draw_multi_text("#{person.date_of_birth}  #{person.sex}")
-      label.draw_multi_text("#{order.tracking_number} * #{order.tracking_number.scan(/\d+/).first.to_i}")
-      label.draw_barcode(250, 180, 0, 1, 5, 15, 120, false, order.tracking_number)
-      label.draw_multi_text("Col: #{order.created_date.strftime("%d/%b/%Y %H:%M")} #{User.find(order.creator).username}")
-      label.draw_multi_text(tests.join(", "))
-      label.print(1)
+      left_align_from = 40
+      label.draw_text(person.fullname.to_s, 6 + left_align_from, 6, 0, 1, 1, 2)
+      label.draw_text("#{person.date_of_birth&.strftime('%d/%b/%Y')} #{person.sex}", 6 + left_align_from, 29, 0, 1, 1, 2)
+      label.draw_barcode(51 + left_align_from, 51, 0, '1A', 2, 2, 76, false, data)
+      label.draw_text("#{f_number} * #{data}", 51 + left_align_from, 131, 0, 2, 1, 1)
+      label.draw_text(
+        "Col: #{order.created_date.strftime('%d/%b/%Y %H:%M')} #{User.find(order.creator).username}",
+        6 + left_align_from, 150, 0, 2, 1, 1
+      )
+      label.draw_text(tests.join(','), 6 + left_align_from, 170, 0, 2, 1, 1)
+      label
     end
 
     def print_zebra_report(person, order, test_ids)
@@ -39,7 +36,7 @@ module PrintoutService
       patient = person.fullname
       date = Date.today.strftime
       ward = order.encounter&.facility_section&.name
-      by = User.where(id: TestStatus.where(test_id: test_ids, status_id: 4).first&.creator).first&.person&.fullname
+      by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id), status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = TestResult.where(
         test_id: Test.where(order_id: order.id),
         test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
@@ -48,29 +45,35 @@ module PrintoutService
         test_id: Test.where(order_id: order.id)
       ).where("test_indicators.name <> 'Grouping'").select('test_results.id, test_indicators.name, test_results.value,
         test_results.result_date')
-      pack_abo_group = pack_abo_group.blank? ? '' : pack_abo_group
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
       left_align_from = 25
       z_label.draw_text("Accession No: #{accession_number}", 25 + left_align_from, 19, 0, 1, 1, 2)
-      z_label.draw_text("ABO Group: #{pack_abo_group}", 320+ left_align_from, 19, 0, 1, 1, 2)
+      unless pack_abo_group.blank?
+        z_label.draw_text("ABO Group: #{pack_abo_group}", 320 + left_align_from, 19, 0, 1, 1, 2)
+      end
       z_label.draw_text("Date: #{date}", 600 + left_align_from, 19, 0, 1, 1, 2)
       line_y_position = 110
       vertical_pos_reduct_by = 24
-      results_length = test_results.length + 1
+      z_label.draw_text("Patient: #{patient}", 25 + left_align_from, 56, 0, 1, 1, 2)
+      z_label.draw_text("Ward: #{ward}", 310 + left_align_from, 56, 0, 1, 1, 2)
+      z_label.draw_text("By: #{by}", 520 + left_align_from, 56, 0, 1, 1, 2)
+      results_length = 1
+      multiplier = 0
+      test_results.each do |test_result|
+        next if test_result.value.blank?
+
+        results_length += 1
+        z_label.draw_text(test_result.name.to_s, 53, 116 + (multiplier * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
+        z_label.draw_text(test_result.value.to_s, 455, 116 + (multiplier * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
+        multiplier += 1
+      end
       results_length.times do
         z_label.draw_line(25, line_y_position - vertical_pos_reduct_by, 760, 2)
         line_y_position += 30
       end
-      z_label.draw_line(785, 110-vertical_pos_reduct_by, 1, 26 * results_length)
-      z_label.draw_line(430, 110-vertical_pos_reduct_by, 1, 26 * results_length)
-      z_label.draw_text("Patient: #{patient}", 25 + left_align_from, 56, 0, 1, 1, 2)
-      z_label.draw_text("Ward: #{ward}", 310 + left_align_from, 56, 0, 1, 1, 2)
-      z_label.draw_text("By: #{by}", 520 + left_align_from, 56, 0, 1, 1, 2)
-      test_results.each_with_index do |test_result, index|
-        z_label.draw_text(test_result.name.to_s, 53, 116 + (index * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
-        z_label.draw_text(test_result.value.to_s, 455, 116 + (index * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
-      end
+      z_label.draw_line(785, 110 - vertical_pos_reduct_by, 1, 26 * results_length)
+      z_label.draw_line(430, 110 - vertical_pos_reduct_by, 1, 26 * results_length)
       z_label.print(1)
     end
 
