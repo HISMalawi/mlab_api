@@ -40,7 +40,35 @@ sudo systemctl enable --now redis-server
 sudo systemctl status redis-server
 ```
 
-## Installing ElasticSearch  
+## Clone the Application and Checkout the Branch
+
+1. Clone the `mlab_api` repository:
+
+```shell
+git clone https://github.com/EGPAFMalawiHIS/mlab_api.git
+```
+
+2. Checkout the `main` branch:
+
+```shell
+git checkout main
+```
+
+## Configure Application Settings
+
+1. Copy the `application.yml.example` file to `application.yml`:
+
+```shell
+cp application.yml.example application.yml
+```
+
+2. Edit the `application.yml` file to configure the DDE and NLIMS settings and default settings:
+
+```shell
+vim application.yml
+```
+
+## Installing ElasticSearch - If you set use_elasticsearch to true in the application.yml in the default block 
 1. Install Java
 ```shell
 java -version # Check if java is already installed, if not install by running below commands
@@ -71,34 +99,6 @@ curl -X GET 'http://localhost:9200'  #This should output something about name, c
 sudo systemctl enable elasticsearch
 ```
 
-
-## Clone the Application and Checkout the Branch
-
-1. Clone the `mlab_api` repository:
-
-```shell
-git clone https://github.com/EGPAFMalawiHIS/mlab_api.git
-```
-
-2. Checkout the `main` branch:
-
-```shell
-git checkout main
-```
-
-## Configure Application Settings
-
-1. Copy the `application.yml.example` file to `application.yml`:
-
-```shell
-cp application.yml.example application.yml
-```
-
-2. Edit the `application.yml` file to configure the DDE and NLIMS settings and default settings:
-
-```shell
-vim application.yml
-```
 
 ## Configure Database Connection Details
 
