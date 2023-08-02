@@ -2,13 +2,14 @@ module Reports
   module Aggregate
     module Culture
       class WardsBased
-        def generate_report(month: nil, year: nil, department: nil)
+        def generate_report(month: nil, year: nil)
           data = []
-          tests = Test.includes(test_type: :test_indicators)
+          department = Department.find_by(name: 'Microbiology').id
+          tests = Test.joins(:test_type)
             .where(test_types: { department_id: department, name: 'Culture & Sensitivity' })
             .where("MONTH((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", month)
             .where("YEAR((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", year)
-          test_type = TestType.includes(:test_indicators).find_by(name: 'Culture & Sensitivity')
+          test_type = TestType.find_by(name: 'Culture & Sensitivity')
           test_catalog_service = TestCatalog::TestTypes::ShowService.show_test_type(test_type)
           indicator_ranges = test_catalog_service[:indicators][0][:indicator_ranges].map { |range| range["value"] }
           encounter_types = EncounterType.all

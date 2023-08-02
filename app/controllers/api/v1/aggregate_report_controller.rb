@@ -57,25 +57,22 @@ module Api
       def general_count
         month = params[:month]
         year = params[:year]
-        department = params[:department]
         service = Reports::Aggregate::Culture::GeneralCount.new
-        render json: { data: service.generate_report(month:, year:, department:)}
+        render json: { data: service.generate_report(month:, year:)}
       end
 
       def wards_based_count
         month = params[:month]
         year = params[:year]
-        department = params[:department]
         service = Reports::Aggregate::Culture::WardsBased.new
-        render json: { data: service.generate_report(month:, year:, department:)}
+        render json: { data: service.generate_report(month:, year:)}
       end
 
       def organisms_based_count
         month = params[:month]
         year = params[:year]
-        department = params[:department]
         service = Reports::Aggregate::Culture::OrganismsBased.new
-        render json: { data: service.generate_report(month:, year:, department:)}
+        render json: { data: service.generate_report(month:, year:)}
       end
 
       def organisms_in_wards_count
@@ -86,8 +83,22 @@ module Api
         render json: { data: service.generate_report(month:, year:, department:)}
       end
 
+      def ast
+        month = params[:month]
+        year = params[:year]
+        service = Reports::Aggregate::Culture::Ast.new
+        render json: { data: service.generate_report(month:, year:)}
+      end
+
       def department_report
         render json: department_report_service.generalize_depart_report
+      end
+
+      def tb_tests
+        from = params[:from]
+        to = params[:to]
+        service = Reports::Aggregate::TbTests.new
+        render json: service.generate_report(from:, to:)
       end
 
       private
