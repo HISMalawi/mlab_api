@@ -5,6 +5,7 @@ module Reports
         data = []
         test_types = TestType.where(department_id: department)
         tests = Test.includes(:test_type).where(test_types: { department_id: department })
+        .where(created_date: from..Date.parse(to).end_of_day)
         test_types.each do |test_type|
           test_type_tests = tests.where(test_type_id: test_type.id)
           test_type_data = {
