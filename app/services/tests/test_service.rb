@@ -9,7 +9,7 @@ module Tests
     def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, limit = 1000)
       default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
       tests = if query.present?
-                use_elasticsearch = default['use_elasticsearch'].nil? ? false : default['use_elasticsearch']
+                use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
                 if use_elasticsearch
                   es = ElasticSearchService.new
                   if es.ping
