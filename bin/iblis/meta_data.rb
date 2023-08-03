@@ -1,5 +1,27 @@
 Rails.logger = Logger.new(STDOUT)
 User.current = User.first
+
+def extract_number_from_duration(duration_string)
+  match = duration_string.match(/(\d+)\s*(hr|hour|hrs|hours|h|mn|min|minute|mins|minutes|wk|w|week|wks|weeks|month|months|mon|mnts|mts|dy|dys|day|days)/i)
+  if match
+    number = match[1].to_i
+    unit = match[2].downcase
+  else
+    number = nil
+    unit = nil
+  end
+
+  # Check for the unit
+  unit = 'Hours' if unit.include?('h')
+  unit = 'Weeks' if unit.include?('w')
+  unit = 'Months' if unit.include?('mo') || unit.include?('mnt') || unit.include?('mt')
+  unit = 'Minutes' if unit.include?('mi') || unit.include?('mn')
+  unit = 'Days' if unit.include?('d')
+
+  { number:, unit: }
+end
+
+
 ActiveRecord::Base.transaction do
 
   client_identifier_types = ['cellphone_number', 'occupation', 'current_district',
@@ -45,7 +67,8 @@ ActiveRecord::Base.transaction do
     department = Department.find_by_name(test_type.dept)
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
     mlap_test_type = TestType.find_or_create_by(id: test_type.id, name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, creator: user_id, created_date: test_type.created_at, updated_date: test_type.updated_at)
-    expected_tat = ExpectedTat.find_or_create_by!(test_type_id: mlap_test_type.id, value: test_type.targetTAT, creator: user_id)
+    expected_tat_h = extract_number_from_duration(test_type.targetTAT)
+    expected_tat = ExpectedTat.find_or_create_by!(test_type_id: mlap_test_type.id, value: expected_tat_h[:number], unit: expected_tat_h[:unit], creator: user_id)
     IblisService::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
     IblisService::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
   end
