@@ -1,0 +1,63 @@
+-- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
+--
+-- Host: 127.0.0.1    Database: mlab_api_development
+-- ------------------------------------------------------
+-- Server version	8.0.33
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `status_reasons`
+--
+
+DROP TABLE IF EXISTS `status_reasons`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `status_reasons` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `description` text,
+  `retired` int DEFAULT NULL,
+  `retired_by` bigint DEFAULT NULL,
+  `retired_reason` varchar(255) DEFAULT NULL,
+  `retired_date` datetime(6) DEFAULT NULL,
+  `creator` bigint DEFAULT NULL,
+  `updated_date` datetime(6) DEFAULT NULL,
+  `created_date` datetime(6) DEFAULT NULL,
+  `updated_by` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_rails_7181c23722` (`retired_by`),
+  KEY `fk_rails_a051adf67c` (`creator`),
+  CONSTRAINT `fk_rails_7181c23722` FOREIGN KEY (`retired_by`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_rails_a051adf67c` FOREIGN KEY (`creator`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `status_reasons`
+--
+
+LOCK TABLES `status_reasons` WRITE;
+/*!40000 ALTER TABLE `status_reasons` DISABLE KEYS */;
+INSERT INTO `status_reasons` VALUES (1,'Poorly labelled',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.705001','2023-06-23 04:20:23.705001',1),(2,'Over saturation',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.716040','2023-06-23 04:20:23.716040',1),(3,'Insufficient Sample',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.729506','2023-06-23 04:20:23.729506',1),(4,'Scattered',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.739653','2023-06-23 04:20:23.739653',1),(5,'Clotted Blood',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.750382','2023-06-23 04:20:23.750382',1),(6,'Two layered spots',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.760259','2023-06-23 04:20:23.760259',1),(7,'Serum rings',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.769215','2023-06-23 04:20:23.769215',1),(8,'Scratched',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.777783','2023-06-23 04:20:23.777783',1),(9,'Haemolysis',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.788723','2023-06-23 04:20:23.788723',1),(10,'Spots that cannot elute',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.801782','2023-06-23 04:20:23.801782',1),(11,'Leaking',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.816629','2023-06-23 04:20:23.816629',1),(12,'Broken Sample Container',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.830667','2023-06-23 04:20:23.830667',1),(13,'Mismatched sample and form labelling',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.844589','2023-06-23 04:20:23.844589',1),(14,'Missing Labels on container and tracking form',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.852674','2023-06-23 04:20:23.852674',1),(15,'Empty Container',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.863847','2023-06-23 04:20:23.863847',1),(16,'Samples without tracking forms',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.873298','2023-06-23 04:20:23.873298',1),(17,'Poor transport',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.881866','2023-06-23 04:20:23.881866',1),(18,'Lipaemic',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.892501','2023-06-23 04:20:23.892501',1),(19,'Wrong container/Anticoagulant',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.904946','2023-06-23 04:20:23.904946',1),(20,'Request form without samples',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.916539','2023-06-23 04:20:23.916539',1),(21,'Missing collection date on specimen / request form.',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.929268','2023-06-23 04:20:23.929268',1),(22,'Name and signature of requester missing',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.940921','2023-06-23 04:20:23.940921',1),(23,'Mismatched information on request form and specimen container.',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.951413','2023-06-23 04:20:23.951413',1),(24,'Request form contaminated with specimen',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.962779','2023-06-23 04:20:23.962779',1),(25,'Duplicate specimen received',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.969993','2023-06-23 04:20:23.969993',1),(26,'Delay between specimen collection and arrival in the laboratory',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.983314','2023-06-23 04:20:23.983314',1),(27,'Inappropriate specimen packing',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.991585','2023-06-23 04:20:23.991585',1),(28,'Inappropriate specimen for the test',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.000660','2023-06-23 04:20:24.000660',1),(29,'Inappropriate test for the clinical condition',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.011977','2023-06-23 04:20:24.011977',1),(30,'No Label',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.024869','2023-06-23 04:20:24.024869',1),(31,'No Sample in the Container',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.051953','2023-06-23 04:20:24.051953',1),(32,'No Request Form',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.064082','2023-06-23 04:20:24.064082',1),(33,'Missing Information Required',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.077394','2023-06-23 04:20:24.077394',1),(34,'Name on a sample and form mismatch',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.085726','2023-06-23 04:20:24.085726',1),(35,'Old Sample',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.096614','2023-06-23 04:20:24.096614',1),(36,'equipment down',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.110585','2023-06-23 04:20:24.110585',1),(37,'Reagent Stockout',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.119332','2023-06-23 04:20:24.119332',1),(38,'QC failure',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.128947','2023-06-23 04:20:24.128947',1),(39,'No Human resource',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.141196','2023-06-23 04:20:24.141196',1),(40,'Power interruption',0,NULL,NULL,NULL,1,'2023-06-23 04:20:24.153170','2023-06-23 04:20:24.153170',1);
+/*!40000 ALTER TABLE `status_reasons` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2023-08-03 14:49:37

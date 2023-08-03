@@ -1,0 +1,63 @@
+-- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
+--
+-- Host: 127.0.0.1    Database: mlab_api_development
+-- ------------------------------------------------------
+-- Server version	8.0.33
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `statuses`
+--
+
+DROP TABLE IF EXISTS `statuses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `statuses` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) DEFAULT NULL,
+  `retired` int DEFAULT NULL,
+  `retired_by` bigint DEFAULT NULL,
+  `retired_reason` varchar(255) DEFAULT NULL,
+  `retired_date` datetime(6) DEFAULT NULL,
+  `creator` bigint DEFAULT NULL,
+  `created_date` datetime(6) DEFAULT NULL,
+  `updated_date` datetime(6) DEFAULT NULL,
+  `updated_by` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_rails_dc1b2e5f4a` (`retired_by`),
+  KEY `fk_rails_03b122d8ec` (`creator`),
+  CONSTRAINT `fk_rails_03b122d8ec` FOREIGN KEY (`creator`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_rails_dc1b2e5f4a` FOREIGN KEY (`retired_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `statuses`
+--
+
+LOCK TABLES `statuses` WRITE;
+/*!40000 ALTER TABLE `statuses` DISABLE KEYS */;
+INSERT INTO `statuses` VALUES (1,'not-received',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.508111','2023-06-23 04:20:23.508111',1),(2,'pending',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.522545','2023-06-23 04:20:23.522545',1),(3,'started',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.541321','2023-06-23 04:20:23.541321',1),(4,'completed',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.558360','2023-06-23 04:20:23.558360',1),(5,'verified',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.571876','2023-06-23 04:20:23.571876',1),(6,'voided',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.584445','2023-06-23 04:20:23.584445',1),(7,'not-done',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.596050','2023-06-23 04:20:23.596050',1),(8,'test-rejected',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.613376','2023-06-23 04:20:23.613376',1),(9,'specimen-not-collected',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.633637','2023-06-23 04:20:23.633637',1),(10,'specimen-accepted',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.649040','2023-06-23 04:20:23.649040',1),(11,'specimen-rejected',0,NULL,NULL,NULL,1,'2023-06-23 04:20:23.666079','2023-06-23 04:20:23.666079',1);
+/*!40000 ALTER TABLE `statuses` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2023-08-03 14:51:03

@@ -150,7 +150,7 @@ rails r bin/moh_report_init.rb  # Run this in tmux as it may take time to comple
 Run the following command to initialize the database:
 
 ```shell
-rails r bin/setup/initialize_database.rb
+./bin/initialize_db.sh development # development can be replace by production or test depending on the enviroment you have set you application
 ```
 
 ## Configure Sidekiq Service
