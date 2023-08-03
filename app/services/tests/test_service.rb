@@ -99,7 +99,8 @@ module Tests
       acc_number = GlobalService.current_location.code << q_string
       Test.find_by_sql("
         SELECT t.id FROM tests t WHERE t.order_id IN (SELECT o.id FROM orders o
-        WHERE o.accession_number = '#{acc_number}' OR o.tracking_number = '#{q_string}')
+        WHERE o.accession_number = '#{acc_number}' OR o.accession_number = '#{GlobalService.current_location.code}#{acc_number}' 
+        OR o.tracking_number = '#{q_string}')
         OR t.order_id IN (#{client_query(q_string)}) OR t.test_type_id IN
         (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{q_string}%')
         ORDER BY t.created_date DESC LIMIT 1000").pluck(:id)
