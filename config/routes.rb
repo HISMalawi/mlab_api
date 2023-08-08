@@ -142,6 +142,8 @@ Rails.application.routes.draw do
           get '/daily_reports/daily_log' => 'daily_reports#daily_log'
         end
       end
+      resources :stocks
+      resources :stock_categories
       resources :reports do
         collection do
           get '/aggregate/lab_statistics' => 'aggregate_report#lab_statistics'
