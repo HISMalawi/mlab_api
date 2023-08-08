@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :stock_requisition do
+  factory :stock_requsition do
     
   end
 end
