@@ -144,6 +144,7 @@ Rails.application.routes.draw do
       end
       resources :stocks
       resources :stock_categories
+      resources :stock_locations
       resources :reports do
         collection do
           get '/aggregate/lab_statistics' => 'aggregate_report#lab_statistics'
