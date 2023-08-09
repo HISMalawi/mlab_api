@@ -7,7 +7,7 @@ class CreateStocks < ActiveRecord::Migration[7.0]
       t.string :description
       t.string :lot
       t.string :unit
-      t.string :quantity
+      t.integer :quantity
       t.integer :voided
       t.bigint :voided_by
       t.string :voided_reason
