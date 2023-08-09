@@ -4,11 +4,17 @@ module Api
       before_action :read, only: %i[ show update destroy ]
       def index
         orders = StockOrder.all
-        render json: { data: orders.as_json(include: [:stock_requisitions])  }
+        render json: { data: orders.as_json(include: { stock_order_statuses: { only: :status_id, methods: :status_name }, stock_requisitions: {} }) }
       end
       def create
-        order = StockOrder.create!(order_params)
-        render json: { status: :ok, message: 'Stock order created successfully' }
+        service = Stocks::StockService.new(order_params, requisitions_params)
+        result = service.create_order_and_requisitions
+
+        if result.key?(:error)
+          render json: { error: result[:error] }, status: :unprocessable_entity
+        else
+          render json: { message: result[:message] }, status: :created
+        end
       end
       def update
         @order = @order.update!(order_params)
@@ -20,6 +26,11 @@ module Api
       private
       def order_params
         params.require(:stock_order).permit(:id, :identifier)
+      end
+      def requisitions_params
+        params.require(:stock_requisitions).map do |requisition_params|
+          requisition_params.permit(:quantity_requested, :quantity_issued, :quantity_collected, :stock_id)
+        end
       end
       def read
         @order = StockOrder.find(params[:id])

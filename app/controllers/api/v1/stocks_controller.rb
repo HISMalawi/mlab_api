@@ -8,11 +8,11 @@ module Api
       end
       def create
         stocks = Stock.create!(stock_params)
-        render json: stocks
+        render json: { message: 'Stock created successfully' }
       end
       def update()
         @stock = @stock.update!(stock_params)
-        render json: { status: :ok, message: "Stock updated successfully" }
+        render json: { message: "Stock updated successfully" }
       end
       def destroy()
         @stock.void(params[:retired_reason])
