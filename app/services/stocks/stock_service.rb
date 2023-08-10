@@ -9,6 +9,7 @@ module Stocks
       ActiveRecord::Base.transaction do
         order = create_order
         status = Status.find_by(name: 'pending').id
+        order.update(creator: user)
         create_requisitions(order)
         create_status_trail(order, status)
       end
@@ -31,6 +32,10 @@ module Stocks
 
     def create_status_trail(order, status)
       order.stock_order_statuses.create!(status_id: status)
+    end
+
+    def user
+      User.current.id
     end
   end
 end

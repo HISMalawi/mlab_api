@@ -3,8 +3,12 @@ module Api
     class StockOrdersController < ApplicationController
       before_action :read, only: %i[ show update destroy ]
       def index
-        orders = StockOrder.all
-        render json: { data: orders.as_json(include: { stock_order_statuses: { only: :status_id, methods: :status_name }, stock_requisitions: {} }) }
+        orders = StockOrder.includes(:user, :stock_order_statuses, :stock_requisitions)
+        render json: { data: orders.as_json(include: {
+          user: { only: [:id, :username, :creator] },
+          stock_order_statuses: { only: :status_id, methods: :status_name },
+          stock_requisitions: {}
+        }) }
       end
       def create
         service = Stocks::StockService.new(order_params, requisitions_params)
