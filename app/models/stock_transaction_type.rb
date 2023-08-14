@@ -1,0 +1,2 @@
+class StockTransactionType < VoidableRecord
+end

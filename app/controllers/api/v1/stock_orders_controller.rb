@@ -10,7 +10,6 @@ module Api
           }, methods: [:statuses, :requisitions])
         }
       end
-
       def create
         service = Stocks::StockService.new(order_params, requisitions_params)
         result = service.create_order_and_requisitions

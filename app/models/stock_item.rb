@@ -1,0 +1,2 @@
+class StockItem < VoidableRecord
+end

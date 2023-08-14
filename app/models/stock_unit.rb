@@ -1,0 +1,2 @@
+class StockUnit < VoidableRecord
+end
