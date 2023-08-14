@@ -13,7 +13,7 @@ class CreateStockRequisitions < ActiveRecord::Migration[7.0]
       t.bigint :creator
       t.datetime :created_date, null: false
       t.datetime :updated_date, null: false
-      t.datetime :updated_by, null: true
+      t.bigint :updated_by, null: true
     end
     add_foreign_key :stock_requisitions, :users, column: :creator, primary_key: :id
     add_foreign_key :stock_requisitions, :users, column: :updated_by, primary_key: :id

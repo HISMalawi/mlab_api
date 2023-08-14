@@ -9,7 +9,7 @@ class CreateStockTransactions < ActiveRecord::Migration[7.0]
       t.datetime :expiry_date
       t.string :receiving_from
       t.string :sending_to
-      t.integer :received_by
+      t.bigint :received_by
       t.string :optional_receiver
       t.text :remarks
       t.integer :voided
@@ -19,7 +19,7 @@ class CreateStockTransactions < ActiveRecord::Migration[7.0]
       t.bigint :creator
       t.datetime :created_date, null: false
       t.datetime :updated_date, null: false
-      t.datetime :updated_by, null: true
+      t.bigint :updated_by, null: true
     end
     add_foreign_key :stock_transactions, :users, column: :creator, primary_key: :id
     add_foreign_key :stock_transactions, :users, column: :updated_by, primary_key: :id
