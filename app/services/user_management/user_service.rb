@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'client_management/bantu_soundex'
+require 'bantu_soundex'
 
 module UserManagement
   module UserService

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'client_management/bantu_soundex'
+require 'bantu_soundex'
 
 # Module for managing tests related activities such as search, client report based on the test
 module Tests
