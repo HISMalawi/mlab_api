@@ -9,8 +9,12 @@ module Api
       before_action :set_stock, only: %i[show update destroy]
 
       def index
-        stocks = Stock.all
-        render json: stocks
+        stocks = if params[:search].blank?
+                   paginate(Stock.all)
+                 else
+                   paginate(StockService.search(params[:search]))
+                 end
+        render json: StockService(stocks)
       end
 
       def create
