@@ -161,6 +161,7 @@ Rails.application.routes.draw do
       end
       resources :stock_units
       resources :stock_categories
+      resources :stock_suppliers
     end
   end
 end
