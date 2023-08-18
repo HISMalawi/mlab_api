@@ -35,5 +35,11 @@ module Api
       stock_unit.destroy
       head :no_content
     end
+
+    private
+
+    def stock_unit_params
+      params.require(:stock_unit).permit(:name)
+    end
   end
 end
