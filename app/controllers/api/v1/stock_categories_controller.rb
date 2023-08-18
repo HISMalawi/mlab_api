@@ -6,7 +6,7 @@ module Api
   module V1
     # stock categories controller
     class StockCategoriesController < ApplicationController
-      before_action :set_stock_categories, only: %i[show update destroy]
+      before_action :set_stock_category, only: %i[show update destroy]
 
       def index
         stock_categories = StockCategory.all
@@ -39,7 +39,7 @@ module Api
       end
 
       def set_stock_category
-        @stock_categories = StockCategory.find(params[:id])
+        @stock_category = StockCategory.find(params[:id])
       end
     end
   end

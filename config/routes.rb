@@ -160,6 +160,7 @@ Rails.application.routes.draw do
         end
       end
       resources :stock_units
+      resources :stock_categories
     end
   end
 end
