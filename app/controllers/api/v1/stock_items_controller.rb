@@ -4,7 +4,7 @@
 module Api
   # module V1
   module V1
-    # stock unit controller
+    # stock item controller
     class StockItemsController < ApplicationController
       before_action :set_stock_item, only: %i[show update destroy]
 
