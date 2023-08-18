@@ -35,7 +35,7 @@ module Api
       private
 
       def stock_location_params
-        params.require(:stock_location).permit(:name)
+        params.require(:stock_location).permit(:name, :description)
       end
 
       def set_stock_location
