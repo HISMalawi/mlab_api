@@ -5,7 +5,7 @@ module StockService
   class << self
     def search(item, page: 1, limit: 10)
       data = Stock.joins(:stock_item, :stock_location).where('stock_items.name LIKE ? OR stock_locations.name LIKE ?',
-                                                              "%#{item}%", "%#{item}%")
+                                                             "%#{item}%", "%#{item}%")
                   .select('stocks.*, stocks.quantity, stock_items.name as stock_item,
                     stock_locations.name as stock_location')
       records = PaginationService.paginate(data, page:, limit:)
