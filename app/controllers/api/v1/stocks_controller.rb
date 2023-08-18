@@ -10,11 +10,11 @@ module Api
 
       def index
         stocks = if params[:search].blank?
-                   paginate(Stock.all)
+                   paginate(StockService.stock_list)
                  else
-                   paginate(StockService.search(params[:search]))
+                   StockService.search(params[:search])
                  end
-        render json: StockService(stocks)
+        render json: stocks
       end
 
       def create

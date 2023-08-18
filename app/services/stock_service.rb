@@ -3,19 +3,19 @@
 # stock service
 module StockService
   class << self
-    def search(item)
-      Stock.where(stock_item_id: StockItem.where('name LIKE ?', "%#{item}%").pluck(:id))
+    def search(item, page: 1, limit: 10)
+      data = Stock.joins(:stock_id, :stock_location_id).where('stock_items.name LIKE ? OR stock_locations.name LIKE ?',
+                                                              "%#{item}%", "%#{item}%")
+                  .select('stocks.id, stocks.quantity, stock_items.name as stock_item,
+                    stock_locations.name as stock_location')
+      records = PaginationService.paginate(data, page:, limit:)
+      { data: records, meta: PaginationService.pagination_metadata(records) }
     end
 
-    def serialize_stock(stocks)
-      stocks.map do |stock|
-        {
-          stock_item: stock.stock_item.name,
-          stock_location: stock.stock_location.name,
-          quantity: stock.quantity,
-          creator: User.find(stock.creator).full_name
-        }
-      end
+    def stock_list
+      Stock.joins(:stock_item,
+                  :stock_location).select('stocks.id, stocks.quantity, stock_items.name as stock_item,
+                    stock_locations.name as stock_location')
     end
   end
 end
