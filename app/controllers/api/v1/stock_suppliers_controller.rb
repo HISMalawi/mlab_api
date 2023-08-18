@@ -37,7 +37,7 @@ module Api
       private
 
       def stock_supplier_params
-        params.require(:stock_supplier).permit(:name)
+        params.require(:stock_supplier).permit(:name, :address)
       end
 
       def set_stock_supplier
