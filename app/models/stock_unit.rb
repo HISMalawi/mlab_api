@@ -9,6 +9,6 @@ class StockUnit < VoidableRecord
   private
 
   def strip_name_whitespace
-    self.name = name.strip! if name.present?
+    self.name = name.strip if name.present?
   end
 end

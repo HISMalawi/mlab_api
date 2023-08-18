@@ -159,6 +159,7 @@ Rails.application.routes.draw do
           get '/aggregate/tb_tests' => 'aggregate_report#tb_tests'
         end
       end
+      resources :stock_units
     end
   end
 end
