@@ -33,6 +33,7 @@ module Api
       end
 
       private
+
       def stock_unit_params
         params.require(:stock_unit).permit(:name)
       end
