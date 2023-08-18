@@ -6,6 +6,8 @@ module Api
   module V1
     # stock unit controller
     class StockUnitController < ApplicationController
+      before_action :set_stock_unit, only: %i[show update destroy]
+
       def index
         stock_units = StockUnit.all
         render json: stock_units
@@ -20,19 +22,21 @@ module Api
         end
       end
 
+      def show
+        render json: @stock_unit
+      end
+
       def update
-        stock_unit = StockUnit.find(params[:id])
-        if stock_unit.update(stock_unit_params)
-          render json: stock_unit, status: :ok
+        if @stock_unit.update(stock_unit_params)
+          render json: @stock_unit, status: :ok
         else
-          render json: stock_unit.errors, status: :unprocessable_entity
+          render json: @stock_unit.errors, status: :unprocessable_entity
         end
       end
     end
 
     def destroy
-      stock_unit = StockUnit.find(params[:id])
-      stock_unit.destroy
+      @stock_unit.destroy
       head :no_content
     end
 
@@ -40,6 +44,10 @@ module Api
 
     def stock_unit_params
       params.require(:stock_unit).permit(:name)
+    end
+
+    def set_stock_unit
+      @stock_unit = StockUnit.find(params[:id])
     end
   end
 end
