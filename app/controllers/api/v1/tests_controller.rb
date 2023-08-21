@@ -43,11 +43,13 @@ module Api
       end
 
       def get_tests_summary
-        test_service = Tests::TestService.new
-        total_tests_count = test_service.test_statuses_count
-        tests_count = test_service.tests_count
+        from = params[:from]
+        to = params[:to]
+        department = params[:department]
+        test_count = test_service.total_test_count(from, to, department)
+        total_tests_count = test_service.test_statuses_count(from, to, department)
 
-        render json: { tests_count: tests_count, statuses_count: total_tests_count }
+        render json: { tests_count: test_count, statuses_count: total_tests_count }
       end
 
       private

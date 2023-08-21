@@ -57,16 +57,39 @@ module Tests
       }
     end
 
-    def tests_count
-      Test.all.count
+    def total_test_count(from, to, department)
+      to = to.present? ? Date.parse(to) : Date.today
+      from = from.present? ? Date.parse(from) : to - 30
+      department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
+      test_count = if department == 'Lab Reception'
+                    Test.where(created_date: from.beginning_of_day..to.end_of_day).count
+                  else
+                    Test.joins(:test_type).where(test_type: {department_id: department_id}, created_date: from.beginning_of_day..to.end_of_day).count
+                  end
+      {
+        from:,
+        to:,
+        data: test_count
+      }
     end
 
-    def test_statuses_count
+    def test_statuses_count(from, to, department)
+      to = to.present? ? Date.parse(to) : Date.today
+      from = from.present? ? Date.parse(from) : to - 30
+      department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
       statuses_count = {}
+      sql = "SELECT COUNT(DISTINCT ts.id) AS count, s.name FROM test_statuses ts INNER JOIN ( SELECT test_id, MAX(created_date) created_date
+        FROM test_statuses GROUP BY test_id) cs ON cs.test_id = ts.test_id AND cs.created_date = ts.created_date INNER JOIN tests t
+        ON t.id = ts.test_id INNER JOIN test_types tt ON t.test_type_id = tt.id INNER JOIN statuses s ON s.id = ts.status_id
+        WHERE tt.department_id = #{department_id} AND t.created_date BETWEEN '#{from.beginning_of_day.strftime('%Y-%m-%d %H:%M:%S')}'
+        AND '#{to.end_of_day.strftime('%Y-%m-%d %H:%M:%S')}' GROUP BY s.name"
       statuses = Status.all
+      test_statuses_counts = Status.find_by_sql(sql)
       statuses.each do |status|
-        test_count = CurrentTestStatus.where(status_id: status[:id]).count
-        statuses_count[status[:name]] = test_count
+        statuses_count[status.name] = 0
+      end
+      test_statuses_counts.each do |status_count|
+        statuses_count[status_count[:name]] = status_count[:count]
       end
       statuses_count
     end
@@ -99,7 +122,7 @@ module Tests
       acc_number = GlobalService.current_location.code << q_string
       Test.find_by_sql("
         SELECT t.id FROM tests t WHERE t.order_id IN (SELECT o.id FROM orders o
-        WHERE o.accession_number = '#{acc_number}' OR o.accession_number = '#{GlobalService.current_location.code}#{acc_number}' 
+        WHERE o.accession_number = '#{acc_number}' OR o.accession_number = '#{GlobalService.current_location.code}#{acc_number}'
         OR o.tracking_number = '#{q_string}')
         OR t.order_id IN (#{client_query(q_string)}) OR t.test_type_id IN
         (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{q_string}%')
