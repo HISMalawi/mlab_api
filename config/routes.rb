@@ -165,6 +165,7 @@ Rails.application.routes.draw do
       resources :stock_locations
       resources :stock_items
       resources :stocks
+      resources :stock_transaction_types
     end
   end
 end
