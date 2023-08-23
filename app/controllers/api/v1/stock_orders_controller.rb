@@ -37,7 +37,7 @@ module Api
       private
 
       def set_stock_order
-        @stock_order = StockOrders.find(params[:id])
+        @stock_order = StockOrder.find(params[:id])
       end
     end
   end

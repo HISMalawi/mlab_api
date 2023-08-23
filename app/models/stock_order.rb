@@ -8,17 +8,18 @@ class StockOrder < VoidableRecord
 
   before_save :strip_voucher_number_whitespace
 
-  # def statuses
-  #   stock_order_statuses.map do |status|
-  #     { id: status.status_id, name: status.status_name }
-  #   end
-  # end
+  def as_json(options = {})
+    methods = %i[stock_order_status stock_order_status_trail stock_requisitions]
+    super(options.merge(methods:, only: %i[id voucher_number created_date updated_date]))
+  end
 
-  # def requisitions
-  #   stock_requisitions.map do |requisition|
-  #     requisition
-  #   end
-  # end
+  def stock_order_status_trail
+    StockOrderStatus.where(stock_order_id: id)
+  end
+
+  def stock_order_status
+    stock_order_statuses&.order(created_date: :desc)&.first&.stock_status&.name
+  end
 
   private
 
