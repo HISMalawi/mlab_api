@@ -166,7 +166,11 @@ Rails.application.routes.draw do
       resources :stock_items
       resources :stocks
       resources :stock_transaction_types
-      resources :stock_orders
+      resources :stock_orders do
+        collection do
+          get '/check_voucher_number_if_used' => 'stock_orders#check_voucher_number_if_used'
+        end
+      end
       resources :stock_order_statuses do
         collection do
           put '/approve_order' => 'stock_order_statuses#approve_stock_order'

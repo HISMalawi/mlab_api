@@ -26,6 +26,10 @@ module StockManagement
               ')
       end
 
+      def voucher_number_already_used?(voucher_number)
+        StockOrder.find_by(voucher_number:).present?
+      end
+
       def create_stock_order(voucher_number, requisitions)
         # Create stock order -> stock requisitions -> stock order status -> stock transaction
         # Order: Draft -> Pending -> Received -> Approved/Reject
