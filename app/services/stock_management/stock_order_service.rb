@@ -55,15 +55,50 @@ module StockManagement
         update_stock_requisition_status(stock_requisition_id, 'Rejected', stock_status_reason)
       end
 
-      # rework this
-      def stock_transaction(stock_requisition_id, stock_order)
-        requisition = StockRequisition.find(stock_requisition_id)
+      def receive_stock_requisition(stock_requisition_id, quantity_issued, quantity_received, transaction_params)
+        ActiveRecord::Base.transaction do
+          stock_requisition = StockRequisition.find(stock_requisition_id)
+          stock_requisition.update!(quantity_issued:, quantity_received:)
+          update_stock_requisition_status(stock_requisition_id, 'Received')
+          stock_transaction(
+            stock_requisition.stock_item_id,
+            'In',
+            stock_requisition.quantity_received,
+            transaction_params
+          )
+        end
+      end
+
+      # Discuss with team, the below 3 methods should be in stock service or stock order service
+      # Discuss with team how to handle stock transaction and updatin stocks in consideration of different stock transaction types
+      # Discuss with team whether its ideal to create stocks with default zero quantity whenever a stock item is created
+      def stock_transaction(stock_item_id, transaction_type, quantity, params)
+        stock_id = Stock.find_by(stock_item_id:).id
         StockTransaction.create!(
-          stock_item_id: requisition.stock_item_id,
-          stock_location_id: stock_order.stock_location_id,
-          quantity: requisition.quantity_requested,
-          transaction_type: 'addition'
+          stock_id:,
+          stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
+          lot: params[:lot],
+          quantity:,
+          batch: params[:batch],
+          expire_date: params[:expire_date],
+          receiving_from: params[:receiving_from],
+          sending_to: params[:sending_to],
+          received_by: User.current.id,
+          optional_receiver: params[:optional_receiver],
+          remarks: params[:remarks]
         )
+      end
+
+      # Should be called after requisition is approved
+      def positive_stock_adjustment(stock_id, quantity)
+        stock = Stock.find(stock_id)
+        stock.update!(quantity: stock.quantity + quantity)
+      end
+
+      # Should be called after stock is issued out
+      def negative_stock_adjustment(stock_id, quantity)
+        stock = Stock.find(stock_id)
+        stock.update!(quantity: stock.quantity - quantity)
       end
     end
   end
