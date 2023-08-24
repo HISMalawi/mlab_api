@@ -12,7 +12,7 @@ module Api
         stocks = if params[:search].blank?
                    paginate(StockManagement::StockService.stock_list)
                  else
-                   StockManagement::StockService.search(params[:search])
+                   StockManagement::StockService.search_stock(params[:search])
                  end
         render json: stocks
       end
