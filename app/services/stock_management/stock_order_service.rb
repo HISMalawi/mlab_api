@@ -55,17 +55,20 @@ module StockManagement
         update_stock_requisition_status(stock_requisition_id, 'Rejected', stock_status_reason)
       end
 
-      def receive_stock_requisition(stock_requisition_id, quantity_issued, quantity_received, transaction_params)
+      def receive_stock_requisition(stock_requisition_id, requisition_params, transaction_params)
         ActiveRecord::Base.transaction do
           stock_requisition = StockRequisition.find(stock_requisition_id)
-          stock_requisition.update!(quantity_issued:, quantity_received:)
-          update_stock_requisition_status(stock_requisition_id, 'Received')
+          stock_requisition.update!(
+            quantity_issued: requisition_params[:quantity_issued],
+            quantity_received: requisition_params[:quantity_received]
+          )
           stock_transaction(
             stock_requisition.stock_item_id,
             'In',
             stock_requisition.quantity_received,
             transaction_params
           )
+          update_stock_requisition_status(stock_requisition_id, 'Received')
         end
       end
 
