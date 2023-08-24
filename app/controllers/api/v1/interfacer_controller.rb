@@ -4,6 +4,7 @@ module Api
   module V1
     # Interfacer Controller
     class InterfacerController < ApplicationController
+      include ActionController::HttpAuthentication::Basic::ControllerMethods
       skip_before_action :authorize_request, only: [:create]
       before_action :authenticate_driver, only: [:create]
 
@@ -38,12 +39,14 @@ module Api
       end
 
       def authenticate_driver
-        username = params.require(:PHP_AUTH_USER)
-        password = params.require(:PHP_AUTH_PW)
-
-        user = User.find_by!(username:)
-
-        render json: { message: 'Invalid Credentials' }, status: :unauthorized unless user.password_hash == password
+        authenticate_or_request_with_http_basic do |username, password|
+          user = User.find_by!(username:)
+          if user.password_hash == password
+            true
+          else
+            render json: { message: 'Invalid Credentials' }, status: :unauthorized
+          end
+        end
       end
     end
   end
