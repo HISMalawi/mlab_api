@@ -167,6 +167,13 @@ Rails.application.routes.draw do
       resources :stocks
       resources :stock_transaction_types
       resources :stock_orders
+      resources :stock_order_statuses do
+        collection do
+          put '/approve_order' => 'stock_order_statuses#approve_stock_order'
+          put '/reject_order' => 'stock_order_statuses#reject_stock_order'
+          put '/reject_requisition' => 'stock_order_statuses#reject_stock_requisition'
+        end
+      end
     end
   end
 end

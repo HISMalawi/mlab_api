@@ -9,8 +9,12 @@ class StockRequisition < VoidableRecord
   after_create :create_stock_status
 
   def as_json(options = {})
-    methods = %i[item requisition_status_trail requisition_status]
-    super(options.merge(methods:, only: %i[id stock_order_id quantity_requested quantity_issued quantity_collected created_date updated_date]))
+    methods = %i[item requisition_status requisition_status_trail]
+    super(options.merge(
+      methods:,
+      only: %i[id stock_order_id quantity_requested quantity_issued quantity_collected created_date updated_date]
+    )
+    )
   end
 
   def item
