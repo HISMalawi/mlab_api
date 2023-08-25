@@ -7,24 +7,57 @@ module Api
     # stock controller
     class StockOrderStatusesController < ApplicationController
       def approve_stock_order_request
-        stock_order_id = params[:stock_order_id]
-        approved = StockManagement::StockOrderService.approve_stock_order_request(stock_order_id)
-        render json: { message: MessageService::STOCK_ORDER_APPROVED } if approved
+        StockManagement::StockOrderService.approve_stock_order_request(
+          params.require(:stock_order_id),
+          params.require(:stock_requisition_ids)
+        )
+        render json: { message: MessageService::STOCK_ORDER_APPROVED }
       end
 
       def reject_stock_order
-        stock_order_id = params[:stock_order_id]
-        rejected = StockManagement::StockOrderService.reject_stock_order(stock_order_id, params[:stock_status_reason])
-        render json: { message: MessageService::STOCK_ORDER_REJECTED } if rejected
+        StockManagement::StockOrderService.reject_stock_order(
+          params.require(:stock_order_id),
+          params.require(:stock_status_reason)
+        )
+        render json: { message: MessageService::STOCK_ORDER_REJECTED }
       end
 
       def reject_stock_requisition
-        stock_requisition_id = params[:stock_requisition_id]
-        rejected = StockManagement::StockOrderService.reject_stock_requisition(
-          stock_requisition_id,
-          params[:stock_status_reason]
+        StockManagement::StockOrderService.reject_stock_requisition(
+          params.require(:stock_requisition_id),
+          params.require(:stock_status_reason)
         )
-        render json: { message: MessageService::STOCK_REQUISITION_REJECTED } if rejected
+        render json: { message: MessageService::STOCK_REQUISITION_REJECTED }
+      end
+
+      def receive_stock_requisition
+        StockManagement::StockOrderService.receive_stock_requisition(
+          params.require(:stock_requisition_id), params[:requisition], params[:transaction]
+        )
+        render json: { message: MessageService::STOCK_REQUISITION_RECEIVED }
+      end
+
+      def approve_stock_requisition
+        StockManagement::StockOrderService.approve_stock_requisition(
+          params.require(:stock_requisition_id)
+        )
+        render json: { message: MessageService::STOCK_REQUISITION_APPROVED }
+      end
+
+      def approve_stock_order_receipt
+        StockManagement::StockOrderService.approve_stock_order_receipt(
+          params.require(:stock_order_id),
+          params.require(:stock_requisition_ids)
+        )
+        render json: { message: MessageService::STOCK_ORDER_APPROVED }
+      end
+
+      def stock_requisition_not_collected
+        StockManagement::StockOrderService.stock_requisition_not_collected(
+          params.require(:stock_requisition_id),
+          params.require(:stock_status_reason)
+        )
+        render json: { message: MessageService::STOCK_REQUISITION_NOT_COLLECTED }
       end
     end
   end
