@@ -20,8 +20,10 @@ module Api
         render json: stock_order, status: :created
       end
 
-      def check_voucher_number_if_used
-        render json: StockManagement::StockService.voucher_number_already_used?(params[:voucher_number])
+      def check_voucher_number_if_already_used
+        render json: {
+          used: StockManagement::StockService.voucher_number_already_used?(params[:voucher_number])
+        }
       end
 
       def show

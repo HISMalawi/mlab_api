@@ -45,6 +45,38 @@ module StockManagement
           end
         end
       end
+
+      # Discuss with team, the below 3 methods should be in stock service or stock order service
+      # Discuss with team how to handle stock transaction and updatin stocks in consideration of different stock transaction types
+      # Discuss with team whether its ideal to create stocks with default zero quantity whenever a stock item is created
+      def stock_transaction(stock_item_id, transaction_type, quantity, params)
+        stock_id = Stock.find_by(stock_item_id:).id
+        StockTransaction.create!(
+          stock_id:,
+          stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
+          lot: params[:lot],
+          quantity:,
+          batch: params[:batch],
+          expire_date: params[:expire_date],
+          receiving_from: params[:receiving_from],
+          sending_to: params[:sending_to],
+          received_by: User.current.id,
+          optional_receiver: params[:optional_receiver],
+          remarks: params[:remarks]
+        )
+      end
+
+      # Should be called after requisition is approved
+      def positive_stock_adjustment(stock_id, quantity)
+        stock = Stock.find(stock_id)
+        stock.update!(quantity: stock.quantity + quantity)
+      end
+
+      # Should be called after stock is issued out/ expired / disposed
+      def negative_stock_adjustment(stock_id, quantity)
+        stock = Stock.find(stock_id)
+        stock.update!(quantity: stock.quantity - quantity)
+      end
     end
   end
 end
