@@ -13,6 +13,8 @@ module StockManagement
         )
       end
 
+      # refactor this method such that when handling requisition rejection to also
+      # do a transaction to remove the stock from balance column in stock_transaction table
       def update_stock_requisition_status(stock_requisition_id, status, stock_status_reason = nil)
         RequisitionStatus.find_or_create_by!(
           stock_requisition_id:,
