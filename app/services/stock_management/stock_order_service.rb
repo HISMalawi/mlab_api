@@ -27,7 +27,7 @@ module StockManagement
         stock_requisition_status == 'Rejected'
       end
 
-      def approve_stock_order(stock_order_id)
+      def approve_stock_order_request(stock_order_id)
         ActiveRecord::Base.transaction do
           stock_order = StockOrder.find(stock_order_id)
           update_stock_order_status(stock_order.id, 'Requested')
@@ -70,6 +70,45 @@ module StockManagement
           )
           update_stock_requisition_status(stock_requisition_id, 'Received')
         end
+      end
+
+      def stock_requisition_not_collected(stock_requisition_id, stock_status_reason)
+        update_stock_requisition_status(stock_requisition_id, 'Not Collected', stock_status_reason)
+      end
+
+      def approve_stock_requisition(stock_requisition_id)
+        update_stock_requisition_status(stock_requisition_id, 'Approved')
+        return unless stock_requisition_approved?(stock_requisition_id)
+
+        stock_requisition = StockRequisition.find(stock_requisition_id)
+        StockManagement::StockService.positive_stock_adjustment(
+          stock_requisition.stock_item_id,
+          stock_requisition.quantity_requested
+        )
+      end
+
+      def approve_stock_order_receipt(stock_order_id)
+        ActiveRecord::Base.transaction do
+          stock_order = StockOrder.find(stock_order_id)
+          update_stock_order_status(stock_order_id, 'Approved')
+          stock_order.stock_requisitions.each do |requisition|
+            next if stock_requesition_rejected?(requisition.id)
+
+            update_stock_requisition_status(requisition.id, 'Approved')
+            next unless stock_requisition_approved?(requisition.id)
+
+            StockManagement::StockService.positive_stock_adjustment(
+              requisition.stock_item_id,
+              requisition.quantity_requested
+            )
+          end
+        end
+      end
+
+      def stock_requisition_approved?(stock_requisition_id)
+        RequisitionStatus.where(stock_requisition_id:)&.order(
+          created_date: :desc
+        )&.first&.stock_status&.name == 'Approved'
       end
     end
   end

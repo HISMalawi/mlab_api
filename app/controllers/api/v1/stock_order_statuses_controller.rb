@@ -6,9 +6,9 @@ module Api
   module V1
     # stock controller
     class StockOrderStatusesController < ApplicationController
-      def approve_stock_order
+      def approve_stock_order_request
         stock_order_id = params[:stock_order_id]
-        approved = StockManagement::StockOrderService.approve_stock_order(stock_order_id)
+        approved = StockManagement::StockOrderService.approve_stock_order_request(stock_order_id)
         render json: { message: MessageService::STOCK_ORDER_APPROVED } if approved
       end
 

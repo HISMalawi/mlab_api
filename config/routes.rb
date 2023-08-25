@@ -173,7 +173,7 @@ Rails.application.routes.draw do
       end
       resources :stock_order_statuses do
         collection do
-          put '/approve_order' => 'stock_order_statuses#approve_stock_order'
+          put '/approve_order_request' => 'stock_order_statuses#approve_stock_order_request'
           put '/reject_order' => 'stock_order_statuses#reject_stock_order'
           put '/reject_requisition' => 'stock_order_statuses#reject_stock_requisition'
         end
