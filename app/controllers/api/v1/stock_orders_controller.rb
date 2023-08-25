@@ -14,10 +14,10 @@ module Api
       end
 
       def create
-        stock_order = StockManagement::StockService.create_stock_order(
+        StockManagement::StockService.create_stock_order(
           params[:voucher_number], params[:requisitions]
         )
-        render json: stock_order, status: :created
+        render json: { message: MessageService::RECORD_CREATED }, status: :created
       end
 
       def check_voucher_number_if_already_used
