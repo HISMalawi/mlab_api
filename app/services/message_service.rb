@@ -10,4 +10,5 @@ module MessageService
   STOCK_ORDER_APPROVED = 'Stock Order Approved'
   STOCK_ORDER_REJECTED = 'Stock Order Rejected'
   STOCK_REQUISITION_REJECTED = 'Stock Requisition Rejected'
+  RECORD_CREATED = 'Record created successfully'
 end
