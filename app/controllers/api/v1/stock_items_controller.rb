@@ -14,8 +14,11 @@ module Api
       end
 
       def create
-        stock_item = StockItem.create!(stock_item_params)
-        render json: stock_item, status: :created
+        ActiveRecord::Base.transaction do
+          @stock_item = StockItem.create!(stock_item_params)
+          Stock.create!(stock_item_id: @stock_item.id, stock_location_id: params.require(:stock_location_id), quantity: 0)
+        end
+        render json: @stock_item, status: :created
       end
 
       def show
