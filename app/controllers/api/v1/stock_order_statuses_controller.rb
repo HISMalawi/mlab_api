@@ -44,6 +44,15 @@ module Api
         render json: { message: MessageService::STOCK_REQUISITION_RECEIVED }
       end
 
+      def receive_stock_order
+        StockManagement::StockOrderService.receive_stock_order(
+          params.require(:stock_order_id),
+          params.require(:pharmacy_params),
+          params.require(:stock_params)
+        )
+        render json: { message: MessageService::STOCK_ORDER_RECEIVED }
+      end
+
       def approve_stock_requisition
         StockManagement::StockOrderService.approve_stock_requisition(
           params.require(:stock_requisition_id)
