@@ -23,7 +23,7 @@ module StockManagement
         )
       end
 
-      def stock_requesition_rejected?(stock_requisition_id)
+      def stock_requisition_rejected?(stock_requisition_id)
         stock_requisition_status = RequisitionStatus.where(stock_requisition_id:)
                                                     .order(created_date: :desc)&.first&.stock_status&.name
         stock_requisition_status == 'Rejected'
@@ -33,7 +33,7 @@ module StockManagement
         ActiveRecord::Base.transaction do
           update_stock_order_status(stock_order_id, 'Requested')
           stock_requisitions.each do |requisition|
-            next if stock_requesition_rejected?(requisition)
+            next if stock_requisition_rejected?(requisition)
 
             update_stock_requisition_status(requisition, 'Requested')
           end
@@ -45,7 +45,7 @@ module StockManagement
           stock_order = StockOrder.find(stock_order_id)
           update_stock_order_status(stock_order.id, 'Rejected', stock_status_reason)
           stock_order.stock_requisitions.each do |requisition|
-            next if stock_requesition_rejected?(requisition.id)
+            next if stock_requisition_rejected?(requisition.id)
 
             update_stock_requisition_status(requisition.id, 'Rejected', stock_status_reason)
           end
@@ -78,7 +78,7 @@ module StockManagement
       end
 
       def approve_stock_requisition(stock_requisition_id)
-        next if stock_requesition_rejected?(stock_requisition_id)
+        return if stock_requisition_rejected?(stock_requisition_id)
 
         update_stock_requisition_status(stock_requisition_id, 'Approved')
         return unless stock_requisition_receipt_approved?(stock_requisition_id)
@@ -94,7 +94,7 @@ module StockManagement
         ActiveRecord::Base.transaction do
           update_stock_order_status(stock_order_id, 'Approved')
           stock_requisitions.each do |requisition|
-            next if stock_requesition_rejected?(requisition)
+            next if stock_requisition_rejected?(requisition)
 
             update_stock_requisition_status(requisition, 'Approved')
             next unless stock_requisition_receipt_approved?(requisition)
