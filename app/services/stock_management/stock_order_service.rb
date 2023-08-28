@@ -6,6 +6,10 @@ module StockManagement
   module StockOrderService
     class << self
       def update_stock_order_status(stock_order_id, status, stock_status_reason = nil)
+        return if StockOrderStatus.where(stock_order_id:)&.order(
+          created_date: :desc
+        )&.first&.stock_status&.name == status
+
         StockOrderStatus.find_or_create_by!(
           stock_order_id:,
           stock_status_id: StockStatus.find_by(name: status).id,
@@ -16,6 +20,10 @@ module StockManagement
       # refactor this method such that when handling requisition rejection to also
       # do a transaction to remove the stock from balance column in stock_transaction table
       def update_stock_requisition_status(stock_requisition_id, status, stock_status_reason = nil)
+        return if RequisitionStatus.where(stock_requisition_id:)&.order(
+          created_date: :desc
+        )&.first&.stock_status&.name == status
+
         RequisitionStatus.find_or_create_by!(
           stock_requisition_id:,
           stock_status_id: StockStatus.find_by(name: status).id,
@@ -71,6 +79,46 @@ module StockManagement
           )
           update_stock_requisition_status(stock_requisition_id, 'Received')
         end
+      end
+
+      def receive_stock_order(stock_order_id, pharmacy_params, stock_params)
+        # stock_params
+        # stovk_id: 1
+        # s: [
+        #   {
+        #     stock_requisition_id: 1
+        #     requisition: {
+        #       isss:
+        #       col:
+        #     },
+        #     transaction:{
+        #       lot:
+        #       bach:
+
+        #     }
+        #   }
+        # ]
+        ActiveRecord::Base.transaction do
+          update_stock_order_status(stock_order_id, 'Received')
+          stock_params.each do |stock_param|
+            receive_stock_requisition(
+              stock_param[:stock_requisition_id],
+              stock_param[:requisition],
+              stock_param[:transaction]
+            )
+          end
+          pharmacy_approver_issuer(pharmacy_params, stock_order_id)
+        end
+      end
+
+      def pharmacy_approver_issuer(pharmacy_params, stock_order_id)
+        StockPharmacyApproverAndIssuer.create!(
+          stock_order_id:,
+          name: pharmacy_params[:name],
+          designation: pharmacy_params[:designation],
+          phone_number: pharmacy_params[:phone_number],
+          signature: pharmacy_params[:signature]
+        )
       end
 
       def stock_requisition_not_collected(stock_requisition_id, stock_status_reason)
