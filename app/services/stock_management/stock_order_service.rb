@@ -48,6 +48,12 @@ module StockManagement
         end
       end
 
+      def approve_stock_requisition_request(stock_requisition_id)
+        ActiveRecord::Base.transaction do
+          update_stock_requisition_status(stock_requisition_id, 'Requested')
+        end
+      end
+
       def reject_stock_order(stock_order_id, stock_status_reason)
         ActiveRecord::Base.transaction do
           stock_order = StockOrder.find(stock_order_id)

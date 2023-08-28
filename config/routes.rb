@@ -175,6 +175,7 @@ Rails.application.routes.draw do
         collection do
           put '/approve_order_request' => 'stock_order_statuses#approve_stock_order_request'
           put '/reject_order' => 'stock_order_statuses#reject_stock_order'
+          put '/approve_stock_requisition_request' => 'stock_order_statuses#approve_stock_requisition_request'
           put '/reject_requisition' => 'stock_order_statuses#reject_stock_requisition'
           post '/receive_requisition' => 'stock_order_statuses#receive_stock_requisition'
         end

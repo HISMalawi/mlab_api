@@ -22,6 +22,13 @@ module Api
         render json: { message: MessageService::STOCK_ORDER_REJECTED }
       end
 
+      def approve_stock_requisition_request
+        StockManagement::StockOrderService.approve_stock_requisition_request(
+          params.require(:stock_requisition_id)
+        )
+        render json: { message: MessageService::STOCK_REQUISITION_APPROVED }
+      end
+
       def reject_stock_requisition
         StockManagement::StockOrderService.reject_stock_requisition(
           params.require(:stock_requisition_id),
