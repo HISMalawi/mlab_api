@@ -15,4 +15,5 @@ module MessageService
   STOCK_REQUISITION_APPROVED = 'Stock Requisition Approved'
   STOCK_REQUISITION_NOT_COLLECTED = 'Stock Requisition Not Collected'
   STOCK_ORDER_RECEIVED = 'Stock Order Received'
+  RECORD_CREATED = 'Record created successfully'
 end

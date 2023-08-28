@@ -75,6 +75,14 @@ module Api
         )
         render json: { message: MessageService::STOCK_REQUISITION_NOT_COLLECTED }
       end
+
+      def pharmacy_approver_issuer
+        StockManagement::StockOrderService.pharmacy_approver_issuer(
+          params.require(:stock_order_id),
+          params.require(:pharmacy_params)
+        )
+        render json: { message: MessageService::RECORD_CREATED }
+      end
     end
   end
 end
