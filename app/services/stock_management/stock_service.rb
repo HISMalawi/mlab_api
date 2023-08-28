@@ -51,19 +51,40 @@ module StockManagement
       # Discuss with team whether its ideal to create stocks with default zero quantity whenever a stock item is created
       def stock_transaction(stock_item_id, transaction_type, quantity, params)
         stock_id = Stock.find_by(stock_item_id:).id
+        lot = params[:lot]
+        batch = params[:batch]
+        expiry_date = params[:expiry_date]
+        receiving_from = params[:receiving_from]
+        sending_to = params[:sending_to]
+        optional_receiver = params[:optional_receiver]
+        remarks = params[:remarks]
+        balance = stock_transaction_calculate_remaining_balance(lot, batch, expiry_date, quantity, transaction_type)
         StockTransaction.create!(
           stock_id:,
           stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
-          lot: params[:lot],
+          lot:,
           quantity:,
-          batch: params[:batch],
-          expire_date: params[:expire_date],
-          receiving_from: params[:receiving_from],
-          sending_to: params[:sending_to],
+          batch:,
+          expiry_date:,
+          receiving_from:,
+          sending_to:,
           received_by: User.current.id,
-          optional_receiver: params[:optional_receiver],
-          remarks: params[:remarks]
+          optional_receiver:,
+          remarks:,
+          remaining_balance: balance
         )
+      end
+
+      def stock_transaction_calculate_remaining_balance(lot, batch, expiry_date, quantity, transaction_type)
+        stock_incoming_transaction_types = ['In']
+        stock_transaction = StockTransaction.find_by(lot:, batch:, expiry_date:)
+        if stock_transaction.nil?
+          quantity
+        elsif stock_incoming_transaction_types.include?(transaction_type)
+          stock_transaction.remaining_balance + quantity
+        else
+          stock_transaction.remaining_balance - quantity
+        end
       end
 
       # Should be called after requisition is approved
