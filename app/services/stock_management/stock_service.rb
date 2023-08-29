@@ -54,7 +54,7 @@ module StockManagement
         lot = params[:lot]
         batch = params[:batch]
         expiry_date = params[:expiry_date]
-        receiving_from = params[:receiving_from]
+        receiving_from = params[:receiving_from].nil? ? 'Pharmacy' : params[:receiving_from]
         sending_to = params[:sending_to]
         optional_receiver = params[:optional_receiver]
         remarks = params[:remarks]
