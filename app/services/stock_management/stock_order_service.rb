@@ -129,9 +129,10 @@ module StockManagement
             update_stock_requisition_status(requisition, 'Approved')
             next unless stock_requisition_receipt_approved?(requisition)
 
+            stock_requisition = StockRequisition.find(requisition)
             StockManagement::StockService.positive_stock_adjustment(
-              requisition.stock_item_id,
-              requisition.quantity_requested
+              stock_requisition.stock_item_id,
+              stock_requisition.quantity_requested
             )
           end
         end
