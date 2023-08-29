@@ -9,7 +9,11 @@ module Api
       before_action :set_stock_order, only: %i[show update destroy]
 
       def index
-        stock_orders = StockOrder.all
+        stock_orders = if params[:search].present?
+                         StockOrder.search(params[:search])
+                       else
+                         StockOrder.all
+                       end
         render json: stock_orders
       end
 
