@@ -9,7 +9,9 @@ module Api
       before_action :set_stock_item, only: %i[show update destroy]
 
       def index
-        stock_items = StockItem.all
+        stock_items = Stock.joins(:stock_item).select(
+          'stock_items.*, stocks.stock_location_id, stocks.minimum_order_level'
+        )
         render json: stock_items
       end
 
