@@ -87,33 +87,9 @@ module StockManagement
         end
       end
 
-      def receive_stock_order(stock_order_id, pharmacy_params, stock_params)
-        # stock_params
-        # stovk_id: 1
-        # s: [
-        #   {
-        #     stock_requisition_id: 1
-        #     requisition: {
-        #       isss:
-        #       col:
-        #     },
-        #     transaction:{
-        #       lot:
-        #       bach:
-
-        #     }
-        #   }
-        # ]
+      def receive_stock_order(stock_order_id)
         ActiveRecord::Base.transaction do
           update_stock_order_status(stock_order_id, 'Received')
-          stock_params.each do |stock_param|
-            receive_stock_requisition(
-              stock_param[:stock_requisition_id],
-              stock_param[:requisition],
-              stock_param[:transaction]
-            )
-          end
-          pharmacy_approver_issuer(pharmacy_params, stock_order_id)
         end
       end
 
