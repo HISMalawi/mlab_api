@@ -43,7 +43,7 @@ module Api
           :designation,
           :phone_number,
           :signature,
-          :type
+          :record_type
         )
       end
 
