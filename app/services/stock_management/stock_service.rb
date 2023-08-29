@@ -89,14 +89,18 @@ module StockManagement
       end
 
       # Should be called after requisition is approved
-      def positive_stock_adjustment(stock_id, quantity)
-        stock = Stock.find(stock_id)
+      def positive_stock_adjustment(stock_item_id, quantity)
+        stock = Stock.find_by_stock_item_id(stock_item_id)
+        return if stock.nil?
+
         stock.update!(quantity: stock.quantity + quantity)
       end
 
       # Should be called after stock is issued out/ expired / disposed
-      def negative_stock_adjustment(stock_id, quantity)
-        stock = Stock.find(stock_id)
+      def negative_stock_adjustment(stock_item_id, quantity)
+        stock = Stock.find_by_stock_item_id(stock_item_id)
+        return if stock.nil?
+
         stock.update!(quantity: stock.quantity - quantity)
       end
     end
