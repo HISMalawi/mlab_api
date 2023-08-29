@@ -180,6 +180,7 @@ Rails.application.routes.draw do
           post '/receive_requisition' => 'stock_order_statuses#receive_stock_requisition'
           put '/receive_stock_order' => 'stock_order_statuses#receive_stock_order'
           put '/stock_requisition_not_collected' => 'stock_order_statuses#stock_requisition_not_collected'
+          put '/approve_stock_order_receipt' => 'stock_order_statuses#approve_stock_order_receipt'
         end
       end
       resources :stock_pharmacy_approver_and_issuers
