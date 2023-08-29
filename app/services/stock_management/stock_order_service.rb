@@ -75,7 +75,7 @@ module StockManagement
           stock_requisition = StockRequisition.find(stock_requisition_id)
           stock_requisition.update!(
             quantity_issued: requisition_params[:quantity_issued],
-            quantity_received: requisition_params[:quantity_received]
+            quantity_collected: requisition_params[:quantity_received]
           )
           StockManagement::StockService.stock_transaction(
             stock_requisition.stock_item_id,
