@@ -78,12 +78,13 @@ module StockManagement
       def stock_transaction_calculate_remaining_balance(lot, batch, expiry_date, quantity, transaction_type)
         stock_incoming_transaction_types = ['In']
         stock_transaction = StockTransaction.find_by(lot:, batch:, expiry_date:)
+        remaining_balance = stock_transaction&.remaining_balance.nil? ? 0 : stock_transaction&.remaining_balance
         if stock_transaction.nil?
           quantity
         elsif stock_incoming_transaction_types.include?(transaction_type)
-          stock_transaction.remaining_balance + quantity
+          remaining_balance + quantity
         else
-          stock_transaction.remaining_balance - quantity
+          remaining_balance - quantity
         end
       end
 

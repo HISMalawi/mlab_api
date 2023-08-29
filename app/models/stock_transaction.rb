@@ -1,2 +1,2 @@
-class StockTransaction < ApplicationRecord
+class StockTransaction < VoidableRecord
 end
