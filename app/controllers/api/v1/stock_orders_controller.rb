@@ -17,6 +17,10 @@ module Api
         render json: stock_orders
       end
 
+      def stock_statuses
+        render json: StockStatus.select(:id, :name)
+      end
+
       def create
         StockManagement::StockService.create_stock_order(
           params[:voucher_number], params[:requisitions]
