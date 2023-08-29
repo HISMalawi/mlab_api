@@ -4,12 +4,13 @@
 class StockOrder < VoidableRecord
   has_many :stock_requisitions
   has_many :stock_order_statuses
+  has_many :stock_pharmacy_approver_and_issuers
   validates :voucher_number, uniqueness: true, presence: true
 
   before_save :strip_voucher_number_whitespace
 
   def as_json(options = {})
-    methods = %i[stock_order_status stock_order_status_trail stock_requisitions]
+    methods = %i[stock_order_status stock_order_status_trail stock_requisitions stock_pharmacy_approver_and_issuers]
     super(options.merge(methods:, only: %i[id voucher_number created_date updated_date]))
   end
 
