@@ -38,8 +38,7 @@ module Api
         stock.update!(
           stock_item_id: @stock_item.id,
           stock_location_id: params.require(:stock_location_id),
-          quantity: 0,
-          minimum_order_level: params.require(:minimum_order_level)
+          minimum_order_level: params.require(:minimum_order_level).to_i
         )
         render json: @stock_item, status: :ok
       end
