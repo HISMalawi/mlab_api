@@ -10,9 +10,16 @@ module Api
 
       def index
         stock_orders = if params[:search].present?
-                         StockOrder.search(params[:search])
+                         if params[:stock_status_id].present?
+                           paginate(StockOrder.search(params[:search])
+                               .filter_by_stock_order_status(params[:stock_status_id]))
+                         else
+                           paginate(StockOrder.search(params[:search]))
+                         end
+                       elsif params[:stock_status_id].present?
+                         paginate(StockOrder.all.filter_by_stock_order_status(params[:stock_status_id]))
                        else
-                         StockOrder.all
+                         paginate(StockOrder.all)
                        end
         render json: stock_orders
       end

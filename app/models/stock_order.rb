@@ -26,6 +26,15 @@ class StockOrder < VoidableRecord
     where("voucher_number LIKE '%#{voucher_number}%'")
   end
 
+  def self.filter_by_stock_order_status(status_id)
+    stock_orders = StockOrder.joins(:stock_order_statuses).where('stock_order_statuses.created_date = (
+      SELECT MAX(sos.created_date) FROM stock_order_statuses AS sos
+      WHERE sos.stock_order_id = stock_orders.id
+    )')
+    stock_orders = stock_orders.where("stock_order_statuses.stock_status_id = #{status_id}") if status_id.present?
+    stock_orders
+  end
+
   private
 
   def strip_voucher_number_whitespace
