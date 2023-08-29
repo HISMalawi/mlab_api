@@ -16,7 +16,12 @@ module Api
       def create
         ActiveRecord::Base.transaction do
           @stock_item = StockItem.create!(stock_item_params)
-          Stock.create!(stock_item_id: @stock_item.id, stock_location_id: params.require(:stock_location_id), quantity: 0)
+          Stock.create!(
+            stock_item_id: @stock_item.id,
+            stock_location_id: params.require(:stock_location_id),
+            quantity: 0,
+            minimum_order_level: params.require(:minimum_order_level)
+          )
         end
         render json: @stock_item, status: :created
       end
@@ -27,6 +32,13 @@ module Api
 
       def update
         @stock_item.update!(stock_item_params)
+        stock = Stock.find_by_stock_item_id(@stock_item.id)
+        stock.update!(
+          stock_item_id: @stock_item.id,
+          stock_location_id: params.require(:stock_location_id),
+          quantity: 0,
+          minimum_order_level: params.require(:minimum_order_level)
+        )
         render json: @stock_item, status: :ok
       end
 
@@ -38,7 +50,14 @@ module Api
       private
 
       def stock_item_params
-        params.require(:stock_item).permit(:name, :stock_category_id, :description, :measurement_unit, :quantity_unit)
+        params.require(:stock_item).permit(
+          :name,
+          :stock_category_id,
+          :description,
+          :measurement_unit,
+          :quantity_unit,
+          :strength
+        )
       end
 
       def set_stock_item
