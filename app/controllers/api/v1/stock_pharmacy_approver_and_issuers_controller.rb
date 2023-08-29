@@ -5,7 +5,7 @@ module Api
   # module V1
   module V1
     # stock PharmacyApproverIssuer controller
-    class PharmacyApproverIssuer < ApplicationController
+    class StockPharmacyApproverAndIssuersController < ApplicationController
       before_action :set_pharmacy_approver_issuer, only: %i[show update destroy]
 
       def index
@@ -37,13 +37,13 @@ module Api
       private
 
       def stock_pham_app_issuer_params
-        param.require(:stock_pharmacy_approver_and_issuers).permit(
-          stock_order_id,
-          name,
-          designation,
-          phone_number,
-          signature,
-          type
+        params.require(:stock_pharmacy_approver_and_issuer).permit(
+          :stock_order_id,
+          :name,
+          :designation,
+          :phone_number,
+          :signature,
+          :type
         )
       end
 
