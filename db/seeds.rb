@@ -6,3 +6,10 @@ stock_statuses.each do |status|
     name: status
   )
 end
+
+stock_transaction_types = ['In']
+stock_transaction_types.each do |type|
+  StockTransactionType.find_or_create_by!(
+    name: type
+  )
+end
