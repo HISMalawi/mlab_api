@@ -2,7 +2,7 @@ module Api
   module V1
     class EncounterTypesController < ApplicationController
       def index
-        render json: paginate(EncounterType.all)
+        render json: EncounterType.all
       end
 
       def show
