@@ -31,9 +31,6 @@ module StockManagement
       end
 
       def create_stock_order(voucher_number, requisitions)
-        # Create stock order -> stock requisitions -> stock order status -> stock transaction
-        # Order: Draft -> Pending -> Received -> Approved/Reject
-        # Req status: Draft -> Requested -> Received -> Approved/Reject/Not collected
         ActiveRecord::Base.transaction do
           stock_order = StockOrder.create!(voucher_number:)
           requisitions.each do |requisition|
@@ -46,19 +43,20 @@ module StockManagement
         end
       end
 
-      # Discuss with team, the below 3 methods should be in stock service or stock order service
-      # Discuss with team how to handle stock transaction and updatin stocks in consideration of different stock transaction types
-      # Discuss with team whether its ideal to create stocks with default zero quantity whenever a stock item is created
       def stock_transaction(stock_item_id, transaction_type, quantity, params)
         stock_id = Stock.find_by(stock_item_id:).id
         lot = params[:lot]
         batch = params[:batch]
         expiry_date = params[:expiry_date]
-        receiving_from = params[:receiving_from].nil? ? 'Pharmacy' : params[:receiving_from]
+        receiving_from = if params[:receiving_from].nil? && positive_stock_adjustment_transaction_type?(transaction_type)
+                           'Pharmacy'
+                         else
+                           params[:receiving_from]
+                         end
         sending_to = params[:sending_to]
         optional_receiver = params[:optional_receiver]
         remarks = params[:remarks]
-        balance = stock_transaction_calculate_remaining_balance(lot, batch, expiry_date, quantity, transaction_type)
+        balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
         StockTransaction.create!(
           stock_id:,
           stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
@@ -75,13 +73,42 @@ module StockManagement
         )
       end
 
-      def stock_transaction_calculate_remaining_balance(lot, batch, expiry_date, quantity, transaction_type)
-        stock_incoming_transaction_types = ['In']
-        stock_transaction = StockTransaction.find_by(lot:, batch:, expiry_date:)
+      def issue_stock_out(stock_id, lot, batch, expiry_date, quantity_to_issue, sending_to)
+        params = {
+          lot:,
+          batch:,
+          expiry_date:,
+          sending_to:
+        }
+        return if stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity_to_issue)
+
+        stock_transaction(stock_id, 'Out', quantity_to_issue, params)
+      end
+
+      def stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity)
+        stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
+        quantity = quantity.to_i
+        stock_transaction.present? && stock_transaction.remaining_balance >= quantity
+      end
+
+      def last_stock_transaction(stock_id, lot, batch, expiry_date)
+        stock_transaction = StockTransaction.where(stock_id:)
+        stock_transaction = stock_transaction.where(lot:) if lot.present?
+        stock_transaction = stock_transaction.where(batch:) if batch.present?
+        stock_transaction = stock_transaction.where(expiry_date:) if expiry_date.present?
+        stock_transaction.order(created_date: :desc).first
+      end
+
+      def positive_stock_adjustment_transaction_type?(transaction_type)
+        ['In'].include?(transaction_type)
+      end
+
+      def stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
+        stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
         remaining_balance = stock_transaction&.remaining_balance.nil? ? 0 : stock_transaction&.remaining_balance
         if stock_transaction.nil?
           quantity
-        elsif stock_incoming_transaction_types.include?(transaction_type)
+        elsif positive_stock_adjustment_transaction_type?(transaction_type)
           remaining_balance + quantity
         else
           remaining_balance - quantity

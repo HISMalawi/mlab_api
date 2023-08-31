@@ -186,6 +186,11 @@ Rails.application.routes.draw do
         end
       end
       resources :stock_pharmacy_approver_and_issuers
+      resources :stock_movements do
+        collection do
+          get '/deduction_allowed' => 'stock_movement#stock_deduction_allowed'
+        end
+      end
     end
   end
 end
