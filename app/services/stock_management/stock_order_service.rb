@@ -80,7 +80,7 @@ module StockManagement
             quantity_not_collected: requisition_params[:quantity_not_collected].present? ? requisition_params[:quantity_not_collected] : 0
           )
           StockManagement::StockService.stock_transaction(
-            stock_requisition.stock_item_id,
+            Stock.find_by(stock_item_id: stock_requisition.stock_item_id).id,
             'In',
             stock_requisition.quantity_collected,
             transaction_params

@@ -43,8 +43,7 @@ module StockManagement
         end
       end
 
-      def stock_transaction(stock_item_id, transaction_type, quantity, params)
-        stock_id = Stock.find_by(stock_item_id:).id
+      def stock_transaction(stock_id, transaction_type, quantity, params)
         lot = params[:lot]
         batch = params[:batch]
         expiry_date = params[:expiry_date]
@@ -57,6 +56,10 @@ module StockManagement
         optional_receiver = params[:optional_receiver]
         remarks = params[:remarks]
         balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
+        last_stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
+        lot = last_stock_transaction&.lot.nil? ? lot : last_stock_transaction&.lot
+        batch = last_stock_transaction&.batch.nil? ? batch : last_stock_transaction&.batch
+        expiry_date = last_stock_transaction&.expiry_date.nil? ? expiry_date : last_stock_transaction&.expiry_date
         StockTransaction.create!(
           stock_id:,
           stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
@@ -73,15 +76,17 @@ module StockManagement
         )
       end
 
-      def issue_stock_out(params)
-        stock_id = params.require(:stock_id)
+      def issue_stock_out(stock, params)
         lot = params[:lot]
         batch = params[:batch]
         expiry_date = params[:expiry_date]
         quantity_to_issue = params.require(:quantity)
-        return unless stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity_to_issue)
+        return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
 
-        stock_transaction(stock_id, 'Out', quantity_to_issue, params)
+        ActiveRecord::Base.transaction do
+          stock_transaction(stock.id, 'Out', quantity_to_issue, params)
+          negative_stock_adjustment(stock, quantity_to_issue)
+        end
       end
 
       def stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity)
@@ -123,8 +128,7 @@ module StockManagement
       end
 
       # Should be called after stock is issued out/ expired / disposed
-      def negative_stock_adjustment(stock_item_id, quantity)
-        stock = Stock.find_by_stock_item_id(stock_item_id)
+      def negative_stock_adjustment(stock, quantity)
         return if stock.nil?
 
         stock.update!(quantity: stock.quantity - quantity.to_i)
