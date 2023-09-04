@@ -120,7 +120,7 @@ module StockManagement
         stock = Stock.find_by_stock_item_id(stock_item_id)
         return if stock.nil?
 
-        stock.update!(quantity: stock.quantity + quantity)
+        stock.update!(quantity: stock.quantity + quantity.to_i)
       end
 
       # Should be called after stock is issued out/ expired / disposed
@@ -128,7 +128,7 @@ module StockManagement
         stock = Stock.find_by_stock_item_id(stock_item_id)
         return if stock.nil?
 
-        stock.update!(quantity: stock.quantity - quantity)
+        stock.update!(quantity: stock.quantity - quantity.to_i)
       end
     end
   end
