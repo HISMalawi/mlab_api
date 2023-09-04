@@ -88,7 +88,7 @@ module StockManagement
             expiry_date = stock_item[:expiry_date]
             quantity_to_issue = stock_item[:quantity]
             stock = Stock.find_by(stock_item_id: stock_item[:stock_item_id])
-            return unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
+            return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
 
             stock_item[:sending_to] = sending_to
             stock_transaction = stock_transaction(stock.id, transaction_type, quantity_to_issue, params)

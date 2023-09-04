@@ -30,6 +30,9 @@ module Api
         message = approved ? 'Stock movement approved successfully' : 'Stock movement not approved'
         render json: { message: }
       end
+
+      # TODO: Get stock items and their corresponding transactions
+      # TODO: Get stock movement and their corresponding transactions
     end
   end
 end
