@@ -106,6 +106,7 @@ module StockManagement
       def stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
         stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
         remaining_balance = stock_transaction&.remaining_balance.nil? ? 0 : stock_transaction&.remaining_balance
+        quantity = quantity.to_i
         if stock_transaction.nil?
           quantity
         elsif positive_stock_adjustment_transaction_type?(transaction_type)
