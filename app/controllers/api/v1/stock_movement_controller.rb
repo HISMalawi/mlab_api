@@ -20,10 +20,14 @@ module Api
       end
 
       def issue_stock_out
-        stock = Stock.find_by(stock_item_id: params.require(:stock_item_id))
-        _ = params.require(:sending_to)
-        issued = StockManagement::StockService.issue_stock_out(stock, params)
+        issued = StockManagement::StockService.issue_stock_out('Out', params)
         message = issued ? 'Stock issued successfully' : 'Stock not issued, insufficient stock'
+        render json: { message: }
+      end
+
+      def approve_stock_movement
+        approved = StockManagement::StockService.approve_stock_movement(params.require(:stock_movement_id))
+        message = approved ? 'Stock movement approved successfully' : 'Stock movement not approved'
         render json: { message: }
       end
     end

@@ -190,6 +190,7 @@ Rails.application.routes.draw do
         collection do
           get '/deduction_allowed' => 'stock_movement#stock_deduction_allowed'
           post '/issue_stock_out' => 'stock_movement#issue_stock_out'
+          put '/approve_issue_out' => 'stock_movement#approve_stock_movement'
         end
       end
     end

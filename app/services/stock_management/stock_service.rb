@@ -52,6 +52,7 @@ module StockManagement
                          else
                            params[:receiving_from]
                          end
+        received_by = positive_stock_adjustment_transaction_type?(transaction_type) ? User.current.id : nil
         sending_to = params[:sending_to]
         optional_receiver = params[:optional_receiver]
         remarks = params[:remarks]
@@ -69,24 +70,66 @@ module StockManagement
           expiry_date:,
           receiving_from:,
           sending_to:,
-          received_by: User.current.id,
+          received_by:,
           optional_receiver:,
           remarks:,
           remaining_balance: balance
         )
       end
 
-      def issue_stock_out(stock, params)
-        lot = params[:lot]
-        batch = params[:batch]
-        expiry_date = params[:expiry_date]
-        quantity_to_issue = params.require(:quantity)
-        return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
-
+      def issue_stock_out(transaction_type, params)
+        sending_to = params[:sending_to]
+        stock_status_reason = params[:stock_status_reason]
         ActiveRecord::Base.transaction do
-          stock_transaction(stock.id, 'Out', quantity_to_issue, params)
-          negative_stock_adjustment(stock, quantity_to_issue)
+          stock_movement = stock_movement_record(transaction_type, sending_to)
+          params[:stock_items].each do |stock_item|
+            lot = stock_item[:lot]
+            batch = stock_item[:batch]
+            expiry_date = stock_item[:expiry_date]
+            quantity_to_issue = stock_item[:quantity]
+            stock = Stock.find_by(stock_item_id: stock_item[:stock_item_id])
+            return unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
+
+            stock_item[:sending_to] = sending_to
+            stock_transaction = stock_transaction(stock.id, transaction_type, quantity_to_issue, params)
+            stock_movement_status(stock_transaction.id, 'Pending', stock_status_reason, stock_movement.id)
+          end
         end
+      end
+
+      def approve_stock_movement(stock_movement_id)
+        stock_movement_statuses = StockMovementStatus.where(stock_movement_id:)
+        stock_movement_statuses.each do |stock_movement_stat|
+          next if stock_movement_already_approved?(stock_movement_stat.stock_transactions_id, stock_movement_id)
+
+          stock_movement_status(stock_movement_stat.stock_transactions_id, 'Approved', nil, stock_movement_id)
+          stock_transaction = StockTransaction.find(stock_movement_stat.stock_transactions_id)
+          negative_stock_adjustment(Stock.find(stock_transaction.stock_id), stock_transaction.quantity)
+        end
+      end
+
+      def stock_movement_already_approved?(stock_transactions_id, stock_movement_id)
+        StockMovementStatus.where(
+          stock_transactions_id:,
+          stock_status_id: StockStatus.find_by(name: 'Approved').id,
+          stock_movement_id:
+        ).present?
+      end
+
+      def stock_movement_record(transaction_type, movement_to)
+        StockMovement.create!(
+          stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
+          movement_to:
+        )
+      end
+
+      def stock_movement_status(stock_transactions_id, status, stock_status_reason, stock_movement_id)
+        StockMovementStatus.find_or_create_by!(
+          stock_transactions_id:,
+          stock_status_id: StockStatus.find_by(name: status).id,
+          stock_status_reason:,
+          stock_movement_id:
+        )
       end
 
       def stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity)
