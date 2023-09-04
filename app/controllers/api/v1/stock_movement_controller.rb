@@ -18,6 +18,11 @@ module Api
         message = deduction_allowed ? 'Deduction allowed' : 'Deduction not allowed, insufficient stock'
         render json: { deduction_allowed:, message: }
       end
+
+      def issue_stock_out
+        StockManagement::StockService.issue_stock_out(params)
+        render json: { message: 'Stock issued successfully' }
+      end
     end
   end
 end

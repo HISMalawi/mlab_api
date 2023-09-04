@@ -74,11 +74,11 @@ module StockManagement
       end
 
       def issue_stock_out(params)
-        stock_id = params[:stock_id]
+        stock_id = params.require(:stock_id)
         lot = params[:lot]
         batch = params[:batch]
         expiry_date = params[:expiry_date]
-        quantity_to_issue = params[:quantity]
+        quantity_to_issue = params.require(:quantity)
         return unless stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity_to_issue)
 
         stock_transaction(stock_id, 'Out', quantity_to_issue, params)

@@ -189,6 +189,7 @@ Rails.application.routes.draw do
       resources :stock_movements do
         collection do
           get '/deduction_allowed' => 'stock_movement#stock_deduction_allowed'
+          post '/issue_stock_out' => 'stock_movement#issue_stock_out'
         end
       end
     end
