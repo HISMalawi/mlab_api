@@ -73,22 +73,20 @@ module StockManagement
         )
       end
 
-      def issue_stock_out(stock_id, lot, batch, expiry_date, quantity_to_issue, sending_to)
-        params = {
-          lot:,
-          batch:,
-          expiry_date:,
-          sending_to:
-        }
-        return if stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity_to_issue)
+      def issue_stock_out(params)
+        stock_id = params[:stock_id]
+        lot = params[:lot]
+        batch = params[:batch]
+        expiry_date = params[:expiry_date]
+        quantity_to_issue = params[:quantity]
+        return unless stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity_to_issue)
 
         stock_transaction(stock_id, 'Out', quantity_to_issue, params)
       end
 
       def stock_deduction_allowed?(stock_id, lot, batch, expiry_date, quantity)
         stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
-        quantity = quantity.to_i
-        stock_transaction.present? && stock_transaction.remaining_balance >= quantity
+        stock_transaction.present? && stock_transaction.remaining_balance >= quantity.to_i
       end
 
       def last_stock_transaction(stock_id, lot, batch, expiry_date)
