@@ -32,6 +32,15 @@ module Api
       end
 
       # TODO: Get stock items and their corresponding transactions
+      def stock_items_with_respective_transaction
+        search_query = params[:search].present? ? params[:search] : ''
+        items = StockManagement::StockFetcherService.search_stock(
+          search_query,
+          page: params[:page],
+          limit: params[:limit]
+        )
+        render json: StockManagement::StockFetcherService.stock_transaction_list(items)
+      end
       # TODO: Get stock movement and their corresponding transactions
     end
   end
