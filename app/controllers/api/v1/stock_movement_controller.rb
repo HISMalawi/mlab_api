@@ -31,6 +31,43 @@ module Api
         render json: { message: }
       end
 
+      def stock_transaction_list
+        stock_transactions = if params[:search].present?
+                               items = StockManagement::StockFetcherService.search_stock(
+                                 params[:search],
+                                 page: params[:page],
+                                 limit: params[:limit]
+                               )
+                               stock_list = []
+                               meta = {}
+                               items[:data].each do |stock|
+                                 stock_list = PaginationService.paginate_array(
+                                   StockManagement::StockFetcherService.stock_transactions(stock:,
+                                                                                           limit: params[:limit]),
+                                   page: params[:page],
+                                   limit: params[:limit]
+                                 )
+                                 meta = PaginationService.pagination_metadata(stock_list)
+                                 stock_list = stock_list.map do |stock_transaction|
+                                   JSON.parse(stock_transaction.attributes.to_json)
+                                 end
+                               end
+                               { data: stock_list,
+                                 meta: }
+                             else
+                               transactions = PaginationService.paginate_array(
+                                 StockManagement::StockFetcherService.stock_transactions,
+                                 page: params[:page],
+                                 limit: params[:limit]
+                               )
+                               { data: transactions.map do |stock_transaction|
+                                         JSON.parse(stock_transaction.attributes.to_json)
+                                       end,
+                                 meta: PaginationService.pagination_metadata(transactions) }
+                             end
+        render json: stock_transactions
+      end
+
       # TODO: Get stock items and their corresponding transactions
       def stock_items_with_respective_transaction
         search_query = params[:search].present? ? params[:search] : ''
@@ -39,7 +76,7 @@ module Api
           page: params[:page],
           limit: params[:limit]
         )
-        render json: StockManagement::StockFetcherService.stock_transaction_list(items)
+        render json: StockManagement::StockFetcherService.stock_transaction_list_per_stocks(items)
       end
       # TODO: Get stock movement and their corresponding transactions
     end

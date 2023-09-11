@@ -26,47 +26,51 @@ module StockManagement
         { data:, meta: }
       end
 
-      def stock_transaction_list(stocks, limit: 20)
+      def stock_transactions(stock: nil, limit: 20)
+        stock_id_condition = stock.present? ? " AND s.id = #{stock['stock_id']}" : ''
+        Stock.find_by_sql("
+          SELECT
+          s.id AS stock_id,
+          s.stock_item_id,
+          si.name,
+          si.description,
+          s.quantity AS consolidated_available_balance,
+          s.minimum_order_level,
+          sl.name AS stock_location,
+          sc.name AS stock_category,
+          si.measurement_unit,
+          si.quantity_unit,
+          si.strength,
+          st.lot,
+          stt.name AS transaction_type,
+          st.batch,
+          st.quantity AS transacted_quantity,
+          st.expiry_date,
+          st.receiving_from,
+          st.sending_to,
+          st.remaining_balance AS after_transaction_remaining_balance,
+          st.remarks,
+          st.created_date AS transaction_date
+          FROM
+          stocks s
+              LEFT JOIN
+          stock_locations sl ON sl.id = s.stock_location_id
+              INNER JOIN
+          stock_items si ON s.stock_item_id = si.id #{stock_id_condition}
+              LEFT JOIN
+          stock_categories sc ON sc.id = si.stock_category_id
+              INNER JOIN
+          stock_transactions st ON st.stock_id = s.id
+              INNER JOIN
+          stock_transaction_types stt ON stt.id = st.stock_transaction_type_id
+          ORDER BY st.created_date DESC LIMIT #{limit}
+        ")
+      end
+
+      def stock_transaction_list_per_stocks(stocks, limit: 20)
         stock_list = []
         stocks[:data].each do |stock|
-          stock_transactions = Stock.find_by_sql("
-            SELECT
-            s.id AS stock_id,
-            s.stock_item_id,
-            si.name,
-            si.description,
-            s.quantity AS consolidated_available_balance,
-            s.minimum_order_level,
-            sl.name AS stock_location,
-            sc.name AS stock_category,
-            si.measurement_unit,
-            si.quantity_unit,
-            si.strength,
-            st.lot,
-            stt.name AS transaction_type,
-            st.batch,
-            st.quantity AS transacted_quantity,
-            st.expiry_date,
-            st.receiving_from,
-            st.sending_to,
-            st.remaining_balance AS after_transaction_remaining_balance,
-            st.remarks,
-            st.created_date AS transaction_date
-            FROM
-            stocks s
-                LEFT JOIN
-            stock_locations sl ON sl.id = s.stock_location_id
-                INNER JOIN
-            stock_items si ON s.stock_item_id = si.id AND s.id = #{stock['stock_id']}
-                LEFT JOIN
-            stock_categories sc ON sc.id = si.stock_category_id
-                INNER JOIN
-            stock_transactions st ON st.stock_id = s.id
-                INNER JOIN
-            stock_transaction_types stt ON stt.id = st.stock_transaction_type_id
-            ORDER BY st.created_date DESC LIMIT #{limit}
-          ")
-
+          stock_transactions = stock_transactions(stock:, limit:)
           stock_transactions = stock_transactions.map do |stock_transaction|
             JSON.parse(stock_transaction.attributes.to_json)
           end
