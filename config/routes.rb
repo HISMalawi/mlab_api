@@ -193,6 +193,7 @@ Rails.application.routes.draw do
           put '/approve_issue_out' => 'stock_movement#approve_stock_movement'
           get '/stock_items_with_respective_transaction' => 'stock_movement#stock_items_with_respective_transaction'
           get '/transactions' => 'stock_movement#stock_transaction_list'
+          get '/stock_movement_with_respective_transaction' => 'stock_movement#stock_movement_with_respective_transaction'
         end
       end
     end
