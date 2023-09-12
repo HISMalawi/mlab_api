@@ -68,7 +68,7 @@ module Api
         render json: stock_transactions
       end
 
-      # TODO: Get stock items and their corresponding transactions
+      # Get stock items and their corresponding transactions
       def stock_items_with_respective_transaction
         search_query = params[:search].present? ? params[:search] : ''
         items = StockManagement::StockFetcherService.search_stock(
@@ -79,7 +79,7 @@ module Api
         render json: StockManagement::StockFetcherService.stock_transaction_list_per_stocks(items)
       end
 
-      # TODO: Get stock movement and their corresponding transactions
+      # Get stock movement and their corresponding transactions
       def stock_movement_with_respective_transaction
         stock_movement_statuses = StockManagement::StockMovementService.stock_movement_statuses
         stock_movements = StockManagement::StockMovementService.stock_movements(stock_movement_statuses)
