@@ -111,18 +111,25 @@ module StockManagement
       end
 
       def reject_stock_movement(stock_movement_id, stock_status_reason, transaction_type)
-        stock_movement_statuses = StockMovementStatus.where(stock_movement_id:)
+        stock_movement_statuses = StockMovementStatus.where(
+          stock_movement_id:,
+          stock_status_id: StockStatus.find_by(name: 'Pending').id
+        )
         ActiveRecord::Base.transaction do
           stock_movement_statuses.each do |stock_movement_stat|
             next if stock_movement_already_approved?(stock_movement_stat.stock_transactions_id, stock_movement_id)
 
-            stock_movement_status(stock_movement_stat.stock_transactions_id, 'Rejected', stock_status_reason, stock_movement_id)
-            reverse_stock_transaction(stock_movement_stat.stock_transactions_id, stock_status_reason, transaction_type)
+            stock_transaction = reverse_stock_transaction(
+              stock_movement_stat.stock_transactions_id,
+              stock_status_reason,
+              transaction_type
+            )
+            stock_movement_status(stock_transaction.id, 'Rejected', stock_status_reason, stock_movement_id)
           end
         end
       end
 
-      def reverse_stock_transaction(stock_transaction_id, reason, transaction_type)
+      def reverse_stock_transaction(stock_transaction_id, reason, transaction_type, quantity = nil)
         stock_transaction = StockTransaction.find(stock_transaction_id)
         quantity = quantity.present? ? quantity.to_i : stock_transaction.quantity
         StockTransaction.create!(
