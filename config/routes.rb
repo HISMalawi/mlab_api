@@ -194,6 +194,7 @@ Rails.application.routes.draw do
           get '/stock_items_with_respective_transaction' => 'stock_movement#stock_items_with_respective_transaction'
           get '/transactions' => 'stock_movement#stock_transaction_list'
           get '/stock_movement_with_respective_transaction' => 'stock_movement#stock_movement_with_respective_transaction'
+          put '/reject_issue_out' => 'stock_movement#reject_stock_movement'
         end
       end
     end

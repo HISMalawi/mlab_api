@@ -99,13 +99,46 @@ module StockManagement
 
       def approve_stock_movement(stock_movement_id)
         stock_movement_statuses = StockMovementStatus.where(stock_movement_id:)
-        stock_movement_statuses.each do |stock_movement_stat|
-          next if stock_movement_already_approved?(stock_movement_stat.stock_transactions_id, stock_movement_id)
+        ActiveRecord::Base.transaction do
+          stock_movement_statuses.each do |stock_movement_stat|
+            next if stock_movement_already_approved?(stock_movement_stat.stock_transactions_id, stock_movement_id)
 
-          stock_movement_status(stock_movement_stat.stock_transactions_id, 'Approved', nil, stock_movement_id)
-          stock_transaction = StockTransaction.find(stock_movement_stat.stock_transactions_id)
-          negative_stock_adjustment(Stock.find(stock_transaction.stock_id), stock_transaction.quantity)
+            stock_movement_status(stock_movement_stat.stock_transactions_id, 'Approved', nil, stock_movement_id)
+            stock_transaction = StockTransaction.find(stock_movement_stat.stock_transactions_id)
+            negative_stock_adjustment(Stock.find(stock_transaction.stock_id), stock_transaction.quantity)
+          end
         end
+      end
+
+      def reject_stock_movement(stock_movement_id, stock_status_reason, transaction_type)
+        stock_movement_statuses = StockMovementStatus.where(stock_movement_id:)
+        ActiveRecord::Base.transaction do
+          stock_movement_statuses.each do |stock_movement_stat|
+            next if stock_movement_already_approved?(stock_movement_stat.stock_transactions_id, stock_movement_id)
+
+            stock_movement_status(stock_movement_stat.stock_transactions_id, 'Rejected', stock_status_reason, stock_movement_id)
+            reverse_stock_transaction(stock_movement_stat.stock_transactions_id, stock_status_reason, transaction_type)
+          end
+        end
+      end
+
+      def reverse_stock_transaction(stock_transaction_id, reason, transaction_type)
+        stock_transaction = StockTransaction.find(stock_transaction_id)
+        quantity = quantity.present? ? quantity.to_i : stock_transaction.quantity
+        StockTransaction.create!(
+          stock_id: stock_transaction.stock_id,
+          stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
+          lot: stock_transaction.lot,
+          quantity:,
+          batch: stock_transaction.batch,
+          expiry_date: stock_transaction.expiry_date,
+          receiving_from: stock_transaction.sending_to,
+          sending_to: stock_transaction.receiving_from,
+          received_by: stock_transaction.optional_receiver,
+          optional_receiver: stock_transaction.received_by,
+          remarks: reason,
+          remaining_balance: stock_transaction.remaining_balance + quantity
+        )
       end
 
       def stock_movement_already_approved?(stock_transactions_id, stock_movement_id)

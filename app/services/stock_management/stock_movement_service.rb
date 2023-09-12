@@ -8,7 +8,9 @@ module StockManagement
       def stock_movement_statuses
         StockMovement.find_by_sql("
           SELECT
-            sm.id, sm.id AS stock_movement_id, ss.name AS stock_status, sm.movement_to, smt.created_date AS status_date, sm.created_date AS movement_date
+            sm.id, sm.id AS stock_movement_id, ss.id AS stock_status_id, ss.name AS stock_status,
+            sm.movement_to,
+            smt.created_date AS status_date, sm.created_date AS movement_date
           FROM
             stock_movements sm
                 INNER JOIN
@@ -32,9 +34,13 @@ module StockManagement
       def stock_movements(stock_movement_statuses)
         stock_moved = []
         stock_movement_statuses.each do |stock_movement_status|
-          transaction_ids = StockMovementStatus.where(stock_movement_id: stock_movement_status.stock_movement_id).pluck(:stock_transactions_id).join(',')
+          transaction_ids = StockMovementStatus.where(
+            stock_movement_id: stock_movement_status.stock_movement_id,
+            stock_status_id: stock_movement_status.stock_status_id
+          ).pluck(:stock_transactions_id).join(',')
           transactions = Stock.find_by_sql("
             SELECT
+            st.id as id,
             s.id AS stock_id,
             s.stock_item_id,
             si.name,
@@ -58,16 +64,16 @@ module StockManagement
             st.created_date AS transaction_date
             FROM
             stocks s
+            INNER JOIN
+            stock_transactions st ON st.stock_id = s.id AND st.id IN (#{transaction_ids})
+                INNER JOIN
+            stock_transaction_types stt ON stt.id = st.stock_transaction_type_id
                 LEFT JOIN
             stock_locations sl ON sl.id = s.stock_location_id
                 INNER JOIN
             stock_items si ON s.stock_item_id = si.voided = 0
                 LEFT JOIN
             stock_categories sc ON sc.id = si.stock_category_id
-                INNER JOIN
-            stock_transactions st ON st.stock_id = s.id AND st.id IN (#{transaction_ids})
-                INNER JOIN
-            stock_transaction_types stt ON stt.id = st.stock_transaction_type_id
             ORDER BY st.created_date DESC
           ")
           transactions = transactions.map do |transaction|
