@@ -201,6 +201,11 @@ Rails.application.routes.draw do
         end
       end
       resources :stock_adjustment_reasons
+      resources :stock_reports do
+        collection do
+          get '/stock_movement' => 'stock_reports#stock_movement_report'
+        end
+      end
     end
   end
 end
