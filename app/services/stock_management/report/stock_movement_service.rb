@@ -7,7 +7,7 @@ module StockManagement
     # module stock movement service
     module StockMovementService
       class << self
-        def stock_movements(from, to, transaction_type, page: 1, limit: 10)
+        def stock_movements(from, to, transaction_type)
           from = from.present? ? from.to_date.strftime('%Y-%m-%d') : Date.today.strftime('%Y-%m-%d')
           to = to.present? ? to.to_date.strftime('%Y-%m-%d') : Date.today.strftime('%Y-%m-%d')
           transaction_type_condition = transaction_type.present? ? " AND stt.name = '#{transaction_type}'" : ''
@@ -54,14 +54,11 @@ module StockManagement
           transactions = transactions.map do |transaction|
             JSON.parse(transaction.attributes.to_json)
           end
-          transactions = PaginationService.paginate_array(transactions, page:, limit:)
-          meta = PaginationService.pagination_metadata(transactions)
           {
             from:,
             to:,
             transaction_type:,
-            data: transactions,
-            meta:
+            data: transactions
           }
         end
       end

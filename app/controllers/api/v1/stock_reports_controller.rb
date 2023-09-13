@@ -13,7 +13,7 @@ module Api
         page = params[:page]
         limit = params[:per_page]
         stock_movements = StockManagement::Report::StockMovementService.stock_movements(
-          from, to, transaction_type, page:, limit:
+          from, to, transaction_type
         )
         render json: stock_movements
       end
