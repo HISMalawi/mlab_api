@@ -53,7 +53,8 @@ module Api
                                items[:data].each do |stock|
                                  stock_list = PaginationService.paginate_array(
                                    StockManagement::StockFetcherService.stock_transactions(stock:,
-                                                                                           limit: params[:per_page]),
+                                                                                           limit: params[:per_page],
+                                                                                          transaction_type: params[:transaction_type]),
                                    page: params[:page],
                                    limit: params[:per_page]
                                  )
@@ -68,7 +69,8 @@ module Api
                                transactions = PaginationService.paginate_array(
                                  StockManagement::StockFetcherService.stock_transactions,
                                  page: params[:page],
-                                 limit: params[:per_page]
+                                 limit: params[:per_page],
+                                 transaction_type: params[:transaction_type]
                                )
                                { data: transactions.map do |stock_transaction|
                                          JSON.parse(stock_transaction.attributes.to_json)
@@ -112,6 +114,11 @@ module Api
         )
         message = stock_adjusted ? 'Stock adjusted successfully' : 'Stock not adjusted'
         render json: { message: }
+      end
+
+      def stock_adjusted
+        stock_adjusted = StockManagement::StockMovementService.stock_adjusted()
+        render json: { stock_adjusted: }
       end
 
       def receive_stock_from_supplier_or_facility

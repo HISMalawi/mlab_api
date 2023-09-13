@@ -26,7 +26,8 @@ module StockManagement
         { data:, meta: }
       end
 
-      def stock_transactions(stock: nil, limit: 20)
+      def stock_transactions(stock: nil, limit: 20, transaction_type: nil)
+        transaction_type_condition = transaction_type.present? ? " AND stt.name = '#{transaction_type}'" : ''
         stock_id_condition = stock.present? ? " AND s.id = #{stock['stock_id']}" : ''
         Stock.find_by_sql("
           SELECT
@@ -54,15 +55,15 @@ module StockManagement
           FROM
           stocks s
               LEFT JOIN
-          stock_locations sl ON sl.id = s.stock_location_id
+          stock_locations sl ON sl.id = s.stock_location_id AND sl.voided = 0
               INNER JOIN
-          stock_items si ON s.stock_item_id = si.id #{stock_id_condition}
+          stock_items si ON s.stock_item_id = si.id #{stock_id_condition} AND si.voided = 0
               LEFT JOIN
-          stock_categories sc ON sc.id = si.stock_category_id
+          stock_categories sc ON sc.id = si.stock_category_id AND sc.voided = 0
               INNER JOIN
-          stock_transactions st ON st.stock_id = s.id
+          stock_transactions st ON st.stock_id = s.id AND st.voided = 0
               INNER JOIN
-          stock_transaction_types stt ON stt.id = st.stock_transaction_type_id
+          stock_transaction_types stt ON stt.id = st.stock_transaction_type_id AND stt.voided = 0 #{transaction_type_condition}
           ORDER BY st.created_date DESC LIMIT #{limit}
         ")
       end
