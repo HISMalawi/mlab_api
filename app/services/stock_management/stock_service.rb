@@ -203,6 +203,16 @@ module StockManagement
         end
       end
 
+      def receive_stock_from_supplier_or_facility(params)
+        ActiveRecord::Base.transaction do
+          params[:stock_items].each do |stock_item|
+            stock = Stock.find_by(stock_item_id: stock_item[:stock_item_id])
+            stock_transaction(stock.id, 'In', stock_item[:quantity], params)
+            positive_stock_adjustment(stock.id, stock_item[:quantity])
+          end
+        end
+      end
+
       # Should be called after requisition is approved
       def positive_stock_adjustment(stock_item_id, quantity)
         stock = Stock.find_by_stock_item_id(stock_item_id)

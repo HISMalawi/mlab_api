@@ -113,6 +113,12 @@ module Api
         message = stock_adjusted ? 'Stock adjusted successfully' : 'Stock not adjusted'
         render json: { message: }
       end
+
+      def receive_stock_from_supplier_or_facility
+        received = StockManagement::StockMovementService.receive_stock_from_supplier_or_facility(params)
+        message = received ? 'Stock received successfully' : 'Stock not received'
+        render json: { message: }
+      end
     end
   end
 end
