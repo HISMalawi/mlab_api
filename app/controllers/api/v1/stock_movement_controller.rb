@@ -54,7 +54,7 @@ module Api
                                  stock_list = PaginationService.paginate_array(
                                    StockManagement::StockFetcherService.stock_transactions(stock:,
                                                                                            limit: params[:per_page],
-                                                                                          transaction_type: params[:transaction_type]),
+                                                                                           transaction_type: params[:transaction_type]),
                                    page: params[:page],
                                    limit: params[:per_page]
                                  )
@@ -67,10 +67,11 @@ module Api
                                  meta: }
                              else
                                transactions = PaginationService.paginate_array(
-                                 StockManagement::StockFetcherService.stock_transactions,
+                                 StockManagement::StockFetcherService.stock_transactions(
+                                   transaction_type: params[:transaction_type]
+                                 ),
                                  page: params[:page],
-                                 limit: params[:per_page],
-                                 transaction_type: params[:transaction_type]
+                                 limit: params[:per_page]
                                )
                                { data: transactions.map do |stock_transaction|
                                          JSON.parse(stock_transaction.attributes.to_json)
@@ -95,7 +96,8 @@ module Api
       def stock_movement_with_respective_transaction
         stock_movement_statuses = StockManagement::StockMovementService.stock_movement_statuses
         stock_movements = StockManagement::StockMovementService.stock_movements(stock_movement_statuses)
-        stock_movements = PaginationService.paginate_array(stock_movements, page: params[:page], limit: params[:per_page])
+        stock_movements = PaginationService.paginate_array(stock_movements, page: params[:page],
+                                                                            limit: params[:per_page])
         render json: {
           data: stock_movements,
           meta: PaginationService.pagination_metadata(stock_movements)
@@ -116,8 +118,17 @@ module Api
         render json: { message: }
       end
 
-      def stock_adjusted
-        stock_adjusted = StockManagement::StockMovementService.stock_adjusted()
+      def reverse_stock_adjustment
+        stock_transaction = StockTransaction.find_by(id: params.require(:stock_transaction_id))
+        stock_adjusted = StockManagement::StockMovementService.stock_adjustment(
+          stock_transaction.stock_id,
+          stock_transaction.lot,
+          stock_transaction.batch,
+          stock_transaction.expiry_date,
+          -stock_transaction.quantity,
+          nil,
+          'Reverse Stock Adjustment'
+        )
         render json: { stock_adjusted: }
       end
 
