@@ -98,7 +98,7 @@ module StockManagement
           StockManagement::StockService.reverse_stock_transaction(
             stock_transaction.id, reason.name, 'Adjust Stock', quantity_to_adjusted, notes
           )
-          stock_item_id = Stock.find(stock_id).id
+          stock_item_id = Stock.find(stock_id).stock_item_id
           StockManagement::StockService.positive_stock_adjustment(stock_item_id, quantity_to_adjusted)
         end
       end
