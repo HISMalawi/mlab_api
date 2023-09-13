@@ -119,7 +119,7 @@ module Api
       end
 
       def reverse_stock_adjustment
-        stock_transaction = StockTransaction.find_by(id: params.require(:stock_transaction_id))
+        stock_transaction = StockTransaction.find(params.require(:stock_transaction_id))
         stock_adjusted = StockManagement::StockMovementService.stock_adjustment(
           stock_transaction.stock_id,
           stock_transaction.lot,
