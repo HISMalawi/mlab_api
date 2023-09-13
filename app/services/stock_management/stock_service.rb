@@ -207,7 +207,9 @@ module StockManagement
         ActiveRecord::Base.transaction do
           params[:stock_items].each do |stock_item|
             stock = Stock.find_by(stock_item_id: stock_item[:stock_item_id])
-            stock_transaction(stock.id, 'In', stock_item[:quantity], params)
+            stock_item[:receiving_from] = params[:receiving_from]
+            stock_item[:sending_to] = params[:sending_to]
+            stock_transaction(stock.id, 'In', stock_item[:quantity], stock_item)
             positive_stock_adjustment(stock.id, stock_item[:quantity])
           end
         end
