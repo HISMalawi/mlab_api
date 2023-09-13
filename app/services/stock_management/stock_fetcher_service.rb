@@ -31,6 +31,7 @@ module StockManagement
         stock_id_condition = stock.present? ? " AND s.id = #{stock['stock_id']}" : ''
         Stock.find_by_sql("
           SELECT
+          st.id,
           s.id AS stock_id,
           s.stock_item_id,
           si.name,
