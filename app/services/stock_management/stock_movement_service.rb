@@ -91,6 +91,8 @@ module StockManagement
         stock_transaction = StockManagement::StockService.last_stock_transaction(
           stock_id, lot, batch, expiry_date
         )
+        raise 'Stock transaction not found' if stock_transaction.blank?
+
         ActiveRecord::Base.transaction do
           reason = StockAdjustmentReason.find_or_create_by!(name: reason)
           StockManagement::StockService.reverse_stock_transaction(
