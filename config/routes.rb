@@ -196,6 +196,7 @@ Rails.application.routes.draw do
           get '/stock_movement_with_respective_transaction' => 'stock_movement#stock_movement_with_respective_transaction'
           put '/reject_issue_out' => 'stock_movement#reject_stock_movement'
           put '/adjust_stock' => 'stock_movement#stock_adjustment'
+          put '/reverse_stock_adjustment' => 'stock_movement#reverse_stock_adjustment'
           put '/receive_stock_from_supplier_or_facility' => 'stock_movement#receive_stock_from_supplier_or_facility'
         end
       end
