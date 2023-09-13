@@ -23,7 +23,9 @@ module Api
       end
 
       def show
-        render json: @stock
+        stock = JSON.parse(@stock.attributes.to_json)
+        stock[:stock_item_name] = @stock.stock_item.name
+        render json: stock
       end
 
       def update
