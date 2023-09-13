@@ -10,7 +10,7 @@ module Api
 
       def index
         stock_items = Stock.joins(:stock_item).select(
-          'stock_items.*, stocks.stock_location_id, stocks.minimum_order_level'
+          'stock_items.*, stocks.stock_location_id, stocks.minimum_order_level, stocks.quantity'
         )
         render json: stock_items
       end
@@ -29,7 +29,10 @@ module Api
       end
 
       def show
-        render json: @stock_item
+        stock = Stock.find_by_stock_item_id(@stock_item.id)
+        stock_item = JSON.parse(@stock_item.attributes.to_json)
+        stock_item[:stock] = stock
+        render json: stock_item
       end
 
       def update
