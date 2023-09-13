@@ -126,7 +126,7 @@ module Api
           stock_transaction.batch,
           stock_transaction.expiry_date,
           -stock_transaction.quantity,
-          'Mistake When Doing Stock Adjustment',
+          params.require(:reason),
           'Reverse Stock Adjustment'
         )
         message = stock_adjusted ? 'Stock adjustment reversed successfully' : 'Stock adjustment not reversed'
