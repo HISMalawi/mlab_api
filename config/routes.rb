@@ -198,6 +198,7 @@ Rails.application.routes.draw do
           put '/adjust_stock' => 'stock_movement#stock_adjustment'
         end
       end
+      resources :stock_adjustment_reasons
     end
   end
 end
