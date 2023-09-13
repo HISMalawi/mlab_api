@@ -5,7 +5,7 @@ module Api
   # module V1
   module V1
     # stock adjustment reason controller
-    class StockAdjustmentReasonController < ApplicationController
+    class StockAdjustmentReasonsController < ApplicationController
       before_action :set_stock_adjustment_reason, only: %i[show update destroy]
 
       def index
