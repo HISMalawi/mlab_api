@@ -51,6 +51,7 @@ module StockManagement
           st.sending_to,
           st.remaining_balance AS after_transaction_remaining_balance,
           st.remarks,
+          st.reason,
           st.created_date AS transaction_date
           FROM
           stocks s

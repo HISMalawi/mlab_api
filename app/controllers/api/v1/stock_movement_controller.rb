@@ -126,10 +126,11 @@ module Api
           stock_transaction.batch,
           stock_transaction.expiry_date,
           -stock_transaction.quantity,
-          nil,
+          'Mistake When Doing Stock Adjustment',
           'Reverse Stock Adjustment'
         )
-        render json: { stock_adjusted: }
+        message = stock_adjusted ? 'Stock adjustment reversed successfully' : 'Stock adjustment not reversed'
+        render json: { message: }
       end
 
       def receive_stock_from_supplier_or_facility

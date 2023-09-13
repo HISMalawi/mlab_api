@@ -94,7 +94,7 @@ module StockManagement
         raise ActiveRecord::RecordNotFound, 'Stock transaction not found' if stock_transaction.blank?
 
         ActiveRecord::Base.transaction do
-          reason = StockAdjustmentReason.find_or_create_by!(name: reason)
+          reason = StockAdjustmentReason.find_or_create_by!(name: reason) if reason.present?
           StockManagement::StockService.reverse_stock_transaction(
             stock_transaction.id, reason.name, 'Adjust Stock', quantity_to_adjusted, notes
           )
