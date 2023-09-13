@@ -134,7 +134,7 @@ module Api
       end
 
       def receive_stock_from_supplier_or_facility
-        received = StockManagement::StockMovementService.receive_stock_from_supplier_or_facility(params)
+        received = StockManagement::StockService.receive_stock_from_supplier_or_facility(params)
         message = received ? 'Stock received successfully' : 'Stock not received'
         render json: { message: }
       end
