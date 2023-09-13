@@ -99,6 +99,20 @@ module Api
           meta: PaginationService.pagination_metadata(stock_movements)
         }
       end
+
+      def stock_adjustment
+        stock_adjusted = StockManagement::StockMovementService.stock_adjustment(
+          params.require(:stock_id),
+          params[:lot],
+          params[:batch],
+          params[:expiry_date],
+          params.require(:quantity_to_adjusted),
+          params.require(:reason),
+          params[:notes]
+        )
+        message = stock_adjusted ? 'Stock adjusted successfully' : 'Stock not adjusted'
+        render json: { message: }
+      end
     end
   end
 end

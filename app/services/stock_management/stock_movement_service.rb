@@ -85,6 +85,21 @@ module StockManagement
         end
         stock_moved
       end
+
+      # Continue working on this method
+      def stock_adjustment(stock_id, lot, batch, expiry_date, quantity_to_adjusted, reason, notes)
+        stock_transaction = StockManagement::StockService.last_stock_transaction(
+          stock_id, lot, batch, expiry_date
+        )
+        ActiveRecord::Base.transaction do
+          reason = StockAdjustmentReason.find_or_create_by!(name: reason)
+          StockManagement::StockService.reverse_stock_transaction(
+            stock_transaction.id, reason.name, 'Adjust Stock', quantity_to_adjusted, notes
+          )
+          stock_item_id = Stock.find(stock_id).id
+          StockManagement::StockService.positive_stock_adjustment(stock_item_id, quantity_to_adjusted)
+        end
+      end
     end
   end
 end

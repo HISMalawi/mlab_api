@@ -129,7 +129,7 @@ module StockManagement
         end
       end
 
-      def reverse_stock_transaction(stock_transaction_id, reason, transaction_type, quantity = nil)
+      def reverse_stock_transaction(stock_transaction_id, reason, transaction_type, quantity = nil, notes = nil)
         stock_transaction = StockTransaction.find(stock_transaction_id)
         quantity = quantity.present? ? quantity.to_i : stock_transaction.quantity
         StockTransaction.create!(
@@ -143,8 +143,9 @@ module StockManagement
           sending_to: stock_transaction.receiving_from,
           received_by: stock_transaction.optional_receiver,
           optional_receiver: stock_transaction.received_by,
-          remarks: reason,
-          remaining_balance: stock_transaction.remaining_balance + quantity
+          remarks: notes,
+          remaining_balance: stock_transaction.remaining_balance + quantity,
+          reason:
         )
       end
 
