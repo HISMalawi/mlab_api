@@ -65,15 +65,15 @@ module StockManagement
             FROM
             stocks s
             INNER JOIN
-            stock_transactions st ON st.stock_id = s.id AND st.id IN (#{transaction_ids})
+            stock_transactions st ON st.stock_id = s.id AND st.id IN (#{transaction_ids}) AND st.voided = 0
                 INNER JOIN
-            stock_transaction_types stt ON stt.id = st.stock_transaction_type_id
+            stock_transaction_types stt ON stt.id = st.stock_transaction_type_id AND stt.voided = 0
                 LEFT JOIN
-            stock_locations sl ON sl.id = s.stock_location_id
+            stock_locations sl ON sl.id = s.stock_location_id AND sl.voided = 0
                 INNER JOIN
-            stock_items si ON s.stock_item_id = si.voided = 0
+            stock_items si ON s.stock_item_id = si.id AND si.voided = 0
                 LEFT JOIN
-            stock_categories sc ON sc.id = si.stock_category_id
+            stock_categories sc ON sc.id = si.stock_category_id AND sc.voided = 0
             ORDER BY st.created_date DESC
           ")
           transactions = transactions.map do |transaction|

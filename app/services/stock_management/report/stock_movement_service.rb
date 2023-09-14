@@ -45,7 +45,7 @@ module StockManagement
                 LEFT JOIN
             stock_locations sl ON sl.id = s.stock_location_id AND sl.voided = 0
                 INNER JOIN
-            stock_items si ON s.stock_item_id = si.voided = 0 AND si.voided = 0
+            stock_items si ON s.stock_item_id = si.id AND si.voided = 0
                 LEFT JOIN
             stock_categories sc ON sc.id = si.stock_category_id AND sc.voided = 0
             WHERE DATE(st.created_date) BETWEEN '#{from}' AND '#{to}'
