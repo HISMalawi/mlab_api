@@ -152,8 +152,6 @@ module StockManagement
       def reverse_stock_transaction(stock_transaction_id, reason, transaction_type, quantity = nil, notes = nil)
         stock_transaction = StockTransaction.find(stock_transaction_id)
         quantity = quantity.present? ? quantity.to_i : stock_transaction.quantity
-        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(stock_transaction, quantity)
-        overall_stock_balance_before_transaction = overall_stock_balance_before_transaction(stock_transaction)
         StockTransaction.create!(
           stock_id: stock_transaction.stock_id,
           stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
@@ -168,8 +166,8 @@ module StockManagement
           remarks: notes,
           remaining_balance: stock_transaction.remaining_balance + quantity,
           reason:,
-          overall_stock_balance_after_transaction:,
-          overall_stock_balance_before_transaction:
+          overall_stock_balance_after_transaction: stock_transaction.overall_stock_balance_before_transaction,
+          overall_stock_balance_before_transaction: stock_transaction.overall_stock_balance_after_transaction
         )
       end
 
