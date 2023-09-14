@@ -58,6 +58,8 @@ module StockManagement
         remarks = params[:remarks]
         balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
         last_stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
+        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(last_stock_transaction, quantity)
+        overall_stock_balance_before_transaction = overall_stock_balance_after_transaction(last_stock_transaction)
         lot = last_stock_transaction&.lot.nil? ? lot : last_stock_transaction&.lot
         batch = last_stock_transaction&.batch.nil? ? batch : last_stock_transaction&.batch
         expiry_date = last_stock_transaction&.expiry_date.nil? ? expiry_date : last_stock_transaction&.expiry_date
@@ -73,8 +75,26 @@ module StockManagement
           received_by:,
           optional_receiver:,
           remarks:,
-          remaining_balance: balance
+          remaining_balance: balance,
+          overall_stock_balance_after_transaction:,
+          overall_stock_balance_before_transaction:
         )
+      end
+
+      def overall_stock_balance_after_transaction(last_stock_transaction, quantity)
+        if last_stock_transaction.present?
+          Stock.find(last_stock_transaction.stock_id).quantity + quantity
+        else
+          quantity
+        end
+      end
+
+      def overall_stock_balance_before_transaction(last_stock_transaction)
+        if last_stock_transaction.present?
+          Stock.find(last_stock_transaction.stock_id).quantity
+        else
+          0
+        end
       end
 
       def issue_stock_out(transaction_type, params)
@@ -91,7 +111,7 @@ module StockManagement
             return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
 
             stock_item[:sending_to] = sending_to
-            stock_transaction = stock_transaction(stock.id, transaction_type, quantity_to_issue, params)
+            stock_transaction = stock_transaction(stock.id, transaction_type, -quantity_to_issue, params)
             stock_movement_status(stock_transaction.id, 'Pending', stock_status_reason, stock_movement.id)
           end
         end
@@ -105,7 +125,7 @@ module StockManagement
 
             stock_movement_status(stock_movement_stat.stock_transactions_id, 'Approved', nil, stock_movement_id)
             stock_transaction = StockTransaction.find(stock_movement_stat.stock_transactions_id)
-            negative_stock_adjustment(Stock.find(stock_transaction.stock_id), stock_transaction.quantity)
+            positive_stock_adjustment(Stock.find(stock_transaction.stock_id).stock_item_id, stock_transaction.quantity)
           end
         end
       end
@@ -132,6 +152,8 @@ module StockManagement
       def reverse_stock_transaction(stock_transaction_id, reason, transaction_type, quantity = nil, notes = nil)
         stock_transaction = StockTransaction.find(stock_transaction_id)
         quantity = quantity.present? ? quantity.to_i : stock_transaction.quantity
+        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(stock_transaction, quantity)
+        overall_stock_balance_before_transaction = overall_stock_balance_after_transaction(stock_transaction)
         StockTransaction.create!(
           stock_id: stock_transaction.stock_id,
           stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
@@ -196,10 +218,10 @@ module StockManagement
         quantity = quantity.to_i
         if stock_transaction.nil?
           quantity
-        elsif positive_stock_adjustment_transaction_type?(transaction_type)
-          remaining_balance + quantity
+        # elsif positive_stock_adjustment_transaction_type?(transaction_type)
+        #   remaining_balance + quantity
         else
-          remaining_balance - quantity
+          remaining_balance + quantity
         end
       end
 
