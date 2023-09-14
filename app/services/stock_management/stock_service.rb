@@ -59,7 +59,7 @@ module StockManagement
         balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
         last_stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
         overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(last_stock_transaction, quantity)
-        overall_stock_balance_before_transaction = overall_stock_balance_after_transaction(last_stock_transaction)
+        overall_stock_balance_before_transaction = overall_stock_balance_before_transaction(last_stock_transaction)
         lot = last_stock_transaction&.lot.nil? ? lot : last_stock_transaction&.lot
         batch = last_stock_transaction&.batch.nil? ? batch : last_stock_transaction&.batch
         expiry_date = last_stock_transaction&.expiry_date.nil? ? expiry_date : last_stock_transaction&.expiry_date
@@ -83,9 +83,9 @@ module StockManagement
 
       def overall_stock_balance_after_transaction(last_stock_transaction, quantity)
         if last_stock_transaction.present?
-          Stock.find(last_stock_transaction.stock_id).quantity + quantity
+          Stock.find(last_stock_transaction.stock_id).quantity + quantity.to_i
         else
-          quantity
+          quantity.to_i
         end
       end
 
@@ -106,7 +106,7 @@ module StockManagement
             lot = stock_item[:lot]
             batch = stock_item[:batch]
             expiry_date = stock_item[:expiry_date]
-            quantity_to_issue = stock_item[:quantity]
+            quantity_to_issue = stock_item[:quantity].to_i
             stock = Stock.find_by(stock_item_id: stock_item[:stock_item_id])
             return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
 
@@ -153,7 +153,7 @@ module StockManagement
         stock_transaction = StockTransaction.find(stock_transaction_id)
         quantity = quantity.present? ? quantity.to_i : stock_transaction.quantity
         overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(stock_transaction, quantity)
-        overall_stock_balance_before_transaction = overall_stock_balance_after_transaction(stock_transaction)
+        overall_stock_balance_before_transaction = overall_stock_balance_before_transaction(stock_transaction)
         StockTransaction.create!(
           stock_id: stock_transaction.stock_id,
           stock_transaction_type_id: StockTransactionType.find_by(name: transaction_type).id,
@@ -167,7 +167,9 @@ module StockManagement
           optional_receiver: stock_transaction.received_by,
           remarks: notes,
           remaining_balance: stock_transaction.remaining_balance + quantity,
-          reason:
+          reason:,
+          overall_stock_balance_after_transaction:,
+          overall_stock_balance_before_transaction:
         )
       end
 
