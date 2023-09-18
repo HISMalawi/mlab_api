@@ -79,8 +79,10 @@ module IblisService
         elsif measure_type == 'Autocomplete'
           test_indicator_type = 0
         elsif measure_type == 'Alphanumeric Values'
-          test_indicator_type = 3
-        else 
+          test_indicator_type = 0
+        elsif measure_type == 'Rich Text'
+          test_indicator_type = 4
+        else
           test_indicator_type = 2
         end
         test_indicator_type

@@ -1,12 +1,17 @@
-module TestCatalog
-  module TestTypes
-    module TestIndicatorType 
+# frozen_string_literal: true
 
+# module TestCatalog
+module TestCatalog
+  # module TestTypes
+  module TestTypes
+    # module TestIndicatorType
+    module TestIndicatorType
       AUTO_COMPLETE = 0
       FREE_TEXT = 1
       NUMERIC = 2
       ALPANUMERIC = 3
-      
+      RICH_TEXT = 4
+
       class << self
         def show_test_indicator_types
           types = []
@@ -21,7 +26,6 @@ module TestCatalog
           types
         end
       end
-
     end
   end
 end
