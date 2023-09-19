@@ -2,7 +2,7 @@ module TestCatalog
   module TestTypes
     module UpdateService
       class << self
-        
+
        def update_test_type(test_type, test_type_params, params)
           ActiveRecord::Base.transaction do
             expected_tat = params.require(:expected_turn_around_time)
@@ -16,7 +16,7 @@ module TestCatalog
             update_test_indicator(test_type.id, params[:indicators])
           end
         end
-  
+
         def update_specimen_test_type_mapping(test_type_id, specimen_ids)
           SpecimenTestTypeMapping.where(test_type_id:).where.not(specimen_id: specimen_ids).each do |specimen_test_type_mapping|
             specimen_test_type_mapping.void('Removed from test type')
@@ -25,7 +25,7 @@ module TestCatalog
             SpecimenTestTypeMapping.find_or_create_by(test_type_id:, specimen_id:)
           end
         end
-  
+
         def update_test_type_organism_mapping(test_type_id, organism_ids)
           TestTypeOrganismMapping.where(test_type_id: test_type_id).where.not(organism_id: organism_ids).each do |test_type_organism_mapping|
             test_type_organism_mapping.void('Removed from test type')
@@ -37,6 +37,10 @@ module TestCatalog
 
         def update_test_indicator_range(test_indicator_ranges, test_indicator_id, test_indicator_type)
           test_indicator_range_ids = test_indicator_ranges.each.with_object(:id).map(&:[])
+          if test_indicator_type == 'rich_text' || test_indicator_type == 'free_text'
+            test_indicator_range_ids = []
+            test_indicator_ranges = []
+          end
           TestIndicatorRange.where(test_indicator_id:).where.not(id: test_indicator_range_ids).each do |test_indicator_range|
             test_indicator_range.void('Removed from test indicator')
           end
@@ -65,9 +69,9 @@ module TestCatalog
             test_indicator = TestIndicator.find_or_initialize_by(id: test_indicator_attributes['id'])
             test_indicator.update!(test_indicator_attributes)
             update_test_indicator_range(test_indicator_param[:indicator_ranges], test_indicator.id, test_indicator.test_indicator_type)
-          end          
+          end
         end
-  
+
 
       end
     end
