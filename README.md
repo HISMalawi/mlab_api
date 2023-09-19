@@ -131,7 +131,7 @@ bundle install
 2. Create and migrate the `mlab_api` database:
 
 ```shell
-rails db:create db:migrate
+rails db:create && rails db:migrate && rails db:seed
 ```
 
 ## Data Migration for Sites with Previous iBLIS Installation
