@@ -43,7 +43,7 @@ module Api
             raise UnAuthorized, 'You are not authorized to change password'
           end
 
-          UserManagement::UserService.admin_update_password(user, user_params[:user][:password])
+          UserManagement::UserService.admin_update_password(@user, user_params[:user][:password])
         end
         render json: UserManagement::UserService.find_user(@user.id)
       end
