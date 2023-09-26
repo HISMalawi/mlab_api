@@ -33,12 +33,13 @@ module OrderService
     def create_order(encounter_id, order_params)
       accession_number = generate_accession_number
       tracking_number = order_params[:tracking_number].blank? ? "X#{accession_number}" : order_params[:tracking_number]
+      s_collection_time = order_params[:sample_collected_time].blank? ? Time.now : order_params[:sample_collected_time]
       Order.create!(
         encounter_id: encounter_id,
         priority_id: order_params[:priority],
-        accession_number: accession_number,
-        tracking_number: tracking_number,
-        sample_collected_time: order_params[:sample_collected_time],
+        accession_number:,
+        tracking_number:,
+        sample_collected_time: s_collection_time,
         requested_by: order_params[:requested_by],
         collected_by: order_params[:collected_by]
       )
