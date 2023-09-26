@@ -65,6 +65,12 @@ module UserManagement
         end
       end
 
+      def admin_update_password(user, new_password)
+        user.last_password_changed = Time.now
+        user.password_hash = new_password
+        user.save!
+      end
+
       def update_password(user, old_password, new_password)
         unless UserManagement::AuthService.basic_authentication(user, old_password)
           raise ActiveRecord::RecordNotUnique, "Your old password is incorrect"
