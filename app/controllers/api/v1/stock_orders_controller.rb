@@ -17,9 +17,9 @@ module Api
                            paginate(StockOrder.search(params[:search]))
                          end
                        elsif params[:stock_status_id].present?
-                         paginate(StockOrder.all.filter_by_stock_order_status(params[:stock_status_id]))
+                         paginate(StockOrder.all.order(created_date: :desc).filter_by_stock_order_status(params[:stock_status_id]))
                        else
-                         paginate(StockOrder.all)
+                         paginate(StockOrder.all.order(created_date: :desc))
                        end
         render json: stock_orders
       end

@@ -23,7 +23,7 @@ class StockOrder < VoidableRecord
   end
 
   def self.search(voucher_number)
-    where("voucher_number LIKE '%#{voucher_number}%'")
+    where("voucher_number LIKE '%#{voucher_number}%'").order(created_date: :desc)
   end
 
   def self.filter_by_stock_order_status(status_id)
