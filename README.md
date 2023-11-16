@@ -9,7 +9,7 @@ Before installing `mlab_api`, ensure that the following requirements are met:
 - Ruby 3.2.0
 - MySQL 8
 - Rails 7
-- Redis
+- Redis version 6+
 
 ## Installing Redis
 
@@ -39,6 +39,10 @@ sudo systemctl enable --now redis-server
 ```shell
 sudo systemctl status redis-server
 ```
+6. Verifiy redis version to be 6+
+   ```
+   redis-server --version
+   ```
 
 ## Clone the Application and Checkout the Branch
 
