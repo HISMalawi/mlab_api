@@ -59,15 +59,19 @@ module IblisService
         iblis_measures.each do |measure|
           test_indicator_type = indicator_type(measure.m_measure_type)
           iblis_measure_ranges = iblis_measure_ranges(measure.m_id)
-          if measure.m_deleted_at.nil?
-            test_indicator = TestIndicator.find_or_create_by(id: measure.m_id, name: measure.m_name, test_type_id: mlap_test_type_id, test_indicator_type: test_indicator_type, 
-              unit: measure.m_unit, description: measure.m_description, retired: 0, creator: 1, created_date: measure.m_created_at, updated_date: measure.m_updated_at)
-            test_indicator.update!(created_date: measure.m_created_at, updated_date: measure.m_updated_at)
-            create_test_indicator_range(measure.m_id, test_indicator_type, test_indicator.id)
-          else
-            test_indicator = TestIndicator.find_or_create_by(id: measure.m_id, name: measure.m_name, test_type_id: mlap_test_type_id, test_indicator_type: test_indicator_type, 
-              unit: measure.m_unit, description: measure.m_description, retired: 1, retired_by: 1, retired_reason: 'Removed', retired_date: measure.m_deleted_at, creator: 1)
-            test_indicator.update!(created_date: measure.m_created_at, updated_date: measure.m_updated_at)
+          begin
+            if measure.m_deleted_at.nil?
+              test_indicator = TestIndicator.find_or_create_by(id: measure.m_id, name: measure.m_name, test_type_id: mlap_test_type_id, test_indicator_type: test_indicator_type, 
+                unit: measure.m_unit, description: measure.m_description, retired: 0, creator: 1, created_date: measure.m_created_at, updated_date: measure.m_updated_at)
+              test_indicator.update!(created_date: measure.m_created_at, updated_date: measure.m_updated_at)
+              create_test_indicator_range(measure.m_id, test_indicator_type, test_indicator.id)
+            else
+              test_indicator = TestIndicator.find_or_create_by(id: measure.m_id, name: measure.m_name, test_type_id: mlap_test_type_id, test_indicator_type: test_indicator_type, 
+                unit: measure.m_unit, description: measure.m_description, retired: 1, retired_by: 1, retired_reason: 'Removed', retired_date: measure.m_deleted_at, creator: 1)
+              test_indicator.update!(created_date: measure.m_created_at, updated_date: measure.m_updated_at)
+            end
+          rescue => exception
+            Rails.logger.info("=========Error Loading Test Indicator: #{exception}===========")
           end
         end
       end
