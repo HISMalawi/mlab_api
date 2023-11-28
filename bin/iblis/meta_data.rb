@@ -12,12 +12,13 @@ def extract_number_from_duration(duration_string)
   end
 
   # Check for the unit
-  unit = 'Hours' if unit.include?('h')
-  unit = 'Weeks' if unit.include?('w')
-  unit = 'Months' if unit.include?('mo') || unit.include?('mnt') || unit.include?('mt')
-  unit = 'Minutes' if unit.include?('mi') || unit.include?('mn')
-  unit = 'Days' if unit.include?('d')
-
+  unless unit.nil?
+    unit = 'Hours' if unit.include?('h')
+    unit = 'Weeks' if unit.include?('w')
+    unit = 'Months' if unit.include?('mo') || unit.include?('mnt') || unit.include?('mt')
+    unit = 'Minutes' if unit.include?('mi') || unit.include?('mn')
+    unit = 'Days' if unit.include?('d')
+  end
   { number:, unit: }
 end
 
@@ -55,7 +56,6 @@ ActiveRecord::Base.transaction do
     Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
     Specimen.find_or_create_by!(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
   end
-
    # Create Drugs and Organisms and map them
   IblisService::DrugOrganismService.create_drug
   IblisService::DrugOrganismService.create_organism

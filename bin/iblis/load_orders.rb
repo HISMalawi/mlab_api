@@ -11,7 +11,10 @@ def iblis_orders(offset, limit, priority_id)
     s.accession_number,
     s.tracking_number,
     t.requested_by,
-    COALESCE(DATE(s.date_of_collection), t.time_created) AS sample_collected_time,
+    CASE
+        WHEN s.date_of_collection = '0000-00-00 00:00:00' OR s.date_of_collection IS NULL THEN t.time_created
+        ELSE s.date_of_collection
+    END AS sample_collected_time,
     s.drawn_by_name AS collected_by,
     t.created_by AS creator,
     0 AS voided,
@@ -38,7 +41,10 @@ def iblis_orders_with_stat(offset, limit, priority_id)
       s.accession_number,
       s.tracking_number,
       t.requested_by,
-      COALESCE(DATE(s.date_of_collection), t.time_created) AS sample_collected_time,
+      CASE
+        WHEN s.date_of_collection = '0000-00-00 00:00:00' OR s.date_of_collection IS NULL THEN t.time_created
+        ELSE s.date_of_collection
+      END AS sample_collected_time,
       s.drawn_by_name AS collected_by,
       t.created_by AS creator,
       0 AS voided,
@@ -84,8 +90,14 @@ def iblis_orders_statuses(offset, limit, specimen_not_collected, specimen_accept
       NULL AS voided_by,
       NULL AS voided_reason,
       NULL AS voided_date,
-      COALESCE(DATE(s.time_accepted), t.time_created) AS created_date,
-      COALESCE(DATE(s.time_accepted), t.time_created) AS updated_date,
+      CASE
+        WHEN s.time_accepted = '0000-00-00 00:00:00' OR s.time_accepted IS NULL THEN t.time_created
+        ELSE s.time_accepted
+      END AS created_date,
+      CASE
+          WHEN s.time_accepted = '0000-00-00 00:00:00' OR s.time_accepted IS NULL THEN t.time_created
+          ELSE s.time_accepted
+      END AS updated_date,
       NULL AS person_talked_to,
       s.accepted_by AS updated_by
     FROM
@@ -110,8 +122,14 @@ def iblis_orders_status_rejected(offset, limit, specimen_rejected)
       NULL AS voided_date,
       rr.reason AS reason,
       s.reject_explained_to AS person_talked_to,
-      COALESCE(DATE(s.time_rejected), t.time_created) AS created_date,
-      COALESCE(DATE(s.time_rejected), t.time_created) AS updated_date
+      CASE
+        WHEN s.time_rejected = '0000-00-00 00:00:00' OR s.time_rejected IS NULL THEN t.time_created
+        ELSE s.time_rejected
+      END AS created_date,
+      CASE
+          WHEN s.time_rejected = '0000-00-00 00:00:00' OR s.time_rejected IS NULL THEN t.time_created
+          ELSE s.time_rejected
+      END AS updated_date
     FROM
       specimens s
     INNER JOIN tests t ON t.specimen_id = s.id
@@ -148,7 +166,7 @@ def orders_count
 end
 
 Rails.logger.info('Starting to process....')
-ActiveRecord::Base.connection.execute("SET sql_mode='NO_ZERO_DATE'")
+# ActiveRecord::Base.connection.execute("SET sql_mode='NO_ZERO_DATE'")
 total_records = orders_count.count
 batch_size = 10_000
 offset = 0
@@ -218,4 +236,4 @@ loop do
   offset += batch_size
   count -= batch_size
 end
-ActiveRecord::Base.connection.execute("SET sql_mode=''")
+# ActiveRecord::Base.connection.execute("SET sql_mode=''")
