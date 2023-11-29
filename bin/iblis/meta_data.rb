@@ -26,7 +26,7 @@ end
 ActiveRecord::Base.transaction do
 
   client_identifier_types = ['cellphone_number', 'occupation', 'current_district',
-  'current_traditional_authority', 'current_village', 'home_village', 'home_district', 
+  'current_traditional_authority', 'current_village', 'home_village', 'home_district',
   'home_traditional_authority', 'art_number', 'htn_number', 'npid', 'physical_address'
   ]
   user_id = User.current.id
@@ -54,7 +54,11 @@ ActiveRecord::Base.transaction do
   specimes = Iblis.find_by_sql("SELECT * FROM specimen_types")
   specimes.each do | specimen |
     Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
-    Specimen.find_or_create_by!(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
+    begin
+      Specimen.find_or_create_by!(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
+    rescue => e
+      Rails.logger.info("An error occurred: #{e}")
+    end
   end
    # Create Drugs and Organisms and map them
   IblisService::DrugOrganismService.create_drug
@@ -95,7 +99,7 @@ ActiveRecord::Base.transaction do
     test_type = TestType.find_by_name(tt_panel.test_type)
     Rails.logger.info("=========Mapping panel: #{tt_panel.panel} to test type: #{tt_panel.test_type}===========")
     TestTypePanelMapping.create(test_panel_id: test_panel.id, test_type_id: test_type.id, creator: user_id, voided: 0, created_date: Time.now, updated_date: Time.now)
-  end 
+  end
 
   # Load statuses and status reasons
  IblisService::StatusService.create_test_status

@@ -10,9 +10,13 @@ module IblisService
         end
 
         iblis_specimen_status = Iblis.find_by_sql("SELECT * FROM specimen_statuses")
-        iblis_specimen_status.each do |status| 
+        iblis_specimen_status.each do |status|
           Rails.logger.info("=========Creating Order Status: #{status.name}===========")
-          Status.find_or_create_by!(name: status.name, retired: 0, creator: 1)
+          begin
+            Status.find_or_create_by!(name: status.name, retired: 0, creator: 1)
+          rescue => e
+            Rails.logger.info("An error occurred: #{e}")
+          end
         end
       end
 
@@ -36,6 +40,6 @@ module IblisService
           end
         end
       end
-    end 
+    end
   end
 end

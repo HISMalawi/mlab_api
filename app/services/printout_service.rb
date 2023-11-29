@@ -90,7 +90,7 @@ module PrintoutService
 
     def a4_printing(uploaded_file, printer_name, directory_name)
       begin
-        Dir.mkdir("tmp/#{directory_name}") unless File.exist?("tmp/#{directory_name}")          
+        Dir.mkdir("tmp/#{directory_name}") unless File.exist?("tmp/#{directory_name}")
       rescue Errno::EEXIST
       end
       file_path = Rails.root.join('tmp', directory_name, uploaded_file.original_filename)
