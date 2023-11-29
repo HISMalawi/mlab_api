@@ -59,7 +59,7 @@ ActiveRecord::Base.transaction do
       rescue => e
         Rails.logger.info("=========Error Loading Specimen: #{e}===========")
         Rails.logger.info("=========Handling #{e} : #{specimen.name}===========")
-        if specimen.name == 'other'
+        if e.message == "Validation failed: Name has already been taken"
           Specimen.find_or_create_by!(id: specimen.id, name: specimen.name+'_', description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
         end
       end
