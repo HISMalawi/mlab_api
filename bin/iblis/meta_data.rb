@@ -52,10 +52,18 @@ ActiveRecord::Base.transaction do
 
   # Load specimen
   specimes = Iblis.find_by_sql("SELECT * FROM specimen_types")
-  specimes.each do | specimen |
-    Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
-    Specimen.find_or_create_by!(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
-  end
+    specimes.each do | specimen |
+      begin
+        Rails.logger.info("=========Loading Specimen: #{specimen.name}===========")
+        Specimen.find_or_create_by!(id: specimen.id, name: specimen.name, description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
+      rescue => e
+        Rails.logger.info("=========Error Loading Specimen: #{e}===========")
+        Rails.logger.info("=========Handling #{e} : #{specimen.name}===========")
+        if specimen.name == 'other'
+          Specimen.find_or_create_by!(id: specimen.id, name: specimen.name+'_', description: specimen.description, retired: 0, creator: user_id, created_date: specimen.created_at, updated_date: specimen.updated_at)
+        end
+      end
+    end
    # Create Drugs and Organisms and map them
   IblisService::DrugOrganismService.create_drug
   IblisService::DrugOrganismService.create_organism
