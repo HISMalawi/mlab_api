@@ -201,6 +201,14 @@ loop do
   count -= batch_size
 end
 
+def fix_people(records)
+  user = User.first.id
+  records.map!(&:attributes).map do |record|
+    record[:creator] = user unless User.exists?(id: record[:creator])
+    record
+  end
+end
+
 total_records = iblis_orders_stat_count.count
 batch_size = 10_000
 offset = 0
@@ -214,7 +222,7 @@ loop do
 
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Orders Statuses--  => (step 5 of 10)")
   unless records.empty?
-    OrderStatus.insert_all(records.map(&:attributes), returning: false)
+    OrderStatus.insert_all(fix_people(records), returning: false)
   end
   offset += batch_size
   count -= batch_size
