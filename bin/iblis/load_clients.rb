@@ -101,21 +101,28 @@ def update_user_details
   end
 end
 
-Rails.logger.info("Starting to process people....")
+def fix_people(records)
+  user = User.first.id
+  records.map!(&:attributes).map do |record|
+    record[:creator] = user unless User.exists?(id: record[:creator])
+    record
+  end
+end
+
+Rails.logger.info('Starting to process people....')
 total_records = get_count.count
-batch_size = 10000
+batch_size = 10_000
 offset = 0
 count = total_records
 loop do
   records = load_people(offset, batch_size)
   c_records = load_clients(offset, batch_size)
   break if records.empty?
+
   Rails.logger.info("Processing batch  #{offset} of #{total_records}: Remaining - #{count} --CLIENTS-- step(1 of 10)")
-  Person.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
-  Client.upsert_all(c_records.map(&:attributes), returning: false) unless c_records.empty?
+  Person.upsert_all(fix_people(records), returning: false) unless records.empty?
+  Client.upsert_all(fix_people(c_records), returning: false) unless c_records.empty?
   offset += batch_size
   count -= batch_size
 end
 update_user_details
-
-
