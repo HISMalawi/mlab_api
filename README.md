@@ -43,6 +43,19 @@ sudo systemctl status redis-server
    ```
    redis-server --version
    ```
+# Installing MYSQL 8
+1. Install via docker
+```
+   docker run --name mysql8 -e MYSQL_ROOT_PASSWORD=root -d -p 3308:3306 --restart always mysql:8.0.35
+```
+2. Check if correctly installed
+```
+   mysql -uroot -p -h127.0.0.1 -P3308
+```
+3. Should you want to backup your database, you can use the following command:
+```
+   mysqldump -u root -p -h127.0.0.1 -P3308 mlab_api > mlab_api.sql
+```
 
 ## Clone the Application and Checkout the Branch
 
