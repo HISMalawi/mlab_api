@@ -5,8 +5,8 @@ module Api
     # Interfacer Controller
     class InterfacerController < ApplicationController
       include ActionController::HttpAuthentication::Basic::ControllerMethods
-      skip_before_action :authorize_request, only: [:create]
-      before_action :authenticate_driver, only: [:create]
+      skip_before_action :authorize_request, only: [:index]
+      before_action :authenticate_driver, only: [:index]
 
       def fetch_results
         render json: read_service.new(accession_number: params[:accession_number]).read, status: :ok
@@ -17,17 +17,17 @@ module Api
         render json: { result_available: result.present? }, status: :ok
       end
 
-      def create
+      def index
         values = allowed_params.to_h
         Rails.logger.info(values)
-        write_service.new(accession_number: values[:accession_number], machine_name: values[:machine_name], measure_id: values[:measure_id], result: values[:result]).write
+        write_service.new(accession_number: values[:specimen_id], machine_name: values[:machine_name], measure_id: values[:measure_id], result: values[:result]).write
         render json: { message: 'success' }, status: :ok
       end
 
       private
 
       def allowed_params
-        params.permit(:accession_number, :machine_name, :measure_id, :result)
+        params.permit(:specimen_id, :machine_name, :measure_id, :result)
       end
 
       def write_service
