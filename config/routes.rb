@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      resources :interfacer, only: %i[create] do
+      resources :interfacer, only: %i[index] do
         collection do
           get '/fetch_results/' => 'interfacer#fetch_results'
           get '/result_available/' => 'interfacer#result_available'
