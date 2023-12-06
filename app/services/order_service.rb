@@ -90,10 +90,10 @@ module OrderService
         tracking_number: order.tracking_number,
         requested_by: order.requested_by,
         collected_by: order.collected_by,
-        registered_by: User.find(order.creator).username,
+        registered_by: User.find(order.creator)&.username,
         priority: order.priority.name,
-        sending_facility: encounter.facility.name,
-        destination_facility: encounter.destination.name,
+        sending_facility: encounter.facility&.name,
+        destination_facility: encounter.destination&.name,
         date_created: order.created_date,
         tests: serialize_test(tests)
       })
