@@ -204,12 +204,13 @@ sudo systemctl status sidekiq.service
 ```shell
 sudo systemctl enable sidekiq.service
 ```
+6. Check if sidekiq and redis are running properly, Navigate to: SERVER_IP_ADDRESS:API_PORT/sidekiq
 
-6. Set cron job for pregenerating moh reports:
+7. Set cron job for pregenerating moh reports:
 ```shell
 0 0 * * * /bin/bash -lc "cd /var/www/mlab_api && rvm use 3.2.0 && rails r bin/generate_moh_report.rb &"
 ```
-6. Set cron job for syncing with NLIMS:
+8. Set cron job for syncing with NLIMS:
 ```shell
 */2 * * * *  /bin/bash -lc "cd /var/www/mlab_api && rvm use 3.2.0 && rails r bin/nlims_sync.rb &"
 ```
