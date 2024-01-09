@@ -19,7 +19,9 @@ module Reports
       def generate_report
         # report_data = insert_into_moh_data_report_table(department: 'Haematology', time_filter: year,
         #                                                 action: 'update')
-        report_data = full_blood_count + haemoglobin_only
+        report_data = full_blood_count + haemoglobin_only + hemacue_only + patient_with_hb_less_equal_6 +
+                      patient_with_hb_greater_6 + patient_with_hb_less_equal_6_transfused +
+                      patient_with_hb_greater_6_transfused + manual_wbc_differential + wbc_manual
         data = update_report_counts(report_data)
         Reports::Moh::ReportUtils.save_report_to_json('Haematology', data, year)
         data
@@ -69,6 +71,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('FBC')}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -89,6 +92,7 @@ module Reports
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -109,6 +113,195 @@ module Reports
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def patient_with_hb_less_equal_6
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Patients with Hb ≤ 6.0g/dl' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id AND tr.test_id = t.id AND tr.voided = 0
+                        WHERE
+              t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value <= 6
+                  AND tr.value <> ''
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def patient_with_hb_greater_6
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Patients with Hb > 6.0 g/dl' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id AND tr.test_id = t.id AND tr.voided = 0
+                        WHERE
+              t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value > 6
+                  AND tr.value <> ''
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def patient_with_hb_less_equal_6_transfused
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(ot.created_date) AS month,
+            COUNT(DISTINCT ot.id) AS total,
+            'Patients with Hb ≤ 6.0g/dl who were transfused' AS indicator
+          FROM
+              tests ot
+                  INNER JOIN
+              test_statuses ots ON ots.test_id = ot.id
+                  INNER JOIN
+              test_indicators oti ON oti.test_type_id = ot.test_type_id
+                  INNER JOIN
+              orders oo ON oo.id = ot.order_id
+                  INNER JOIN
+              encounters oe ON oe.id = oo.encounter_id
+          WHERE
+              oe.client_id IN (SELECT DISTINCT
+                      e.client_id
+                  FROM
+                      tests t
+                          INNER JOIN
+                      test_statuses ts ON ts.test_id = t.id
+                          INNER JOIN
+                      test_indicators ti ON ti.test_type_id = t.test_type_id
+                          INNER JOIN
+                      orders o ON o.id = t.order_id
+                          INNER JOIN
+                      encounters e ON e.id = o.encounter_id
+                          INNER JOIN
+                      test_results tr ON tr.test_indicator_id = ti.id
+                          AND tr.test_id = t.id
+                          AND tr.voided = 0
+                  WHERE
+                      t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
+                          AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                          AND YEAR(t.created_date) = #{year}
+                          AND ts.status_id IN (4 , 5)
+                          AND t.voided = 0
+                          AND tr.value <= 6
+                          AND tr.value <> ''
+                          AND tr.value IS NOT NULL)
+                  AND ot.voided = 0
+                  AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+                  AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
+                  AND ots.status_id IN (4 , 5)
+          GROUP BY MONTHNAME(ot.created_date)
+        SQL
+      end
+
+      def patient_with_hb_greater_6_transfused
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(ot.created_date) AS month,
+            COUNT(DISTINCT ot.id) AS total,
+            'Patients with Hb > 6.0 g/dl who were transfused' AS indicator
+          FROM
+              tests ot
+                  INNER JOIN
+              test_statuses ots ON ots.test_id = ot.id
+                  INNER JOIN
+              test_indicators oti ON oti.test_type_id = ot.test_type_id
+                  INNER JOIN
+              orders oo ON oo.id = ot.order_id
+                  INNER JOIN
+              encounters oe ON oe.id = oo.encounter_id
+          WHERE
+              oe.client_id IN (SELECT DISTINCT
+                      e.client_id
+                  FROM
+                      tests t
+                          INNER JOIN
+                      test_statuses ts ON ts.test_id = t.id
+                          INNER JOIN
+                      test_indicators ti ON ti.test_type_id = t.test_type_id
+                          INNER JOIN
+                      orders o ON o.id = t.order_id
+                          INNER JOIN
+                      encounters e ON e.id = o.encounter_id
+                          INNER JOIN
+                      test_results tr ON tr.test_indicator_id = ti.id
+                          AND tr.test_id = t.id
+                          AND tr.voided = 0
+                  WHERE
+                      t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
+                          AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                          AND YEAR(t.created_date) = #{year}
+                          AND ts.status_id IN (4 , 5)
+                          AND t.voided = 0
+                          AND tr.value > 6
+                          AND tr.value <> ''
+                          AND tr.value IS NOT NULL)
+                  AND ot.voided = 0
+                  AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+                  AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
+                  AND ots.status_id IN (4 , 5)
+          GROUP BY MONTHNAME(ot.created_date)
+        SQL
+      end
+
+      def wbc_manual
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'WBC manual count' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def manual_wbc_differential
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Manual WBC differential' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end

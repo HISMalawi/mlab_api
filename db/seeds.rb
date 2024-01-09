@@ -25,11 +25,23 @@ end
 name_mappings = [
   {
     actual_name: 'FBC',
-    manual_names: ['FBC', 'FBC (Paeds)']
+    manual_names: ['FBC', 'FBC (Paeds)', 'FBC(CancerCenter)']
   },
   {
     actual_name: 'Haemoglobin',
-    manual_names: %w[Haemoglobin HGB Hb Hemoglobin Heamoglobin]
+    manual_names: %w[Haemoglobin HGB Hb Hemoglobin Heamoglobin Haemoglobin(CancerCenter)]
+  },
+  {
+    actual_name: 'Cross-match',
+    manual_names: ['Cross-match', 'Cross-match(CancerCenter)']
+  },
+  {
+    actual_name: 'Pack ABO Group',
+    manual_names: ['Pack ABO Group']
+  },
+  {
+    actual_name: 'Manual Differential & Cell Morphology',
+    manual_names: ['Manual Differential & Cell Morphology', 'Manual Differential & Cell Morphology(CancerCenter)']
   }
 ]
 
