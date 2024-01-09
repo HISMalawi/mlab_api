@@ -16,8 +16,26 @@ stock_transaction_types.each do |type|
   )
 end
 
-stock_adjustment_reasons = ['Damaged', 'Expired', 'Lost', 'Theft', 'Other']
+stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other]
 stock_adjustment_reasons.each do |reason|
   puts "Creating stock adjustment reason: #{reason}"
   StockAdjustmentReason.find_or_create_by!(name: reason)
+end
+
+name_mappings = [
+  {
+    actual_name: 'FBC',
+    manual_names: ['FBC', 'FBC (Paeds)']
+  },
+  {
+    actual_name: 'Haemoglobin',
+    manual_names: %w[Haemoglobin HGB Hb Hemoglobin Heamoglobin]
+  }
+]
+
+name_mappings.each do |name_mapping|
+  name_mapping[:manual_names].each do |manual_name|
+    puts "Creating name mapping for #{manual_name} - #{name_mapping[:actual_name]}"
+    NameMapping.find_or_create_by(actual_name: name_mapping[:actual_name], manual_name:)
+  end
 end
