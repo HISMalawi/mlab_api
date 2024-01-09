@@ -17,8 +17,9 @@ module Reports
       end
 
       def generate_report
-        report_data = insert_into_moh_data_report_table(department: 'Haematology', time_filter: year,
-                                                        action: 'update')
+        # report_data = insert_into_moh_data_report_table(department: 'Haematology', time_filter: year,
+        #                                                 action: 'update')
+        report_data = full_blood_count + haemoglobin_only
         data = update_report_counts(report_data)
         Reports::Moh::ReportUtils.save_report_to_json('Haematology', data, year)
         data
@@ -53,6 +54,67 @@ module Reports
           end
         end
         @report
+      end
+
+      def full_blood_count
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Full Blood Count' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('FBC')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def haemoglobin_only
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Heamoglobin only (blood donors excluded)' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                        WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('FBC')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def hemacue_only
+        NameMapping.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Heamoglobin only (Hemacue)' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                        WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Haemoglobin')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def report_utils
+        Reports::Moh::ReportUtils
       end
     end
   end
