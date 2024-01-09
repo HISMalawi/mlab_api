@@ -35,15 +35,19 @@ module Reports
 
         def test_type_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = actual_name if manual_names.empty?
           ids = TestType.where(name: manual_names).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
+
           "(#{ids.join(', ')})"
         end
 
         def test_indicator_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = actual_name if manual_names.empty?
           ids = TestIndicator.where(name: manual_names).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
+
           "(#{ids.join(', ')})"
         end
       end

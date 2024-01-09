@@ -40,6 +40,10 @@ name_mappings = [
     manual_names: ['Pack ABO Group']
   },
   {
+    actual_name: 'ESR',
+    manual_names: ['ESR', 'ESR (Paeds)']
+  },
+  {
     actual_name: 'Manual Differential & Cell Morphology',
     manual_names: ['Manual Differential & Cell Morphology', 'Manual Differential & Cell Morphology(CancerCenter)']
   }
