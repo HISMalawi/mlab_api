@@ -32,6 +32,18 @@ module Reports
             file.write(JSON.generate(data))
           end
         end
+
+        def test_type_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          ids = TestType.where(name: manual_names).map(&:id)
+          "(#{ids.join(', ')})"
+        end
+
+        def test_indicator_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          ids = TestIndicator.where(name: manual_names).map(&:id)
+          "(#{ids.join(', ')})"
+        end
       end
     end
   end
