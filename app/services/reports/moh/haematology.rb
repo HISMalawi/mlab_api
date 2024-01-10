@@ -24,7 +24,7 @@ module Reports
                       patient_with_hb_greater_6_transfused + manual_wbc_differential + wbc_manual + esr +
                       sickling_test + ret_count + inr + aptt + pt + cd4_abs_count + cd4_percent + blood_film_morph
         data = update_report_counts(report_data)
-        Reports::Moh::ReportUtils.save_report_to_json('Haematology', data, year)
+        Report.find_or_create_by(name: 'moh_haematology', year:).update(data:)
         data
       end
 
@@ -60,7 +60,7 @@ module Reports
       end
 
       def full_blood_count
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Full Blood Count' AS indicator
@@ -78,7 +78,7 @@ module Reports
       end
 
       def haemoglobin_only
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Heamoglobin only (blood donors excluded)' AS indicator
@@ -99,7 +99,7 @@ module Reports
       end
 
       def hemacue_only
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Heamoglobin only (Hemacue)' AS indicator
@@ -120,7 +120,7 @@ module Reports
       end
 
       def patient_with_hb_less_equal_6
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Patients with Hb ≤ 6.0g/dl' AS indicator
@@ -146,7 +146,7 @@ module Reports
       end
 
       def patient_with_hb_greater_6
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Patients with Hb > 6.0 g/dl' AS indicator
@@ -172,7 +172,7 @@ module Reports
       end
 
       def patient_with_hb_less_equal_6_transfused
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(ot.created_date) AS month,
             COUNT(DISTINCT ot.id) AS total,
@@ -222,7 +222,7 @@ module Reports
       end
 
       def patient_with_hb_greater_6_transfused
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(ot.created_date) AS month,
             COUNT(DISTINCT ot.id) AS total,
@@ -272,7 +272,7 @@ module Reports
       end
 
       def wbc_manual
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'WBC manual count' AS indicator
@@ -290,7 +290,7 @@ module Reports
       end
 
       def manual_wbc_differential
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Manual WBC differential' AS indicator
@@ -308,7 +308,7 @@ module Reports
       end
 
       def esr
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Erythrocyte Sedimentation Rate (ESR)' AS indicator
@@ -326,7 +326,7 @@ module Reports
       end
 
       def sickling_test
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Sickling Test' AS indicator
@@ -344,7 +344,7 @@ module Reports
       end
 
       def ret_count
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Reticulocyte count' AS indicator
@@ -371,7 +371,7 @@ module Reports
       end
 
       def pt
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Prothrombin time (PT)' AS indicator
@@ -389,7 +389,7 @@ module Reports
       end
 
       def aptt
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Activated Partial Thromboplastin Time (APTT)' AS indicator
@@ -407,7 +407,7 @@ module Reports
       end
 
       def inr
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'International Normalized Ratio (INR)' AS indicator
@@ -425,7 +425,7 @@ module Reports
       end
 
       def bleeding_clotting
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Bleeding/ cloting time' AS indicator
@@ -443,7 +443,7 @@ module Reports
       end
 
       def cd4_abs_count
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'CD4 absolute count' AS indicator
@@ -470,7 +470,7 @@ module Reports
       end
 
       def cd4_percent
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'CD4 percentage' AS indicator
@@ -497,7 +497,7 @@ module Reports
       end
 
       def blood_film_morph
-        NameMapping.find_by_sql <<~SQL
+        Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Blood film for red cell morphology' AS indicator

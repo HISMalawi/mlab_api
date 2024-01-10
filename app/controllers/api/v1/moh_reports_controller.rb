@@ -12,11 +12,8 @@ module Api
 
       def haematology
         year = params.require(:year)
-        data = if use_pregenerated_report('Haematology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Haematology', year))
-               else
-                 Reports::MohService.generate_haematology_report(year)
-               end
+        data = Report.where(year:, name: 'moh_haematology').first&.data
+        data = Reports::MohService.generate_haematology_report(year) if data.nil?
         render json: data
       end
 
