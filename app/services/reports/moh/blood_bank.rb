@@ -275,29 +275,28 @@ module Reports
                 WHEN tr.value = 'Cryoprecipitate' THEN 'Total Number Transfused with Cryo precipitate'
                 WHEN tr.value = 'Platelets' THEN 'Total Number Transfused with Platelets'
                 WHEN tr.value IN ('Packed Red Cells' , 'RED BLOOD CELLS') THEN 'Total Number Transfused with Packed Cells'
+                ELSE 'other'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total
           FROM
-              tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
-                  INNER JOIN
-              test_results tr ON tr.test_indicator_id = ti.id
-                  AND tr.test_id = t.id
-                  AND tr.voided = 0
+            tests t
+                INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+                INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
           WHERE
-              t.test_type_id IN (30)
-                  AND ti.id IN (128)
-                  AND YEAR(t.created_date) = 2023
-                  AND ts.status_id IN (4 , 5)
-                  AND t.voided = 0
-                  AND tr.value <> ''
-                  AND tr.value IS NOT NULL
-                  AND t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Product Type')}
+            t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+              AND ti.id IN #{report_utils.test_indicator_ids('Product Type')}
+              AND YEAR(t.created_date) =  #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value <> ''
+              AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date), indicator
         SQL
       end

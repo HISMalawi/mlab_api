@@ -41,7 +41,7 @@ name_mappings = [
   },
   {
     actual_name: 'ESR',
-    manual_names: ['ESR', 'ESR (Paeds)']
+    manual_names: ['ESR', 'ESR (Paeds)', 'ESR (CancerCenter)']
   },
   {
     actual_name: 'Manual Differential & Cell Morphology',
@@ -58,6 +58,73 @@ name_mappings = [
                    'Paediatric Surgical', 'Paediatric Medical', 'Paeds Orthopedic',
                    'Children\'s ward', 'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics',
                    'Peads Surgical Ward', 'Mercy James Paediatric Centre']
+  },
+  {
+    actual_name: 'Pack ABO Group',
+    manual_names: ['Pack ABO Group']
+  },
+  {
+    actual_name: 'Glucose',
+    manual_names: ['Glucose', 'Glucose (Paeds)']
+  },
+  {
+    actual_name: 'Total Protein',
+    manual_names: ['Total Protein(PRO)', 'TP', 'Total Protein']
+  },
+  {
+    actual_name: 'Albumin',
+    manual_names: ['Albumin(ALB)', 'ALB', 'Albumin']
+  },
+  {
+    actual_name: 'ALP',
+    manual_names: ['ALPU', 'ALP', 'Alkaline Phosphate(ALP)']
+  },
+  {
+    actual_name: 'ALT',
+    manual_names: ['ALT/GPT', 'ALT', 'GPT/ALT']
+  },
+  {
+    actual_name: 'AST',
+    manual_names: ['AST/GOT', 'AST', 'GOT/AST']
+  },
+  {
+    actual_name: 'GGT',
+    manual_names: ['GGT/r-GT', 'GGT', 'GGT/a-GT']
+  },
+  {
+    actual_name: 'BIT',
+    manual_names: ['Bilirubin Total(BIT))', 'Bilirubin Total(BIT)', 'TBIL-DSA', 'TBIL-DSA-H',
+                   'Bilirubin Total(TBIL-DSA))', 'Total Bilirubin (T-BIL-V)']
+  },
+  {
+    actual_name: 'BID',
+    manual_names: ['Bilirubin Direct(BID)', 'DBIL-DSA', 'DBIL-DSA-H', 'Bilirubin Direct(DBIL-DSA)',
+                   'Direct Bilirubin (D-BIL-V)']
+  },
+  {
+    actual_name: 'LFT',
+    manual_names: ['Liver Function Tests', 'Liver Function Tests (Paeds)', 'Liver Function Tests(CancerCenter)',
+                   'Liver Function Test']
+  },
+  {
+    actual_name: 'RFT',
+    manual_names: ['Renal Function Test', 'Renal Function Tests (Paeds)', 'Renal Function Tests(CancerCenter)']
+  },
+  {
+    actual_name: 'Electrolytes',
+    manual_names: ['Electrolytes', 'Electrolytes (Paeds)', 'Electrolytes(CancerCenter)']
+  },
+  {
+    actual_name: 'Minerals',
+    manual_names: ['Minerals', 'Minerals (Paeds)', 'Minerals(CancerCenter)']
+  },
+  {
+    actual_name: 'ASO',
+    manual_names: ['Anti Streptolysis O', 'Anti Streptolysin O', 'Antistreptolysin O (ASO)', 'ASO']
+  },
+  {
+    actual_name: 'Glucose',
+    manual_names: %w[Glucose Glu Glu-G]
   }
 ]
 

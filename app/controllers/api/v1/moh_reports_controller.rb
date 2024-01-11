@@ -26,11 +26,8 @@ module Api
 
       def biochemistry
         year = params.require(:year)
-        data = if use_pregenerated_report('Biochemistry', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Biochemistry', year))
-               else
-                 Reports::MohService.generate_biochemistry_report(year)
-               end
+        # data = Report.where(year:, name: 'moh_biochemistry').first&.data
+        data = Reports::MohService.generate_biochemistry_report(year) if data.nil?
         render json: data
       end
 

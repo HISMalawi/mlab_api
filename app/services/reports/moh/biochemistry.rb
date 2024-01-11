@@ -17,10 +17,9 @@ module Reports
       end
 
       def generate_report
-        report_data = insert_into_moh_data_report_table(department: 'Biochemistry', time_filter: year,
-                                                        action: 'update')
+        report_data = glucose + liver_fuction_test + renal_fuction_test
         data = update_report_counts(report_data)
-        Reports::Moh::ReportUtils.save_report_to_json('Biochemistry', data, year)
+        Report.find_or_create_by(name: 'moh_blood_bank', year:).update(data:)
         data
       end
 
@@ -82,6 +81,120 @@ module Reports
           end
         end
         @report
+      end
+
+      def glucose
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+                WHEN t.specimen_id IN #{report_utils.specimen_ids('CSF')} THEN 'CSF glucose'
+                WHEN t.specimen_id IN #{report_utils.specimen_ids('Blood')} THEN 'Blood glucose'
+                ELSE 'other'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Glucose')}
+              AND ti.id IN #{report_utils.test_indicator_ids('Glucose')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value <> ''
+              AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
+      def liver_fuction_test
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+                WHEN ti.id IN #{report_utils.test_indicator_ids('Total Protein')} THEN 'Total Protein'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('Albumin')} THEN 'Albumin'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('ALP')} THEN 'Alkaline Phosphatase(ALP)'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('ALT')} THEN 'Alanine aminotransferase (ALT)'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('AST')} THEN 'Aspartate aminotransferase(AST)'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('GGT')} THEN 'Gamma Glutamyl Transferase'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('BIT')} THEN 'Bilirubin Total'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('BID')} THEN 'Bilirubin Direct'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('Amylase')} THEN 'Amylase'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('ASO')} THEN 'Antistreptolysin O (ASO)'
+                ELSE 'other'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids(['LFT', 'RFT', 'Pancreatic Function Test', 'Cardiac Function Tests',
+                                                            'Lactate Dehydrogenase', 'Electrolytes', 'BioMarkers', 'Rheumatoid Factor Test',
+                                                            'ASO'])}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value <> ''
+              AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
+      def renal_fuction_test
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+                WHEN ti.id IN #{report_utils.test_indicator_ids('Total Protein')} THEN 'Total Protein'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('Albumin')} THEN 'Albumin'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('ALP')} THEN 'Alkaline Phosphatase(ALP)'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('ALT')} THEN 'Alanine aminotransferase (ALT)'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('AST')} THEN 'Aspartate aminotransferase(AST)'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('GGT')} THEN 'Gamma Glutamyl Transferase'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('BIT')} THEN 'Bilirubin Total'
+                WHEN ti.id IN #{report_utils.test_indicator_ids('BID')} THEN 'Bilirubin Direct'
+                ELSE 'other'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('RFT')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value <> ''
+              AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
+      def report_utils
+        Reports::Moh::ReportUtils
       end
     end
   end
