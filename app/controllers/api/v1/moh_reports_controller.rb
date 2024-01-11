@@ -59,11 +59,8 @@ module Api
 
       def serology
         year = params.require(:year)
-        data = if use_pregenerated_report('Serology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Serology', year))
-               else
-                 Reports::MohService.generate_serology_report(year)
-               end
+        # data = Report.where(year:, name: 'moh_serology').first&.data
+        data = Reports::MohService.generate_serology_report(year) if data.nil?
         render json: data
       end
 

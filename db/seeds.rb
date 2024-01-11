@@ -58,6 +58,30 @@ name_mappings = [
                    'Paediatric Surgical', 'Paediatric Medical', 'Paeds Orthopedic',
                    'Children\'s ward', 'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics',
                    'Peads Surgical Ward', 'Mercy James Paediatric Centre']
+  },
+  {
+    actual_name: 'Syphilis Test',
+    manual_names: ['Syphilis Test', 'Syphilis Test (Paeds)']
+  },
+  {
+    actual_name: 'Antenatal',
+    manual_names: ['EM THEATRE','Labour', 'Labour Ward', 'EM LW', 'Maternity','PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward', 'Antenatal','ANC']
+  },
+  {
+    actual_name: 'Hepatitis',
+    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)']
+  },
+  {
+    actual_name: 'Hepatitis C',
+    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C']
+  },
+  {
+    actual_name: 'HIV',
+    manual_names: ['HIV', 'HIV TEST', 'HIV Antibody Tests']
+  },
+  {
+    actual_name: 'Prostate Ag Test',
+    manual_names: ['PSA', 'Prostate Specific Antigens', 'Total Prostrate Specific Antigen', 'Free Prostrate Specific Antigen']
   }
 ]
 
