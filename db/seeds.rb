@@ -137,11 +137,11 @@ name_mappings = [
   },
   {
     actual_name: 'Hepatitis',
-    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)']
+    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)']
   },
   {
     actual_name: 'Hepatitis C',
-    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C']
+    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)']
   },
   {
     actual_name: 'HIV',
@@ -151,6 +151,83 @@ name_mappings = [
     actual_name: 'Prostate Ag Test',
     manual_names: ['PSA', 'Prostate Specific Antigens', 'Total Prostrate Specific Antigen',
                    'Free Prostrate Specific Antigen']
+  },
+  {
+    actual_name: 'Calcium',
+    manual_names: ['Calcium (CA)', 'Calcium', 'Ca', 'CA']
+  },
+  {
+    actual_name: 'Chloride',
+    manual_names: ['Chloride (Cl-)', 'Chloride', 'Cl']
+  },
+  {
+    actual_name: 'Lipogram',
+    manual_names: ['Lipogram', 'Lipogram (Paeds)', 'Lipogram(CancerCenter)']
+  },
+  {
+    actual_name: 'TC',
+    manual_names: ['Cholestero l(CHOL)', 'Total Cholesterol(CHOL)', 'TC']
+  },
+  {
+    actual_name: 'LDL',
+    manual_names: ['LDL Direct (LDL-C)', 'LDL-C']
+  },
+  {
+    actual_name: 'HDL',
+    manual_names: ['HDL Direct (HDL-C)', 'HDL-C']
+  },
+  {
+    actual_name: 'Potassium',
+    manual_names: ['Potassium (K)', 'K', 'Potassium']
+  },
+  {
+    actual_name: 'Phosphorus',
+    manual_names: ['Phosphorus (PHOS)', 'P', 'Phosphorus', 'PHO']
+  },
+  {
+    actual_name: 'Magnesium',
+    manual_names: ['Magnesium (MGXB)', 'Mg', 'Magnesium', 'MG']
+  },
+  {
+    actual_name: 'Urea',
+    manual_names: ['Urea', 'Urea/Bun']
+  },
+  {
+    actual_name: 'Uric Acid',
+    manual_names: ['UA', 'UASR', 'Uric Acid']
+  },
+  {
+    actual_name: 'Triglycerides',
+    manual_names: ['Triglycerides(TG)', 'TG']
+  },
+  {
+    actual_name: 'Sodium',
+    manual_names: ['Sodium (NA)', 'Na', 'Sodium']
+  },
+  {
+    actual_name: 'Creatinine',
+    manual_names: ['Creatinine', 'CREA-S', 'CREATININE (S)']
+  },
+  {
+    actual_name: 'CRP',
+    manual_names: ['C-reactive Protein (CRP)', 'C-reactive Protein', 'CRP']
+  },
+  {
+    actual_name: 'LDH',
+    manual_names: ['Lactatedehydrogenase(LDH)', 'LDH', 'Lactate Dehydrogenase']
+  },
+  {
+    actual_name: 'Iron',
+    manual_names: ['Iron Studies', 'Iron', 'Fe']
+  },
+  {
+    actual_name: 'HbA1c',
+    manual_names: ['HbA1c','HbA1c (Paeds)']
+  },
+  {
+    actual_name: 'RF',
+    manual_names: ['Rheumatoid Factor Test', 'Rheumatoid Factor (RF)', 'Rheumatoid Factor', 'RF',
+                   'Rheumatoid Factor Test']
   }
 ]
 

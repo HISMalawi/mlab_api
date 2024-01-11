@@ -26,7 +26,7 @@ module Api
 
       def biochemistry
         year = params.require(:year)
-        # data = Report.where(year:, name: 'moh_biochemistry').first&.data
+        data = Report.where(year:, name: 'moh_biochemistry').first&.data
         data = Reports::MohService.generate_biochemistry_report(year) if data.nil?
         render json: data
       end
