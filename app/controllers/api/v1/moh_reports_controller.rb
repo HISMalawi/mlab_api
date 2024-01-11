@@ -56,7 +56,7 @@ module Api
 
       def serology
         year = params.require(:year)
-        # data = Report.where(year:, name: 'moh_serology').first&.data
+        data = Report.where(year:, name: 'moh_serology').first&.data
         data = Reports::MohService.generate_serology_report(year) if data.nil?
         render json: data
       end
