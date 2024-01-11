@@ -50,6 +50,15 @@ module Reports
 
           "(#{ids.join(', ')})"
         end
+
+        def facility_section_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = actual_name if manual_names.empty?
+          ids = FacilitySection.where(name: manual_names).map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
       end
     end
   end

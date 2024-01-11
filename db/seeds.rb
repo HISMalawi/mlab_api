@@ -46,6 +46,18 @@ name_mappings = [
   {
     actual_name: 'Manual Differential & Cell Morphology',
     manual_names: ['Manual Differential & Cell Morphology', 'Manual Differential & Cell Morphology(CancerCenter)']
+  },
+  {
+    actual_name: 'Maternity',
+    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward']
+  },
+  {
+    actual_name: 'paeds',
+    manual_names: ['CWA', 'CWB', 'CWC', 'EM Nursery', 'Under 5 Clinic', 'ward 9', 'Paediatric Ward', 'Paeds Neuro',
+                   'Nursery', 'Paediatric', 'Peads Special Care Ward', 'Paeds Medical', 'Peads Isolation Centre',
+                   'Paediatric Surgical', 'Paediatric Medical', 'Paeds Orthopedic',
+                   'Children\'s ward', 'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics',
+                   'Peads Surgical Ward', 'Mercy James Paediatric Centre']
   }
 ]
 
