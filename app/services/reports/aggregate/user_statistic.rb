@@ -32,7 +32,7 @@ module Reports
           tests_performed = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('verified').id).count
           tests_authorized = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('verified').id).count
           data << {
-            user: user.username,
+            user: "#{user.person.first_name.capitalize} #{user.person.last_name.capitalize}",
             tests_completed: tests_completed,
             tests_received: tests_received,
             specimen_collected: specimen_collected,
@@ -55,20 +55,22 @@ module Reports
       end
 
 
-      def specimen_registry(from: nil, to: nil, user: nil, page: 1, limit: 10)
+      def specimen_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
         users = user.nil? ? User.all : [User.find(user)]
         data = []
-        tests = []
+
         users.each do |creator|
-          data = ReportRawData.where(order_status_creator: creator.full_name).select(
+          creator_data = ReportRawData.where(order_status_creator: creator.full_name).select(
             'test_id, test_type, specimen,  patient_no, patient_name, accession_number, created_date', 'id'
           ).distinct('test_id')
+
+          data.concat(creator_data) # Combine data for all creators
         end
-        unless data.empty?
-          tests = PaginationService.paginate(data, page: page, limit: limit)
-        end
+
+        tests = PaginationService.paginate(data, page: page, limit: limit)
         { 'tests' => tests, 'metadata' => PaginationService.pagination_metadata(tests) }
       end
+
 
       def tests_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
         users = user.nil? ? User.all : [User.find(user)]
