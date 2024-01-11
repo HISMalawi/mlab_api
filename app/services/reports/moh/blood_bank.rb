@@ -18,9 +18,10 @@ module Reports
 
       def generate_report
         report_data = blood_grouping_on_patient + x_match + x_match_maternity + x_match_paeds +
-                      x_match_other + patient_with_hb_greater_6_transfused + patient_with_hb_less_equal_6_transfused
+                      x_match_other + patient_with_hb_greater_6_transfused + patient_with_hb_less_equal_6_transfused +
+                      product_results
         data = update_report_counts(report_data)
-        Reports::Moh::ReportUtils.save_report_to_json('Blood Bank', data, year)
+        Report.find_or_create_by(name: 'moh_blood_bank', year:).update(data:)
         data
       end
 
@@ -262,6 +263,42 @@ module Reports
                   AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
                   AND ots.status_id IN (4 , 5)
           GROUP BY MONTHNAME(ot.created_date)
+        SQL
+      end
+
+      def product_results
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+                WHEN tr.value = 'FFPs' THEN 'Total Number Transfused with FFP'
+                WHEN tr.value = 'Whole Blood' THEN 'Total Number Transfused with Whole blood'
+                WHEN tr.value = 'Cryoprecipitate' THEN 'Total Number Transfused with Cryo precipitate'
+                WHEN tr.value = 'Platelets' THEN 'Total Number Transfused with Platelets'
+                WHEN tr.value IN ('Packed Red Cells' , 'RED BLOOD CELLS') THEN 'Total Number Transfused with Packed Cells'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN (30)
+                  AND ti.id IN (128)
+                  AND YEAR(t.created_date) = 2023
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value <> ''
+                  AND tr.value IS NOT NULL
+                  AND t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Product Type')}
+          GROUP BY MONTHNAME(t.created_date), indicator
         SQL
       end
 

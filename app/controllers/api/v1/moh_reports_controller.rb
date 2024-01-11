@@ -19,11 +19,8 @@ module Api
 
       def blood_bank
         year = params.require(:year)
-        data = if use_pregenerated_report('Blood Bank', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Blood Bank', year))
-               else
-                 Reports::MohService.generate_blood_bank_report(year)
-               end
+        data = Report.where(year:, name: 'moh_blood_bank').first&.data
+        data = Reports::MohService.generate_blood_bank_report(year) if data.nil?
         render json: data
       end
 
