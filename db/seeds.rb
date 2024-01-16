@@ -228,6 +228,48 @@ name_mappings = [
     actual_name: 'RF',
     manual_names: ['Rheumatoid Factor Test', 'Rheumatoid Factor (RF)', 'Rheumatoid Factor', 'RF',
                    'Rheumatoid Factor Test']
+  },
+  {
+    actual_name: 'Malaria',
+    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film']
+  },
+  {
+    actual_name: 'Malaria Indicators',
+    manual_names: ['Blood film', 'Results','Malaria Species']
+  },
+  {
+    actual_name: 'Trypanosome',
+    manual_names: ['Trypanosome tests', 'TRYPANOSOMIASIS']
+  },
+  {
+    actual_name: 'Urine Chemistries',
+    manual_names: [
+    'Blood',
+    'Urobilinogen',
+    'Bilirubin',
+    'Protein',
+    'Nitrate',
+    'Ketones',
+    'Glucose',
+    'Specific gravity',
+    ]
+  },
+  {
+    actual_name: 'Semen Analysis',
+    manual_names: [
+    'Appearance',
+    'Liquifaction time',
+    'volume',
+    'pH',
+    'Sperm count',
+    'Sperm morphology',
+    'Progressive motility',
+    'Non-progressive motility',
+    'Immotility'
+  ]
+  },{
+    actual_name: 'Trypanosome',
+    manual_names: ['Trypanosome tests', 'TRYPANOSOMIASIS']
   }
 ]
 
