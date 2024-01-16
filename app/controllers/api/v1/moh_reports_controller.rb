@@ -43,11 +43,8 @@ module Api
 
       def microbiology
         year = params.require(:year)
-        data = if use_pregenerated_report('Microbiology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Microbiology', year))
-               else
-                 Reports::MohService.generate_microbiology_report(year)
-               end
+        # data = Report.where(year:, name: 'moh_microbiology').first&.data
+        data = Reports::MohService.generate_microbiology_report(year) if data.nil?
         render json: data
       end
 

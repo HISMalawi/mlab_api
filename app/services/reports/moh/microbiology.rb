@@ -17,10 +17,10 @@ module Reports
       end
 
       def generate_report
-        report_data = insert_into_moh_data_report_table(department: 'Microbiology', time_filter: year,
-                                                        action: 'update')
+        report_data = number_of_afb_examined + new_tb_cases_examined + positive_new_tb_cases_examined + total_tb_lam +
+                      rif_resistance_detected + mtb_not_detected + mtb_detected
         data = update_report_counts(report_data)
-        Reports::Moh::ReportUtils.save_report_to_json('Microbiology', data, year)
+        Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
       end
 
@@ -102,6 +102,201 @@ module Reports
           end
         end
         @report
+      end
+
+      def number_of_afb_examined
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number of AFB sputum examined' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Smear Microscopy')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def new_tb_cases_examined
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number of  new TB cases examined' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def positive_new_tb_cases_examined
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,  'New cases with positive smear' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Smear Microscopy')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND (tr.value LIKE '%+%' OR tr.value LIKE '%Scanty%' OR tr.value = 'Positive')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_tb_lam
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'TB LAM Total' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB LAM')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def mtb_not_detected
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'MTB Not Detected' AS indicator
+            FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value LIKE '%NOT%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def mtb_detected
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'MTB Detected' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND (tr.value LIKE '%DETECTED%' AND tr.value NOT LIKE '%NOT%')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def rif_resistance_detected
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Detected' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND (tr.value LIKE '%DETECTED%' AND tr.value NOT LIKE '%NOT%')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def report_utils
+        Reports::Moh::ReportUtils
       end
     end
   end

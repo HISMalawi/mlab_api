@@ -222,12 +222,24 @@ name_mappings = [
   },
   {
     actual_name: 'HbA1c',
-    manual_names: ['HbA1c','HbA1c (Paeds)']
+    manual_names: ['HbA1c', 'HbA1c (Paeds)']
   },
   {
     actual_name: 'RF',
     manual_names: ['Rheumatoid Factor Test', 'Rheumatoid Factor (RF)', 'Rheumatoid Factor', 'RF',
                    'Rheumatoid Factor Test']
+  },
+  {
+    actual_name: 'TB Tests',
+    manual_names: ['TB Tests', 'TB Microscopy', 'TB', 'TB_Microscopy', 'TB Gene_Xpert']
+  },
+  {
+    actual_name: 'TB LAM',
+    manual_names: ['TB LAM', 'Urine Lam']
+  },
+  {
+    actual_name: 'Smear Microscopy',
+    manual_names: ['Smear microscopy result', 'Smear microscopy result 1']
   }
 ]
 

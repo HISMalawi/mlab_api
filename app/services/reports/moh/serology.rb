@@ -105,7 +105,7 @@ module Reports
                   AND tr.voided = 0
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
-                  AND ti.id IN #{report_utils.test_indicator_ids(['RPR', 'VDRL', 'TPHA'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids(%w[RPR VDRL TPHA])}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -136,7 +136,7 @@ module Reports
                 AND ts.status_id IN (4 , 5)
                 AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
-          SQL
+        SQL
       end
 
       def syphilis_positive_tests_antenatal_mothers
@@ -161,7 +161,7 @@ module Reports
                   AND tr.voided = 0
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
-                AND ti.id IN #{report_utils.test_indicator_ids(['RPR', 'VDRL', 'TPHA'])}
+                AND ti.id IN #{report_utils.test_indicator_ids(%w[RPR VDRL TPHA])}
                 AND YEAR(t.created_date) = #{year}
                 AND ts.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -490,7 +490,6 @@ module Reports
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
-
 
       def report_utils
         Reports::Moh::ReportUtils
