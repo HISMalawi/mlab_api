@@ -279,9 +279,14 @@ name_mappings = [
       'Non-progressive motility',
       'Immotility'
     ]
-  }, {
+  },
+  {
     actual_name: 'Trypanosome',
     manual_names: ['Trypanosome tests', 'TRYPANOSOMIASIS']
+  },
+  {
+    actual_name: 'COVID',
+    manual_names: ['SARS COV 19', 'SARS Cov 2', 'SARS-CoV-2', 'SARS COV-2 Rapid Antigen']
   }
 ]
 
