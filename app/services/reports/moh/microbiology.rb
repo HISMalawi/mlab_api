@@ -18,7 +18,8 @@ module Reports
 
       def generate_report
         report_data = number_of_afb_examined + new_tb_cases_examined + positive_new_tb_cases_examined + total_tb_lam +
-                      rif_resistance_detected + mtb_not_detected + mtb_detected
+                      rif_resistance_detected + mtb_not_detected + mtb_detected + rif_resistance_not_detected +
+                      rif_resistance_indeterminate
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -291,6 +292,62 @@ module Reports
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
                   AND (tr.value LIKE '%DETECTED%' AND tr.value NOT LIKE '%NOT%')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def rif_resistance_indeterminate
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Indeterminate' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value LIKE '%Indetermi%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def rif_resistance_not_detected
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Not Detected' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value LIKE '%NOT%'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
