@@ -20,8 +20,8 @@ module Reports
         report_data = number_of_afb_examined + new_tb_cases_examined + positive_new_tb_cases_examined + total_tb_lam +
                       rif_resistance_detected + mtb_not_detected + mtb_detected + rif_resistance_not_detected +
                       rif_resistance_indeterminate + no_results + invalid + covid_tests_performed +
-                      covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results + 
-                      covid_tests_error_results
+                      covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
+                      covid_tests_error_results + positive_culture + culture
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -541,6 +541,67 @@ module Reports
                   AND tr.value IS NOT NULL
                   AND tr.value = 'ERROR'
           GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def positive_culture
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Urine')} THEN 'Urine culture Positive'
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Stool')} THEN 'Stool samples with organisms isolated on culture'
+              ELSE 'Unknown'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('CS')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value = 'Growth'
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
+      def culture
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Urine')} THEN 'Urine culture'
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Stool')} THEN 'Other stool cultures'
+              ELSE 'Unknown'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('CS')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
         SQL
       end
 
