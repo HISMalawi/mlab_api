@@ -290,7 +290,11 @@ name_mappings = [
   },
   {
     actual_name: 'Cuture & Sensitivity',
-    manual_names: ['Culture & Sensitivity', 'Culture & Sensitivity (Paeds)', 'Culture/sensistivity']
+    manual_names: ['Culture & Sensitivity', 'Culture & Sensitivity (Paeds)', 'Culture/sensistivity', 'Blood Culture']
+  },
+  {
+    actual_name: 'Cholera',
+    manual_names: ['Cholera', 'Vibrio Cholerae']
   }
 ]
 
