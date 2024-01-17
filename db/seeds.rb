@@ -294,7 +294,7 @@ name_mappings = [
   },
   {
     actual_name: 'Cholera',
-    manual_names: ['Cholera', 'Vibrio Cholerae']
+    manual_names: ['Cholera', 'Vibrio Cholerae','cholera rapid test', 'cholera rapoid test', 'Cholera RDT', 'Rapid Test', 'cholera test']
   },
   {
     actual_name: 'India Ink',

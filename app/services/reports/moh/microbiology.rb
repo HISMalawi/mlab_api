@@ -22,11 +22,10 @@ module Reports
                       rif_resistance_indeterminate + no_results + invalid + covid_tests_performed +
                       covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
                       covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results + vl_samples_received +
-                      vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb +
-                      india_ink_tests_done + india_link_positive + gram_stain_done + gram_stain_positive + hvs_analysed + hvs_organism +
-                      cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests + serum_crag + positive_serum_crag +
-                      fluids_analysed + fluid_organisms +
-                      culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive
+                      vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
+                      csf_samples_organism + india_link_positive + gram_stain_done + gram_stain_positive + hvs_analysed + hvs_organism +
+                      cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests + serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism +
+                      fluids_analysed + culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive + cholera_rp_positive
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -652,7 +651,11 @@ module Reports
       def cholera_culture
         Report.find_by_sql <<~SQL
           SELECT
-            'Cholera cultures done' AS indicator,
+            CASE
+              WHEN ti.id IN #{report_utils.test_indicator_ids('Culture')} THEN 'Cholera cultures done'
+              WHEN ti.id IN #{report_utils.test_indicator_ids('Cholera')} THEN 'Cholera Rapid Diagnostic test done'
+              ELSE 'Unknown'
+            END AS indicator,
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total
           FROM tests t
@@ -666,11 +669,36 @@ module Reports
                   AND tr.voided = 0
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Culture')}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
+      def cholera_rp_positive
+        Report.find_by_sql <<~SQL
+          SELECT
+            'Positive Cholera Rapid Diagnostic test' AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
+                AND ti.id IN #{report_utils.test_indicator_ids('Cholera')}
+                AND YEAR(t.created_date) = #{year}
+                AND ts.status_id IN (4 , 5)
+                AND t.voided = 0
+                AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -788,17 +816,17 @@ module Reports
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator
           FROM
-              tests t
-                INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
-                INNER JOIN
-              test_results tr ON tr.test_indicator_id = ti.id
-                AND tr.test_id = t.id
-                AND tr.voided = 0
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Viral Load')}
+            t.test_type_id IN #{report_utils.test_type_ids('Viral Load')}
               AND YEAR(t.created_date) = #{year}
               AND ts.status_id <> 1
               AND t.voided = 0
@@ -881,12 +909,10 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
         WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('CSF')}
-              AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
-              AND t.voided = 0
-              AND tr.value NOT IN ('', '0')
-              AND tr.value IS NOT NULL
+          t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -908,13 +934,13 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
         WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('CSF')}
-              AND ti.id IN #{report_utils.test_indicator_ids('TB Tests')}
-              AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
-              AND t.voided = 0
-              AND tr.value NOT IN ('', '0')
-              AND tr.value IS NOT NULL
+          t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+            AND t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value NOT IN ('', '0')
+            AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -936,13 +962,13 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
         WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('CSF')}
-              AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
-              AND t.voided = 0
-              AND tr.value NOT IN ('', '0')
-              AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
-              AND tr.value IS NOT NULL
+          t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value NOT IN ('', '0')
+            AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
+            AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -1069,7 +1095,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
         WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('HVS')}
+          t.specimen_id IN #{report_utils.specimen_ids('HVS')}
             AND YEAR(t.created_date) = #{year}
             AND ts.status_id IN (4 , 5)
             AND t.voided = 0
@@ -1095,7 +1121,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
         WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('HVS')}
+          t.specimen_id IN #{report_utils.specimen_ids('HVS')}
             AND YEAR(t.created_date) = #{year}
             AND ts.status_id IN (4 , 5)
             AND t.voided = 0
@@ -1216,55 +1242,9 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total number of fluids analysed' AS indicator
-          FROM
-          tests t
-            INNER JOIN
-          specimen s ON s.id = t.specimen_id
-            INNER JOIN
-          test_types tt ON tt.id = t.test_type_id
-            INNER JOIN
-          orders o ON o.id = t.order_id
-            INNER JOIN
-          encounters e ON e.id = o.encounter_id
-            INNER JOIN
-          clients c ON c.id = e.client_id
-            INNER JOIN
-          people p ON p.id = c.person_id
-            INNER JOIN
-          test_statuses ts ON ts.test_id = t.id
-            INNER JOIN
-          test_indicators ti ON ti.test_type_id = t.test_type_id
-            INNER JOIN
-          test_results tr ON tr.test_indicator_id = ti.id
-            AND tr.test_id = t.id
-            AND tr.voided = 0
-          WHERE s.name LIKE '%Fluid%'
-            AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
-          GROUP BY MONTHNAME(t.created_date)
-        SQL
-      end
-
-      def fluid_organisms
-        Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Fluids with organisms' AS indicator
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of fluids analysed' AS indicator
           FROM
             tests t
-              INNER JOIN
-            specimen s ON s.id = t.specimen_id
-              INNER JOIN
-            test_types tt ON tt.id = t.test_type_id
-              INNER JOIN
-            orders o ON o.id = t.order_id
-              INNER JOIN
-            encounters e ON e.id = o.encounter_id
-              INNER JOIN
-            clients c ON c.id = e.client_id
-              INNER JOIN
-            people p ON p.id = c.person_id
               INNER JOIN
             test_statuses ts ON ts.test_id = t.id
               INNER JOIN
@@ -1273,14 +1253,66 @@ module Reports
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
               AND tr.voided = 0
-          WHERE
-            s.name LIKE '%Fluid%'
-              AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
-              AND t.voided = 0
-              AND tr.value IS NOT NULL
-              AND tr.value = 'Growth'
-              AND tr.value NOT IN ('', '0')
+        WHERE
+          t.specimen_id IN #{report_utils.specimen_ids_like('Fluid')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def other_swabs_analysed
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Other swabs analysed' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def other_swabs_organism
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Other swabs with organism' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND (tr.value IN ('seen', 'growth', 'AFB SEEN  SCANTY','Scanty AAFB seen') OR tr.value LIKE '%positive%')
+            AND tr.value NOT IN ('', '0')
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
