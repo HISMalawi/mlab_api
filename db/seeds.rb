@@ -295,6 +295,14 @@ name_mappings = [
   {
     actual_name: 'Cholera',
     manual_names: ['Cholera', 'Vibrio Cholerae']
+  },
+  {
+    actual_name: 'India Ink',
+    manual_names: ['India Ink', 'India Ink (Paeds)']
+  },
+  {
+    actual_name: 'Gram Stain',
+    manual_names: ['Gram Stain', 'Gram Stain (Paeds)']
   }
 ]
 

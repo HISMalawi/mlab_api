@@ -23,7 +23,8 @@ module Reports
                       covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
                       covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results + vl_samples_received +
                       vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb +
-
+                      india_ink_tests_done + india_link_positive + gram_stain_done + gram_stain_positive + hvs_analysed + hvs_organism +
+                      cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests + serum_crag + positive_serum_crag +
                       culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
@@ -973,10 +974,270 @@ module Reports
         SQL
       end
 
-      # 'Total India ink done',
-      #   'India ink positive',
-      #   'Total Gram stain done',
-      #   'Gram stain positive',
+      def india_ink_tests_done
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Total India ink done' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def india_link_positive
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'India ink positive' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value = 'Positive'
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def gram_stain_done
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Total Gram stain done' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def gram_stain_positive
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Gram stain positive' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value LIKE '%Positive%'
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def hvs_analysed
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'HVS analysed' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('HVS')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def hvs_organism
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'HVS with organism' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('HVS')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def cryptococcal_antigen_tests
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Cryptococcal antigen test' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def positive_cryptococcal_antigen_tests
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Cryptococcal antigen test Positive' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value = 'Positive'
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def serum_crag
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def positive_serum_crag
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value = 'Positive'
+            AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
 
       def report_utils
         Reports::Moh::ReportUtils
