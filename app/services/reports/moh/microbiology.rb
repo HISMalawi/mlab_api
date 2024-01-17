@@ -946,34 +946,6 @@ module Reports
         SQL
       end
 
-      # Positive CSF cultures
-      def positive_csf_cultures
-        Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Positive CSF cultures' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
-            AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT LIKE '%Growth of normal%'
-						AND tr.value NOT IN ('', '0', 'No Growth', 'Growth of contaminants')
-          GROUP BY MONTHNAME(t.created_date)
-        SQL
-      end
-
       def india_ink_tests_done
         Report.find_by_sql <<~SQL
           SELECT
