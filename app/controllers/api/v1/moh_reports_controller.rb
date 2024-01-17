@@ -43,7 +43,7 @@ module Api
 
       def microbiology
         year = params.require(:year)
-        # data = Report.where(year:, name: 'moh_microbiology').first&.data
+        data = Report.where(year:, name: 'moh_microbiology').first&.data
         data = Reports::MohService.generate_microbiology_report(year) if data.nil?
         render json: data
       end
