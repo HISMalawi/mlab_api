@@ -291,6 +291,14 @@ name_mappings = [
   {
     actual_name: 'Cuture & Sensitivity',
     manual_names: ['Culture & Sensitivity', 'Culture & Sensitivity (Paeds)', 'Culture/sensistivity']
+  },
+  {
+    actual_name: 'India Ink',
+    manual_names: ['India Ink', 'India Ink (Paeds)']
+  },
+  {
+    actual_name: 'Gram Stain',
+    manual_names: ['Gram Stain', 'Gram Stain (Paeds)']
   }
 ]
 
