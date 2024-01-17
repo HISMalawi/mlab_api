@@ -25,6 +25,7 @@ module Reports
                       vl_tests_done + vl_results_less_100copies_permil + csf_cultures_done + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb +
                       india_ink_tests_done + india_link_positive + gram_stain_done + gram_stain_positive + hvs_analysed + hvs_organism +
                       cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests + serum_crag + positive_serum_crag +
+                      fluids_analysed + fluid_organisms +
                       culture + positive_culture
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
@@ -1170,6 +1171,79 @@ module Reports
             AND tr.value IS NOT NULL
             AND tr.value = 'Positive'
             AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def fluids_analysed
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Total number of fluids analysed' AS indicator
+          FROM
+          tests t
+            INNER JOIN
+          specimen s ON s.id = t.specimen_id
+            INNER JOIN
+          test_types tt ON tt.id = t.test_type_id
+            INNER JOIN
+          orders o ON o.id = t.order_id
+            INNER JOIN
+          encounters e ON e.id = o.encounter_id
+            INNER JOIN
+          clients c ON c.id = e.client_id
+            INNER JOIN
+          people p ON p.id = c.person_id
+            INNER JOIN
+          test_statuses ts ON ts.test_id = t.id
+            INNER JOIN
+          test_indicators ti ON ti.test_type_id = t.test_type_id
+            INNER JOIN
+          test_results tr ON tr.test_indicator_id = ti.id
+            AND tr.test_id = t.id
+            AND tr.voided = 0
+          WHERE s.name LIKE '%Fluid%'
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def fluid_organisms
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Fluids with organisms' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            specimen s ON s.id = t.specimen_id
+              INNER JOIN
+            test_types tt ON tt.id = t.test_type_id
+              INNER JOIN
+            orders o ON o.id = t.order_id
+              INNER JOIN
+            encounters e ON e.id = o.encounter_id
+              INNER JOIN
+            clients c ON c.id = e.client_id
+              INNER JOIN
+            people p ON p.id = c.person_id
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            s.name LIKE '%Fluid%'
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value = 'Growth'
+              AND tr.value NOT IN ('', '0')
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
