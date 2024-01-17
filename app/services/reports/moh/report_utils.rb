@@ -68,6 +68,13 @@ module Reports
 
           "(#{ids.join(', ')})"
         end
+
+        def specimen_ids_like(actual_name)
+          ids = Specimen.where("name LIKE '%#{actual_name}%'").map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
       end
     end
   end
