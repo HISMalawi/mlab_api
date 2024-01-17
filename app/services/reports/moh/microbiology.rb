@@ -545,6 +545,67 @@ module Reports
         SQL
       end
 
+      def positive_culture
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Urine')} THEN 'Urine culture Positive'
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Stool')} THEN 'Stool samples with organisms isolated on culture'
+              ELSE 'Unknown'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('CS')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value = 'Growth'
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
+      def culture
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Urine')} THEN 'Urine culture'
+              WHEN t.specimen_id IN #{report_utils.specimen_ids('Stool')} THEN 'Other stool cultures'
+              ELSE 'Unknown'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total
+          FROM tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('CS')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
       def dna_eid_samples_received
         Report.find_by_sql <<~SQL
           SELECT
