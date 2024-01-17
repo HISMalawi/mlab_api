@@ -22,7 +22,9 @@ module Reports
                       rif_resistance_indeterminate + no_results + invalid + covid_tests_performed +
                       covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
                       covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results + vl_samples_received +
-                      vl_tests_done + vl_results_less_100copies_permil + csf_cultures_done + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb
+                      vl_tests_done + vl_results_less_100copies_permil + csf_cultures_done + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb +
+
+                      culture + positive_culture
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
