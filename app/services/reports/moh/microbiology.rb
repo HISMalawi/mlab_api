@@ -20,8 +20,9 @@ module Reports
         report_data = number_of_afb_examined + new_tb_cases_examined + positive_new_tb_cases_examined + total_tb_lam +
                       rif_resistance_detected + mtb_not_detected + mtb_detected + rif_resistance_not_detected +
                       rif_resistance_indeterminate + no_results + invalid + covid_tests_performed +
-                      covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results + 
-                      covid_tests_error_results
+                      covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
+                      covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results + vl_samples_received +
+                      vl_tests_done + vl_results_less_100copies_permil + csf_cultures_done + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -543,6 +544,311 @@ module Reports
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
+
+      def dna_eid_samples_received
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'DNA-EID samples received' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id <> 1
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def dna_eid_samples_done
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'DNA-EID tests done' AS indicator
+          FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number with positive results
+      def dna_eid_positive_results
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number with positive results' AS indicator
+          FROM
+              tests t
+                INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+                AND YEAR(t.created_date) = #{year}
+                AND ts.status_id IN (4 , 5)
+                AND t.voided = 0
+                AND tr.value IS NOT NULL
+                AND tr.value NOT IN ('NO value', 'ERROR', 'INVALID', 'NEGATIVE', '', '0', 'h')
+                AND tr.value NOT LIKE '%NOT%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def vl_samples_received
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator
+          FROM
+              tests t
+                INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Viral Load')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id <> 1
+              AND t.voided = 0
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def vl_tests_done
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator
+          FROM
+              tests t
+                INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+                AND YEAR(t.created_date) = #{year}
+                AND ts.status_id IN (4 , 5)
+                AND t.voided = 0
+                AND tr.value IS NOT NULL
+                AND tr.value NOT IN ('NO value', 'ERROR', 'INVALID', 'NEGATIVE', '', '0', 'h')
+                AND tr.value NOT LIKE '%NOT%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # VL results with less than 1000 copies per ml
+      def vl_results_less_100copies_permil
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'VL results with less than 1000 copies per ml' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND REPLACE(tr.value, ',', '') < 1000
+              AND REPLACE(REPLACE(tr.value, ',', '') , ' ', '') < 1000
+              AND REPLACE(REPLACE(tr.value, '<', ''), ' ', '') < 1000
+              AND REPLACE(tr.value,' ', '') < 1000
+              AND tr.value NOT IN ('NO RESULT', 'ERROR', 'INVALID')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of CSF samples analysed
+      def csf_samples_analysed
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number of CSF samples analysed' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('CSF')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of CSF samples analysed for AFB
+      def csf_samples_analysed_afb
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number of CSF samples analysed for AFB' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('CSF')}
+              AND ti.id IN #{report_utils.test_indicator_ids('TB Tests')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of CSF samples with Organism
+      def csf_samples_organism
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number of CSF samples with Organism' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('CSF')}
+              AND YEAR(t.created_date) = #{year}
+              AND ts.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('', '0')
+              AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
+              AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of CSF cultures done
+      def csf_cultures_done
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Number of CSF cultures done' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value NOT IN ('', '0')
+            AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Positive CSF cultures
+      def positive_csf_cultures
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'Positive CSF cultures' AS indicator
+          FROM
+            tests t
+              INNER JOIN
+            test_statuses ts ON ts.test_id = t.id
+              INNER JOIN
+            test_indicators ti ON ti.test_type_id = t.test_type_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+        WHERE
+          t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
+            AND tr.value IS NOT NULL
+            AND tr.value NOT LIKE '%Growth of normal%'
+						AND tr.value NOT IN ('', '0', 'No Growth', 'Growth of contaminants')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # 'Total India ink done',
+      #   'India ink positive',
+      #   'Total Gram stain done',
+      #   'Gram stain positive',
 
       def report_utils
         Reports::Moh::ReportUtils

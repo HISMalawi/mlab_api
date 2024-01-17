@@ -287,6 +287,10 @@ name_mappings = [
   {
     actual_name: 'COVID',
     manual_names: ['SARS COV 19', 'SARS Cov 2', 'SARS-CoV-2', 'SARS COV-2 Rapid Antigen']
+  },
+  {
+    actual_name: 'Cuture & Sensitivity',
+    manual_names: ['Culture & Sensitivity', 'Culture & Sensitivity (Paeds)', 'Culture/sensistivity']
   }
 ]
 
