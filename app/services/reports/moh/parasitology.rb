@@ -535,7 +535,7 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'MRDTs in <= 5yrs' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'MRDTs in > 5 yrs' AS indicator
           FROM
             tests t
               INNER JOIN
@@ -573,7 +573,7 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'MRDT Positives in <= 5yrs' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'MRDT Positives in > 5 yrs' AS indicator
           FROM
             tests t
               INNER JOIN
