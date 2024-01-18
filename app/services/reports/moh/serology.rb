@@ -317,13 +317,13 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'HIV tests on PEP patients' AS indicator
           FROM
               tests t
-                  INNER JOIN
+                INNER JOIN
               test_statuses ts ON ts.test_id = t.id
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Pregnancy Test')}
-                  AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
-                  AND t.voided = 0
+            t.test_type_id IN #{report_utils.test_type_ids('HIV')}
+            AND YEAR(t.created_date) = #{year}
+            AND ts.status_id IN (4 , 5)
+            AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -345,7 +345,6 @@ module Reports
               AND tr.voided = 0
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('HIV')}
-              AND ti.id IN #{report_utils.test_indicator_ids('HIV 1&2')}
               AND YEAR(t.created_date) = #{year}
               AND ts.status_id IN (4 , 5)
               AND t.voided = 0
