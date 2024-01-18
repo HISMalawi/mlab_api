@@ -12,61 +12,43 @@ module Api
 
       def haematology
         year = params.require(:year)
-        data = if use_pregenerated_report('Haematology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Haematology', year))
-               else
-                 Reports::MohService.generate_haematology_report(year)
-               end
+        data = Report.where(year:, name: 'moh_haematology').first&.data
+        data = Reports::MohService.generate_haematology_report(year) if data.nil?
         render json: data
       end
 
       def blood_bank
         year = params.require(:year)
-        data = if use_pregenerated_report('Blood Bank', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Blood Bank', year))
-               else
-                 Reports::MohService.generate_blood_bank_report(year)
-               end
+        data = Report.where(year:, name: 'moh_blood_bank').first&.data
+        data = Reports::MohService.generate_blood_bank_report(year) if data.nil?
         render json: data
       end
 
       def biochemistry
         year = params.require(:year)
-        data = if use_pregenerated_report('Biochemistry', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Biochemistry', year))
-               else
-                 Reports::MohService.generate_biochemistry_report(year)
-               end
+        data = Report.where(year:, name: 'moh_biochemistry').first&.data
+        data = Reports::MohService.generate_biochemistry_report(year) if data.nil?
         render json: data
       end
 
       def parasitology
         year = params.require(:year)
-        data = if use_pregenerated_report('Parasitology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Parasitology', year))
-               else
-                 Reports::MohService.generate_parasitology_report(year)
-               end
+        data = Report.where(year:, name: 'moh_parasitology').first&.data
+        data = Reports::MohService.generate_parasitology_report(year) if data.nil?
         render json: data
       end
 
       def microbiology
         year = params.require(:year)
-        data = if use_pregenerated_report('Microbiology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Microbiology', year))
-               else
-                 Reports::MohService.generate_microbiology_report(year)
-               end
+        data = Report.where(year:, name: 'moh_microbiology').first&.data
+        data = Reports::MohService.generate_microbiology_report(year) if data.nil?
         render json: data
       end
 
       def serology
         year = params.require(:year)
-        data = if use_pregenerated_report('Serology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Serology', year))
-               else
-                 Reports::MohService.generate_serology_report(year)
-               end
+        data = Report.where(year:, name: 'moh_serology').first&.data
+        data = Reports::MohService.generate_serology_report(year) if data.nil?
         render json: data
       end
 

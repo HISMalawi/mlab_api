@@ -1,0 +1,5 @@
+moh_report_job:
+  name: "Update Moh Report Job Every 4hrs"
+  cron: "0 */4 * * *"
+  class: "MohReportJob"
+  queue: moh_report_job

@@ -32,6 +32,49 @@ module Reports
             file.write(JSON.generate(data))
           end
         end
+
+        def test_type_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = Array(actual_name) + manual_names
+          ids = TestType.where(name: manual_names).map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
+
+        def test_indicator_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = Array(actual_name) + manual_names
+          ids = TestIndicator.where(name: manual_names).map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
+
+        def facility_section_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = Array(actual_name) + manual_names
+          ids = FacilitySection.where(name: manual_names).map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
+
+        def specimen_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = Array(actual_name) + manual_names
+          ids = Specimen.where(name: manual_names).map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
+
+        def specimen_ids_like(actual_name)
+          ids = Specimen.where("name LIKE '%#{actual_name}%'").map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
       end
     end
   end
