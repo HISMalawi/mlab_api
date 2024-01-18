@@ -22,6 +22,9 @@ class MohReportJob
       Report.find_or_create_by(name: 'moh_microbiology', year:).update(
         data: Reports::MohService.generate_serology_report(year)
       )
+      Report.find_or_create_by(name: 'moh_parasitology', year:).update(
+        data: Reports::MohService.generate_serology_report(year)
+      )
     end
   end
 end

@@ -33,11 +33,8 @@ module Api
 
       def parasitology
         year = params.require(:year)
-        data = if use_pregenerated_report('Parasitology', year)
-                 File.read(Reports::Moh::ReportUtils.get_file_path('Parasitology', year))
-               else
-                 Reports::MohService.generate_parasitology_report(year)
-               end
+        data = Report.where(year:, name: 'moh_parasitology').first&.data
+        data = Reports::MohService.generate_parasitology_report(year) if data.nil?
         render json: data
       end
 
