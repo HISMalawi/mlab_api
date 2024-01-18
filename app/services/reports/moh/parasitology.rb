@@ -149,23 +149,23 @@ module Reports
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total, 'Malaria microscopy in <= 5yrs' AS indicator
-            FROM
+          FROM
             tests t
-                INNER JOIN
+              INNER JOIN
             test_types tt ON tt.id = t.test_type_id
-                INNER JOIN
+              INNER JOIN
             orders o ON o.id = t.order_id
-                INNER JOIN
+              INNER JOIN
             encounters e ON e.id = o.encounter_id
-                INNER JOIN
+              INNER JOIN
             clients c ON c.id = e.client_id
-                INNER JOIN
+              INNER JOIN
             people p ON p.id = c.person_id
-                INNER JOIN
+              INNER JOIN
             test_statuses ts ON ts.test_id = t.id
-                INNER JOIN
+              INNER JOIN
             test_indicators ti ON ti.test_type_id = t.test_type_id
-                INNER JOIN
+              INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
               AND tr.voided = 0
@@ -173,11 +173,10 @@ module Reports
             t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
             AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
             AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) <= 5)
+            AND ts.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT  IN ('', '0')
-            AND tr.value NOT IN ('', '0')
             AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -187,7 +186,7 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-              COUNT(DISTINCT t.id) AS total, 'Malaria microscopy in <= 5yrs' AS indicator
+              COUNT(DISTINCT t.id) AS total, 'Positive malaria slides in <= 5yrs' AS indicator
             FROM
             tests t
               INNER JOIN
