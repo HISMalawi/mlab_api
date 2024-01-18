@@ -799,14 +799,6 @@ module Reports
               INNER JOIN
             test_types tt ON tt.id = t.test_type_id
               INNER JOIN
-            orders o ON o.id = t.order_id
-              INNER JOIN
-            encounters e ON e.id = o.encounter_id
-              INNER JOIN
-            clients c ON c.id = e.client_id
-              INNER JOIN
-            people p ON p.id = c.person_id
-              INNER JOIN
             test_statuses ts ON ts.test_id = t.id
               INNER JOIN
             test_indicators ti ON ti.test_type_id = t.test_type_id
@@ -815,7 +807,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids(['Urine Chemistries', 'Urine chemistry (paeds)'])}
+            t.test_type_id IN #{report_utils.test_type_ids('Urine Chemistry')}
             AND YEAR(t.created_date) = #{year}
             AND ts.status_id IN (4 , 5)
             AND t.voided = 0

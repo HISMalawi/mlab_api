@@ -303,6 +303,10 @@ name_mappings = [
   {
     actual_name: 'Gram Stain',
     manual_names: ['Gram Stain', 'Gram Stain (Paeds)']
+  },
+  {
+    actual_name: 'Urine Chemistry',
+    manual_names: ['Urine Chemistries', 'Urine chemistry (paeds)']
   }
 ]
 
