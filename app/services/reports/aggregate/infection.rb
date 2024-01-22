@@ -2,27 +2,28 @@ module Reports
   module Aggregate
     class Infection
       def generate_report(from: Date.today.to_s, to: Date.today.to_s, department: nil)
-        get_data(from, to, department)
+        serliarize_data(get_data(from, to, department))
       end
 
-      def get_summary(department: nil, from: nil, to: nil)
-        department = department.present? ? " AND t.department_id = #{department}" : ''
-        query = <<-SQL
-          SELECT t.name, COUNT(*) AS test_count
-          FROM tests AS ts
-          JOIN test_types AS t ON ts.test_type_id = t.id
-          WHERE (ts.created_date BETWEEN '#{from}' AND '#{to}')
-          #{department}
-          GROUP BY t.name
-        SQL
-        ActiveRecord::Base.connection.execute(query)
-      end
+      # def get_summary(department: nil, from: nil, to: nil)
+      #   department = department.present? ? " AND t.department_id = #{department}" : ''
+      #   query = <<-SQL
+      #     SELECT t.name, COUNT(*) AS test_count
+      #     FROM tests AS ts
+      #     JOIN test_types AS t ON ts.test_type_id = t.id
+      #     WHERE (ts.created_date BETWEEN '#{from}' AND '#{to}')
+      #     #{department}
+      #     GROUP BY t.name
+      #   SQL
+      #   ActiveRecord::Base.connection.execute(query)
+      # end
+
+      private
 
       def get_data(from, to, department)
-        where_condition = " DATE(t.created_date) BETWEEN '#{Date.parse(from).beginning_of_day}' and '#{Date.parse(to).end_of_day}'"
+        where_condition = " DATE(t.created_date) BETWEEN '#{from}' and '#{to}'"
         where_condition = where_condition << " AND tt.department_id = '#{department}'" unless department.nil?
-
-        Report.find_by_sql(
+        records= Report.find_by_sql(
           "SELECT DISTINCT
           t.id,
           tt.name AS test,
@@ -93,56 +94,27 @@ module Reports
               AND tir.retired = 0
       WHERE
           ts.status_id IN (4 , 5)
-              AND (tir.max_age IS NULL OR tir.max_age > 0) AND
+              AND (tir.max_age IS NULL OR tir.max_age > 0)
+              AND tr.value IS NOT NULL AND
               #{where_condition}"
         )
       end
 
-      def calculate_count(records)
-        data = {}
-        records.each do |record|
-          data[record['test']] = {
-            "#{record['measure']}" => {
-              "#{record['result']}": increments_age_range(i_data, record['age_group'], record['result'], record['gender'])
+      def serliarize_data(records)
+        data = []
+        records.each do | record |
+          data.push(
+            {
+              id: record['id'],
+              test_type: record['test'],
+              indicator: record['measure'],
+              age_group: record['age_group'],
+              result: record['result'],
+              gender: record['gender']
             }
-          }
+          )
         end
         data
-      end
-
-      private
-
-      def calculate_age(date_of_birth, created_date)
-        age = 0
-        unless date_of_birth.nil?
-          birth_date = Date.parse(date_of_birth)
-          now = created_date
-          age = now.year - birth_date.year
-          age -= 1 if now.month < birth_date.month || (now.month == birth_date.month && now.day < birth_date.day)
-        end
-        age
-      end
-
-      def increment_age_range(indicator_data, result, sex, age)
-        sex_range = indicator_data[sex]
-        if age.between?(0, 5)
-          sex_range['0-5'] += result.nil? ? 1 : 0
-        elsif age.between?(6, 14)
-          sex_range['5-14'] += result.nil? ? 1 : 0
-        elsif age.between?(15, 120)
-          sex_range['14-120'] += result.nil? ? 1 : 0
-        end
-      end
-
-      def increments_age_range(i_data, age_group, result, gender)
-        sex_range = i_data[gender]
-        if age_group == 'L_E_5'
-          sex_range['0-5'] += result.nil? ? 0 : 1
-        elsif age_group == 'G_5_L_E_14'
-          sex_range['5-14'] += result.nil? ? 0 : 1
-        elsif age_group == 'G_14'
-          sex_range['14-120'] += result.nil? ? 0 : 1
-        end
       end
     end
   end
