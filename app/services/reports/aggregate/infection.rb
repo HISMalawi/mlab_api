@@ -2,7 +2,7 @@ module Reports
   module Aggregate
     class Infection
       def generate_report(from: Date.today.to_s, to: Date.today.to_s, department: nil)
-        serliarize_data(get_data(from, to, department))
+        process_data(serliarize_data(get_data(from, to, department)))
       end
 
       # def get_summary(department: nil, from: nil, to: nil)
@@ -23,9 +23,8 @@ module Reports
       def get_data(from, to, department)
         where_condition = " DATE(t.created_date) BETWEEN '#{from}' and '#{to}'"
         where_condition = where_condition << " AND tt.department_id = '#{department}'" unless department.nil?
-        records= Report.find_by_sql(
+        Report.find_by_sql(
           "SELECT DISTINCT
-          t.id,
           tt.name AS test,
           ti.name AS measure,
           CASE
@@ -47,8 +46,6 @@ module Reports
               ELSE 'G_14'
           END AS age_group,
           CASE
-              WHEN tr.value = '0' THEN NULL
-              WHEN tr.value = '' THEN NULL
               WHEN
                   ti.test_indicator_type = 2
                       AND tr.value BETWEEN tir.lower_range AND tir.upper_range
@@ -69,7 +66,8 @@ module Reports
                   'High'
               ELSE tr.value
           END AS result,
-          p.sex AS gender
+          p.sex AS gender,
+          COUNT(t.id) AS total
       FROM
           tests t
               INNER JOIN
@@ -95,17 +93,17 @@ module Reports
       WHERE
           ts.status_id IN (4 , 5)
               AND (tir.max_age IS NULL OR tir.max_age > 0)
-              AND tr.value IS NOT NULL AND
-              #{where_condition}"
+              AND tr.value IS NOT NULL AND tr.value NOT IN ('', '0') AND
+              #{where_condition} GROUP BY test, measure, age_group, result, gender"
         )
       end
 
       def serliarize_data(records)
         data = []
-        records.each do | record |
+        records.each do |record|
           data.push(
             {
-              id: record['id'],
+              total: record['total'],
               test_type: record['test'],
               indicator: record['measure'],
               age_group: record['age_group'],
@@ -115,6 +113,49 @@ module Reports
           )
         end
         data
+      end
+
+      def process_data(data)
+        test_hash = {}
+        data = data.to_h
+        data[:data].each do |test_|
+          test_type = test_[:test_type].to_s
+          total = test_[:total].to_i
+          indicator = test_[:indicator].to_s
+          age_group = test_[:age_group].to_s
+          result = test_[:result].to_s
+          gender = test_[:gender].to_s
+
+          test_hash[test_type] ||= {}
+          test_hash[test_type][indicator] ||= []
+          result_hash = test_hash[test_type][indicator].find { |item| item.key?(result.to_sym) }
+          result_hash ||= { result => [] }
+          test_hash[test_type][indicator] << result_hash unless test_hash[test_type][indicator].include?(result_hash)
+          age_group_hash = result_hash[result].find { |item| item.key?(age_group.to_sym) }
+          age_group_hash ||= { age_group => {} }
+          result_hash[result] << age_group_hash unless result_hash[result].include?(age_group_hash)
+
+          age_group_hash[age_group][gender] ||= 0
+          age_group_hash[age_group][gender] += total.to_i
+        end
+        test_hash
+      end
+
+      def ages_range
+        {
+          'L_E_5' => {
+            'M' => 0,
+            'F' => 0
+          },
+          'G_5_L_E_14' => {
+            'M' => 0,
+            'F' => 0
+          },
+          'G_14' => {
+            'M' => 0,
+            'F' => 0
+          }
+        }
       end
     end
   end
