@@ -117,8 +117,7 @@ module Reports
 
       def process_data(data)
         test_hash = {}
-        data = data.to_h
-        data[:data].each do |test_|
+        data.each do |test_|
           test_type = test_[:test_type].to_s
           total = test_[:total].to_i
           indicator = test_[:indicator].to_s
