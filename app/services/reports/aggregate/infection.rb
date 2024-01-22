@@ -20,7 +20,7 @@ module Reports
 
       def get_data(from, to, department)
         where_condition = " DATE(t.created_date) BETWEEN '#{Date.parse(from).beginning_of_day}' and '#{Date.parse(to).end_of_day}'"
-        where_condition = where_condition << " AND tt.department = '#{department}'" unless department.nil?
+        where_condition = where_condition << " AND tt.department_id = '#{department}'" unless department.nil?
 
         Report.find_by_sql(
           "SELECT DISTINCT
