@@ -150,20 +150,16 @@ module Reports
                 results: result.map do |value, _|
                            x = value.map do |key, hashes|
                              { key => hashes.inject({}) do |acc, sub_hash|
-                               acc.merge(sub_hash) do |_key, a, b|
-                                 a.is_a?(Hash) && b.is_a?(Hash) ? a.merge(b) : [a, b]
-                               end
+                               acc.merge(sub_hash) { |_, a, b| a.is_a?(Hash) && b.is_a?(Hash) ? a.merge(b) : [a, b] }
                              end }
                            end
-                           x.map do |actual_result|
+                           x.map do |result_|
                              {
-                               actual_resultu.keys.first => {
-                                 'F' => actual_result.values.first.map do |age_group, genders|
+                               result_.keys.first => {
+                                 'F' => result_.values.first.map do |age_group, genders|
                                           [age_group, genders['F']]
                                         end.to_h,
-                                 'M' => actual_result.values.first.map do |age_group, genders|
-                                          [age_group, genders['M']]
-                                        end.to_h
+                                 'M' => result_.values.first.map { |age_group, genders| [age_group, genders['M']] }.to_h
                                }
                              }
                            end
