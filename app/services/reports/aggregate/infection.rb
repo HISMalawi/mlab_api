@@ -148,10 +148,24 @@ module Reports
               {
                 name: measure,
                 results: result.map do |value, _|
-                           value.map do |key, hashes|
+                           x = value.map do |key, hashes|
                              { key => hashes.inject({}) do |acc, sub_hash|
-                               acc.merge(sub_hash) { |_key, a, b| a.is_a?(Hash) && b.is_a?(Hash) ? a.merge(b) : [a, b] }
+                               acc.merge(sub_hash) do |_key, a, b|
+                                 a.is_a?(Hash) && b.is_a?(Hash) ? a.merge(b) : [a, b]
+                               end
                              end }
+                           end
+                           x.map do |actual_result|
+                             {
+                               actual_resultu.keys.first => {
+                                 'F' => actual_result.values.first.map do |age_group, genders|
+                                          [age_group, genders['F']]
+                                        end.to_h,
+                                 'M' => actual_result.values.first.map do |age_group, genders|
+                                          [age_group, genders['M']]
+                                        end.to_h
+                               }
+                             }
                            end
                          end
               }
