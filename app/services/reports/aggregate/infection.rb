@@ -5,24 +5,24 @@ module Reports
         process_data(serliarize_data(get_data(from, to, department)))
       end
 
-      # def get_summary(department: nil, from: nil, to: nil)
-      #   department = department.present? ? " AND t.department_id = #{department}" : ''
-      #   query = <<-SQL
-      #     SELECT t.name, COUNT(*) AS test_count
-      #     FROM tests AS ts
-      #     JOIN test_types AS t ON ts.test_type_id = t.id
-      #     WHERE (ts.created_date BETWEEN '#{from}' AND '#{to}')
-      #     #{department}
-      #     GROUP BY t.name
-      #   SQL
-      #   ActiveRecord::Base.connection.execute(query)
-      # end
+      def get_summary(from: Date.today.to_s, to: Date.today.to_s, department: nil)
+        department = department.present? ? " AND t.department_id = #{department}" : ''
+        query = <<-SQL
+          SELECT t.name, COUNT(DISTINCT ts.id) AS test_count
+          FROM tests AS t
+          JOIN test_types AS tt ON t.test_type_id = tt.id
+          WHERE (t.created_date BETWEEN '#{from.to_date.beggining_of_day}' AND '#{to.to_date.end_of_day}')
+          #{department}
+          GROUP BY t.name
+        SQL
+        ActiveRecord::Base.connection.execute(query)
+      end
 
       private
 
       def get_data(from, to, department)
-        where_condition = " DATE(t.created_date) BETWEEN '#{from}' and '#{to}'"
-        where_condition = where_condition << " AND tt.department_id = '#{department}'" unless department.nil?
+        condition = " DATE(t.created_date) BETWEEN '#{from.to_date.beginning_of_day}' and '#{to.to_date.end_of_day}'"
+        condition = condition << " AND tt.department_id = '#{department}'" unless department.nil?
         Report.find_by_sql(
           "SELECT DISTINCT
           tt.name AS test,
@@ -94,7 +94,7 @@ module Reports
           ts.status_id IN (4 , 5)
               AND (tir.max_age IS NULL OR tir.max_age > 0)
               AND tr.value IS NOT NULL AND tr.value NOT IN ('', '0') AND
-              #{where_condition} GROUP BY test, measure, age_group, result, gender"
+              #{condition} GROUP BY test, measure, age_group, result, gender"
         )
       end
 
@@ -139,7 +139,7 @@ module Reports
         end
         test_hash.map do |test_type, indicator|
           {
-            test_type: test_type,
+            test_type:,
             measures: indicator.map do |measure, result|
               {
                 name: measure,
@@ -148,23 +148,6 @@ module Reports
             end
           }
         end
-      end
-
-      def ages_range
-        {
-          'L_E_5' => {
-            'M' => 0,
-            'F' => 0
-          },
-          'G_5_L_E_14' => {
-            'M' => 0,
-            'F' => 0
-          },
-          'G_14' => {
-            'M' => 0,
-            'F' => 0
-          }
-        }
       end
     end
   end
