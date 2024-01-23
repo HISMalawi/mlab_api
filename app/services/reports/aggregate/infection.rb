@@ -137,7 +137,17 @@ module Reports
           age_group_hash[age_group][gender] ||= 0
           age_group_hash[age_group][gender] += total.to_i
         end
-        test_hash
+        test_hash.map do |test_type, indicator|
+          {
+            test_type: test_type,
+            measures: indicator.map do |measure, result|
+              {
+                name: measure,
+                results: result
+              }
+            end
+          }
+        end
       end
 
       def ages_range
