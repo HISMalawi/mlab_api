@@ -147,7 +147,13 @@ module Reports
               end
               {
                 name: measure,
-                results: result
+                results: result.map do |value, _|
+                           value.map do |key, hashes|
+                             { key => hashes.inject({}) do |acc, sub_hash|
+                               acc.merge(sub_hash) { |_key, a, b| a.is_a?(Hash) && b.is_a?(Hash) ? a.merge(b) : [a, b] }
+                             end }
+                           end
+                         end
               }
             end
           }
