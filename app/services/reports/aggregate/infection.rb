@@ -138,6 +138,10 @@ module Reports
           age_group_hash[age_group][gender] += total.to_i
         end
         test_hash.map do |test_type, indicator|
+          result = result.group_by { |h| h.keys.first }.map do |key, hashes|
+            merged_values = hashes.flat_map { |h| h[key] }
+            { key => merged_values }
+          end
           {
             test_type:,
             measures: indicator.map do |measure, result|
