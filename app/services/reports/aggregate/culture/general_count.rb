@@ -3,24 +3,51 @@ module Reports
     module Culture
       class GeneralCount
         def generate_report(month: nil, year: nil)
-          data = {}
-          department = Department.find_by(name: 'Microbiology').id
-          tests = Test.includes(test_type: :test_indicators)
-            .where(test_types: { department_id: department, name: 'Culture & Sensitivity' })
-            .where("MONTH((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", month)
-            .where("YEAR((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", year)
-          test_type = TestType.includes(:test_indicators).find_by(name: 'Culture & Sensitivity')
-          test_catalog_service = TestCatalog::TestTypes::ShowService.show_test_type(test_type)
-          indicator_ranges = test_catalog_service[:indicators][0][:indicator_ranges].map { |range| range["value"] }
-          indicator_ranges.each do |indicator|
-            count = tests.count do |test|
-              test.indicators.any? do |i|
-                !i[:result].nil? && i[:result]['value'] == indicator
-              end
-            end
-            data[indicator] = count
+          process_data(query_record(month:, year:))
+        end
+
+        def process_data(records)
+          data = expect_outcome
+          records.each do |record|
+            data["#{record[:result]}".to_sym] = record[:total]
           end
           data
+        end
+
+        def query_record(month: nil, year: nil)
+          department = Department.find_by(name: 'Microbiology').id
+          Report.find_by_sql(
+            "SELECT
+              tr.value AS result,
+              count(DISTINCT t.id) AS total
+            FROM
+              tests t
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_types tt ON tt.id = t.test_type_id AND tt.department_id = #{department}
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+                  where tt.id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+                  AND ts.status_id IN (4,5)
+                  AND tr.value NOT IN ('0', '')
+                  AND YEAR(t.created_date) =  #{year} AND month(t.created_date) = #{month}
+                  GROUP BY result
+          "
+          )
+        end
+
+        def expect_outcome
+          { "Growth": 0, "No growth": 0, "Mixed growth; no predominant organism": 0,
+            "Growth of normal flora; no pathogens isolated": 0, "Growth of contaminants": 0 }
+        end
+
+        def report_utils
+          Reports::Moh::ReportUtils
         end
       end
     end
