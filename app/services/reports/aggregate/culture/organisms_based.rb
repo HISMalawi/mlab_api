@@ -3,26 +3,51 @@ module Reports
     module Culture
       class OrganismsBased
         def generate_report(month: nil, year: nil)
-          department_id = Department.find_by(name: 'Microbiology')&.id
-          tests = Test.joins(test_type: [:test_indicators])
-          .where('test_types.department_id = ?', department_id)
-          .where('test_types.name = ?', 'Culture & Sensitivity')
-          .where('MONTH((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = ?))) = ?', 'completed', month)
-          .where('YEAR((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = ?))) = ?', 'completed', year)
-          .distinct
+          process_data(query_record(month:, year:))
+        end
+
+        def query_record(month: nil, year: nil)
+          department = Department.find_by(name: 'Microbiology').id
+          Report.find_by_sql(
+            "SELECT o.name AS organism, COUNT(DISTINCT t.id) AS total
+            FROM
+                tests t
+                    INNER JOIN
+                test_statuses ts ON ts.test_id = t.id
+                    INNER JOIN
+                test_indicators ti ON ti.test_type_id = t.test_type_id
+                    INNER JOIN
+                test_types tt ON tt.id = t.test_type_id
+                    AND tt.department_id = #{department}
+                    INNER JOIN
+                test_results tr ON tr.test_indicator_id = ti.id
+                    AND tr.test_id = t.id
+                    AND tr.voided = 0
+                    INNER JOIN
+                drug_susceptibilities ds on ds.test_id = t.id
+                    INNER JOIN
+                organisms o ON o.id = ds.organism_id
+                WHERE tt.id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+                AND ts.status_id IN (4,5)
+                AND tr.value NOT IN ('0', '')
+                AND YEAR(t.created_date) =  #{year} AND month(t.created_date) = #{month}
+                GROUP BY  organism"
+          )
+        end
+
+        def process_data(records)
           data = []
-          tests.each do |test|
-            test.suscept_test_result.each do |suscept_test|
-              organism_name = suscept_test[:name]
-              existing_data = data.find { |d| d[:organism] == organism_name }
-              if existing_data
-                existing_data[:count] += 1
-              else
-                data << { organism: organism_name, count: 1 }
-              end
-            end
+          records.each do |record|
+            data << {
+              organism: record[:organism],
+              count: record[:total]
+            }
           end
           data
+        end
+
+        def report_utils
+          Reports::Moh::ReportUtils
         end
       end
     end

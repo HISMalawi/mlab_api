@@ -3,34 +3,56 @@ module Reports
     module Culture
       class WardsBased
         def generate_report(month: nil, year: nil)
-          data = []
+          process_data(query_records(month:, year:))
+        end
+
+        def query_records(month: nil, year: nil)
           department = Department.find_by(name: 'Microbiology').id
-          tests = Test.joins(:test_type)
-            .where(test_types: { department_id: department, name: 'Culture & Sensitivity' })
-            .where("MONTH((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", month)
-            .where("YEAR((SELECT MAX(st.created_date) FROM test_statuses st WHERE st.test_id = tests.id AND st.status_id = (SELECT id FROM statuses WHERE name = 'completed'))) = ?", year)
-          test_type = TestType.find_by(name: 'Culture & Sensitivity')
-          test_catalog_service = TestCatalog::TestTypes::ShowService.show_test_type(test_type)
-          indicator_ranges = test_catalog_service[:indicators][0][:indicator_ranges].map { |range| range["value"] }
-          encounter_types = EncounterType.all
-          encounter_types.each do |encounter|
-            encounter.facility_sections.each do |section|
-              count = 0
-              indicator_ranges.each do |indicator|
-                count += tests.count do |test|
-                  if test.request_origin == encounter.name && section["name"] == test.requesting_ward
-                    test.indicators.any? do |i|
-                      !i[:result].nil? && i[:result]['value'] == indicator
-                    end
-                  end
-                end
-              end
-              unless count.zero?
-                data << { ward: section["name"], encounter: encounter.name, count: count }
-              end
-            end
+          Report.find_by_sql("
+            SELECT
+                fs.name as ward , et.name as encounter, COUNT(DISTINCT t.id) AS count
+            FROM
+                tests t
+                    INNER JOIN
+                test_statuses ts ON ts.test_id = t.id
+                    INNER JOIN
+                test_indicators ti ON ti.test_type_id = t.test_type_id
+                    INNER JOIN
+                test_types tt ON tt.id = t.test_type_id
+                    AND tt.department_id = #{department}
+                    INNER JOIN
+                test_results tr ON tr.test_indicator_id = ti.id
+                    AND tr.test_id = t.id
+                    AND tr.voided = 0
+                    INNER JOIN
+                orders o ON o.id = t.order_id
+                    INNER JOIN
+                encounters e ON e.id = o.encounter_id
+                    INNER JOIN
+                facility_sections fs ON fs.id = e.facility_section_id
+                    INNER JOIN
+                encounter_types et ON et.id = e.encounter_type_id
+                WHERE tt.id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+                  AND ts.status_id IN (4,5)
+                  AND tr.value NOT IN ('0', '')
+                  AND YEAR(t.created_date) =  #{year} AND month(t.created_date) = #{month}
+                  GROUP BY  ward, encounter
+            ")
+        end
+
+        def process_data(records)
+          data = []
+          records.each do |record|
+            data << {
+              ward: record[:ward],
+              encounter: record[:encounter],
+              count: record[:count]
+            }
           end
-          data
+        end
+
+        def report_utils
+          Reports::Moh::ReportUtils
         end
       end
     end
