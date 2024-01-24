@@ -30,6 +30,8 @@ if [ -z "$steps" ]; then
     rails r bin/iblis/load_orders.rb &&
     rails r bin/iblis/load_test.rb &&
     rails r bin/iblis/load_test_results.rb &&
+    rails r bin/iblis/culture_observations.rb
+    rails r bin/iblis/drug_susceptibilities.rb
     rails r bin/iblis/load_order_print_trail.rb
 else
     # Run selected steps based on user input
