@@ -243,7 +243,7 @@ name_mappings = [
   },
   {
     actual_name: 'Malaria',
-    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film']
+    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..']
   },
   {
     actual_name: 'Malaria Indicators',
