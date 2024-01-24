@@ -9,24 +9,39 @@ module Reports
       class << self
         def query_data_by_ward(from: nil, to: nil)
           ReportRawData.find_by_sql("
-            SELECT
-              ward,
-              #{sql}
-            FROM
-                (SELECT
-                    TIMESTAMPDIFF(YEAR, dob, created_date) AS age,
-                        result,
-                        ward,
-                        test_indicator_name,
-                        test_id
-                FROM
-                  report_raw_data
-                WHERE
-                    test_type IN ('Malaria Screening' , 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT ..', 'MRDT')
-                        AND status_id IN (4 , 5) AND created_date BETWEEN '#{from}' AND '#{to}'
-                GROUP BY dob , created_date , result , ward , test_indicator_name, test_id) AS t
-            GROUP BY ward
-          ")
+          SELECT
+            IF(fs.name IS NULL, 'N/A', fs.name) AS ward,
+            #{sql}
+          FROM
+              tests t
+                  INNER JOIN
+              test_types tt ON tt.id = t.test_type_id
+                  INNER JOIN
+              orders o ON o.id = t.order_id
+                  INNER JOIN
+              encounters e ON e.id = o.encounter_id
+                  INNER JOIN
+              clients c ON c.id = e.client_id
+                  INNER JOIN
+              people p ON p.id = c.person_id
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+                  LEFT JOIN
+              facility_sections fs ON fs.id = e.facility_section_id
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                  AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('' , '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY ward")
         end
 
         def query_data_by_female_preg(from: nil, to: nil)
@@ -35,142 +50,229 @@ module Reports
               'Female Pregant' AS indicator,
               #{sql}
             FROM
-                (SELECT
-                    TIMESTAMPDIFF(YEAR, dob, created_date) AS age,
-                        result,
-                        ward,
-                        test_indicator_name,
-                        test_id
-                FROM
-                  report_raw_data
-                WHERE
-                    test_type IN ('Malaria Screening' , 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT ..', 'MRDT')
-                        AND status_id IN (4 , 5) AND created_date BETWEEN '#{from}' AND '#{to}' AND TIMESTAMPDIFF(YEAR, dob, created_date) > 5
-                        AND ward IN ('LW', 'EM LW', 'LABOUR WARD', 'ANTENATAL', 'LABOUR') AND gender = 'F'
-                GROUP BY dob , created_date , result , ward , test_indicator_name, test_id) AS t
-          ")
+              tests t
+                  INNER JOIN
+              test_types tt ON tt.id = t.test_type_id
+                  INNER JOIN
+              orders o ON o.id = t.order_id
+                  INNER JOIN
+              encounters e ON e.id = o.encounter_id
+                  INNER JOIN
+              clients c ON c.id = e.client_id
+                  INNER JOIN
+              people p ON p.id = c.person_id
+                  INNER JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  INNER JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+                  LEFT JOIN
+              facility_sections fs ON fs.id = e.facility_section_id
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                  AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
+                  AND ts.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('' , '0')
+                  AND tr.value IS NOT NULL
+                  AND fs.id IN #{report_utils.facility_section_ids('Maternity')}
+                  AND p.sex = 'F'
+                  AND TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) > 10")
         end
 
         def query_data_by_gender(from: nil, to: nil)
           ReportRawData.find_by_sql("
             SELECT
-              gender,
+              p.sex AS gender,
               #{sql}
             FROM
-                (SELECT
-                    TIMESTAMPDIFF(YEAR, dob, created_date) AS age,
-                        result,
-                        gender,
-                        test_indicator_name,
-                        test_id
-                FROM
-                  report_raw_data
-                WHERE
-                    test_type IN ('Malaria Screening' , 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT ..', 'MRDT')
-                        AND status_id IN (4 , 5) AND created_date BETWEEN '#{from}' AND '#{to}'
-                GROUP BY dob , created_date , result , gender , test_indicator_name, test_id) AS t
-            GROUP BY gender
-          ")
+                tests t
+                    INNER JOIN
+                test_types tt ON tt.id = t.test_type_id
+                    INNER JOIN
+                orders o ON o.id = t.order_id
+                    INNER JOIN
+                encounters e ON e.id = o.encounter_id
+                    INNER JOIN
+                clients c ON c.id = e.client_id
+                    INNER JOIN
+                people p ON p.id = c.person_id
+                    INNER JOIN
+                test_statuses ts ON ts.test_id = t.id
+                    INNER JOIN
+                test_indicators ti ON ti.test_type_id = t.test_type_id
+                    INNER JOIN
+                test_results tr ON tr.test_indicator_id = ti.id
+                    AND tr.test_id = t.id
+                    AND tr.voided = 0
+                    LEFT JOIN
+                facility_sections fs ON fs.id = e.facility_section_id
+            WHERE
+                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                    AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
+                    AND ts.status_id IN (4 , 5)
+                    AND t.voided = 0
+                    AND tr.value NOT IN ('' , '0')
+                    AND tr.value IS NOT NULL
+            GROUP BY gender")
         end
 
         def query_data_by_encounter_type(from: nil, to: nil)
-          ReportRawData.find_by_sql(
-            "SELECT
-            encounter_type,
+          ReportRawData.find_by_sql("
+            SELECT
+              et.name AS encounter_type,
               #{sql}
             FROM
-                (SELECT
-                    TIMESTAMPDIFF(YEAR, dob, created_date) AS age,
-                        result,
-                        encounter_type,
-                        test_indicator_name,
-                        test_id
-                FROM
-                  report_raw_data
-                WHERE
-                    test_type IN ('Malaria Screening' , 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT ..', 'MRDT')
-                        AND status_id IN (4 , 5) AND created_date BETWEEN '#{from}' AND '#{to}'
-                GROUP BY dob , created_date , result , encounter_type , test_indicator_name, test_id) AS t
-            GROUP BY encounter_type 
-          ")
+                tests t
+                    INNER JOIN
+                test_types tt ON tt.id = t.test_type_id
+                    INNER JOIN
+                orders o ON o.id = t.order_id
+                    INNER JOIN
+                encounters e ON e.id = o.encounter_id
+                    INNER JOIN
+                encounter_types et ON e.encounter_type_id = et.id
+                    INNER JOIN
+                clients c ON c.id = e.client_id
+                    INNER JOIN
+                people p ON p.id = c.person_id
+                    INNER JOIN
+                test_statuses ts ON ts.test_id = t.id
+                    INNER JOIN
+                test_indicators ti ON ti.test_type_id = t.test_type_id
+                    INNER JOIN
+                test_results tr ON tr.test_indicator_id = ti.id
+                    AND tr.test_id = t.id
+                    AND tr.voided = 0
+                    LEFT JOIN
+                facility_sections fs ON fs.id = e.facility_section_id
+            WHERE
+                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                    AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
+                    AND ts.status_id IN (4 , 5)
+                    AND t.voided = 0
+                    AND tr.value NOT IN ('' , '0')
+                    AND tr.value IS NOT NULL
+            GROUP BY encounter_type")
         end
 
         def sql
           <<-RUBY
-            COUNT(DISTINCT IF(age > 5 AND result = 'negative'
-            AND test_indicator_name = 'MRDT',
-                test_id,
-                NULL)) AS mrdt_neg_over5,
-            COUNT(DISTINCT IF(age <= 5 AND result = 'negative'
-                    AND test_indicator_name = 'MRDT',
-                test_id,
-                NULL)) AS mrdt_neg_under5,
-            COUNT(DISTINCT IF(age > 5 AND result = 'invalid'
-                    AND test_indicator_name = 'MRDT',
-                test_id,
-                NULL)) AS mrdt_inv_over5,
-            COUNT(DISTINCT IF(age <= 5 AND result = 'invalid'
-                    AND test_indicator_name = 'MRDT',
-                test_id,
-                NULL)) AS mrdt_inv_under5,
-            COUNT(DISTINCT IF(age > 5
-                    AND result IN ('positive' , 'postive')
-                    AND test_indicator_name = 'MRDT',
-                test_id,
-                NULL)) AS mrdt_pos_over5,
-            COUNT(DISTINCT IF(age <= 5
-                    AND result IN ('positive' , 'postive')
-                    AND test_indicator_name = 'MRDT',
-                test_id,
-                NULL)) AS mrdt_pos_under5,
-            COUNT(DISTINCT IF(age > 5
-                    AND result IN ('No parasite seen' , 'No parasite',
-                    'no parasites seen',
-                    'nps',
-                    'NMPS',
-                    'no malaria palasite seen',
-                    'no malaria parasite seen')
-                    AND test_indicator_name IN ('BLOOD FILM' , 'MALARIA SPECIES', 'RESULTS'),
-                test_id,
-                NULL)) AS micro_neg_over5,
-            COUNT(DISTINCT IF(age <= 5
-                    AND result IN ('No parasite seen' , 'No parasite',
-                    'no parasites seen',
-                    'nps',
-                    'NMPS',
-                    'no malaria palasite seen',
-                    'no malaria parasite seen')
-                    AND test_indicator_name IN ('BLOOD FILM' , 'MALARIA SPECIES', 'RESULTS'),
-                test_id,
-                NULL)) AS micro_neg_under5,
-            COUNT(DISTINCT IF(age > 5
-                    AND result NOT IN ('No parasite seen' , 'No parasite',
-                    'no parasites seen',
-                    'nps',
-                    'NMPS',
-                    'no malaria palasite seen',
-                    'no malaria parasite seen')
-                    AND test_indicator_name IN ('BLOOD FILM' , 'MALARIA SPECIES', 'RESULTS'),
-                test_id,
-                NULL)) AS micro_pos_over5,
-            COUNT(DISTINCT IF(age <= 5
-                    AND result NOT IN ('No parasite seen' , 'No parasite',
-                    'no parasites seen',
-                    'nps',
-                    'NMPS',
-                    'no malaria palasite seen',
-                    'no malaria parasite seen')
-                    AND test_indicator_name IN ('BLOOD FILM' , 'MALARIA SPECIES', 'RESULTS'),
-                test_id,
-                NULL)) AS micro_pos_under5,
-            COUNT(DISTINCT IF(age > 5 AND result = 'invalid'
-                    AND test_indicator_name IN ('BLOOD FILM' , 'MALARIA SPECIES', 'RESULTS'),
-                test_id,
-                NULL)) AS micro_inv_over5,
-            COUNT(DISTINCT IF(age <= 5 AND result = 'invalid'
-                    AND test_indicator_name IN ('BLOOD FILM' , 'MALARIA SPECIES', 'RESULTS'),
-                test_id,
-                NULL)) AS micro_inv_under5
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                DATE(p.date_of_birth),
+                DATE(t.created_date)) > 5
+                AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                AND tr.value NOT IN ('NMPS' , 'Negative',
+                'no malaria palasite seen',
+                'No malaria parasites seen',
+                'No tryps seen',
+                'No parasite seen',
+                'NPS',
+                ' NMPS')
+                AND tr.value NOT LIKE '%No parasi%',
+              t.id,
+              NULL)) AS micro_pos_over5,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) <= 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND tr.value NOT IN ('NMPS' , 'Negative',
+                      'no malaria palasite seen',
+                      'No malaria parasites seen',
+                      'No tryps seen',
+                      'No parasite seen',
+                      'NPS',
+                      ' NMPS')
+                      AND tr.value NOT LIKE '%No parasi%',
+                  t.id,
+                  NULL)) AS micro_pos_under5,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) > 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND (tr.value IN ('NMPS' , 'Negative',
+                      'no malaria palasite seen',
+                      'No malaria parasites seen',
+                      'No tryps seen',
+                      'No parasite seen',
+                      'NPS',
+                      ' NMPS')
+                      OR tr.value LIKE '%No parasi%'),
+                  t.id,
+                  NULL)) AS micro_neg_over5,
+          COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) <= 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND (tr.value IN ('NMPS' , 'Negative',
+                      'no malaria palasite seen',
+                      'No malaria parasites seen',
+                      'No tryps seen',
+                      'No parasite seen',
+                      'NPS',
+                      ' NMPS')
+                      OR tr.value LIKE '%No parasi%'),
+                  t.id,
+                  NULL)) AS micro_neg_under5,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) > 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND tr.value = 'Invalid',
+                  t.id,
+                  NULL)) AS micro_inv_over5,
+                  COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) <= 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND tr.value = 'Invalid',
+                  t.id,
+                  NULL)) AS micro_inv_under5,
+              COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                  DATE(p.date_of_birth),
+                  DATE(t.created_date)) > 5
+                  AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                  AND tr.value IN ('Positive', 'postive'),
+              t.id,
+              NULL)) AS mrdt_pos_over5,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value IN ('Positive', 'postive'),
+                    t.id,
+                    NULL)) AS mrdt_pos_under5,
+              COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) > 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value ='Negative',
+                    t.id,
+                    NULL)) AS mrdt_neg_over5,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value ='Negative',
+                    t.id,
+                    NULL)) AS mrdt_neg_under5,
+          COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) > 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value = 'Invalid',
+                    t.id,
+                    NULL)) AS mrdt_inv_over5,
+                    COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value = 'Invalid',
+                    t.id,
+                    NULL)) AS mrdt_inv_under5
           RUBY
         end
 
@@ -180,19 +282,19 @@ module Reports
               micro_over_5: 0,
               micro_under_5: 0,
               mrdt_over_5: 0,
-              mrdt_under_5: 0,
+              mrdt_under_5: 0
             },
             total_positive: {
               micro_over_5: 0,
               micro_under_5: 0,
               mrdt_over_5: 0,
-              mrdt_under_5: 0,
+              mrdt_under_5: 0
             },
             total_negative: {
               micro_over_5: 0,
               micro_under_5: 0,
               mrdt_over_5: 0,
-              mrdt_under_5: 0,
+              mrdt_under_5: 0
             }
           }
           record_data.each do |data|
@@ -204,11 +306,11 @@ module Reports
                                                     data[:mrdt_inv_over5]
             summary[:total_tested][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
                                                      data[:mrdt_inv_under5]
-            summary[:total_positive][:micro_over_5] += data[:micro_pos_over5] 
+            summary[:total_positive][:micro_over_5] += data[:micro_pos_over5]
             summary[:total_positive][:micro_under_5] += data[:micro_pos_under5]
             summary[:total_positive][:mrdt_over_5] += data[:mrdt_pos_over5]
             summary[:total_positive][:mrdt_under_5] += data[:mrdt_pos_under5]
-            summary[:total_negative][:micro_over_5] += data[:micro_neg_over5] 
+            summary[:total_negative][:micro_over_5] += data[:micro_neg_over5]
             summary[:total_negative][:micro_under_5] += data[:micro_neg_under5]
             summary[:total_negative][:mrdt_over_5] += data[:mrdt_neg_over5]
             summary[:total_negative][:mrdt_under_5] += data[:mrdt_neg_under5]
@@ -222,7 +324,7 @@ module Reports
               micro_over_5: 0,
               micro_under_5: 0,
               mrdt_over_5: 0,
-              mrdt_under_5: 0,
+              mrdt_under_5: 0
             },
             total_female: {
               micro_over_5: 0,
@@ -234,22 +336,22 @@ module Reports
           record_data.each do |data|
             if data[:gender] == 'M'
               summary[:total_male][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                      data[:micro_inv_over5]
+                                                     data[:micro_inv_over5]
               summary[:total_male][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                        data[:micro_inv_under5]
+                                                      data[:micro_inv_under5]
               summary[:total_male][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                      data[:mrdt_inv_over5]
+                                                    data[:mrdt_inv_over5]
               summary[:total_male][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
                                                      data[:mrdt_inv_under5]
             else
               summary[:total_female][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                      data[:micro_inv_over5]
+                                                       data[:micro_inv_over5]
               summary[:total_female][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
                                                         data[:micro_inv_under5]
               summary[:total_female][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
                                                       data[:mrdt_inv_over5]
               summary[:total_female][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                      data[:mrdt_inv_under5]
+                                                       data[:mrdt_inv_under5]
             end
           end
           summary
@@ -261,18 +363,18 @@ module Reports
               micro_over_5: 0,
               micro_under_5: 0,
               mrdt_over_5: 0,
-              mrdt_under_5: 0,
+              mrdt_under_5: 0
             }
           }
           record_data.each do |data|
             summary[:total_female_preg][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                    data[:micro_inv_over5]
+                                                          data[:micro_inv_over5]
             summary[:total_female_preg][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                      data[:micro_inv_under5]
+                                                           data[:micro_inv_under5]
             summary[:total_female_preg][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                    data[:mrdt_inv_over5]
+                                                         data[:mrdt_inv_over5]
             summary[:total_female_preg][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                    data[:mrdt_inv_under5]
+                                                          data[:mrdt_inv_under5]
           end
           summary
         end
@@ -283,7 +385,7 @@ module Reports
               micro_over_5: 0,
               micro_under_5: 0,
               mrdt_over_5: 0,
-              mrdt_under_5: 0,
+              mrdt_under_5: 0
             },
             total_out_patient: {
               micro_over_5: 0,
@@ -301,31 +403,31 @@ module Reports
           record_data.each do |data|
             if data[:encounter_type] == 'In Patient'
               summary[:total_in_patient][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                      data[:micro_inv_over5]
+                                                           data[:micro_inv_over5]
               summary[:total_in_patient][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                        data[:micro_inv_under5]
+                                                            data[:micro_inv_under5]
               summary[:total_in_patient][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                      data[:mrdt_inv_over5]
+                                                          data[:mrdt_inv_over5]
               summary[:total_in_patient][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                     data[:mrdt_inv_under5]
+                                                           data[:mrdt_inv_under5]
             elsif data[:encounter_type] == 'Out Patient'
               summary[:total_out_patient][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                      data[:micro_inv_over5]
+                                                            data[:micro_inv_over5]
               summary[:total_out_patient][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                        data[:micro_inv_under5]
+                                                             data[:micro_inv_under5]
               summary[:total_out_patient][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                      data[:mrdt_inv_over5]
+                                                           data[:mrdt_inv_over5]
               summary[:total_out_patient][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                      data[:mrdt_inv_under5]
+                                                            data[:mrdt_inv_under5]
             else
               summary[:total_referal][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                      data[:micro_inv_over5]
+                                                        data[:micro_inv_over5]
               summary[:total_referal][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                        data[:micro_inv_under5]
+                                                         data[:micro_inv_under5]
               summary[:total_referal][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                      data[:mrdt_inv_over5]
+                                                       data[:mrdt_inv_over5]
               summary[:total_referal][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                      data[:mrdt_inv_under5]
+                                                        data[:mrdt_inv_under5]
             end
           end
           summary
@@ -344,14 +446,18 @@ module Reports
           {
             from:,
             to:,
-            data:{
+            data: {
               by_ward:,
               by_gender:,
               by_encounter_type:,
-              by_female_preg:            
+              by_female_preg:
             },
             summary:
           }
+        end
+
+        def report_utils
+          Reports::Moh::ReportUtils
         end
       end
     end
