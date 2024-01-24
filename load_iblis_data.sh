@@ -12,7 +12,9 @@ echo "8. Migrate encounters"
 echo "9. Migrate orders"
 echo "10. Migrate tests"
 echo "11. Migrate tests results"
-echo "12. Migrate order print trail"
+echo "12. Migrate culture Observations"
+echo "13. Migrate drug susceptiblities"
+echo "14. Migrate order print trail"
 echo "Enter the steps you want to run (1-12), separated by spaces, or press Enter key to run all steps:"
 read steps
 
@@ -30,8 +32,8 @@ if [ -z "$steps" ]; then
     rails r bin/iblis/load_orders.rb &&
     rails r bin/iblis/load_test.rb &&
     rails r bin/iblis/load_test_results.rb &&
-    rails r bin/iblis/culture_observations.rb
-    rails r bin/iblis/drug_susceptibilities.rb
+    rails r bin/iblis/culture_observations.rb &&
+    rails r bin/iblis/drug_susceptibilities.rb &&
     rails r bin/iblis/load_order_print_trail.rb
 else
     # Run selected steps based on user input
@@ -48,7 +50,9 @@ else
             9) rails r bin/iblis/load_orders.rb ;;
             10) rails r bin/iblis/load_test.rb ;;
             11) rails r bin/iblis/load_test_results.rb ;;
-            12) rails r bin/iblis/load_order_print_trail.rb ;;
+            12) rails r bin/iblis/culture_observations.rb ;;
+            13) rails r bin/iblis/drug_susceptibilities.rb;;
+            14) rails r bin/iblis/load_order_print_trail.rb ;;
             *) echo "Invalid step number: $step" ;;
         esac
     done
