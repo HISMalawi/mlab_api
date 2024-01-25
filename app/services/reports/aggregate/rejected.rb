@@ -21,10 +21,10 @@ module Reports
         JOIN
           test_types ON test_types.id = tests.test_type_id
         WHERE
-          statuses.name = 'test-rejected'
+          statuses.name = 'specimen-rejected'
           AND test_types.department_id = #{department.present? ? department.to_i : ''}
-          AND tests.created_date >= '#{from.to_date}'
-          AND tests.created_date <= '#{to.to_date}'
+          AND o.created_date >= '#{from.to_date.beginning_of_day}'
+          AND o.created_date <= '#{to.to_date.beginning_of_day}'
         GROUP BY
           status_reasons.description, test_types.name, fs.name;
         SQL
