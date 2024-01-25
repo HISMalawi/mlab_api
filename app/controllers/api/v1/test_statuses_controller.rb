@@ -45,9 +45,9 @@ class Api::V1::TestStatusesController < ApplicationController
     status = Status.find_by_name("not-done")
     render json: update_status(status)
   end
-  
+
   def rejected
-    status = Status.find_by_name("test-rejected")
+    status = Status.where(name: %w[test-rejected rejected]).first
     render json: update_status(status)
   end
 
