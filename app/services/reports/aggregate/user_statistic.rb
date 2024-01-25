@@ -99,11 +99,11 @@ module Reports
 
       def tests_performed(from: nil, to: nil, user: nil, page: nil, limit: nil)
         tests = Test.joins(order: { encounter: { client: :person } })
-                    .joins(:test_type).where(
+                    .joins(:test_type, :test_status).where(
                       created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
-                    ).select('DISTINCT orders.accession_number, test_types.name AS test_type,
+                    ).where(test_statuses: {status_id: [4,5] }).select('DISTINCT orders.accession_number, test_types.name AS test_type,
           clients.id AS patient_no, concat(people.first_name, " ", people.last_name) AS patient_name,
-          tests.created_date, tests.id AS test_id, tests.id').order('tests.created_date')
+          tests.created_date, tests.id AS test_id, tests.id')
         tests = tests.where(creator: user) unless user.nil?
         tests = PaginationService.paginate(tests, page:, limit:)
         { tests: tests.map(&:attributes), metadata: PaginationService.pagination_metadata(tests) }
