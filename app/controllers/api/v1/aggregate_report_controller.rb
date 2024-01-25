@@ -23,7 +23,7 @@ module Api
         service = Reports::Aggregate::UserStatistic.new
         from = params[:from]
         to = params[:to]
-        user = params[:user]
+        user = params[:user] == '0' ? nil : params[:user]
         report_type = params[:report_type]
         limit = params[:limit]
         page = params[:page]

@@ -14,7 +14,7 @@ module Reports
         elsif report_type == 'tests performed'
           data = tests_performed(from:, to:, user:, page:, limit:)
         else
-          raise ArgumentError, "Invalid report type, please specify"
+          raise ArgumentError, 'Invalid report type, please specify'
         end
         data
       end
@@ -22,85 +22,91 @@ module Reports
       private
 
       def get_summary(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = PaginationService.paginate(user.nil? ? User.all : [User.find(user)], page: page, limit: limit)
+        users = PaginationService.paginate(user.nil? ? User.all : User.where(id: user), page:, limit:)
         data = []
-        users.each do |user|
-          tests_completed = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('completed').id).count
-          tests_received = Test.joins(order: :order_statuses).where(order_statuses: { creator: user.id }).where('order_statuses.status_id = ?', Status.find_by_name('specimen-accepted').id).count
-          specimen_collected = OrderStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('pending').id).count
-          specimen_rejected = OrderStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('specimen-rejected').id).count
-          tests_performed = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('verified').id).count
-          tests_authorized = TestStatus.where('created_date >= ? AND created_date <= ?', from, to).where(creator: user.id, status_id: Status.find_by_name('verified').id).count
+        specimen_accepted = Status.find_by_name('specimen-accepted').id
+        tests_completed_status = Status.find_by_name('completed').id
+        specimen_rejected_status = Status.find_by_name('specimen-rejected').id
+        test_verified = Status.find_by_name('verified').id
+        users.each do |user_|
+          tests_completed = TestStatus.where(
+            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day,
+            creator: user_.id,
+            status_id: tests_completed_status
+          ).count('DISTINCT test_id')
+          tests_received = Test.where(
+            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day,
+            creator: user_.id
+          ).count('DISTINCT tests.id')
+          specimen_collected = OrderStatus.where(
+            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day,
+            creator: user_.id,
+            status_id: specimen_accepted
+          ).count('DISTINCT order_id')
+          specimen_rejected = OrderStatus.where(
+            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day,
+            creator: user_.id,
+            status_id: specimen_rejected_status
+          ).count('DISTINCT order_id')
+          tests_authorized = TestStatus.where(
+            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day,
+            creator: user_.id,
+            status_id: test_verified
+          ).count('DISTINCT test_id')
           data << {
-            user: "#{user.person.first_name.capitalize} #{user.person.last_name.capitalize}",
-            tests_completed: tests_completed,
-            tests_received: tests_received,
-            specimen_collected: specimen_collected,
-            specimen_rejected: specimen_rejected,
-            tests_performed: tests_performed,
-            tests_authorized: tests_authorized
+            user: "#{user_.person.first_name.capitalize} #{user_.person.last_name.capitalize}",
+            tests_completed:,
+            tests_received:,
+            specimen_collected:,
+            specimen_rejected:,
+            tests_authorized:
           }
         end
-        { tests: data, metadata: PaginationService.pagination_metadata(users)}
+        { tests: data, metadata: PaginationService.pagination_metadata(users) }
       end
 
       def patients_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        clients = []
-        if user.nil?
-          clients = PaginationService.paginate(Client.includes(:person).all, page: page, limit: limit)
-        else
-          clients = PaginationService.paginate(Client.includes(:person).where(creator: user), page: page, limit: limit)
-        end
-        { tests: clients.map(&:person), metadata: PaginationService.pagination_metadata(clients)}
+        clients = Client.includes(:person).where(
+          created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+        )
+        clients = clients.where(creator: user) unless user.nil?
+        clients = PaginationService.paginate(clients, page:, limit:)
+        { tests: clients.map(&:person), metadata: PaginationService.pagination_metadata(clients) }
       end
-
 
       def specimen_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        data = []
-
-        users.each do |creator|
-          creator_data = ReportRawData.where(order_status_creator: creator.full_name).select(
-            'test_id, test_type, specimen,  patient_no, patient_name, accession_number, created_date', 'id'
-          ).distinct('test_id')
-
-          data.concat(creator_data) # Combine data for all creators
-        end
-
-        tests = PaginationService.paginate(data, page: page, limit: limit)
-        { 'tests' => tests, 'metadata' => PaginationService.pagination_metadata(tests) }
+        records = Test.joins(order: { encounter: { client: :person } })
+                      .joins(:specimen).where(
+                        created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+                      ).select('DISTINCT orders.accession_number, specimen.name AS specimen,
+            clients.id AS patient_no, concat(people.first_name, " ", people.last_name) AS patient_name,
+            orders.created_date, orders.id').order('orders.created_date')
+        records = records.where(creator: user) unless user.nil?
+        records = PaginationService.paginate(records, page:, limit:)
+        { 'tests' => records.map(&:attributes), 'metadata' => PaginationService.pagination_metadata(records) }
       end
 
-
       def tests_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        data = []
-        users.each do |user|
-          if user.nil?
-            data = PaginationService.paginate(Test.all, page: , limit:)
-          else
-            data  = PaginationService.paginate(Test.where('creator', user), page:, limit:)
-          end
-        end
+        data = PaginationService.paginate(Test.where(
+                                            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+                                          ), page:, limit:)
+        data = data.where(creator: user) unless user.nil?
         {
           tests: data,
-          metadata:  data.empty? ? data : PaginationService.pagination_metadata(data)
+          metadata: PaginationService.pagination_metadata(data)
         }
       end
 
       def tests_performed(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        data = []
-        users_ = []
-        tests = []
-        users.each do |user|
-          users_ << user.full_name
-        end
-        data =  ReportRawData.where('created_date >= ? AND created_date <= ?', from, to).where(status_creator: users_, status_id: 4).select(
-                  'test_id, test_type,  patient_no, patient_name, accession_number, created_date', 'id'
-                ).distinct('test_id')
-        tests = PaginationService.paginate(data, page: page, limit: limit)
-        { tests: tests, metadata: data.empty? ? data : PaginationService.pagination_metadata(tests) }
+        tests = Test.joins(order: { encounter: { client: :person } })
+                    .joins(:test_type, :test_status).where(
+                      created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+                    ).where(test_statuses: {status_id: [4,5] }).select('DISTINCT orders.accession_number, test_types.name AS test_type,
+          clients.id AS patient_no, concat(people.first_name, " ", people.last_name) AS patient_name,
+          tests.created_date, tests.id AS test_id, tests.id')
+        tests = tests.where(creator: user) unless user.nil?
+        tests = PaginationService.paginate(tests, page:, limit:)
+        { tests: tests.map(&:attributes), metadata: PaginationService.pagination_metadata(tests) }
       end
     end
   end
