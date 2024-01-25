@@ -66,39 +66,30 @@ module Reports
       end
 
       def patients_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        clients = if user.nil?
-                    PaginationService.paginate(Client.includes(:person).where(
-                                                 created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
-                                               ),
-                                               page:, limit:)
-                  else
-                    PaginationService.paginate(Client.includes(:person).where(
-                                                 creator: user,
-                                                 created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
-                                               ), page:, limit:)
-                  end
+        clients = Client.includes(:person).where(
+          created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+        )
+        clients = clients.where(creator: user) unless user.nil?
+        clients = PaginationService.paginate(clients, page:, limit:)
         { tests: clients.map(&:person), metadata: PaginationService.pagination_metadata(clients) }
       end
 
       def specimen_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all.pluck('id') : User.where(user).pluck('id')
-        records = PaginationService.paginate(
-          Test.joins(order: { encounter: { client: :person } })
-        .joins(:specimen).where(
-          creator: users,
-          created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
-        ).select('DISTINCT orders.accession_number, specimen.name AS specimen,
-        clients.id AS patient_no, concat(people.first_name, people.last_name) AS patient_name,
-        orders.created_date, orders.id').order('orders.created_date'),
-          page:, limit:
-        )
+        records = Test.joins(order: { encounter: { client: :person } })
+                      .joins(:specimen).where(
+                        created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+                      ).select('DISTINCT orders.accession_number, specimen.name AS specimen,
+            clients.id AS patient_no, concat(people.first_name, people.last_name) AS patient_name,
+            orders.created_date, orders.id').order('orders.created_date')
+        records = records.where(creator: user) unless user.nil?
+        records = PaginationService.paginate(records, page:, limit:)
         { 'tests' => records.map(&:attributes), 'metadata' => PaginationService.pagination_metadata(records) }
       end
 
       def tests_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
         data = PaginationService.paginate(Test.where(
-          created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
-          ), page:, limit:)
+                                            created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+                                          ), page:, limit:)
         data = data.where(creator: user) unless user.nil?
         {
           tests: data,
