@@ -79,7 +79,7 @@ module Reports
                       .joins(:specimen).where(
                         created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
                       ).select('DISTINCT orders.accession_number, specimen.name AS specimen,
-            clients.id AS patient_no, concat(people.first_name, people.last_name) AS patient_name,
+            clients.id AS patient_no, concat(people.first_name, " ", people.last_name) AS patient_name,
             orders.created_date, orders.id').order('orders.created_date')
         records = records.where(creator: user) unless user.nil?
         records = PaginationService.paginate(records, page:, limit:)
@@ -98,18 +98,15 @@ module Reports
       end
 
       def tests_performed(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        data = []
-        users_ = []
-        tests = []
-        users.each do |user|
-          users_ << user.full_name
-        end
-        data = ReportRawData.where('created_date >= ? AND created_date <= ?', from, to).where(status_creator: users_, status_id: 4).select(
-          'test_id, test_type,  patient_no, patient_name, accession_number, created_date', 'id'
-        ).distinct('test_id')
-        tests = PaginationService.paginate(data, page:, limit:)
-        { tests:, metadata: data.empty? ? data : PaginationService.pagination_metadata(tests) }
+        tests = Test.joins(order: { encounter: { client: :person } })
+                    .joins(:test_type).where(
+                      created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+                    ).select('DISTINCT orders.accession_number, test_types.name AS test_type,
+          clients.id AS patient_no, concat(people.first_name, " ", people.last_name) AS patient_name,
+          tests.created_date, tests.id AS test_id, tests.id').order('tests.created_date')
+        tests = tests.where(creator: user) unless user.nil?
+        tests = PaginationService.paginate(tests, page:, limit:)
+        { tests: tests.map(&:attributes), metadata: PaginationService.pagination_metadata(tests) }
       end
     end
   end
