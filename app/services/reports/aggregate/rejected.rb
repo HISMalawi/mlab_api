@@ -2,6 +2,7 @@ module Reports
   module Aggregate
     class Rejected
       def generate_report(from: nil, to: nil, department: nil)
+        department = department.present? ? "AND test_types.department_id = #{department.to_i}" : ''
         query = <<-SQL
         SELECT
           status_reasons.description AS reason_name,
@@ -21,8 +22,8 @@ module Reports
         JOIN
           test_types ON test_types.id = tests.test_type_id
         WHERE
-          statuses.name = 'specimen-rejected'
-          AND test_types.department_id = #{department.present? ? department.to_i : ''}
+          statuses.name = 'rejected'
+          #{department}
           AND o.created_date >= '#{from.to_date.beginning_of_day}'
           AND o.created_date <= '#{to.to_date.beginning_of_day}'
         GROUP BY
