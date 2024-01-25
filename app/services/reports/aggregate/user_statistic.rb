@@ -81,34 +81,28 @@ module Reports
       end
 
       def specimen_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        data = []
-
-        users.each do |creator|
-          creator_data = ReportRawData.where(order_status_creator: creator.full_name).select(
-            'test_id, test_type, specimen,  patient_no, patient_name, accession_number, created_date', 'id'
-          ).distinct('test_id')
-
-          data.concat(creator_data) # Combine data for all creators
-        end
-
-        tests = PaginationService.paginate(data, page:, limit:)
-        { 'tests' => tests, 'metadata' => PaginationService.pagination_metadata(tests) }
+        users = user.nil? ? User.all.pluck('id') : User.where(user).pluck('id')
+        records = PaginationService.paginate(
+          Test.joins(order: { encounter: { client: :person } })
+        .joins(:specimen).where(
+          creator: users,
+          created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+        ).select('DISTINCT orders.accession_number, specimen.name AS specimen,
+        clients.id AS patient_no, concat(people.first_name, people.last_name) AS patient_name,
+        orders.created_date, orders.id').order('orders.created_date'),
+          page:, limit:
+        )
+        { 'tests' => records.map(&:attributes), 'metadata' => PaginationService.pagination_metadata(records) }
       end
 
       def tests_registry(from: nil, to: nil, user: nil, page: nil, limit: nil)
-        users = user.nil? ? User.all : [User.find(user)]
-        data = []
-        users.each do |user|
-          data = if user.nil?
-                   PaginationService.paginate(Test.all, page:, limit:)
-                 else
-                   PaginationService.paginate(Test.where('creator', user), page:, limit:)
-                 end
-        end
+        data = PaginationService.paginate(Test.where(
+          created_date: from.to_date.beginning_of_day..to.to_date.end_of_day
+          ), page:, limit:)
+        data = data.where(creator: user) unless user.nil?
         {
           tests: data,
-          metadata: data.empty? ? data : PaginationService.pagination_metadata(data)
+          metadata: PaginationService.pagination_metadata(data)
         }
       end
 
