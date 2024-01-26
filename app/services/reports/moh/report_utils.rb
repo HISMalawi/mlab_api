@@ -42,6 +42,11 @@ module Reports
           "(#{ids.join(', ')})"
         end
 
+        def status_ids(actual_name)
+          ids = Status.where(name: actual_name).map(&:id)
+          "(#{ids.join(', ')})"
+        end
+
         def test_indicator_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
