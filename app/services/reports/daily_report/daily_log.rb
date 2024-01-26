@@ -10,56 +10,95 @@ module Reports
         def generate_report(report_type, options = {})
           case report_type
           when 'test_record'
-            test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
+            collection = query(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
+            test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type], collection)
           when 'patient_record'
-            patient_record(options[:from], options[:to])
+            collection = query(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
+            patient_record(options[:from], options[:to], collection)
           else
             []
           end
         end
 
-        def test_record(from, to, test_status, department, test_type)
+        def query(from, to, test_status, department, test_type)
           from = from.present? ? from : Date.today
           to = to.present? ? to : Date.today
-          test_status = (test_status.present?) ? "'#{test_status}'" : "'completed', 'verified'"
-          test_status_condition = test_status.downcase == "'all'" ? ' ' : "AND rrd.status_name IN (#{test_status})"
-          depart_condition = department.present? ? " AND rrd.department = '#{department}' " : ' '
-          test_type_condition = test_type.present? ? " AND rrd.test_type = '#{test_type}' " : ' '
-          collection = ReportRawData.find_by_sql("
-            SELECT * FROM report_raw_data rrd INNER JOIN (
-              SELECT test_id, MAX(status_created_date) status_created_date FROM report_raw_data
-                GROUP BY test_id
-            ) mrrd ON mrrd.test_id = rrd.test_id AND rrd.status_created_date=mrrd.status_created_date
-            AND rrd.created_date BETWEEN '#{from}' AND '#{to}' #{depart_condition} #{test_type_condition}
-            #{test_status_condition}
+          test_status_ids = (test_status.present?) ? report_utils.status_ids(test_status) : report_utils.status_ids(['completed', 'verified'])
+          test_status_condition = test_status.present? && test_status.downcase == "'all'" ? ' ' : "AND ts.status_id IN #{test_status_ids}"
+          depart_condition = department.present? ? " AND d.name = '#{department}' " : ' '
+          test_type_condition = test_type.present? ? " AND tt.name = '#{test_type}' " : ' '
+          Report.find_by_sql("
+            SELECT
+                t.id AS test_id,
+                c.id AS patient_no,
+                tr.result_date,
+                e.id AS visit_no,
+                CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+                o.accession_number,
+                s.name AS specimen,
+                tt.name AS test_type,
+                ti.name AS test_indicator_name,
+                d.name AS department,
+                tr.value AS result,
+                ts.created_date AS test_status_created_date,
+                os.created_date AS order_status_created_date,
+                ts.status_id AS test_status_id,
+                os.status_id AS order_status_id,
+                os.person_talked_to AS status_person_talked_to,
+                sr.description AS status_rejection_reason,
+                p.sex AS gender,
+                p.date_of_birth AS dob
+            FROM
+                tests t
+                    JOIN
+                orders o ON o.id = t.order_id
+                    JOIN
+                encounters e ON e.id = o.encounter_id
+                    JOIN
+                clients c ON c.id = e.client_id
+                    JOIN
+                people p ON p.id = c.person_id
+                    JOIN
+                specimen s ON s.id = t.specimen_id
+                    JOIN
+                test_types tt ON tt.id = t.test_type_id
+                    JOIN
+                test_indicators ti ON ti.test_type_id = tt.id
+                    JOIN
+                departments d ON d.id = tt.department_id
+                    JOIN
+                test_statuses ts ON ts.test_id = t.id
+                    JOIN
+                order_statuses os ON os.order_id = o.id
+                    LEFT JOIN
+                status_reasons sr ON os.status_reason_id = sr.id
+                    LEFT JOIN
+                test_results tr ON tr.test_id = t.id
+                    AND tr.test_indicator_id = ti.id
+                WHERE t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
+                #{test_status_condition}
+                #{depart_condition}
+                #{test_type_condition}
           ")
+        end
+
+        def test_record(from, to, test_status, department, test_type, collection)
           {
             from:,
             to:,
             test_status: test_status.gsub(/'/, '').split(', '),
             department:,
-            test_type: test_type,
+            test_type:,
             data: serialize_test_record(collection)
           }
         end
 
-        def patient_record(from, to)
-          from = from.present? ? from : Date.today.strftime("%Y-%m-%d")
-          to = to.present? ? to : Date.today.strftime("%Y-%m-%d")
-          collection = ReportRawData.find_by_sql("
-            SELECT DISTINCT(rrd.test_id) test_id, rrd.patient_no, rrd.patient_name, rrd.accession_number, rrd.specimen,
-            rrd.test_type, rrd.dob, rrd.gender
-             FROM report_raw_data rrd INNER JOIN (
-              SELECT test_id, MAX(status_created_date) status_created_date FROM report_raw_data
-                GROUP BY test_id, accession_number, test_type, specimen
-            ) mrrd ON mrrd.test_id = rrd.test_id AND rrd.status_created_date=mrrd.status_created_date
-            AND rrd.created_date BETWEEN '#{from}' AND '#{to}'
-          ")
+        def patient_record(from, to, collection)
           data = serialize_patient_record(collection)
           {
             from:,
             to:,
-            visits: data.length,
+            visits: data.uniq,
             data:
           }
         end
@@ -68,11 +107,11 @@ module Reports
           unique_hashes = {}
           collection.each do |hash|
             test_id = hash[:test_id]
-            result_date = hash[:result_date]
+            result_date = hash[:result_date].present? ? hash[:result_date] : ''
             test_indicator_name = hash[:test_indicator_name]
             performed_by = TestStatus.where(test_id:, status_id: 4).first
             authorized_by = TestStatus.where(test_id:, status_id: 5).first
-            result = hash[:result]
+            result = hash[:result].nil? ? '' : hash[:result]
             if unique_hashes[test_id].nil?
               unique_hashes[test_id] = {
                 test_id:,
@@ -114,12 +153,16 @@ module Reports
               patient_name: merged_test[:patient_name],
               accession_number: merged_test[:accession_number],
               specimen: merged_test[:specimen],
-              test_type:,
+              test_type: test_type.uniq,
               dob: merged_test[:dob],
               gender: merged_test[:gender]
             }
           end
           merged_tests
+        end
+
+        def report_utils
+          Reports::Moh::ReportUtils
         end
       end
     end
