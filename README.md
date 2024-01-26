@@ -159,7 +159,6 @@ rails db:create && rails db:migrate && rails db:seed
 
 ```shell
 bash load_iblis_data.sh
-rails r bin/moh_report_init.rb  # Run this in tmux as it may take time to complete
 ```
 
 ## Data Initialization for Sites without Previous iBLIS Installation
