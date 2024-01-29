@@ -130,19 +130,18 @@ module OrderService
       record = Order.where.not(accession_number: nil).order(id: :desc).limit(1).last.accession_number rescue nil
 
       unless record.blank?
-        max_acc_num = record[5..20].scan(/\d+/).first.to_i # First 5 chars are for facility code and 2-digit year
+        max_acc_num = record.match(/\d+/)[0].to_i
       end
 
       if max_acc_num < sentinel
         max_acc_num += 1
+        max_acc_num = year.to_i > max_acc_num.to_s.slice(0, 2).to_i ? 1 : max_acc_num
       else
         max_acc_num = 1
       end
-
       max_acc_num = max_acc_num.to_s.rjust(zero_padding, '0')
       mutex.unlock
       "#{code}#{year}#{max_acc_num}"
     end
-
   end
 end
