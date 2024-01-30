@@ -15,12 +15,14 @@ module ZebraPrinter #:nodoc:
     attr_accessor :x, :y
     attr_accessor :font_size, :font_horizontal_multiplier, :font_vertical_multiplier, :font_reverse
     attr_accessor :number_of_labels
+    attr_accessor :barc
 
     # Initialize a new label with height weight and orientation. The orientation
     # can be 'T' for top, or 'B' for bottom
-    def initialize(width = 801, height = 329, orientation = "T", number_of_labels = nil)
+    def initialize(width = 801, height = 329, orientation = "T", number_of_labels = nil, barc = nil)
       @width = width || 801
       @height = height || 329
+      @barc = barc || nil
       @gap = "026"
       @orientation = orientation || "T"
       @number_of_labels = number_of_labels || nil
@@ -91,9 +93,15 @@ module ZebraPrinter #:nodoc:
       @y = @top_margin
       @column = 0
       @output << "\nN\n"
-      @output << "q#{@width}\n"
-      @output << "Q#{@height}#{"," unless @gap.blank?}#{@gap}\n"
-      @output << "Z#{@orientation}\n"
+      if @barc.nil?
+        @output << "q#{@width}\n"
+        @output << "Q#{@height}#{"," unless @gap.blank?}#{@gap}\n"
+        @output << "Z#{@orientation}\n"
+      else
+        @output << "R216,0\n"
+        @output << "Z#{@orientation}\n"
+        @output << "S2\n"
+      end
     end
 
     # Append the final print command to the label and return the output

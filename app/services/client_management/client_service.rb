@@ -91,7 +91,7 @@ module ClientManagement
           source: 'local',
           client_id: client.id,
           first_name: person.first_name,
-          middle_name: person.middle_name,
+          middle_name: person.middle_name.nil? ? '' : person.middle_name,
           last_name: person.last_name,
           sex: person.sex,
           date_of_birth: person.date_of_birth,
