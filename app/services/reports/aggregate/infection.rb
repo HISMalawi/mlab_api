@@ -6,16 +6,19 @@ module Reports
       end
 
       def get_summary(from: Date.today.to_s, to: Date.today.to_s, department: nil)
-        department = department.present? ? " AND t.department_id = #{department}" : ''
+        department = department.present? ? " AND tt.department_id = #{department}" : ''
         query = <<-SQL
-          SELECT t.name, COUNT(DISTINCT ts.id) AS test_count
+          SELECT tt.name, COUNT(DISTINCT t.id) AS count
           FROM tests AS t
           JOIN test_types AS tt ON t.test_type_id = tt.id
-          WHERE (t.created_date BETWEEN '#{from.to_date.beggining_of_day}' AND '#{to.to_date.end_of_day}')
+          INNER JOIN
+          test_statuses ts ON ts.test_id = t.id
+          WHERE ts.status_id IN (4 , 5)
+          AND (t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}')
           #{department}
-          GROUP BY t.name
+          GROUP BY tt.name
         SQL
-        ActiveRecord::Base.connection.execute(query)
+        Report.find_by_sql(query).map(&:attributes)
       end
 
       private
@@ -67,7 +70,7 @@ module Reports
               ELSE tr.value
           END AS result,
           p.sex AS gender,
-          COUNT(t.id) AS total
+          COUNT(DISTINCT t.id) AS total
       FROM
           tests t
               INNER JOIN
@@ -92,7 +95,8 @@ module Reports
               AND tir.retired = 0
       WHERE
           ts.status_id IN (4 , 5)
-              AND (tir.max_age IS NULL OR tir.max_age > 0)
+              AND (tir.max_age IS NULL OR tir.max_age > 0) AND ti.name != 'Pack No.'
+              AND ti.name != 'Expiry Date' AND ti.name != 'Volume'
               AND tr.value IS NOT NULL AND tr.value NOT IN ('', '0') AND
               #{condition} GROUP BY test, measure, age_group, result, gender"
         )

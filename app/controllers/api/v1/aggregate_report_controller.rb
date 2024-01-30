@@ -36,7 +36,8 @@ module Api
         department = params[:department]
         service = Reports::Aggregate::Infection.new
         data = service.generate_report(from:, to:, department:)
-        render json: { data:  }
+        summary = service.get_summary(from:, to:, department:)
+        render json: { data: , summary: }
       end
 
       def turn_around_time
