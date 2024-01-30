@@ -114,35 +114,26 @@ module OrderService
 
     def generate_accession_number
       zero_padding = 8
-      sentinel = 99999999
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
       default_accession_number_length = config_data['default'].nil? ? true : config_data['default']["accession_number_length"]
-      unless default_accession_number_length
-        zero_padding = 6
-        sentinel = 999999
-      end
+      zero_padding = 6 unless default_accession_number_length
       mutex = Mutex.new if mutex.blank?
       mutex.lock
       max_acc_num = 0
       code = GlobalService.current_location['code']
       year = Time.current.year.to_s.last(2)
-
       record = Order.where.not(accession_number: nil).order(id: :desc).limit(1).last.accession_number rescue nil
-
-      unless record.blank?
-        max_acc_num = record[5..20].scan(/\d+/).first.to_i # First 5 chars are for facility code and 2-digit year
-      end
-
-      if max_acc_num < sentinel
-        max_acc_num += 1
-      else
+      if record.blank?
         max_acc_num = 1
+      else
+        max_acc_num = record.match(/\d+/)[0].to_i
+        max_acc_num += 1
+        max_yr = max_acc_num.to_s.slice!(0, 2).to_i
+        max_acc_num = year.to_i > max_yr ? 1 : max_acc_num.to_s[2..].to_i
       end
-
-      max_acc_num = max_acc_num.to_s.rjust(zero_padding, '0')
+      max_acc_num = max_acc_num.to_i.to_s.rjust(zero_padding, '0')
       mutex.unlock
       "#{code}#{year}#{max_acc_num}"
     end
-
   end
 end
