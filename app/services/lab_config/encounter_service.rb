@@ -25,11 +25,15 @@ module LabConfig
             end
 
             def get_encounter_type_facility_section(encounter_type_id)
-                EncounterTypeFacilitySectionMapping.joins(:encounter_type)
+                if EncounterType.find(encounter_type_id)&.name == 'Referral'
+                  Facility.all.select('id, name')
+                else
+                  EncounterTypeFacilitySectionMapping.joins(:encounter_type)
                                                    .joins(:facility_section)
                                                    .select("facility_sections.id,
                                                             facility_sections.name")
                                                    .where(encounter_type_id: encounter_type_id)
+                end
             end
               
         end
