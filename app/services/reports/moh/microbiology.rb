@@ -913,6 +913,8 @@ module Reports
             AND YEAR(t.created_date) = #{year}
             AND ts.status_id IN (4 , 5)
             AND t.voided = 0
+            AND tr.value NOT IN ('' , '0')
+            AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
