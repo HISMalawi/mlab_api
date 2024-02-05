@@ -68,7 +68,7 @@ module Reports
                 departments d ON d.id = tt.department_id
                     JOIN
                 test_statuses ts ON ts.test_id = t.id
-                    JOIN
+                    LEFT JOIN
                 order_statuses os ON os.order_id = o.id
                     LEFT JOIN
                 status_reasons sr ON os.status_reason_id = sr.id
