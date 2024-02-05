@@ -13,20 +13,32 @@ module Reports
         @to = to
         @department = department
         @sql = <<-SQL
-              SELECT
-                rrd.test_type, rrd.ward, MONTHNAME(rrd.created_date) AS month, COUNT(DISTINCT  rrd.test_id) AS count#{' '}
-              FROM
-                report_raw_data rrd
-              WHERE
-                rrd.department = '#{department}'
-                AND rrd.created_date BETWEEN '#{from}' AND '#{to}'
-                AND rrd.status_id IN (4,5)
-              GROUP BY  rrd.test_type, rrd.ward, MONTHNAME(rrd.created_date)
+            SELECT
+                tt.name test_type,
+                fs.name ward,
+                MONTHNAME(t.created_date) month,
+                COUNT(DISTINCT t.id) count
+            FROM
+                tests t
+                    JOIN
+                test_types tt ON tt.id = t.test_type_id AND tt.department_id = #{Department.find_by_name(@department)&.id}
+                    JOIN
+                orders o ON o.id = t.order_id
+                    JOIN
+                encounters e ON e.id = o.encounter_id
+                    JOIN
+                facility_sections fs ON fs.id = e.facility_section_id
+                    JOIN
+                test_statuses ts on ts.test_id = t.id
+            WHERE
+                  ts.status_id IN (4,5)
+                    AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
+            GROUP BY test_type , ward , MONTHNAME(t.created_date)
         SQL
       end
 
       def generalize_depart_report
-        data = ReportRawData.find_by_sql(@sql)
+        data = Report.find_by_sql(@sql)
         blood_bank_products = @department == 'Blood Bank' ? blood_bank_product_report : []
         critical_values = %w[Haematology Biochemistry Paediatric].include?(@department) ? department_critical_values : []
         {
@@ -42,70 +54,107 @@ module Reports
 
       def blood_bank_product_report
         sql_query = <<-SQL
-            SELECT
-            rrd.result AS blood_product,
-            rrd.ward ,
+        SELECT
+            tr.value blood_product,
+            fs.name ward,
             CASE
-              WHEN (rrd.created_date - rrd.dob) <= 5 THEN '0-5'
-              WHEN (rrd.created_date - rrd.dob) > 5 AND (rrd.created_date - rrd.dob) < 14 THEN '6-14'
-              ELSE '15-120'
-            END AS age_range,
-            CASE 
-              WHEN rrd.gender = 'M' THEN 'Male'
-              ELSE 'Female'
-            END AS gender,
-            COUNT(DISTINCT rrd.test_id) AS count
+                WHEN
+                    (TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5)
+                THEN
+                    '0-5'
+                WHEN
+                    (TIMESTAMPDIFF(YEAR,
+                          DATE(p.date_of_birth),
+                          DATE(t.created_date)) > 5)
+                          AND (TIMESTAMPDIFF(YEAR,
+                          DATE(p.date_of_birth),
+                          DATE(t.created_date)) <= 15)
+                  THEN
+                      '6-14'
+                  ELSE '15-120'
+              END age_range,
+              CASE
+                  WHEN p.sex = 'M' THEN 'Male'
+                  ELSE 'Female'
+              END AS gender,
+              COUNT(DISTINCT t.id) AS count
           FROM
-            report_raw_data rrd
+              tests t
+                  JOIN
+              test_types tt ON tt.id = t.test_type_id
+                  AND tt.department_id = #{Department.find_by_name(@department)&.id}
+                  JOIN
+              orders o ON o.id = t.order_id
+                  JOIN
+              encounters e ON e.id = o.encounter_id
+                  JOIN
+              clients c ON c.id = e.client_id
+                  JOIN
+              people p ON p.id = c.person_id
+                  JOIN
+              facility_sections fs ON fs.id = e.facility_section_id
+                  JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id
+                  JOIN
+              test_results tr ON tr.test_id = t.id
+                  AND ti.id = tr.test_indicator_id
           WHERE
-            rrd.result IN ('Whole Blood', 'Packed Red Cells', 'Platelets', 'FFPs', 'Cryoprecipitate')
-            AND rrd.created_date BETWEEN '#{from}' AND '#{to}' AND rrd.department = '#{department}'
-          GROUP BY CASE
-              WHEN (rrd.created_date - rrd.dob) <= 5 THEN '0-5'
-              WHEN (rrd.created_date - rrd.dob) > 5 AND (rrd.created_date - rrd.dob) < 14 THEN '6-14'
-              ELSE '15-120'
-            END,
-            CASE
-              WHEN rrd.gender = 'M' THEN 'Male'
-              ELSE 'Female'
-            END,
-            rrd.result,
-            rrd.ward
+              ts.status_id IN (4 , 5)
+                  AND tr.value IN ('Whole Blood' , 'Packed Red Cells',
+                  'Platelets',
+                  'FFPs',
+                  'Cryoprecipitate')
+                  AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
+          GROUP BY blood_product , ward , age_range , gender
         SQL
-        data = ReportRawData.find_by_sql(sql_query)
+        data = Report.find_by_sql(sql_query)
         serialize_blood_products(data)
       end
 
-      def department_critical_values
+      def department_critical_valuestotal_test_count
         sql_query = <<-SQL
-          SELECT
-          rrd.test_indicator_name,
-          rrd.ward,
-          CASE
-            WHEN ExtractNumberFromString(result) < tir.lower_range THEN 'Low'
-            WHEN ExtractNumberFromString(result) > tir.upper_range THEN 'High'
-            ELSE 'Normal'
-          END AS critical_value_level,
-          COUNT(DISTINCT rrd.test_id) AS count
-        FROM
-          report_raw_data rrd
-        INNER JOIN test_indicator_ranges tir ON
-          tir.test_indicator_id = rrd.test_indicator_id
-        WHERE
-          rrd.department = '#{department}'
-          AND rrd.created_date BETWEEN '#{from}' AND '#{to}'
-          AND rrd.status_id IN (4, 5)
-          AND (rrd.result IS NOT NULL OR rrd.result <> 0)
-        GROUP BY
-          rrd.test_indicator_name,
-          rrd.ward,
-          CASE
-            WHEN ExtractNumberFromString(result) < tir.lower_range THEN 'Low'
-            WHEN ExtractNumberFromString(result) > tir.upper_range THEN 'High'
-            ELSE 'Normal'
-          END
+          SELECT 
+              ti.name test_indicator_name,
+              fs.name ward,
+              CASE
+                      WHEN ExtractNumberFromString(tr.value) < tir.lower_range THEN 'Low'
+                      WHEN ExtractNumberFromString(tr.value) > tir.upper_range THEN 'High'
+                      ELSE 'Normal'
+                    END AS critical_value_level,
+              COUNT(DISTINCT t.id) AS count
+          FROM
+              tests t
+                  JOIN
+              test_types tt ON tt.id = t.test_type_id
+                  AND tt.department_id = #{Department.find_by_name(@department)&.id}
+                  JOIN
+              orders o ON o.id = t.order_id
+                  JOIN
+              encounters e ON e.id = o.encounter_id
+                  JOIN
+              clients c ON c.id = e.client_id
+                  JOIN
+              people p ON p.id = c.person_id
+                  JOIN
+              facility_sections fs ON fs.id = e.facility_section_id
+                  JOIN
+              test_statuses ts ON ts.test_id = t.id
+                  JOIN
+              test_indicators ti ON ti.test_type_id = t.test_type_id join test_indicator_ranges tir on tir.test_indicator_id = ti.id
+                  JOIN
+              test_results tr ON tr.test_id = t.id
+                  AND ti.id = tr.test_indicator_id
+          WHERE
+              ts.status_id IN (4 , 5)
+                  AND tr.value NOT IN ('', '0') AND tr.value IS NOT NULL
+                  AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
+          GROUP BY test_indicator_name,ward, critical_value_level;
         SQL
-        data = ReportRawData.find_by_sql(sql_query)
+        data = Report.find_by_sql(sql_query)
         serialize_critical_values(data)
       end
 
