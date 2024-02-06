@@ -46,7 +46,7 @@ sudo systemctl status redis-server
 # Installing MYSQL 8
 1. Install via docker
 ```
-   docker run --name mysql8 -e MYSQL_ROOT_PASSWORD=root -d -p 3308:3306 --restart always mysql:8.0.35
+   docker run --name mysql8 -e MYSQL_ROOT_PASSWORD=root -d -p 3308:3306 --restart always mysql:8.0.35 --default-authentication-plugin=mysql_native_password
 ```
 2. Check if correctly installed
 ```
