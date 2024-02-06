@@ -9,7 +9,7 @@ class OrderStatus < VoidableRecord
   belongs_to :status, optional: true
   belongs_to :status_reason, optional: true
 
-  after_commit :insert_into_report_data_raw, on: :create
+  # after_commit :insert_into_report_data_raw, on: :create
   # after_commit :update_moh_report_data, on: :create
   after_create :create_unsync_order
 

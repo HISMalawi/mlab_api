@@ -157,7 +157,6 @@ class Test < VoidableRecord
   end
 
   def update_elastic_search_index
-    es = ElasticSearchService.new
-    es.update_index
+    UpdateElasticsearchIndexJob.perform_async
   end
 end
