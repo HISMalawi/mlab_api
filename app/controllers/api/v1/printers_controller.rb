@@ -13,7 +13,9 @@ module Api
       end
     
       def create
-        @printer = Printer.create!(printer_params)
+        @printer = Printer.unscoped.find_or_create_by!(name: printer_params[:name])
+        @printer.update(voided: 0, voided_reason: nil, name: printer_params[:name],
+        description: printer_params[:description])
         render json: @printer, status: :created
       end
     
