@@ -17,11 +17,12 @@ module ClientManagement
 
       def create_client(params, identifiers)
         @client = params[:client][:uuid].blank? ? nil : Client.find_by_uuid(params[:client][:uuid])
+        middle_name = params[:person][:middle_name].blank? || params[:person][:middle_name].downcase == 'unknown' ? '' : params[:person][:middle_name]
         if @client.nil?
           ActiveRecord::Base.transaction do
             person = Person.create!(
               first_name: params[:person][:first_name],
-              middle_name: params[:person][:middle_name],
+              middle_name:,
               last_name: params[:person][:last_name],
               sex: params[:person][:sex],
               date_of_birth: params[:person][:date_of_birth],
