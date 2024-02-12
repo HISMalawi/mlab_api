@@ -5,6 +5,7 @@ After=syslog.target network.target
 [Service]
 Type=simple
 WorkingDirectory=/var/www/mlab_api
+Environment="RAILS_ENV=production"
 ExecStart=/bin/bash -lc 'cd /var/www/mlab_api && rvm use 3.2.0 && bundle exec sidekiq'
 User=meduser
 UMask=0002

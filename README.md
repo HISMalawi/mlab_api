@@ -149,7 +149,7 @@ bundle install
 2. Create and migrate the `mlab_api` database:
 
 ```shell
-rails db:create && rails db:migrate && rails db:seed
+RAILS_ENV=production rails db:create && rails db:migrate && rails db:seed #production can be replaced with development depending on your environment
 ```
 
 ## Data Migration for Sites with Previous iBLIS Installation
@@ -176,6 +176,7 @@ Run the following command to initialize the database:
    - `WorkingDirectory` with your app directory
    - `ExecStart` with your app directory (listed in the file)
    - `User` with your PC username
+   - `Environment` by replacing production with development if you are running the api in development mode
 
 ```shell
 vim sidekiq.service

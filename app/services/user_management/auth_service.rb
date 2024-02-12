@@ -9,7 +9,7 @@ module UserManagement
       def jwt_token_encode(payload)
         JWT.encode(payload, SECRET_KEY)
       end
-  
+
       def jwt_token_decode(token)
         decoded = JWT.decode(token, SECRET_KEY)[0]
         HashWithIndifferentAccess.new decoded

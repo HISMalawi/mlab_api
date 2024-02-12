@@ -11,7 +11,8 @@ module Nlims
                   FROM orders o
                   INNER JOIN unsync_orders uo ON
                     uo.test_or_order_id = o.id
-                  WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0"
+                  WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
+                  ORDER BY uo.id DESC LIMIT 100"
       )
       facility_details = GlobalService.current_location
       orders.each do |order|
@@ -127,7 +128,7 @@ module Nlims
           INNER JOIN tests t ON t.id = uo.test_or_order_id
           INNER JOIN orders o ON t.order_id  = o.id
           WHERE
-            uo.data_level = 'test' AND uo.sync_status = 0 LIMIT 100
+            uo.data_level = 'test' AND uo.sync_status = 0 ORDER BY uo.id DESC LIMIT 100
       ")
       tests.each do |test_res|
         Rails.logger.info('=======Updating tests in nlims=============')
