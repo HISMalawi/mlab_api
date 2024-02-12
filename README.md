@@ -121,7 +121,7 @@ sudo systemctl enable elasticsearch
 
 1. For a new fresh setup without a previous iBLIS installation:
 
-   - Only set the database connections for the `default` block in `database.yml`.
+   - Only set the database connections for the `default` block in `database.yml` or the database name in either production or development block depending on the environment your application will be run in.
 
 2. For sites that had iBLIS previously:
 
