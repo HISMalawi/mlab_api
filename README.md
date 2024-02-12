@@ -134,6 +134,7 @@ Copy the `master.key.example` file in the `config` folder to `master.key`:
 
 ```shell
 cp master.key.example master.key
+export SECRET_KEY_BASE=$(bundle exec rails secret)
 ```
 
 ## Install Dependencies and Set Up `mlab_api` Database

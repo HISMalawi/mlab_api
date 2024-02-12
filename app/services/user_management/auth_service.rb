@@ -2,7 +2,7 @@
 
 module UserManagement
   module AuthService
-    SECRET_KEY = Rails.application.secrets.secret_key_base
+    SECRET_KEY = ENV['SECRET_KEY_BASE'] || Rails.application.secrets.secret_key_base
     TOKEN_VALID_TIME = 6.hours
 
     class << self
