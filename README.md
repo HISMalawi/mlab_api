@@ -170,6 +170,43 @@ Run the following command to initialize the database:
 ./bin/initialize_db.sh development # development can be replace by production or test depending on the enviroment you have set you application
 ```
 
+## Configuring mlab_api PUMA serivice
+
+1. Edit the `mlab_api.service` file and replace the following placeholders:
+   - `WorkingDirectory` with your app directory
+   - `ExecStartPre` with your app directory (listed in the file)
+   - `ExecStart` with your app directory (listed in the file)
+   - `User` with your PC username
+   - `Environment="RAILS_ENV=production"` by replacing production with development if you are running the api in development mode
+
+```shell
+vim mlab_api.service
+```
+2. Copy the `mlab_api.service` file to `/etc/systemd/system`:
+
+```shell
+cp mlab_api.service /etc/systemd/system
+```
+
+3. Start the mlab_api puma service:
+
+```shell
+sudo systemctl daemon-reload
+sudo systemctl start mlab_api.service
+```
+
+4. Verify the status of the mlab_api puma service:
+
+```shell
+sudo systemctl status mlab_api.service
+```
+
+5. Enable the mlab_api puma service to start on system boot:
+
+```shell
+sudo systemctl enable mlab_api.service
+```
+
 ## Configure Sidekiq Service
 
 1. Edit the `sidekiq.service` file and replace the following placeholders:
@@ -191,6 +228,7 @@ cp sidekiq.service /etc/systemd/system
 3. Start the Sidekiq service:
 
 ```shell
+sudo systemctl daemon-reload
 sudo systemctl start sidekiq.service
 ```
 
