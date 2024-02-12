@@ -1,3 +1,8 @@
+require_relative '../iblis/iblis_service/drug_organism_service.rb'
+require_relative '../iblis/iblis_service/load_client_service.rb'
+require_relative '../iblis/iblis_service/measure_service.rb'
+require_relative '../iblis/iblis_service/status_service.rb'
+
 Rails.logger = Logger.new(STDOUT)
 User.current = User.first
 
