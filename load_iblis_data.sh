@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Set default environment
+DEFAULT_ENVIRONMENT="production"
+echo "Type the environment e.g development (default is $DEFAULT_ENVIRONMENT, press Enter to use default):"
+read environment
+
+# Set environment to default if empty
+if [ -z "$environment" ]; then
+    echo "Using default environment $DEFAULT_ENVIRONMENT"
+    environment="$DEFAULT_ENVIRONMENT"
+else
+    if [ "$environment" = "development" ]; then
+        echo "You are running in development environment."
+    else
+        if [ "$environment" != "development" ] && [ "$environment" != "production" ]; then
+            echo "Invalid environment, environment should either be production or development. Exiting..."
+            exit 1
+        fi
+    fi
+fi
+
+
 echo "=====iBLIS -> MLAB Data Migration===="
 echo "1. Initialize migration"
 echo "2. Migrate users data"
@@ -21,38 +42,27 @@ read steps
 echo "==== starting migrations ===="
 if [ -z "$steps" ]; then
     # Run all steps if no input is provided
-    RAILS_ENV=production rails r iblis_migration/iblis/init_migration.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_users_data.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_clients.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/meta_data.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/migrate_intruments.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_encounter_types.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_facility_data.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_encounter.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_orders.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_test.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_test_results.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/culture_observations.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/drug_susceptibilities.rb &&
-    RAILS_ENV=production rails r iblis_migration/iblis/load_order_print_trail.rb
+    for script in iblis_migration/iblis/init_migration.rb iblis_migration/iblis/load_users_data.rb iblis_migration/iblis/load_clients.rb iblis_migration/iblis/meta_data.rb iblis_migration/iblis/migrate_intruments.rb iblis_migration/iblis/load_encounter_types.rb iblis_migration/iblis/load_facility_data.rb iblis_migration/iblis/load_encounter.rb iblis_migration/iblis/load_orders.rb iblis_migration/iblis/load_test.rb iblis_migration/iblis/load_test_results.rb iblis_migration/iblis/culture_observations.rb iblis_migration/iblis/drug_susceptibilities.rb iblis_migration/iblis/load_order_print_trail.rb; do
+        RAILS_ENV=$environment rails r $script
+    done
 else
     # Run selected steps based on user input
     for step in $steps; do
         case $step in
-            1) RAILS_ENV=production rails r iblis_migration/iblis/init_migration.rb ;;
-            2) RAILS_ENV=production rails r iblis_migration/iblis/load_users_data.rb ;;
-            3) RAILS_ENV=production rails r iblis_migration/iblis/load_clients.rb ;;
-            4) RAILS_ENV=production rails r iblis_migration/iblis/meta_data.rb ;;
-            5) RAILS_ENV=production rails r iblis_migration/iblis/migrate_intruments.rb ;;
-            6) RAILS_ENV=production rails r iblis_migration/iblis/load_encounter_types.rb ;;
-            7) RAILS_ENV=production rails r iblis_migration/iblis/load_facility_data.rb ;;
-            8) RAILS_ENV=production rails r iblis_migration/iblis/load_encounter.rb ;;
-            9) RAILS_ENV=production rails r iblis_migration/iblis/load_orders.rb ;;
-            10) RAILS_ENV=production rails r iblis_migration/iblis/load_test.rb ;;
-            11) RAILS_ENV=production rails r iblis_migration/iblis/load_test_results.rb ;;
-            12) RAILS_ENV=production rails r iblis_migration/iblis/culture_observations.rb ;;
-            13) RAILS_ENV=production rails r iblis_migration/iblis/drug_susceptibilities.rb;;
-            14) RAILS_ENV=production rails r iblis_migration/iblis/load_order_print_trail.rb ;;
+            1) RAILS_ENV=$environment rails r iblis_migration/iblis/init_migration.rb ;;
+            2) RAILS_ENV=$environment rails r iblis_migration/iblis/load_users_data.rb ;;
+            3) RAILS_ENV=$environment rails r iblis_migration/iblis/load_clients.rb ;;
+            4) RAILS_ENV=$environment rails r iblis_migration/iblis/meta_data.rb ;;
+            5) RAILS_ENV=$environment rails r iblis_migration/iblis/migrate_intruments.rb ;;
+            6) RAILS_ENV=$environment rails r iblis_migration/iblis/load_encounter_types.rb ;;
+            7) RAILS_ENV=$environment rails r iblis_migration/iblis/load_facility_data.rb ;;
+            8) RAILS_ENV=$environment rails r iblis_migration/iblis/load_encounter.rb ;;
+            9) RAILS_ENV=$environment rails r iblis_migration/iblis/load_orders.rb ;;
+            10) RAILS_ENV=$environment rails r iblis_migration/iblis/load_test.rb ;;
+            11) RAILS_ENV=$environment rails r iblis_migration/iblis/load_test_results.rb ;;
+            12) RAILS_ENV=$environment rails r iblis_migration/iblis/culture_observations.rb ;;
+            13) RAILS_ENV=$environment rails r iblis_migration/iblis/drug_susceptibilities.rb ;;
+            14) RAILS_ENV=$environment rails r iblis_migration/iblis/load_order_print_trail.rb ;;
             *) echo "Invalid step number: $step" ;;
         esac
     done
