@@ -5,17 +5,19 @@ module Api
     # Test controller
     class TestsController < ApplicationController
       def index
-        tests = paginate(
-          test_service.find_tests(
-            params[:search],
-            params[:department_id],
-            params[:status],
-            params[:start_date],
-            params[:end_date]
-          )
+        tests = test_service.find_tests(
+          params[:search],
+          params[:department_id],
+          params[:status],
+          params[:start_date],
+          params[:end_date],
+          params[:per_page],
+          params[:page]
         )
-        tests = tests.as_json(minimal: true) if params.include?(:minimal)
-        render json: tests
+        # tests = tests.as_json(minimal: true) if params.include?(:minimal)
+        render json: {data: tests, meta: {
+          current_page: 1, next_page: 2, prev_page: nil, total_pages: 21, total_count: 2321}
+        }
       end
 
       def show

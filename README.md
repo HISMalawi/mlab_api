@@ -245,5 +245,8 @@ sudo systemctl enable sidekiq.service
 ```
 6. Check if sidekiq and redis are running properly, Navigate to: SERVER_IP_ADDRESS:API_PORT/sidekiq
 
-
+## Elasticsearch Indexing available data
+```shell
+rails r iblis_migration/elasticsearch_index.rb
+```
 Congratulations! You have successfully installed and set up `mlab_api`.

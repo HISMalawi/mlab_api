@@ -6,8 +6,9 @@ require 'bantu_soundex'
 module Tests
   # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, limit = 1000)
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page = 25, page = 1)
       default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
+      offset = (page.to_i - 1) * per_page.to_i
       tests = if query.present?
                 use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
                 if use_elasticsearch
@@ -21,15 +22,137 @@ module Tests
                   Test.where(id: search_string_test_ids(query))
                 end
               else
-                Test.limit(limit).order('tests.created_date DESC')
+                Test.limit(1000).order('tests.id DESC')
               end
       tests = filter_by_date(tests, start_date, end_date) if start_date.present?
       if department_id.present? && not_reception?(department_id)
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
-      tests.order('tests.created_date DESC')
+      tests = tests.order('tests.id DESC').limit(per_page).offset(offset)
+      records = Report.find_by_sql(query(process_ids(tests.pluck('id')), process_ids(tests.pluck('order_id'))))
+      serialize_tests(records)
     end
+
+  def serialize_tests(records)
+    data = []
+    records.each do |record|
+      data << {
+        id: record['id'],
+        order_id: record['order_id'],
+        specimen_id: record['specimen_id'],
+        specimen_type: record['specimen'],
+        test_panel_id: record['test_panel_id'],
+        test_panel_name: record['test_panel_name'],
+        created_date: record['created_date'],
+        request_origin: record['request_origin'],
+        requesting_ward: record['requesting_ward'],
+        accession_number: record['accession_number'],
+        test_type_id: record['test_type_id'],
+        test_type_name: record['test_type'],
+        tracking_number: record['tracking_number'],
+        voided: record['voided'],
+        request_by: record['requested_by'],
+        completed_by: {},
+        client: {
+          id: record['patient_no'],
+          first_name: record['first_name'],
+          middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
+          last_name: record['last_name'],
+          sex: record['sex'],
+          date_of_birth: record['date_of_birth'],
+          birth_date_estimated: record['birth_date_estimated']
+        },
+        status: record['t_status'],
+        order_status: record['o_status']
+      }
+    end
+    data
+  end
+
+  def process_ids(ids)
+    ids.empty? ? "('unknown')" : "(#{ids.join(', ')})"
+  end
+
+  def query(tests_ids, order_ids)
+    "SELECT
+      t.id,
+      t.order_id,
+      t.voided,
+      t.test_type_id,
+      p.id AS patient_no,
+      p.first_name,
+      p.middle_name,
+      p.last_name,
+      p.sex,
+      o.requested_by,
+      p.date_of_birth,
+      p.birth_date_estimated,
+      o.id AS order_id,
+      o.accession_number,
+      o.tracking_number,
+      et.name AS request_origin,
+      t.created_date,
+      t.test_panel_id,
+      tp.name AS test_panel_name,
+      tt.name AS test_type,
+      fs.name AS requesting_ward,
+      osd.id AS o_status_id,
+      osd.name AS o_status,
+      sd.id AS t_status_id,
+      sd.name AS t_status,
+      sp.name AS specimen,
+      sp.id AS specimen_id
+  FROM
+      tests t
+          INNER JOIN
+      test_types tt ON tt.id = t.test_type_id
+          AND tt.retired = 0
+          INNER JOIN
+      specimen sp ON t.specimen_id = sp.id AND sp.retired = 0
+          INNER JOIN
+      orders o ON t.order_id = o.id AND o.voided = 0
+          AND t.voided = 0
+          INNER JOIN
+      encounters e ON e.id = o.encounter_id AND e.voided = 0
+          INNER JOIN
+      encounter_types et ON e.encounter_type_id = et.id AND et.voided = 0
+          INNER JOIN
+      facility_sections fs ON fs.id = e.facility_section_id
+          INNER JOIN
+      clients c ON c.id = e.client_id AND c.voided = 0
+          INNER JOIN
+      people p ON p.id = c.person_id AND p.voided = 0
+          LEFT JOIN
+      test_panels tp ON tp.id = t.test_panel_id AND tp.retired = 0
+          INNER JOIN
+      test_statuses s ON t.id = s.test_id
+          INNER JOIN
+      (SELECT
+          test_id, MAX(created_date) AS max_created_at
+      FROM
+          test_statuses
+      WHERE
+          test_id IN #{tests_ids}
+      GROUP BY test_id) AS latest_test_status ON latest_test_status.test_id = s.test_id
+          AND latest_test_status.max_created_at = s.created_date
+          INNER JOIN
+      statuses sd ON s.status_id = sd.id
+          LEFT JOIN
+      order_statuses os ON o.id = os.order_id
+          INNER JOIN
+      (SELECT
+          order_id, MAX(created_date) AS max_o_created_at
+      FROM
+          order_statuses
+      WHERE
+          order_id IN #{order_ids}
+      GROUP BY order_id) AS latest_o_status ON latest_o_status.order_id = os.order_id
+          AND latest_o_status.max_o_created_at = os.created_date
+          INNER JOIN
+      statuses osd ON os.status_id = osd.id
+      WHERE t.id IS NOT NULL ORDER BY t.id DESC"
+  end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
       if order_id.present?
@@ -126,7 +249,7 @@ module Tests
         OR o.tracking_number = '#{q_string}')
         OR t.order_id IN (#{client_query(q_string)}) OR t.test_type_id IN
         (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{q_string}%')
-        ORDER BY t.created_date DESC LIMIT 1000").pluck(:id)
+        ORDER BY t.id DESC LIMIT 1000").pluck(:id)
     end
 
     def client_query(query)
