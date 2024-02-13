@@ -6,9 +6,10 @@ require 'bantu_soundex'
 module Tests
   # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page = 25, page = 1)
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page = 25,
+                   page = 1)
       default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
-      offset = (page.to_i - 1) * per_page.to_i
+      # offset = (page.to_i - 1) * per_page.to_i
       tests = if query.present?
                 use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
                 if use_elasticsearch
@@ -29,53 +30,62 @@ module Tests
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
-      tests = tests.order('tests.id DESC').limit(per_page).offset(offset)
+      tests = tests.order('tests.id DESC').page(page).per(per_page)
       records = Report.find_by_sql(query(process_ids(tests.pluck('id')), process_ids(tests.pluck('order_id'))))
-      serialize_tests(records)
-    end
-
-  def serialize_tests(records)
-    data = []
-    records.each do |record|
-      data << {
-        id: record['id'],
-        order_id: record['order_id'],
-        specimen_id: record['specimen_id'],
-        specimen_type: record['specimen'],
-        test_panel_id: record['test_panel_id'],
-        test_panel_name: record['test_panel_name'],
-        created_date: record['created_date'],
-        request_origin: record['request_origin'],
-        requesting_ward: record['requesting_ward'],
-        accession_number: record['accession_number'],
-        test_type_id: record['test_type_id'],
-        test_type_name: record['test_type'],
-        tracking_number: record['tracking_number'],
-        voided: record['voided'],
-        request_by: record['requested_by'],
-        completed_by: {},
-        client: {
-          id: record['patient_no'],
-          first_name: record['first_name'],
-          middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
-          last_name: record['last_name'],
-          sex: record['sex'],
-          date_of_birth: record['date_of_birth'],
-          birth_date_estimated: record['birth_date_estimated']
-        },
-        status: record['t_status'],
-        order_status: record['o_status']
+      {
+        data: serialize_tests(records),
+        meta: {
+          current_page: tests.current_page,
+          next_page: tests.next_page,
+          prev_page: tests.prev_page,
+          total_pages: tests.total_pages,
+          total_count: tests.total_count
+        }
       }
     end
-    data
-  end
 
-  def process_ids(ids)
-    ids.empty? ? "('unknown')" : "(#{ids.join(', ')})"
-  end
+    def serialize_tests(records)
+      data = []
+      records.each do |record|
+        data << {
+          id: record['id'],
+          order_id: record['order_id'],
+          specimen_id: record['specimen_id'],
+          specimen_type: record['specimen'],
+          test_panel_id: record['test_panel_id'],
+          test_panel_name: record['test_panel_name'],
+          created_date: record['created_date'],
+          request_origin: record['request_origin'],
+          requesting_ward: record['requesting_ward'],
+          accession_number: record['accession_number'],
+          test_type_id: record['test_type_id'],
+          test_type_name: record['test_type'],
+          tracking_number: record['tracking_number'],
+          voided: record['voided'],
+          request_by: record['requested_by'],
+          completed_by: {},
+          client: {
+            id: record['patient_no'],
+            first_name: record['first_name'],
+            middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
+            last_name: record['last_name'],
+            sex: record['sex'],
+            date_of_birth: record['date_of_birth'],
+            birth_date_estimated: record['birth_date_estimated']
+          },
+          status: record['t_status'],
+          order_status: record['o_status']
+        }
+      end
+      data
+    end
 
-  def query(tests_ids, order_ids)
-    "SELECT
+    def process_ids(ids)
+      ids.empty? ? "('unknown')" : "(#{ids.join(', ')})"
+    end
+
+    def query(tests_ids, order_ids)
+      "SELECT
       t.id,
       t.order_id,
       t.voided,
@@ -152,7 +162,7 @@ module Tests
           INNER JOIN
       statuses osd ON os.status_id = osd.id
       WHERE t.id IS NOT NULL ORDER BY t.id DESC"
-  end
+    end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
       if order_id.present?
@@ -185,10 +195,11 @@ module Tests
       from = from.present? ? Date.parse(from) : to - 30
       department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
       test_count = if department == 'Lab Reception'
-                    Test.where(created_date: from.beginning_of_day..to.end_of_day).count
-                  else
-                    Test.joins(:test_type).where(test_type: {department_id: department_id}, created_date: from.beginning_of_day..to.end_of_day).count
-                  end
+                     Test.where(created_date: from.beginning_of_day..to.end_of_day).count
+                   else
+                     Test.joins(:test_type).where(test_type: { department_id: },
+                                                  created_date: from.beginning_of_day..to.end_of_day).count
+                   end
       {
         from:,
         to:,
