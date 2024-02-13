@@ -15,9 +15,7 @@ module Api
           params[:page]
         )
         # tests = tests.as_json(minimal: true) if params.include?(:minimal)
-        render json: {data: tests, meta: {
-          current_page: 1, next_page: 2, prev_page: nil, total_pages: 21, total_count: 2321}
-        }
+        render json: tests
       end
 
       def show
