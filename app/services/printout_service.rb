@@ -8,7 +8,7 @@ module PrintoutService
       barcode_label(person, order, false).print(2)
     end
 
-    def barcode_label(person, order, is_accession_number= true)
+    def barcode_label(person, order, is_accession_number = true)
       tests = order.tests.map do |test_|
         if test_.short_name.blank?
           test_.test_type.name
@@ -18,7 +18,7 @@ module PrintoutService
       end
       data = is_accession_number ? order.accession_number.scan(/\d+/).first.to_i : order.tracking_number
       f_number = is_accession_number ? order.accession_number : order.tracking_number
-      label = ZebraPrinter::Label.new(801, 329, "T", nil, true)
+      label = ZebraPrinter::Label.new(801, 329, 'T', nil, true)
       # left_align_from = 40
       label.draw_text(person.fullname.to_s, 20, 3, 0, 2, 1, 1)
       # label.draw_text("#{person.date_of_birth&.strftime('%d/%b/%Y')} #{person.sex}", 6 + left_align_from, 29, 0, 1, 1, 2)
@@ -32,20 +32,32 @@ module PrintoutService
       label
     end
 
-    def print_zebra_report(person, order, test_ids)
+    def print_zebra_report(person, order, _test_ids, is_cross_match)
       accession_number = order.accession_number
       patient = person.fullname
       date = Date.today.strftime
       ward = order.encounter&.facility_section&.name
-      by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id), status_id: 4).first&.creator).first&.person&.fullname
-      pack_abo_group = TestResult.where(
-        test_id: Test.where(order_id: order.id),
-        test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
-      ).first&.value
-      test_results = TestResult.joins(:test_indicator).where(
-        test_id: Test.where(order_id: order.id)
-      ).where("test_indicators.name <> 'Grouping'").select('test_results.id, test_indicators.name, test_results.value,
-        test_results.result_date')
+      by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id),
+                                           status_id: 4).first&.creator).first&.person&.fullname
+      pack_abo_group = ''
+      test_results = []
+      if is_cross_match
+        test_type_ids = TestType.where("name LIKE '%cross-match%'").pluck('id')
+        test_results = TestResult.joins(:test_indicator).where(
+          test_id: Test.where(order_id: order.id,
+                              test_type_id: test_type_ids)
+        ).select('test_results.id, test_indicators.name, test_results.value,
+          test_results.result_date')
+      else
+        pack_abo_group = TestResult.where(
+          test_id: Test.where(order_id: order.id),
+          test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
+        ).first&.value
+        test_results = TestResult.joins(:test_indicator).where(
+          test_id: Test.where(order_id: order.id)
+        ).where("test_indicators.name <> 'Grouping'").select('test_results.id, test_indicators.name, test_results.value,
+          test_results.result_date')
+      end
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
       left_align_from = 25
@@ -104,12 +116,11 @@ module PrintoutService
     end
 
     def tracking_a4_print_count(order_ids)
-      if order_ids.is_a?(Array)
-        order_ids.each do |order_id|
-          ClientOrderPrintTrail.create!(order_id:)
-        end
+      return unless order_ids.is_a?(Array)
+
+      order_ids.each do |order_id|
+        ClientOrderPrintTrail.create!(order_id:)
       end
     end
   end
-
 end
