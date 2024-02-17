@@ -30,16 +30,16 @@ module Tests
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
-      tests = tests.order('tests.id DESC').page(page).per(per_page)
+      tests = tests.order('tests.id DESC').page(page).per(per_page.to_i + 1)
       records = Report.find_by_sql(query(process_ids(tests.pluck('id')), process_ids(tests.pluck('order_id'))))
       {
         data: serialize_tests(records),
         meta: {
-          current_page: tests.current_page,
-          next_page: tests.next_page,
-          prev_page: tests.prev_page,
-          total_pages: tests.total_pages,
-          total_count: tests.total_count
+          current_page: page,
+          next_page: records.count > per_page.to_i ? page.to_i + 1 : page,
+          prev_page: page.to_i - 1,
+          total_pages: records.count > per_page.to_i ? page.to_i + 1 : page,
+          total_count: records.count > per_page.to_i ? per_page.to_i * (page.to_i + 1) : ((per_page.to_i * (page.to_i - 1)) + records.count)
         }
       }
     end
@@ -249,7 +249,7 @@ module Tests
 
     def filter_by_date(tests, start_date, end_date)
       end_date = end_date.present? ? end_date : Date.today.strftime('%Y-%m-%d')
-      tests.where(created_date: Date.parse(start_date).beginning_of_day..Date.parse(end_date).end_of_day)
+      tests.where('created_date >= ? AND created_date <= ?', start_date.to_date.beginning_of_day, end_date.to_date.end_of_day)
     end
 
     def search_string_test_ids(q_string)
