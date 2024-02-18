@@ -23,7 +23,7 @@ module Tests
                   Test.where(id: search_string_test_ids(query))
                 end
               else
-                Test.where("created_date > '#{15.days.ago.to_date}'").order(test_id: :desc)
+                Test.where("created_date > '#{90.days.ago.to_date}'")
               end
       tests = filter_by_date(tests, start_date, end_date) if start_date.present?
       if department_id.present? && not_reception?(department_id)
