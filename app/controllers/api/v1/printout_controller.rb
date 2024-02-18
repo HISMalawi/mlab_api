@@ -22,9 +22,10 @@ class Api::V1::PrintoutController < ApplicationController
     end
 
     def print_zebra_report
+      is_cross_match = params[:is_cross_match].blank? ? false : true
       order = Order.find(params[:order_id])
       person = order.encounter.client.person
-      label  = PrintoutService.print_zebra_report(person, order, params[:tests])
+      label  = PrintoutService.print_zebra_report(person, order, params[:tests], is_cross_match)
       send_data label, type: "application/label;charset=utf-8",
                       stream: false,
                       filename: "#{person.id}-#{SecureRandom.hex(12)}.lbl",

@@ -19,8 +19,12 @@ module MachineService
 
     # need to read json file from the local disk and parse it
     def read_json
-      file = File.read("./tmp/machine_results/#{order.accession_number}.json")
-      JSON.parse(file)
+      if File.exist?("./tmp/machine_results/#{order.accession_number}.json")
+        file = File.read("./tmp/machine_results/#{order.accession_number}.json")
+        JSON.parse(file)
+      else
+        []
+      end
     rescue JSON::ParserError => e
       Rails.logger.error(e)
       []
