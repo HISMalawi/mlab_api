@@ -6,8 +6,9 @@ require 'bantu_soundex'
 module Tests
   # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page = 25,
-                   page = 1)
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page, page)
+      per_page ||= 25
+      page ||= 1
       default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
       tests = if query.present?
                 use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
