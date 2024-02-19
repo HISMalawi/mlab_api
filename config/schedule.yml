@@ -1,6 +1,6 @@
 moh_report_job:
   name: "Update Moh Report Job Every 4hrs"
-  cron: "0 */4 * * *"
+  cron: "55 23 * * *"
   class: "MohReportJob"
   queue: default
 
