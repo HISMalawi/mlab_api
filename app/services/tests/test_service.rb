@@ -34,8 +34,9 @@ module Tests
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
-      tests = tests.order('tests.id DESC').page(page).per(per_page.to_i + 1)
-      tests = tests.order('tests.id DESC').limit(per_page) if tests.empty? && query.present?
+      tests_ = tests
+      tests = tests_.order('tests.id DESC').page(page).per(per_page.to_i + 1)
+      tests = tests_.order('tests.id DESC').limit(per_page) if tests.empty? && query.present?
       records = Report.find_by_sql(query(process_ids(tests.pluck('id')), process_ids(tests.pluck('order_id'))))
       {
         data: serialize_tests(records),
