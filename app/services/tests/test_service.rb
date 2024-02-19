@@ -9,15 +9,18 @@ module Tests
     def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page = 25,
                    page = 1)
       default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
-      # offset = (page.to_i - 1) * per_page.to_i
       tests = if query.present?
                 use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
                 if use_elasticsearch
                   es = ElasticSearchService.new
-                  if es.ping
-                    Test.where(id: es.search(query))
-                  else
+                  if archive_department?(department_id)
                     Test.where(id: search_string_test_ids(query))
+                  else
+                    if es.ping
+                      Test.where(id: es.search(query))
+                    else
+                      Test.where(id: search_string_test_ids(query))
+                    end
                   end
                 else
                   Test.where(id: search_string_test_ids(query))
@@ -31,6 +34,7 @@ module Tests
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
       tests = tests.order('tests.id DESC').page(page).per(per_page.to_i + 1)
+      tests = tests.order('tests.id DESC').limit(per_page) if tests.empty? && query.present?
       records = Report.find_by_sql(query(process_ids(tests.pluck('id')), process_ids(tests.pluck('order_id'))))
       {
         data: serialize_tests(records),
@@ -231,7 +235,11 @@ module Tests
     private
 
     def not_reception?(department_id)
-      Department.find(department_id).name != 'Lab Reception'
+      Department.find(department_id).name != 'Lab Reception' && !archive_department?(department_id)
+    end
+
+    def archive_department?(department_id)
+      Department.find(department_id).name == 'Archives'
     end
 
     def search_by_test_status(tests, query)
