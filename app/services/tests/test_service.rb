@@ -16,12 +16,10 @@ module Tests
                   es = ElasticSearchService.new
                   if archive_department?(department_id)
                     Test.where(id: search_string_test_ids(query))
+                  elsif es.ping
+                    Test.where(id: es.search(query))
                   else
-                    if es.ping
-                      Test.where(id: es.search(query))
-                    else
-                      Test.where(id: search_string_test_ids(query))
-                    end
+                    Test.where(id: search_string_test_ids(query))
                   end
                 else
                   Test.where(id: search_string_test_ids(query))
@@ -53,35 +51,7 @@ module Tests
     def serialize_tests(records)
       data = []
       records.each do |record|
-        data << {
-          id: record['id'],
-          order_id: record['order_id'],
-          specimen_id: record['specimen_id'],
-          specimen_type: record['specimen'],
-          test_panel_id: record['test_panel_id'],
-          test_panel_name: record['test_panel_name'],
-          created_date: record['created_date'],
-          request_origin: record['request_origin'],
-          requesting_ward: record['requesting_ward'],
-          accession_number: record['accession_number'],
-          test_type_id: record['test_type_id'],
-          test_type_name: record['test_type'],
-          tracking_number: record['tracking_number'],
-          voided: record['voided'],
-          request_by: record['requested_by'],
-          completed_by: completed_by(record['id']),
-          client: {
-            id: record['patient_no'],
-            first_name: record['first_name'],
-            middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
-            last_name: record['last_name'],
-            sex: record['sex'],
-            date_of_birth: record['date_of_birth'],
-            birth_date_estimated: record['birth_date_estimated']
-          },
-          status: record['t_status'],
-          order_status: record['o_status']
-        }
+        data.push(serialize_test(record, true))
       end
       data
     end
@@ -257,7 +227,8 @@ module Tests
 
     def filter_by_date(tests, start_date, end_date)
       end_date = end_date.present? ? end_date : Date.today.strftime('%Y-%m-%d')
-      tests.where('created_date >= ? AND created_date <= ?', start_date.to_date.beginning_of_day, end_date.to_date.end_of_day)
+      tests.where('created_date >= ? AND created_date <= ?', start_date.to_date.beginning_of_day,
+                  end_date.to_date.end_of_day)
     end
 
     def search_string_test_ids(q_string)
@@ -281,6 +252,87 @@ module Tests
           OR (p.first_name_soundex = '#{last_name}' AND p.last_name_soundex = '#{first_name}') OR (
           CONCAT(p.first_name_soundex, p.last_name_soundex) = '#{first_name}'
         )))))"
+    end
+
+    def machine_oriented?(test_type_id)
+      !InstrumentTestTypeMapping.where(test_type_id:).empty?
+    end
+
+    def test_indicators(test_id, test_type_id)
+      json_response = []
+      records = TestIndicator.find_by_sql("
+                  SELECT
+                    ti.id, ti.name, ti.test_indicator_type,
+                    ti.unit, ti.description, tr.id AS result_id,
+                    tr.value, tr.result_date, tr.machine_name
+                  FROM test_indicators ti LEFT JOIN test_results tr ON ti.id = tr.test_indicator_id
+                    AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
+                  WHERE ti.test_type_id = #{test_type_id}")
+      records.each do |record|
+        json_response << {
+          id: record['id'],
+          name: record['name'],
+          test_indicator_type: indicator_type(record['test_indicator_type']),
+          unit: record['unit'],
+          description: record['description'],
+          result: {
+            id: record['result_id'],
+            value: record['value'],
+            result_date: record['result_date'],
+            machine_name: record['machine_name']
+          },
+          indicator_ranges: indicator_ranges(record['id'])
+        }
+      end
+      json_response
+    end
+
+    def indicator_type(value)
+      TestIndicator.test_indicator_types.key(value)
+    end
+
+    def indicator_ranges(test_indicator_id)
+      TestIndicatorRange.where(test_indicator_id:).select("
+        id, test_indicator_id, min_age, max_age, lower_range, upper_range,
+        interpretation, value
+      ")
+    end
+
+    def serialize_test(record, is_test_list)
+      json = {
+        id: record['id'],
+        order_id: record['order_id'],
+        specimen_id: record['specimen_id'],
+        specimen_type: record['specimen'],
+        test_panel_id: record['test_panel_id'],
+        test_panel_name: record['test_panel_name'],
+        created_date: record['created_date'],
+        request_origin: record['request_origin'],
+        requesting_ward: record['requesting_ward'],
+        accession_number: record['accession_number'],
+        test_type_id: record['test_type_id'],
+        test_type_name: record['test_type'],
+        tracking_number: record['tracking_number'],
+        voided: record['voided'],
+        request_by: record['requested_by'],
+        completed_by: completed_by(record['id']),
+        client: {
+          id: record['patient_no'],
+          first_name: record['first_name'],
+          middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
+          last_name: record['last_name'],
+          sex: record['sex'],
+          date_of_birth: record['date_of_birth'],
+          birth_date_estimated: record['birth_date_estimated']
+        },
+        status: record['t_status'],
+        order_status: record['o_status']
+      }
+      return json if is_test_list
+
+      json[:is_machine_oriented] = machine_oriented?(record['test_type_id'])
+      json[:test_indicators] = test_indicators(record['id'], record['test_type_id'])
+      json
     end
   end
 end
