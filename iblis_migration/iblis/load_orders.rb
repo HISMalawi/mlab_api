@@ -2,7 +2,7 @@
 
 Rails.logger = Logger.new($stdout)
 
-def iblis_orders(offset, limit, priority_id)
+def iblis_orders(offset, limit, priority_id, specimen_not_collected, specimen_accepted, specimen_rejected)
   Iblis.find_by_sql(
     "SELECT
     s.id,
@@ -23,7 +23,12 @@ def iblis_orders(offset, limit, priority_id)
     NULL AS voided_date,
     t.time_created AS created_date,
     t.time_created AS updated_date,
-    t.created_by AS updated_by
+    t.created_by AS updated_by,
+    CASE
+      WHEN s.specimen_status_id = 1 THEN #{specimen_not_collected}
+      WHEN s.specimen_status_id = 2 THEN #{specimen_accepted}
+      ELSE #{specimen_rejected}
+    END AS status_id
 FROM
     specimens s
         INNER JOIN
@@ -172,8 +177,11 @@ batch_size = 10_000
 offset = 0
 count = total_records
 priority_id = Priority.find_or_create_by(name: 'Routine').id
+specimen_not_collected = Status.find_or_create_by(name: 'specimen-not-collected').id
+specimen_accepted = Status.find_or_create_by(name: 'specimen-accepted').id
+specimen_rejected = Status.find_or_create_by(name: 'specimen-rejected').id
 loop do
-  records = iblis_orders(offset, batch_size, priority_id)
+  records = iblis_orders(offset, batch_size, priority_id, specimen_not_collected, specimen_accepted, specimen_rejected)
   break if records.empty?
 
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --ORDERS--  => (step 3 of 10)")
@@ -213,9 +221,6 @@ total_records = iblis_orders_stat_count.count
 batch_size = 10_000
 offset = 0
 count = total_records
-specimen_not_collected = Status.find_or_create_by(name: 'specimen-not-collected').id
-specimen_accepted = Status.find_or_create_by(name: 'specimen-accepted').id
-specimen_rejected = Status.find_or_create_by(name: 'specimen-rejected').id
 loop do
   records = iblis_orders_statuses(offset, batch_size, specimen_not_collected, specimen_accepted)
   break if records.empty?
