@@ -69,7 +69,7 @@ module Tests
           tracking_number: record['tracking_number'],
           voided: record['voided'],
           request_by: record['requested_by'],
-          completed_by: {},
+          completed_by: completed_by(record['id']),
           client: {
             id: record['patient_no'],
             first_name: record['first_name'],
@@ -146,6 +146,34 @@ module Tests
 		      INNER JOIN
 	    statuses ost ON ost.id = o.status_id
         WHERE t.id IS NOT NULL AND t.id IN #{tests_ids} ORDER BY t.id DESC"
+    end
+
+    def completed_by(test_id)
+      status_id = Status.where(name: 'completed').first&.id
+      test_status_trail = TestStatus.find_by_sql("
+        SELECT
+            u.id, u.username, status_id
+        FROM
+            test_statuses ts
+                INNER JOIN
+            users u ON u.id = ts.creator
+        WHERE
+            ts.status_id = #{status_id} AND ts.test_id = #{test_id} LIMIT 1
+      ")
+      response = {}
+      unless test_status_trail.empty?
+        trail = test_status_trail[0]
+        response[:id] = trail['id']
+        response[:username] = trail['username']
+        response[:is_super_admin] = super_admin?(trail['id'])
+        response[:status_id] = trail['status_id']
+      end
+      response
+    end
+
+    def super_admin?(user_id)
+      roles = UserRoleMapping.joins(:role).where(user_id:).pluck('roles.name')
+      (roles.map!(&:downcase) & %w[superuser superadmin]).any?
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
