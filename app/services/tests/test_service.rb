@@ -27,7 +27,7 @@ module Tests
                   Test.where(id: search_string_test_ids(query))
                 end
               else
-                Test.where("created_date > '#{90.days.ago.to_date}'")
+                Test.all
               end
       tests = filter_by_date(tests, start_date, end_date) if start_date.present?
       if department_id.present? && not_reception?(department_id)
@@ -36,8 +36,8 @@ module Tests
       tests = search_by_test_status(tests, test_status) if test_status.present?
       tests_ = tests
       tests = tests_.order('tests.id DESC').page(page).per(per_page.to_i + 1)
-      tests = tests_.order('tests.id DESC').limit(per_page) if tests.empty? && query.present?
-      records = Report.find_by_sql(query(process_ids(tests.pluck('id')), process_ids(tests.pluck('order_id'))))
+      tests = tests_.order('tests.id DESC').limit(per_page) if tests.length < 1 && query.present?
+      records = Report.find_by_sql(query(process_ids(tests.pluck('id'))))
       {
         data: serialize_tests(records),
         meta: {
@@ -90,7 +90,7 @@ module Tests
       ids.empty? ? "('unknown')" : "(#{ids.join(', ')})"
     end
 
-    def query(tests_ids, order_ids)
+    def query(tests_ids)
       "SELECT
       t.id,
       t.order_id,
@@ -113,13 +113,13 @@ module Tests
       tp.name AS test_panel_name,
       tt.name AS test_type,
       fs.name AS requesting_ward,
-      osd.id AS o_status_id,
-      osd.name AS o_status,
-      sd.id AS t_status_id,
-      sd.name AS t_status,
+	    ost.id AS o_status_id,
+	    ost.name AS o_status,
+      tst.id AS t_status_id,
+      tst.name AS t_status,
       sp.name AS specimen,
       sp.id AS specimen_id
-  FROM
+        FROM
       tests t
           INNER JOIN
       test_types tt ON tt.id = t.test_type_id
@@ -142,32 +142,10 @@ module Tests
           LEFT JOIN
       test_panels tp ON tp.id = t.test_panel_id AND tp.retired = 0
           INNER JOIN
-      test_statuses s ON t.id = s.test_id
-          INNER JOIN
-      (SELECT
-          test_id, MAX(created_date) AS max_created_at
-      FROM
-          test_statuses
-      WHERE
-          test_id IN #{tests_ids}
-      GROUP BY test_id) AS latest_test_status ON latest_test_status.test_id = s.test_id
-          AND latest_test_status.max_created_at = s.created_date
-          INNER JOIN
-      statuses sd ON s.status_id = sd.id
-          LEFT JOIN
-      order_statuses os ON o.id = os.order_id
-          INNER JOIN
-      (SELECT
-          order_id, MAX(created_date) AS max_o_created_at
-      FROM
-          order_statuses
-      WHERE
-          order_id IN #{order_ids}
-      GROUP BY order_id) AS latest_o_status ON latest_o_status.order_id = os.order_id
-          AND latest_o_status.max_o_created_at = os.created_date
-          INNER JOIN
-      statuses osd ON os.status_id = osd.id
-      WHERE t.id IS NOT NULL ORDER BY t.id DESC"
+      statuses tst ON tst.id = t.status_id
+		      INNER JOIN
+	    statuses ost ON ost.id = o.status_id
+        WHERE t.id IS NOT NULL AND t.id IN #{tests_ids} ORDER BY t.id DESC"
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
@@ -244,17 +222,9 @@ module Tests
       Department.find(department_id).name == 'Archives'
     end
 
-    def search_by_test_status(tests, query)
-      status = Status.find_by(name: query)
-      Test.joins(:test_status)
-          .where('test_statuses.created_date = (
-            SELECT MAX(created_date)
-            FROM test_statuses
-            WHERE test_statuses.test_id = tests.id
-            )')
-          .where(test_statuses: { test_id: tests.pluck(:id) })
-          .select('test_statuses.status_id, tests.*')
-          .where(test_statuses: { status_id: status.id })
+    def search_by_test_status(tests, status)
+      status_id = Status.find_by(name: status).id
+      tests.where(status_id:)
     end
 
     def filter_by_date(tests, start_date, end_date)
