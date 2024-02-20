@@ -10,39 +10,38 @@ class Api::V1::TestStatusesController < ApplicationController
     render json: Status.where("name not like '%specimen%'")
   end
 
-
   def not_received
-    status = Status.find_by_name("not-received")
+    status = Status.find_by_name('not-received')
     render json: update_status(status)
   end
-  
+
   def pending
-    status = Status.find_by_name("pending")
+    status = Status.find_by_name('pending')
     render json: update_status(status)
   end
-  
+
   def completed
-    status = Status.find_by_name("completed")
+    status = Status.find_by_name('completed')
     render json: update_status(status)
   end
-  
+
   def started
-    status = Status.find_by_name("started")
+    status = Status.find_by_name('started')
     render json: update_status(status)
   end
-  
+
   def verified
-    status = Status.find_by_name("verified")
+    status = Status.find_by_name('verified')
     render json: update_status(status)
   end
-  
+
   def voided
-    status = Status.find_by_name("voided")
+    status = Status.find_by_name('voided')
     render json: update_status(status)
   end
-  
+
   def not_done
-    status = Status.find_by_name("not-done")
+    status = Status.find_by_name('not-done')
     render json: update_status(status)
   end
 
@@ -66,9 +65,7 @@ class Api::V1::TestStatusesController < ApplicationController
   end
 
   def update_status(status)
-    updated = TestCatalog::TestStatusesService.update_test_status(test_status, status, reason, person_talked_to)
-    return Test.find(params.require(:test_id)) if updated
-    updated
+    TestCatalog::TestStatusesService.update_test_status(test_status, status, reason, person_talked_to)
   end
 
   def test_status_params

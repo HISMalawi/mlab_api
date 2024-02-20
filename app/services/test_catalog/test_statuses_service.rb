@@ -1,19 +1,27 @@
 module TestCatalog::TestStatusesService
   class << self
-
     #updates test status (with reason)
     def update_test_status(test_status, status, reason=nil, person_talked_to=nil)
-      unless test_status.blank?
+      result = nil
+      ActiveRecord::Base.transaction do
+        test_id = test_status.test_id
+        status_id = status.id
+        new_test_status = TestStatus.where(test_id:, status_id:).first
         void_results(test_status, reason) if status.name == 'test-rejected'
-        new_test_status = TestStatus.find_or_create_by!(
-          test_id: test_status.test_id,
-          status_id: status.id
-        )
+        if new_test_status.nil?
+          Test.where(id: test_id).first&.update(status_id:)
+          new_test_status = TestStatus.create!(test_id:, status_id:)
+        end
         new_test_status.update!(
           status_reason_id: reason,
-          person_talked_to: person_talked_to
+          person_talked_to:
         )
+        result = {
+          id: test_id,
+          status: Status.find(new_test_status.status_id)&.name
+        }
       end
+      result
     end
 
     # Void results for test rejected action on test with status completed
