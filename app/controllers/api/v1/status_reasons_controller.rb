@@ -4,7 +4,7 @@ module Api
       before_action :set_status_reason, only: [:show, :update, :destroy]
     
       def index
-        @status_reasons = StatusReason.all
+        @status_reasons = StatusReason.select('id, description')
         render json: @status_reasons
       end
       
