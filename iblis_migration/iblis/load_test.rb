@@ -17,7 +17,8 @@ def iblis_test(offset, limit)
       t.created_by AS creator,
       t.created_by AS updated_by,
       t.time_created AS created_date,
-      t.time_created AS updated_date
+      t.time_created AS updated_date,
+      t.test_status_id AS status_id
     FROM
       specimens s
     INNER JOIN
