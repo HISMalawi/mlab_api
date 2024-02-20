@@ -76,30 +76,11 @@ class Test < VoidableRecord
   end
 
   def completed_by
-    status_trail = status_trail()
-    c = {}
-    status_trail.each do |status|
-      if status.status_id == 4
-        user = User.find_by_id(status.creator)
-        c[:id] = user.id
-        c[:username] =  user.username
-        c[:is_super_admin] = is_super_admin?(user)
-        c[:status_id] = status.status_id
-      end
-    end
-    c
+    test_service.completed_by(id)
   end
 
-  def is_super_admin?(user)
-    roles = UserRoleMapping.where(user_id: user.id)
-    is_super_admin = false
-    roles.as_json.each do |role|
-      if role["role_name"] == "Superuser" || role['role_name'] == 'Superadmin'
-        is_super_admin = true
-        break
-      end
-    end
-    is_super_admin
+  def super_admin?(user_id)
+    test_service.super_admin?(user_id)
   end
 
   def specimen_type
@@ -158,5 +139,9 @@ class Test < VoidableRecord
 
   def update_elastic_search_index
     UpdateElasticsearchIndexJob.perform_async
+  end
+
+  def test_service
+    Tests::TestService.new
   end
 end
