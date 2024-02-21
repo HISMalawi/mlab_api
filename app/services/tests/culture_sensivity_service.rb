@@ -34,7 +34,10 @@ module Tests
       end
 
       def get_drug_susceptibility_test_results(test_id)
-        results = DrugSusceptibility.where(test_id:).as_json
+        results = DrugSusceptibility.where(test_id:)
+        return [] if results.blank?
+
+        results = results.as_json
         data = results.collect do |organism|
           {
             test_id: organism["test_id"],
@@ -51,6 +54,8 @@ module Tests
 
       def culture_observation(test_id)
         culture_obs = CultureObservation.where(test_id:)
+        return [] if culture_obs.blank?
+
         culture_ob_all(culture_obs)
       end
 

@@ -48,6 +48,13 @@ module Tests
       }
     end
 
+    def find(test_id)
+      record = Report.find_by_sql(query(process_ids([test_id]))).first
+      raise 'Could not find test record' if record.nil?
+
+      serialize_test(record, false)
+    end
+
     def serialize_tests(records)
       data = []
       records.each do |record|
@@ -269,26 +276,32 @@ module Tests
                     AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
                   WHERE ti.test_type_id = #{test_type_id}")
       records.each do |record|
-        json_response << {
-          id: record['id'],
-          name: record['name'],
-          test_indicator_type: indicator_type(record['test_indicator_type']),
-          unit: record['unit'],
-          description: record['description'],
-          result: {
-            id: record['result_id'],
-            value: record['value'],
-            result_date: record['result_date'],
-            machine_name: record['machine_name']
-          },
-          indicator_ranges: indicator_ranges(record['id'])
-        }
+        json_response << test_indicator_seriliazer(record)
       end
       json_response
     end
 
-    def indicator_type(value)
-      TestIndicator.test_indicator_types.key(value)
+    def test_indicator_seriliazer(test_indicator)
+      {
+        id: test_indicator['id'],
+        name: test_indicator['name'],
+        test_indicator_type: test_indicator['test_indicator_type'],
+        unit: test_indicator['unit'],
+        description: test_indicator['description'],
+        result: result_seriliazer(
+          test_indicator['result_id'],
+          test_indicator['value'],
+          test_indicator['result_date'],
+          test_indicator['machine_name']
+        ),
+        indicator_ranges: indicator_ranges(test_indicator['id'])
+      }
+    end
+
+    def result_seriliazer(id, value, result_date, machine_name)
+      return {} if id.nil?
+
+      { id:, value:, result_date:, machine_name: }
     end
 
     def indicator_ranges(test_indicator_id)
@@ -296,6 +309,115 @@ module Tests
         id, test_indicator_id, min_age, max_age, lower_range, upper_range,
         interpretation, value
       ")
+    end
+
+    def expected_tat(test_type_id)
+      ExpectedTat.where(test_type_id:).select('id, test_type_id, value, unit').first
+    end
+
+    def test_status_trail(test_id)
+      records = TestStatus.find_by_sql("
+        SELECT
+          ts.id,
+          ts.test_id AS record_id,
+          ts.status_id,
+          ts.created_date,
+          s.id AS s_id,
+          s.name AS s_name,
+          u.username,
+          p.first_name,
+          p.last_name,
+          sr.id AS sr_id,
+          sr.description
+        FROM
+          test_statuses ts
+              INNER JOIN
+          statuses s ON s.id = ts.status_id
+              INNER JOIN
+          users u ON u.id = ts.creator
+              INNER JOIN
+          people p ON p.id = u.person_id
+              LEFT JOIN
+          status_reasons sr ON sr.id = ts.status_reason_id
+        WHERE
+          ts.test_id = #{test_id}
+      ")
+      status_trail_serializer(records)
+    end
+
+    def order_status_trail(order_id)
+      records = OrderStatus.find_by_sql("
+        SELECT
+          os.id,
+          os.order_id AS record_id,
+          os.status_id,
+          os.created_date,
+          s.id AS s_id,
+          s.name AS s_name,
+          u.username,
+          p.first_name,
+          p.last_name,
+          sr.id AS sr_id,
+          sr.description
+        FROM
+          order_statuses os
+              INNER JOIN
+          statuses s ON s.id = os.status_id
+              INNER JOIN
+          users u ON u.id = os.creator
+              INNER JOIN
+          people p ON p.id = u.person_id
+              LEFT JOIN
+          status_reasons sr ON sr.id = os.status_reason_id
+        WHERE
+          os.order_id = #{order_id}
+      ")
+      status_trail_serializer(records)
+    end
+
+    def status_change_initiator(record)
+      {
+        username: record['username'],
+        first_name: record['first_name'],
+        last_name: record['last_name']
+      }
+    end
+
+    def status_serializer(record)
+      {
+        id: record['s_id'],
+        name: record['s_name']
+      }
+    end
+
+    def status_reason_serializer(record)
+      return {} if record['sr_id'].nil?
+
+      { id: record['sr_id'], description: record['description'] }
+    end
+
+    def status_trail_serializer(records)
+      json_response = []
+      records.each do |record|
+        json_response << {
+          id: record['id'],
+          test_id: record['record_id'],
+          status_id: record['status_id'],
+          created_date: record['created_date'],
+          status: status_serializer(record),
+          initiator: status_change_initiator(record),
+          status_reason: status_reason_serializer(record)
+        }
+      end
+      json_response
+    end
+
+    def suscept_test_result(test_id)
+      Tests::CultureSensivityService.get_drug_susceptibility_test_results(test_id)
+    end
+
+    def culture_observation(test_id)
+      Tests::CultureSensivityService.culture_observation(test_id)
     end
 
     def serialize_test(record, is_test_list)
@@ -314,8 +436,8 @@ module Tests
         test_type_name: record['test_type'],
         tracking_number: record['tracking_number'],
         voided: record['voided'],
-        request_by: record['requested_by'],
-        completed_by: completed_by(record['id']),
+        requested_by: record['requested_by'],
+        completed_by: record['t_status'] == 'completed' ? completed_by(record['id']) : {},
         client: {
           id: record['patient_no'],
           first_name: record['first_name'],
@@ -331,7 +453,12 @@ module Tests
       return json if is_test_list
 
       json[:is_machine_oriented] = machine_oriented?(record['test_type_id'])
-      json[:test_indicators] = test_indicators(record['id'], record['test_type_id'])
+      json[:indicators] = test_indicators(record['id'], record['test_type_id'])
+      json[:expected_turn_around_time] = expected_tat(record['test_type_id'])
+      json[:status_trail] = test_status_trail(record['id'])
+      json[:order_status_trail] = order_status_trail(record['order_id'])
+      json[:suscept_test_result] = suscept_test_result(record['id'])
+      json[:culture_observation] = culture_observation(record['id'])
       json
     end
   end

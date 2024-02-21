@@ -19,7 +19,7 @@ module Api
       end
 
       def show
-        render json: Test.find(params[:id])
+        render json: test_service.find(params[:id])
       end
 
       def create
