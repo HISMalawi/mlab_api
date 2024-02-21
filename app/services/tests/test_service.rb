@@ -52,13 +52,13 @@ module Tests
       record = Report.find_by_sql(query(process_ids([test_id]))).first
       raise 'Could not find test record' if record.nil?
 
-      serialize_test(record, false)
+      serialize_test(record, is_test_list: false)
     end
 
-    def serialize_tests(records)
+    def serialize_tests(records, is_test_list: true, is_client_report: false)
       data = []
       records.each do |record|
-        data.push(serialize_test(record, true))
+        data.push(serialize_test(record, is_test_list:, is_client_report:))
       end
       data
     end
@@ -69,33 +69,33 @@ module Tests
 
     def query(tests_ids)
       "SELECT
-      t.id,
-      t.order_id,
-      t.voided,
-      t.test_type_id,
-      p.id AS patient_no,
-      p.first_name,
-      p.middle_name,
-      p.last_name,
-      p.sex,
-      o.requested_by,
-      p.date_of_birth,
-      p.birth_date_estimated,
-      o.id AS order_id,
-      o.accession_number,
-      o.tracking_number,
-      et.name AS request_origin,
-      t.created_date,
-      t.test_panel_id,
-      tp.name AS test_panel_name,
-      tt.name AS test_type,
-      fs.name AS requesting_ward,
-	    ost.id AS o_status_id,
-	    ost.name AS o_status,
-      tst.id AS t_status_id,
-      tst.name AS t_status,
-      sp.name AS specimen,
-      sp.id AS specimen_id
+          t.id,
+          t.order_id,
+          t.voided,
+          t.test_type_id,
+          c.id AS patient_no,
+          p.first_name,
+          p.middle_name,
+          p.last_name,
+          p.sex,
+          o.requested_by,
+          p.date_of_birth,
+          p.birth_date_estimated,
+          o.id AS order_id,
+          o.accession_number,
+          o.tracking_number,
+          et.name AS request_origin,
+          t.created_date,
+          t.test_panel_id,
+          tp.name AS test_panel_name,
+          tt.name AS test_type,
+          fs.name AS requesting_ward,
+          ost.id AS o_status_id,
+          ost.name AS o_status,
+          tst.id AS t_status_id,
+          tst.name AS t_status,
+          sp.name AS specimen,
+          sp.id AS specimen_id
         FROM
       tests t
           INNER JOIN
@@ -154,29 +154,46 @@ module Tests
     end
 
     def client_report(client, from = Date.today, to = Date.today, order_id = nil)
+      where_c = "o.id = #{order_id}"
+      c_join = ' INNER JOIN clients c ON c.id = e.client_id AND c.voided = 0'
       if order_id.present?
-        orders = Order.joins(encounter: [client: [:person]]).where(client: { id: client.id }, id: order_id)
+        c_join = ''
+      elsif order_id.blank? && from.blank?
+        where_c = "c.id = #{client}"
+      elsif order_id.blank? && !from.blank?
+        where_c = "o.created_date BETWEEN '#{Date.parse(from).beginning_of_day}'
+          AND '#{Date.parse(to).end_of_day}' AND c.id = #{client}"
       end
-      if order_id.blank? && !from.blank?
-        orders = Order.joins(encounter: [client: [:person]]).where(
-          client: { id: client.id },
-          encounter: { start_date: Date.parse(from).beginning_of_day..Date.parse(to).end_of_day }
-        )
-      end
-      if order_id.blank? && from.blank?
-        orders = Order.joins(encounter: [client: [:person]]).where(client: { id: client.id })
-      end
-      person = client.person.as_json(
-        only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated]
-      )
-      client_identifiers = ClientIdentifier.where(client_id: client.id)
-      {
-        client: {
-          person:,
-          client_identifiers:
-        },
-        orders: orders.order(id: :desc)
-      }
+      orders = Order.find_by_sql("
+      SELECT
+          o.id,
+          o.encounter_id,
+          pr.name AS priority,
+          o.accession_number,
+          o.tracking_number,
+          o.sample_collected_time,
+          o.created_date,
+          et.name AS request_origin,
+          fs.name AS requesting_ward,
+          o.requested_by,
+          ost.name AS o_status
+      FROM
+          orders o
+              INNER JOIN
+          encounters e ON e.id = o.encounter_id AND e.voided = 0
+              INNER JOIN
+          encounter_types et ON e.encounter_type_id = et.id
+              AND et.voided = 0
+            #{c_join}  INNER JOIN
+          priorities pr ON pr.id = o.priority_id
+              INNER JOIN
+          facility_sections fs ON fs.id = e.facility_section_id
+              INNER JOIN
+          statuses ost ON ost.id = o.status_id
+      WHERE
+        #{where_c} ORDER BY o.id DESC
+      ")
+      orders_serializer(orders, client)
     end
 
     def total_test_count(from, to, department)
@@ -396,6 +413,18 @@ module Tests
       { id: record['sr_id'], description: record['description'] }
     end
 
+    def client_serializer(record)
+      {
+        id: record['patient_no'],
+        first_name: record['first_name'],
+        middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
+        last_name: record['last_name'],
+        sex: record['sex'],
+        date_of_birth: record['date_of_birth'],
+        birth_date_estimated: record['birth_date_estimated']
+      }
+    end
+
     def status_trail_serializer(records)
       json_response = []
       records.each do |record|
@@ -420,7 +449,71 @@ module Tests
       Tests::CultureSensivityService.culture_observation(test_id)
     end
 
-    def serialize_test(record, is_test_list)
+    def orders_serializer(records, client_id)
+      client_record = client(client_id)
+      orders = []
+      records.each do |record|
+        tests = Test.where(order_id: record['id']).order(id: :desc)
+        orders << order_serializer(record, tests)
+      end
+      {
+        client: {
+          person: client_serializer(client_record),
+          client_identifiers: []
+        },
+        orders:
+      }
+    end
+
+    def client(id)
+      Client.joins(:person).where(id:).select('
+        clients.id AS patient_no, first_name, middle_name, last_name, sex, date_of_birth, birth_date_estimated
+      ').first
+    end
+
+    def print_count(order_id)
+      ClientOrderPrintTrail.where(order_id:).count
+    end
+
+    def specimen(id)
+      Specimen.where(id:).first&.name
+    end
+
+    def test_types(id)
+      test_types = TestType.joins(:department).where(id:).select('test_types.name, departments.name AS department')
+      test_types.map do |type|
+        {
+          name: type['name'],
+          department: type['department']
+        }
+      end
+    end
+
+    def order_serializer(record, tests)
+      {
+        id: record['id'],
+        encounter_id: record['encounter_id'],
+        priority: record['priority'],
+        accession_number: record['accession_number'],
+        tracking_number: record['tracking_number'],
+        requested_by: record['requested_by'],
+        collected_by: '',
+        sample_collection_time: record['sample_collection_time'],
+        created_date: record['created_date'],
+        request_origin: record['request_origin'],
+        requesting_ward: record['requesting_ward'],
+        order_status: record['order_status'],
+        specimen: specimen(tests.first.specimen_id),
+        order_status_trail: order_status_trail(record['id']),
+        test_types: test_types(tests.pluck('test_type_id')),
+        tests: serialize_tests(
+          Report.find_by_sql(query(process_ids(tests.pluck('id')))), is_test_list: false, is_client_report: true
+        ),
+        print_count: print_count(record['id'])
+      }
+    end
+
+    def serialize_test(record, is_test_list: true, is_client_report: false)
       json = {
         id: record['id'],
         order_id: record['order_id'],
@@ -437,28 +530,20 @@ module Tests
         tracking_number: record['tracking_number'],
         voided: record['voided'],
         requested_by: record['requested_by'],
-        completed_by: record['t_status'] == 'completed' ? completed_by(record['id']) : {},
-        client: {
-          id: record['patient_no'],
-          first_name: record['first_name'],
-          middle_name: record['middle_name'].present? || record['middle_name']&.downcase == 'unknown' ? record['middle_name'] : '',
-          last_name: record['last_name'],
-          sex: record['sex'],
-          date_of_birth: record['date_of_birth'],
-          birth_date_estimated: record['birth_date_estimated']
-        },
+        completed_by: record['t_status'] == 'completed' && is_client_report == false ? completed_by(record['id']) : {},
+        client: client_serializer(record),
         status: record['t_status'],
         order_status: record['o_status']
       }
       return json if is_test_list
 
-      json[:is_machine_oriented] = machine_oriented?(record['test_type_id'])
+      json[:is_machine_oriented] = machine_oriented?(record['test_type_id']) unless is_client_report
       json[:indicators] = test_indicators(record['id'], record['test_type_id'])
-      json[:expected_turn_around_time] = expected_tat(record['test_type_id'])
+      json[:expected_turn_around_time] = expected_tat(record['test_type_id']) unless is_client_report
       json[:status_trail] = test_status_trail(record['id'])
-      json[:order_status_trail] = order_status_trail(record['order_id'])
+      json[:order_status_trail] = order_status_trail(record['order_id']) unless is_client_report
       json[:suscept_test_result] = suscept_test_result(record['id'])
-      json[:culture_observation] = culture_observation(record['id'])
+      json[:culture_observation] = culture_observation(record['id']) unless is_client_report
       json
     end
   end

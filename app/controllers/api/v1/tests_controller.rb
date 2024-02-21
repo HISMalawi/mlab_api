@@ -29,7 +29,7 @@ module Api
 
       def report
         from, to, order_id = params.values_at(:from, :to, :order_id)
-        render json: test_service.client_report(Client.find(params[:client_id]), from, to, order_id), status: :ok
+        render json: test_service.client_report(params[:client_id], from, to, order_id), status: :ok
       end
 
       def update
