@@ -25,9 +25,8 @@ module Api
       end
 
       def update
-        facility = Facility.find_by_name(@global.name)
         @global.update!(global_params)
-        facility.update!(name: global_params[:name])
+        Facility.find_or_create_by(name: @global.name)
         render json: @global
       end
 
