@@ -7,6 +7,7 @@ require_relative 'tests'
 require_relative 'test_results'
 require_relative 'culture_observations'
 require_relative 'drug_suscept'
+require_relative 'print_trails'
 
 client_id = 0
 test_id = 0
@@ -18,3 +19,4 @@ Tests.process_encounters(test_id)
 TestResults.process_test_results(test_id)
 CultureObservations.process_cs_observations(test_id)
 DrugSuscept.process_drug_susceptibilities(test_id)
+PrintTrails.process_print_trails(order_id)
