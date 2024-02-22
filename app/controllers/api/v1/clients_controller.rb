@@ -7,7 +7,9 @@ module Api
 
       def index
         if params[:search].blank?
-          @clients = Client.all.order(id: :desc).page(params[:page]).per(params[:per_page])
+          last_client_date = Client.last&.created_date
+          prev_date = prev_days_date(last_client_date, 30)
+          @clients = Client.where("created_date > '#{prev_date}'").order(id: :desc).page(params[:page]).per(params[:per_page])
         else
           @clients = client_service.search_client(params[:search], params[:per_page])
         end
@@ -59,6 +61,11 @@ module Api
 
       def client_service
         client_service = ClientManagement::ClientService
+      end
+
+      def prev_days_date(date, days)
+        date ||= Date.today
+        date.to_date - days
       end
 
       def dde
