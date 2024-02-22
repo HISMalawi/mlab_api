@@ -24,8 +24,8 @@ class ElasticSearchService
           tracking_number: test&.order&.tracking_number,
           test_name: test&.test_type&.name,
           location: test&.order&.encounter&.facility_section&.name,
-          test_status: TestStatus.where(test_id: test.id).order(created_date: :desc).last&.status&.name,
-          order_status: OrderStatus.where(order_id: test.order_id).order(created_date: :desc).last&.status&.name,
+          test_status: Status.where(id: test&.status_id).first&.name,
+          order_status: Status.where(id: test&.order&.status_id).first&.name,
           test_time_created: test&.created_date
         }
       )
@@ -51,8 +51,8 @@ class ElasticSearchService
             tracking_number: test&.order&.tracking_number,
             test_name: test&.test_type&.name,
             location: test&.order&.encounter&.facility_section&.name,
-            test_status: TestStatus.where(test_id: test.id).order(created_date: :desc).last&.status&.name,
-            order_status: OrderStatus.where(order_id: test.order_id).order(created_date: :desc).last&.status&.name,
+            test_status: Status.where(id: test&.status_id).first&.name,
+            order_status: Status.where(id: test&.order&.status_id).first&.name,
             test_time_created: test&.created_date
           }
         )
