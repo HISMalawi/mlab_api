@@ -9,35 +9,35 @@ module Orders
     def iblis_orders(order_id, priority_id, specimen_not_collected, specimen_accepted, specimen_rejected)
       Iblis.find_by_sql(
         "SELECT
-    s.id,
-    t.visit_id AS encounter_id,
-    #{priority_id} AS priority_id,
-    s.accession_number,
-    s.tracking_number,
-    t.requested_by,
-    CASE
-        WHEN s.date_of_collection = '0000-00-00 00:00:00' OR s.date_of_collection IS NULL THEN t.time_created
-        ELSE s.date_of_collection
-    END AS sample_collected_time,
-    s.drawn_by_name AS collected_by,
-    t.created_by AS creator,
-    0 AS voided,
-    NULL AS voided_by,
-    NULL AS voided_reason,
-    NULL AS voided_date,
-    t.time_created AS created_date,
-    t.time_created AS updated_date,
-    t.created_by AS updated_by,
-    CASE
-      WHEN s.specimen_status_id = 1 THEN #{specimen_not_collected}
-      WHEN s.specimen_status_id = 2 THEN #{specimen_accepted}
-      ELSE #{specimen_rejected}
-    END AS status_id
-FROM
-    specimens s
-        INNER JOIN
-    tests t ON t.specimen_id = s.id
-    WHERE s.id > #{order_id}"
+          s.id,
+          t.visit_id AS encounter_id,
+          #{priority_id} AS priority_id,
+          s.accession_number,
+          s.tracking_number,
+          t.requested_by,
+          CASE
+              WHEN s.date_of_collection = '0000-00-00 00:00:00' OR s.date_of_collection IS NULL THEN t.time_created
+              ELSE s.date_of_collection
+          END AS sample_collected_time,
+          s.drawn_by_name AS collected_by,
+          t.created_by AS creator,
+          0 AS voided,
+          NULL AS voided_by,
+          NULL AS voided_reason,
+          NULL AS voided_date,
+          t.time_created AS created_date,
+          t.time_created AS updated_date,
+          t.created_by AS updated_by,
+          CASE
+            WHEN s.specimen_status_id = 1 THEN #{specimen_not_collected}
+            WHEN s.specimen_status_id = 2 THEN #{specimen_accepted}
+            ELSE #{specimen_rejected}
+          END AS status_id
+        FROM
+            specimens s
+                INNER JOIN
+            tests t ON t.specimen_id = s.id
+            WHERE s.id > #{order_id}"
       )
     end
 
