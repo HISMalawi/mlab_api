@@ -20,7 +20,7 @@ default: &default
 
 development:
   <<: *default
-  database: mlab_dev
+  database: mlab
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -51,7 +51,7 @@ test:
 #
 production:
   <<: *default
-  database: mlab_prod
+  database: mlab
 
 iblis_db:
   host: 127.0.0.1
