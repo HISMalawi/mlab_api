@@ -164,7 +164,7 @@ bash load_iblis_data.sh
 ## Migration of data that remained or was done after first migration for Sites with Previous iBLIS Installation  
 This is the migration of data that was entered or updated in iblis after you have already migrated the data you took earlier. This migration assumes that you have not done any new orders in the new iblis(mlab). This ensures that user continue to use the previous iBLIS system while migrating data.
 ```shell
-   rails r iblis_migration/iblis/remaining_data/update.rb
+   RAILS_ENV=production rails r iblis_migration/iblis/remaining_data/update.rb #production can be replaced with development depending on your environment
 ```
 
 ## Data Initialization for Sites without Previous iBLIS Installation
