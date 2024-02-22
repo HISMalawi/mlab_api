@@ -158,7 +158,7 @@ module Tests
       records << created_records unless created_records.empty?
       records << completed_records unless completed_records.empty?
       records << verified_records unless verified_records.empty?
-      Rails.logger.info("Processing test statuses  #{records.lenght}: Remaining - 0 --TESTS STATUSES-- step(5 of 8)")
+      Rails.logger.info("Processing test statuses  #{records.length}: Remaining - 0 --TESTS STATUSES-- step(5 of 8)")
       Parallel.map(records, in_processes: 4) do |record|
         TestStatus.upsert_all(record.map(&:attributes), returning: false) unless record.empty?
       end
