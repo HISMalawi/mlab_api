@@ -48,6 +48,45 @@ module Clients
       ")
     end
 
+    def update_user_details
+      ActiveRecord::Base.transaction do
+        # Load Users
+        users = Iblis.find_by_sql('SELECT * FROM users')
+        Parallel.map(users, in_processes: 4) do |user|
+          sex = user.gender == 0 ? 'M' : 'F'
+          name = user.name.split
+          middle_name = ''
+          if name.length > 1
+            first_name = name[0]
+            last_name = name.length > 2 ? name[2] : name[1]
+            middle_name = name[1] if name.length > 2
+          else
+            first_name = name[0]
+            last_name = name[0]
+          end
+          person = Person.where(first_name:, last_name:, sex:, created_date: user.created_at,
+                                updated_date: user.updated_at).first
+          if person.nil?
+            Rails.logger.info("=========Loading Person: #{user.name}===========")
+            person = Person.create!(first_name:, middle_name:, last_name:, sex:,
+                                    created_date: user.created_at, updated_date: user.updated_at)
+          end
+          if UserManagement::UserService.username_exists? user.username
+            mlab_user = User.find_by_username(user.username)
+            mlab_user.update(person_id: person.id)
+          else
+            Rails.logger.info("=========Loading User: #{user.username}===========")
+            mlab_user = User.new(id: user.id, person_id: person.id, username: user.username, password: user.password,
+                                 is_active: 0)
+            if mlab_user.save! && !user.deleted_at.nil?
+              Rails.logger.info("=========Voiding  deleted User: #{user.username}===========")
+              mlab_user.update!(is_active: 1)
+            end
+          end
+        end
+      end
+    end
+
     def clients_count(client_id)
       Iblis.find_by_sql("
         SELECT
@@ -73,6 +112,7 @@ module Clients
       Rails.logger.info("Processing records #{total_records}: Remaining - 0 --CLIENTS-- step(1 of 8)")
       Person.upsert_all(fix_people(records), returning: false) unless records.empty?
       Client.upsert_all(fix_people(c_records), returning: false) unless c_records.empty?
+      update_user_details
     end
   end
 end
