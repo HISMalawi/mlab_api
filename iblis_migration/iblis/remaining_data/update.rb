@@ -18,7 +18,7 @@ def last_record
     last_record
   else
     date = record.created_date.to_date
-    accession_number = Order.where("DATE(created_date) BETWEEN '#{date - 4}' AND '#{date}'").first&.accession_number
+    accession_number = Order.where("DATE(created_date) BETWEEN '#{date - 5}' AND '#{date}'").first&.accession_number
     last_iblis_record = Order.joins(:tests, :encounter).where(accession_number:)
                            .select('orders.id, tests.id as test_id, encounters.client_id').first
     last_iblis_record
