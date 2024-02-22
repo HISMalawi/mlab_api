@@ -162,19 +162,17 @@ FROM
       Order.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
 
       priority_id = Priority.find_or_create_by(name: 'Stat').id
-      records = iblis_orders_with_stat(order_id, priority_id, specimen_not_collected, specimen_accepted,
+      st_records = iblis_orders_with_stat(order_id, priority_id, specimen_not_collected, specimen_accepted,
                                        specimen_rejected)
-      Order.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
+      Order.upsert_all(st_records.map(&:attributes), returning: false) unless st_records.empty?
 
-      records = iblis_orders_statuses(order_id, specimen_not_collected, specimen_accepted)
-      OrderStatus.insert_all(fix_people(records), returning: false) unless records.empty?
+      s_records = iblis_orders_statuses(order_id, specimen_not_collected, specimen_accepted)
+      OrderStatus.insert_all(fix_people(s_records), returning: false) unless s_records.empty?
 
-      records = iblis_orders_status_rejected(order_id, specimen_rejected)
-      return if records.empty?
-
-      OrderStatus.upsert_all(records.map do |record|
+      r_records = iblis_orders_status_rejected(order_id, specimen_rejected)
+      OrderStatus.upsert_all(r_records.map do |record|
                                record.attributes.merge('status_reason_id' => StatusReason.find_or_create_by(description: record.reason).id).except('reason')
-                             end, returning: false)
+                             end, returning: false) unless r_records.empty?
     end
   end
 end
