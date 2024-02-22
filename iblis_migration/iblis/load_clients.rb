@@ -67,7 +67,7 @@ def update_user_details
   ActiveRecord::Base.transaction do
     # Load Users
     users = Iblis.find_by_sql("SELECT * FROM users")
-    users.each do |user|
+    Parallel.map(users, in_processes: 4) do |user|
       sex = user.gender == 0 ? 'M' : 'F'
       name = user.name.split()
       middle_name = ''
