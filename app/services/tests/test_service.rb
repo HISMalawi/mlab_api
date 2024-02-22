@@ -108,9 +108,9 @@ module Tests
           AND t.voided = 0
           INNER JOIN
       encounters e ON e.id = o.encounter_id AND e.voided = 0
-          INNER JOIN
+          LEFT JOIN
       encounter_types et ON e.encounter_type_id = et.id AND et.voided = 0
-          INNER JOIN
+          LEFT JOIN
       facility_sections fs ON fs.id = e.facility_section_id
           INNER JOIN
       clients c ON c.id = e.client_id AND c.voided = 0
@@ -181,12 +181,12 @@ module Tests
           orders o
               INNER JOIN
           encounters e ON e.id = o.encounter_id AND e.voided = 0
-              INNER JOIN
+              LEFT JOIN
           encounter_types et ON e.encounter_type_id = et.id
               AND et.voided = 0
             #{c_join}  INNER JOIN
           priorities pr ON pr.id = o.priority_id
-              INNER JOIN
+              LEFT JOIN
           facility_sections fs ON fs.id = e.facility_section_id
               INNER JOIN
           statuses ost ON ost.id = o.status_id
