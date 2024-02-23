@@ -115,7 +115,7 @@ module Reports
         serialize_blood_products(data)
       end
 
-      def department_critical_valuestotal_test_count
+      def department_critical_values
         sql_query = <<-SQL
           SELECT 
               ti.name test_indicator_name,
