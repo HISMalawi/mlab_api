@@ -33,8 +33,8 @@ module Tests
       end
       tests = search_by_test_status(tests, test_status) if test_status.present?
       tests_ = tests
-      tests = tests_.order('tests.id DESC').page(page).per(per_page.to_i + 1)
-      tests = tests_.order('tests.id DESC').limit(per_page) if tests.nil? && query.present?
+      tests = tests.order('tests.id DESC').page(page).per(per_page.to_i + 1)
+      tests = tests_.order('tests.id DESC').limit(per_page) if tests.empty? && query.present?
       records = Report.find_by_sql(query(process_ids(tests.pluck('id'))))
       {
         data: serialize_tests(records),
