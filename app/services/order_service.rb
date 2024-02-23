@@ -95,6 +95,8 @@ module OrderService
         sending_facility: encounter.facility&.name,
         destination_facility: encounter.destination&.name,
         date_created: order.created_date,
+        order_status_id: order.status_id,
+        order_status_name: Status.where(id: order.status_id).first&.name,
         tests: serialize_test(tests)
       })
     end
