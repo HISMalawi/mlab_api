@@ -7,10 +7,10 @@ Type=simple
 User=meduser
 WorkingDirectory=/var/www/mlab_api/
 Environment="RAILS_ENV=production"
-ExecStartPre=/bin/bash -lc 'cd /var/www/mlab_api/ && rvm use 3.2.0'
 Environment="SECRET_KEY_BASE=$(bundle exec rails secret)"
 ExecStart=/bin/bash -lc '/home/meduser/.rvm/gems/ruby-3.2.0/bin/puma -C /var/www/mlab_api/config/puma.rb'
-Restart=always
+RestartSec=1
+Restart=on-failure
 KillMode=process
 
 [Install]
