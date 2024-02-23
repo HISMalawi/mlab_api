@@ -29,7 +29,7 @@ class ElasticSearchService
           test_time_created: test&.created_date
         }
       )
-      puts "Indexing record---> tracking_number: #{test&.order&.tracking_number}"
+      puts "Indexing record---> tracking_number: #{test&.order&.tracking_number}  Accession number: #{test&.accession_number} current date: #{test.created_date.to_date}"
     rescue => e
       puts e.message
     end
@@ -40,7 +40,7 @@ class ElasticSearchService
     begin
       es_test_id = @elasticsearch.search(params)['hits']['hits'][0]['sort'][0]
       tests = Test.where(id: (es_test_id + 1)...)
-      tests.each do |test|
+      Parallel.map(tests, in_processes: 4) do |test|
         @elasticsearch.create(
           index: 'tests',
           id: test&.id,
