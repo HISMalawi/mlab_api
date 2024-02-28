@@ -25,6 +25,7 @@ module Api
 
         results = []
         ActiveRecord::Base.transaction do
+          Remark.find_or_create_by(tests_id: test_id).update(value: remarks)
           results = indicators.collect do |indicator_obj|
             test_indicator_id = indicator_obj[:indicator]
             value = indicator_obj[:value]
@@ -39,7 +40,7 @@ module Api
             test_result = TestResult.find_by(test_id:, test_indicator_id:)
             test_result&.void('Edited')
             TestResult.create!(test_id:, test_indicator_id:, value:,
-                               result_date: Time.now, machine_name:, remarks:)
+                               result_date: Time.now, machine_name:)
           end
         end
         render json: results

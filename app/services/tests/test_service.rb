@@ -538,6 +538,7 @@ module Tests
       return json if is_test_list
 
       json[:is_machine_oriented] = machine_oriented?(record['test_type_id']) unless is_client_report
+      json[:result_remarks] = Remark.where(tests_id: record['id']).first
       json[:indicators] = test_indicators(record['id'], record['test_type_id'])
       json[:expected_turn_around_time] = expected_tat(record['test_type_id']) unless is_client_report
       json[:status_trail] = test_status_trail(record['id'])
