@@ -6,10 +6,12 @@ module Api
       before_action :dde, only: [:create, :dde_search_client]
 
       def index
-        if params[:search].blank?
+        if params[:search].blank? && params[:from].blank? && params[:to].blank?
           last_client_date = Client.last&.created_date
           prev_date = prev_days_date(last_client_date, 30)
           @clients = Client.where("created_date > '#{prev_date}'").order(id: :desc).page(params[:page]).per(params[:per_page])
+        elsif params[:from].present? && params[:to].present?
+          @clients = Client.where("DATE(created_date) BETWEEN '#{params[:from].to_date}' AND '#{params[:to].to_date}'").order(id: :desc).page(params[:page]).per(params[:per_page])
         else
           @clients = client_service.search_client(params[:search], params[:per_page])
         end
@@ -60,7 +62,7 @@ module Api
       end
 
       def client_service
-        client_service = ClientManagement::ClientService
+        ClientManagement::ClientService
       end
 
       def prev_days_date(date, days)
