@@ -18,6 +18,7 @@ module Api
         permitted = test_result_params
         test_id = permitted[:test_id]
         indicators = permitted[:test_indicators]
+        remarks = permitted[:remarks]
         unless permitted.key?(:test_id) && permitted.key?(:test_indicators)
           render json: { message: MessageService::MISSING_REQUIRED_PARAMETERS }, status: :bad_request and return
         end
@@ -38,7 +39,7 @@ module Api
             test_result = TestResult.find_by(test_id:, test_indicator_id:)
             test_result&.void('Edited')
             TestResult.create!(test_id:, test_indicator_id:, value:,
-                               result_date: Time.now, machine_name:)
+                               result_date: Time.now, machine_name:, remarks:)
           end
         end
         render json: results
@@ -57,7 +58,7 @@ module Api
       private
 
       def test_result_params
-        params.permit(:test_id, test_indicators: %i[indicator value machine_name])
+        params.permit(:test_id, :remarks, test_indicators: %i[indicator value machine_name])
       end
 
       def void_previous_x_matches(test_id, test_indicator_id, value)
