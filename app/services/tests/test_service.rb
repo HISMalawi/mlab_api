@@ -201,15 +201,29 @@ module Tests
       from = from.present? ? Date.parse(from) : to - 30
       department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
       test_count = if department == 'Lab Reception'
-                     Test.where(created_date: from.beginning_of_day..to.end_of_day).count
+                     Report.find_by_sql("
+                      SELECT
+                        COUNT(DISTINCT t.id) AS count
+                      FROM tests t
+                      WHERE t.voided = 0 AND t.created_date BETWEEN '#{from}' AND '#{to}'")
                    else
-                     Test.joins(:test_type).where(test_type: { department_id: },
-                                                  created_date: from.beginning_of_day..to.end_of_day).count
+                     Report.find_by_sql("
+                      SELECT
+                          COUNT(DISTINCT t.id) AS count
+                      FROM
+                        tests t
+                      INNER JOIN
+                        test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
+                      WHERE
+                          t.voided = 0
+                        AND tt.department_id = #{department_id}
+                        AND t.created_date BETWEEN '#{from}' AND '#{to}'
+                     ")
                    end
       {
         from:,
         to:,
-        data: test_count
+        data: test_count.count
       }
     end
 
@@ -217,21 +231,26 @@ module Tests
       to = to.present? ? Date.parse(to) : Date.today
       from = from.present? ? Date.parse(from) : to - 30
       department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
-      statuses_count = {}
-      sql = "SELECT COUNT(DISTINCT ts.id) AS count, s.name FROM test_statuses ts INNER JOIN ( SELECT test_id, MAX(created_date) created_date
-        FROM test_statuses GROUP BY test_id) cs ON cs.test_id = ts.test_id AND cs.created_date = ts.created_date INNER JOIN tests t
-        ON t.id = ts.test_id INNER JOIN test_types tt ON t.test_type_id = tt.id INNER JOIN statuses s ON s.id = ts.status_id
-        WHERE tt.department_id = #{department_id} AND t.created_date BETWEEN '#{from.beginning_of_day.strftime('%Y-%m-%d %H:%M:%S')}'
-        AND '#{to.end_of_day.strftime('%Y-%m-%d %H:%M:%S')}' GROUP BY s.name"
-      statuses = Status.all
-      test_statuses_counts = Status.find_by_sql(sql)
-      statuses.each do |status|
-        statuses_count[status.name] = 0
+      statuses_count = Report.find_by_sql("
+        SELECT
+          COUNT('DISTINCT t.id') AS  count, s.name
+        FROM
+            tests t
+        INNER JOIN
+            test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
+        INNER JOIN statuses s ON s.id = t.status_id
+        WHERE
+            t.voided = 0
+        AND tt.department_id = #{department_id}
+        AND t.created_date BETWEEN '#{from}' AND '#{to}'
+        GROUP BY s.id
+      ")
+      result_hash = { 'verified' => 0, 'started' => 0, 'pending' => 0, 'rejected' => 0, 'voided' => 0,
+                      'completed' => 0 }
+      statuses_count.each do |entry|
+        result_hash[entry['name']] = entry['count']
       end
-      test_statuses_counts.each do |status_count|
-        statuses_count[status_count[:name]] = status_count[:count]
-      end
-      statuses_count
+      result_hash
     end
 
     private
