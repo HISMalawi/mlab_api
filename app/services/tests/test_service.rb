@@ -196,63 +196,6 @@ module Tests
       orders_serializer(orders, client)
     end
 
-    def total_test_count(from, to, department)
-      to = to.present? ? Date.parse(to) : Date.today
-      from = from.present? ? Date.parse(from) : to - 30
-      department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
-      test_count = if department == 'Lab Reception'
-                     Report.find_by_sql("
-                      SELECT
-                        COUNT(DISTINCT t.id) AS count
-                      FROM tests t
-                      WHERE t.voided = 0 AND t.created_date BETWEEN '#{from}' AND '#{to}'")
-                   else
-                     Report.find_by_sql("
-                      SELECT
-                          COUNT(DISTINCT t.id) AS count
-                      FROM
-                        tests t
-                      INNER JOIN
-                        test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
-                      WHERE
-                          t.voided = 0
-                        AND tt.department_id = #{department_id}
-                        AND t.created_date BETWEEN '#{from}' AND '#{to}'
-                     ")
-                   end
-      {
-        from:,
-        to:,
-        data: test_count.count
-      }
-    end
-
-    def test_statuses_count(from, to, department)
-      to = to.present? ? Date.parse(to) : Date.today
-      from = from.present? ? Date.parse(from) : to - 30
-      department_id = department.present? ? Department.find_by_name(department).id : Department.find_by_name('Lab Reception').id
-      statuses_count = Report.find_by_sql("
-        SELECT
-          COUNT('DISTINCT t.id') AS  count, s.name
-        FROM
-            tests t
-        INNER JOIN
-            test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
-        INNER JOIN statuses s ON s.id = t.status_id
-        WHERE
-            t.voided = 0
-        AND tt.department_id = #{department_id}
-        AND t.created_date BETWEEN '#{from}' AND '#{to}'
-        GROUP BY s.id
-      ")
-      result_hash = { 'verified' => 0, 'started' => 0, 'pending' => 0, 'rejected' => 0, 'voided' => 0,
-                      'completed' => 0 }
-      statuses_count.each do |entry|
-        result_hash[entry['name']] = entry['count']
-      end
-      result_hash
-    end
-
     private
 
     def not_reception?(department_id)
