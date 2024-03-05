@@ -11,7 +11,9 @@ class HomeDashboardJob
     HomeDashboardService.lab_configuration
     HomeDashboardService.clients
     Department.all.each do |department|
-      HomeDashboardService.tests(from, to, department.name)
+      depart_name = department.name
+      depart_name = 'All' if department.name == 'Lab Reception'
+      HomeDashboardService.tests(from, to, depart_name)
     end
   end
 end
