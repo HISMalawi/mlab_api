@@ -1,5 +1,5 @@
 moh_report_job:
-  name: "Update Moh Report Job Every 4hrs"
+  name: "Update Moh Report Job at 23:55"
   cron: "55 23 * * *"
   class: "MohReportJob"
   queue: default
@@ -8,4 +8,10 @@ nlims_sync_job:
   name: "Sync with Nlims Every 30mins"
   cron: "*/30 * * * *"
   class: "NlimsSyncJob"
+  queue: default
+
+home_dashboard_job:
+  name: "Update Home Dashboard analytics Every 6hrs"
+  cron: "0 */6 * * *"
+  class: "HomeDashboardJob"
   queue: default
