@@ -1,3 +1,9 @@
+moh_report_job:
+  name: "Update Moh Report Job at 23:55"
+  cron: "55 23 * * *"
+  class: "MohReportJob"
+  queue: default
+
 nlims_sync_job:
   name: "Sync with Nlims Every 30mins"
   cron: "*/30 * * * *"
