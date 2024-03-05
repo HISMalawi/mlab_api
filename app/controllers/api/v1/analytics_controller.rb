@@ -8,11 +8,17 @@ module Api
     class AnalyticsController < ApplicationController
       def home_dashboard
         home_params
-        HomeDashboardService.test_catalog unless home_dashboard_report?('test_catalog', @department)
-        HomeDashboardService.lab_configuration unless home_dashboard_report?('lab_config', @department)
-        HomeDashboardService.clients unless home_dashboard_report?('clients', @department)
-        HomeDashboardService.tests(@from, @to, @department) unless home_dashboard_report?('tests', @department)
-        data = HomeDashboard.all.map { |dashboard| dashboard[:data] }.reduce({}, :merge)
+        if home_dashboard_report?('tests', @department)
+          HomeDashboardService.test_catalog
+          HomeDashboardService.lab_configuration
+          HomeDashboardService.clients
+          HomeDashboardService.tests(@from, @to, @department)
+        end
+        other_report_types = %w[lab_config test_catalog clients]
+        other_data = HomeDashboard.where(department: 'All', report_type: other_report_types)
+        tests_data = HomeDashboard.where(department: @department, report_type: 'tests')
+        combine_data = tests_data + other_data
+        data = combine_data.map { |dashboard| dashboard[:data] }.reduce({}, :merge)
         render json: { data:, from: @from, to: @to }
       end
 
@@ -20,13 +26,17 @@ module Api
 
       def home_dashboard_report?(report_type, department)
         department = 'All' if department.nil? || department == 'Lab Reception'
-        !HomeDashboard.where(report_type:, department:).first.nil?
+        HomeDashboard.where(report_type:, department:).first.nil?
       end
 
       def home_params
         @to = params[:to].present? ? Date.parse(params[:to]) : Date.today
         @from = params[:from].present? ? Date.parse(params[:from]) : @to - 30
-        @department = params[:department]
+        @department = if params[:department].nil? || params[:department] == 'Lab Reception'
+                        'All'
+                      else
+                        params[:department]
+                      end
       end
     end
   end

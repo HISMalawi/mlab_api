@@ -22,7 +22,7 @@ module HomeDashboardService
         facilities: Facility.count,
         visit_types: EncounterType.count,
         wards: FacilitySection.count,
-        printers: Printer.count
+        printers: Printer.all.select('id', 'name', 'description')
       }
       home_dashboard_reports('lab_config', data, nil)
     end
@@ -62,12 +62,7 @@ module HomeDashboardService
     end
 
     def total_test_count(from, to, department)
-      department_id = if department.present?
-                        Department.find_by_name(department).id
-                      else
-                        Department.find_by_name('Lab Reception').id
-                      end
-      test_count = if department == 'Lab Reception'
+      test_count = if department == 'All'
                      Report.find_by_sql("
                       SELECT
                         COUNT(DISTINCT t.id) AS count
@@ -83,32 +78,32 @@ module HomeDashboardService
                         test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
                       WHERE
                           t.voided = 0
-                        AND tt.department_id = #{department_id}
+                        AND tt.department_id = #{Department.find_by_name(department)&.id}
                         AND t.created_date BETWEEN '#{from}' AND '#{to}'
                      ")
                    end
-      test_count.count
+      test_count.first&.count
     end
 
     def test_statuses_count(from, to, department)
-      department_id = if department.present?
-                        Department.find_by_name(department).id
+      department_id = if department == 'All'
+                        0
                       else
-                        Department.find_by_name('Lab Reception').id
+                        Department.find_by_name(department).id
                       end
       statuses_count = Report.find_by_sql("
-        SELECT
-          COUNT('DISTINCT t.id') AS  count, s.name
-        FROM
-            tests t
-        INNER JOIN
-            test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
-        INNER JOIN statuses s ON s.id = t.status_id
-        WHERE
-            t.voided = 0
-        AND tt.department_id = #{department_id}
-        AND t.created_date BETWEEN '#{from}' AND '#{to}'
-        GROUP BY s.id
+          SELECT
+            COUNT('DISTINCT t.id') AS  count, s.name
+          FROM
+              tests t
+          INNER JOIN
+              test_types tt ON tt.retired = 0 AND tt.id = t.test_type_id
+          INNER JOIN statuses s ON s.id = t.status_id
+          WHERE
+              t.voided = 0
+          AND tt.department_id = #{department_id}
+          AND t.created_date BETWEEN '#{from}' AND '#{to}'
+          GROUP BY s.id
       ")
       result_hash = { 'verified' => 0, 'started' => 0, 'pending' => 0, 'rejected' => 0, 'voided' => 0,
                       'completed' => 0 }
