@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Home dashboard analytics service
-module HomeDashboardAnalytics
+module HomeDashboardService
   class << self
     def test_catalog
       data = {
@@ -20,6 +20,7 @@ module HomeDashboardAnalytics
       data = {
         instruments: Instrument.count,
         facilities: Facility.count,
+        visit_types: EncounterType.count,
         wards: FacilitySection.count,
         printers: Printer.count
       }
