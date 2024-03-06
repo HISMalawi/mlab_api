@@ -83,13 +83,14 @@ module Reports
         end
 
         def test_record(from, to, test_status, department, test_type, collection)
+          data = serialize_test_record(collection)
           {
             from:,
             to:,
-            test_status: test_status.gsub(/'/, '').split(', '),
+            completed_tests: data.length,
             department:,
             test_type:,
-            data: serialize_test_record(collection)
+            data:
           }
         end
 
