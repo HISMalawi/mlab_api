@@ -78,8 +78,13 @@ module ClientManagement
       end
 
       def search_client(client_name, per_page)
-        people  = Person.search(client_name)
-        Client.joins(:person).where(person_id: people).order(id: :desc).page().per(per_page)
+        if client_name.to_i.zero?
+          people = Person.search(client_name)
+          @client = Client.where(person_id: people).order(id: :desc).page.per(per_page)
+        else
+          @client = Client.where(id: client_name).order(id: :desc).page.per(per_page)
+        end
+        @client
       end
 
       def search_client_by_name_and_gender(first_name, last_name, gender)
