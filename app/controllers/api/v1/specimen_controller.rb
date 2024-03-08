@@ -4,7 +4,7 @@ module Api
       before_action :set_specimen, only: %i[show update destroy]
 
       def index
-        @specimen = Specimen.all
+        @specimen = Specimen.all.order(:name)
         render json: @specimen
       end
 
@@ -23,7 +23,7 @@ module Api
           test_type_id: test_types.pluck('specimen_test_type_mappings.test_type_id')
         ).pluck('test_panels.name')
         test_types = test_types.pluck('name') + test_panel
-        render json: test_types.uniq
+        render json: test_types.uniq.sort
       end
 
       def create
