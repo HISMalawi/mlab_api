@@ -285,7 +285,7 @@ module Tests
 
     def indicator_ranges(test_indicator_id)
       TestIndicatorRange.where(test_indicator_id:).select("
-        id, test_indicator_id, min_age, max_age, lower_range, upper_range,
+        id, test_indicator_id, sex, min_age, max_age, lower_range, upper_range,
         interpretation, value
       ")
     end
