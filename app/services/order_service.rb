@@ -49,19 +49,28 @@ module OrderService
       test_params.each do |test_param|
         test_type = TestType.find_by_name(test_param[:test_type])
         test_panel = TestPanel.find_by_name(test_param[:test_type])
+        specimen_id = test_param[:specimen]
         if test_panel.nil?
-          Test.find_or_create_by!(
-            specimen_id: test_param[:specimen],
-            order_id: order_id,
-            test_type_id: test_type.id
-          )
+          if test_type.name.downcase == 'cross-match'
+            Test.create!(
+              specimen_id:,
+              order_id:,
+              test_type_id: test_type.id
+            )
+          else
+            Test.find_or_create_by!(
+              specimen_id:,
+              order_id:,
+              test_type_id: test_type.id
+            )
+          end
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
-          member_test_types.each do |test_type|
+          member_test_types.each do |test_type_id|
             Test.find_or_create_by!(
-              specimen_id: test_param[:specimen],
-              order_id: order_id,
-              test_type_id: test_type,
+              specimen_id:,
+              order_id:,
+              test_type_id:,
               test_panel_id: test_panel.id
             )
           end
