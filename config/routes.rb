@@ -82,6 +82,7 @@ Rails.application.routes.draw do
         collection do
           get '/identifier_types/' => 'clients#identifier_types'
           get '/search_dde' => 'clients#dde_search_client'
+          get '/search_by_name' => 'clients#search_by_name'
         end
       end
       resources :orders do

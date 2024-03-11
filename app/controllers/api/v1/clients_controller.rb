@@ -40,6 +40,13 @@ module Api
         render json: clients
       end
 
+      def search_by_name
+        clients = Person.search_by_first_name(params[:first_name]) if params[:first_name].present?
+        clients = Person.search_by_first_name(params[:last_name]) if params[:last_name].present?
+        clients ||= []
+        render json: clients
+      end
+
       def create
         @client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
         render json: ClientManagement::ClientService.get_client(@client.id), status: :created

@@ -17,4 +17,12 @@ class Person < VoidableRecord
   def fullname
     "#{first_name} #{middle_name} #{last_name}"
   end
+
+  def self.search_by_first_name(first_name)
+    where("first_name LIKE '#{first_name}%'").select('distinct first_name').limit(10).map(&:first_name)
+  end
+
+  def self.search_by_last_name(last_name)
+    where("last_name LIKE '#{last_name}%'").select('distinct last_name').limit(10).map(&:last_name)
+  end
 end
