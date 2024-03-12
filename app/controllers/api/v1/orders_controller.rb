@@ -36,6 +36,10 @@ module Api
         order = OrderService.add_test_to_order(params[:order_id], params[:tests])
         render json: order, status: :created
       end
+
+      def search_by_requesting_clinician
+        render json: Order.requesting_clinician(params[:name])
+      end
     
       def create
         ActiveRecord::Base.transaction do

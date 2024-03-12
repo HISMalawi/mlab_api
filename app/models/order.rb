@@ -79,4 +79,8 @@ class Order < VoidableRecord
       sync_status: 0
     )
   end
+
+  def self.requesting_clinician(name)
+    where("requested_by LIKE '#{name}%'").select('distinct requested_by').limit(10).map(&:requested_by)
+  end
 end
