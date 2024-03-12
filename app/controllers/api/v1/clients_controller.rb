@@ -42,7 +42,7 @@ module Api
 
       def search_by_name
         clients = Person.search_by_first_name(params[:first_name]) if params[:first_name].present?
-        clients = Person.search_by_first_name(params[:last_name]) if params[:last_name].present?
+        clients = Person.search_by_last_name(params[:last_name]) if params[:last_name].present?
         clients ||= []
         render json: clients
       end
