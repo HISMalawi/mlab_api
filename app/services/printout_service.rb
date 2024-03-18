@@ -32,7 +32,7 @@ module PrintoutService
       label
     end
 
-    def print_zebra_report(person, order, _test_ids, is_cross_match)
+    def print_zebra_report(person, order, test_ids, is_cross_match)
       accession_number = order.accession_number
       patient = person.fullname
       date = Date.today.strftime
@@ -42,11 +42,8 @@ module PrintoutService
       pack_abo_group = ''
       test_results = []
       if is_cross_match
-        test_type_ids = TestType.where("name LIKE '%cross-match%'").pluck('id')
-        test_results = TestResult.joins(:test_indicator).where(
-          test_id: Test.where(order_id: order.id,
-                              test_type_id: test_type_ids)
-        ).select('test_results.id, test_indicators.name, test_results.value,
+        test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
+                                 .select('test_results.id, test_indicators.name, test_results.value,
           test_results.result_date')
       else
         pack_abo_group = TestResult.where(
