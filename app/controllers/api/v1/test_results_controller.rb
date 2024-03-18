@@ -36,7 +36,7 @@ module Api
             end
 
             # Handle cross match results with same pack number
-            void_previous_x_matches(test_id, 126, value) if Test.find(test_id).test_type_id == 30
+            void_previous_x_matches(test_indicator_id, value) if Test.find(test_id).test_type_id == 30
             test_result = TestResult.find_by(test_id:, test_indicator_id:)
             test_result&.void('Edited')
             TestResult.create!(test_id:, test_indicator_id:, value:,
@@ -62,11 +62,13 @@ module Api
         params.permit(:test_id, :remarks, test_indicators: %i[indicator value machine_name])
       end
 
-      def void_previous_x_matches(test_id, test_indicator_id, value)
-        unless value.blank?
-          TestResult.where(test_indicator_id:, value:).order(created_date: :desc).limit(15000) do |result|
-            result.void("Voided due to having same pack number result as #{test_id}")
-          end
+      def void_previous_x_matches(test_indicator_id, value)
+        return if value.blank? || test_indicator_id != 126
+
+        test_ids = TestResult.where(test_indicator_id:, value:).order(created_date: :desc).limit(100).pluck('test_id')
+        test_results = TestResult.where(test_id: test_ids)
+        test_results.each do |result|
+          result.void("Voided due to having same pack number result as #{test_ids}")
         end
       end
     end
