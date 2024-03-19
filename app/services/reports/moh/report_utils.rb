@@ -11,7 +11,7 @@ module Reports
           range = []
           max_year = Test.maximum(:created_date)
           unless max_year.nil?
-            min_year = Test.minimum(:created_date).year
+            min_year = 60.days.ago.year
             range = (min_year.to_s..max_year.year.to_s).to_a
           end
           range
