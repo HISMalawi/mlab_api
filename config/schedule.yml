@@ -15,3 +15,9 @@ home_dashboard_job:
   cron: "0 */6 * * *"
   class: "HomeDashboardJob"
   queue: default
+
+update_elasticsearch_job:
+  name: "Update elastic search every 2mins"
+  cron: "*/2 * * * *"
+  class: "UpdateElasticsearchIndexJob"
+  queue: default

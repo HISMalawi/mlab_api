@@ -9,3 +9,4 @@ class UpdateElasticsearchIndexJob
     es.update_index
   end
 end
+UpdateElasticsearchIndexJob.perform_async
