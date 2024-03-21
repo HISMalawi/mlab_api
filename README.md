@@ -85,7 +85,17 @@ cp application.yml.example application.yml
 vim application.yml
 ```
 
-## Installing ElasticSearch - If you set use_elasticsearch to true in the application.yml in the default block 
+## Installing ElasticSearch - If you set use_elasticsearch to true in the application.yml in the default block
+#### A. Via docker: https://hub.docker.com/_/elasticsearch 
+```bash
+docker run -d --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" --restart always elasticsearch:7.17.18
+```
+   Test elasticsearch Installation
+```bash
+curl -X GET 'http://localhost:9200'  #This should output something about name, cluster_name, tagline, version
+```
+OR 
+#### B. Installing without Using Docker
 1. Install Java
 ```shell
 java -version # Check if java is already installed, if not install by running below commands
