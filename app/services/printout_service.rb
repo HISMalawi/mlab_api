@@ -40,19 +40,14 @@ module PrintoutService
       by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id),
                                            status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = ''
-      test_results = []
+      test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
+                               .select('test_results.id, test_indicators.name, test_results.value,
+                               test_results.result_date')
       if is_cross_match
         pack_abo_group = TestResult.where(
           test_id: Test.where(order_id: order.id),
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
-        # test_results = TestResult.joins(:test_indicator).where(
-        #   test_id: Test.where(order_id: order.id)
-        # ).where("test_indicators.name <> 'Grouping'").select('test_results.id, test_indicators.name, test_results.value,
-        #   test_results.result_date')
-        test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
-                                 .select('test_results.id, test_indicators.name, test_results.value,
-          test_results.result_date')
       end
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
