@@ -176,6 +176,7 @@ module Nlims
 
     def set_order_status_to_accepted(order_id)
       specimen_accepted = Status.find_by_name('specimen-accepted')
+      Order.find(order_id).update(status_id: specimen_accepted.id)
       OrderStatus.find_or_create_by!(order_id:, status_id: specimen_accepted.id)
     end
 
