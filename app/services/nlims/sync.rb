@@ -64,7 +64,7 @@ module Nlims
         if response['error'] == false && response['message'] == 'order created successfuly' || response['message'] == 'order already available'
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
                                            test_or_order_id: order[:id]).first
-          unsync_order.update!(sync_status: 1)
+          update_unsync_order(unsync_order)
           Rails.logger.info("=======Successfully created orders in nlims:#{payload[:tracking_number]}=============")
         else
           Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
@@ -107,7 +107,7 @@ module Nlims
         if response['error'] == false && response['message'] == 'order updated successfuly'
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                            test_or_order_id: order[:id]).first
-          unsync_order.update!(sync_status: 1)
+          update_unsync_order(unsync_order)
           Rails.logger.info("=======Successfully updated orders in nlims: #{payload[:tracking_number]}=============")
         else
           Rails.logger.info("=======#{response['message']}:#{payload[:tracking_number]}=============")
@@ -186,12 +186,16 @@ module Nlims
         if response['error'] == false && response['message'] == 'test updated successfuly'
           unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: test_res[:test_status],
                                            test_or_order_id: test_res[:test_id]).first
-          unsync_order.update!(sync_status: 1)
+          update_unsync_order(unsync_order)
           Rails.logger.info("=======Successfully updated tests in nlims:#{payload[:tracking_number]}=============")
         else
           Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
         end
       end
+    end
+
+    def self.update_unsync_order(unsync_order)
+      unsync_order&.update!(sync_status: 1)
     end
 
     def self.nlims_token

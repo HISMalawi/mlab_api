@@ -5,8 +5,8 @@ moh_report_job:
   queue: default
 
 nlims_sync_job:
-  name: "Sync with Nlims Every 30mins"
-  cron: "*/30 * * * *"
+  name: "Sync with Nlims Every 5mins"
+  cron: "*/5 * * * *"
   class: "NlimsSyncJob"
   queue: default
 
