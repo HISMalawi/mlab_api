@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/'
   mount Sidekiq::Web => '/sidekiq'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  resources :articles
 
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
@@ -62,6 +63,7 @@ Rails.application.routes.draw do
       post '/printout/patient_zebra_report' => 'printout#print_zebra_report'
       post '/printout/patient_report' => 'printout#print_patient_report'
       post '/printout/general_report' => 'printout#print_general_report'
+      get '/printout/messages' => 'printout#message'
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'

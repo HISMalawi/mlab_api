@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= javascript_include_tag 'vue' %> 
+  <%= javascript_include_tag 'moment' %> 
+  <%= javascript_include_tag 'tailwind' %> 
+</head>
+<body>
+<div id="app", style="font-size: 8px">
+  <div v-if="reportData.length > 0" class="border rounded print-container mt-10">
+        <div class="rounded-tr rounded-tl border-b px-5 py-5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <img
+                src="@/assets/images/logo.png"
+                alt="app-logo"
+                class="w-24 h-24 object-cover"
+              />
+              <h3 class="text-2xl font-semibold" style="font-size: 16px; line-height: 2rem;">PATIENT REPORT</h3>
+            </div>
+            <div>
+              <barcode
+                :value="reportData[0].accession_number"
+                :display-value="false"
+                :height="50"
+              />
+            </div>
+            <div class="bg-gray-50 px-4 py-2 rounded border border-dotted">
+              <address class="font-normal">
+                <span
+                  class="flex items-center not-italic text-xl font-semibold border-b mb-2 border-dotted"
+                  style="font-size: 14px; line-height: 2rem;"
+                >
+                  {{ facility.name}}
+                </span>
+                <span class="flex items-center not-italic text-gray-600">
+                  {{ facility.address }}
+                </span>
+                <span class="flex items-center not-italic text-gray-600">
+                  {{ facility.phone }}
+                </span>
+              </address>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mt-5">
+            <div>
+              <span class="font-medium">Report Date:</span>
+              {{ moment(new Date()).format(dateFormat) }}
+            </div>
+            <div>
+              <span class="font-medium">No. Printed:</span>
+              {{ getPrintCount(reportData) }}
+            </div>
+            <div>
+              <span class="font-medium">Date Sample Collected:</span>
+              {{
+                reportData.length > 0 &&
+                moment(reportData[0].sample_collection_time).format(dateFormat)
+              }}
+            </div>
+          </div>
+
+          <table class="w-full mt-2">
+            <tbody>
+              <tr>
+                <td class="border px-2 py-2 font-bold">Patient Name</td>
+                <td class="border px-2 py-2">
+                  {{
+                    `${person.first_name} ${
+                      person.middle_name ? person.middle_name : ""
+                    } ${person.last_name}`
+                  }}
+                </td>
+                <td class="border px-2 py-2 font-bold">Sex</td>
+                <td class="border px-2 py-2">
+                  {{ person.sex === "F" ? "Female" : "Male" }}
+                </td>
+                <td class="border px-2 py-2 font-bold">Age</td>
+                <td class="border px-2 py-2">
+                  {{ calculateAge(person.date_of_birth) }} yr(s)
+                </td>
+              </tr>
+              <tr>
+                <td class="border px-2 py-2 font-bold">Patient ID</td>
+                <td class="border px-2 py-2">{{ person.id }}</td>
+                <td class="border px-2 py-2 font-bold" colspan="2">Address</td>
+                <td class="border px-2 py-2" colspan="2">
+                  {{ getPhysicalAddress }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div v-for="(report, index) in reportData" :key="index">
+          <div
+            class="bg-gray-100 text-gray-600 border-b flex items-center justify-between px-2 py-2 font-medium"
+          >
+            <div class="flex items-center">
+              <!-- <QrCodeIcon class="w-5 h-5 mr-2"></QrCodeIcon> -->
+              Accession No: {{ report.accession_number }}
+            </div>
+            <div>
+              Requested By: {{ report.requested_by }} ({{
+                report.requesting_ward
+              }})
+            </div>
+          </div>
+
+          <table class="border-collapse border-slate-500 w-full">
+            <tbody>
+              <tr>
+                <td class="border-b border-r px-2 py-2 font-bold">
+                  Specimen Type
+                </td>
+                <td class="border-b border-r px-2 py-2">
+                  {{ report.specimen }}
+                </td>
+                <td class="border-b border-r px-2 py-2 font-bold">
+                  Date Registered
+                </td>
+                <td class="border-b px-2 py-2">
+                  {{ moment(report.created_date).format(dateFormat) }}
+                </td>
+              </tr>
+              <tr>
+                <td class="border-b border-r px-2 py-2 font-bold">
+                  Test Type(s)
+                </td>
+                <td class="border-b border-r px-2 py-2">
+                  {{ getTestTypes(report.test_types) }}
+                </td>
+                <td class="border-b border-r px-2 py-2 font-bold">
+                  Lab Sections
+                </td>
+                <td class="border-b px-2 py-2">
+                  {{ getDepartments(report.test_types) }}
+                </td>
+              </tr>
+              <tr>
+                <td class="border-b border-r px-2 py-2 font-bold">
+                  Specimen Status
+                </td>
+                <td class="border-b border-r px-2 py-2">
+                  {{ getOrderStatus(report.order_status) }}
+                </td>
+                <td class="border-b border-r px-2 py-2 font-bold">
+                  Received By
+                </td>
+                <td class="border-b px-2 py-2">
+                  {{ getOrderStatusInitiatorName(report.order_status_trail) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table class="border-collapse w-full">
+            <thead>
+              <tr class="bg-gray-100 text-gray-600">
+                <th class="px-2 py-2 text-lg font-semibold">Results</th>
+                <th :colspan="3" class="px-2 py-2 text-lg font-semibold">
+                  Tests Authorized({{ report.tests_verified }})
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th class="border px-2 py-2 font-bold">Test Types</th>
+                <th class="border px-2 py-2 font-bold">Results</th>
+                <th class="border px-2 py-2 font-bold">Remarks</th>
+                <th class="border px-2 py-2 font-bold">Audit details</th>
+              </tr>
+              <template
+                v-for="test in showPendingTests
+                  ? report.tests
+                  : getCompletedTests(report.tests)"
+                :key="test.id"
+              >
+                <tr>
+                  <td class="border px-2 py-2 text-left">
+                    {{ test.test_type_name }}
+                  </td>
+                  <td class="p-0 border-b" style="padding: 0 !important">
+                    <table
+                      class="w-full border-collapse"
+                      style="
+                        border-collapse: collapse !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                      "
+                    >
+                      <thead>
+                        <tr class="border-b border-t bg-gray-100">
+                          <th class="border-r border-b px-2 py-2 font-bold">
+                            Measure
+                          </th>
+                          <th class="border-r border-b px-2 py-2 font-bold">
+                            Result
+                          </th>
+                          <th class="px-2 py-2 border-b font-bold">Range</th>
+                        </tr>
+                      </thead>
+                      <tbody class="border-b">
+                        <template
+                          v-for="(indicator, t) in test.indicators"
+                          :key="t"
+                        >
+                          <tr class="border-b">
+                            <td class="border-r px-2 py-2">
+                              {{ indicator.name }}
+                            </td>
+                            <td class="px-2 py-2 flex items-center">
+                              <p
+                                v-html="
+                                  showResult(
+                                    indicator.result?.value ?? '',
+                                    test?.suscept_test_result
+                                  )
+                                "
+                              ></p>
+                              <span
+                                class="text-xs"
+                                v-if="indicator.result?.value"
+                              >
+                                {{
+                                  test?.suscept_test_result.length > 0
+                                    ? ""
+                                    : indicator?.unit
+                                }}
+                              </span>
+                              <span v-if="!indicator.result?.value"
+                                >Not done</span
+                              >
+                            </td>
+                            <td
+                              class="border-t border-l px-2 py-2 font-bold"
+                              v-if="
+                                shouldDisplayRange(
+                                  test.indicators,
+                                  person,
+                                  indicator
+                                ) !== undefined &&
+                                shouldDisplayRange(
+                                  test.indicators,
+                                  person,
+                                  indicator
+                                ) !== null
+                              "
+                            >
+                              ({{
+                                shouldDisplayRange(
+                                  test.indicators,
+                                  person,
+                                  indicator
+                                ).lower_range
+                              }}
+                              -
+                              {{
+                                shouldDisplayRange(
+                                  test.indicators,
+                                  person,
+                                  indicator
+                                ).upper_range
+                              }})
+                            </td>
+                            <td class="border px-2 py-2" v-else>N/A</td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </td>
+
+                  <td class="border px-2 py-2">
+                    <p
+                      v-html="
+                        test?.result_remarks
+                          ? test?.result_remarks.value
+                          : 'N/A'
+                      "
+                    ></p>
+                  </td>
+                  <td class="border px-2 py-2">
+                    <div class="test-status">
+                      <p class="font-bold">Test Status</p>
+                      <p class="px-2">{{ getTestStatusName(test.status) }}</p>
+                      <p class="px-2">
+                        By:
+                        {{
+                          getTestStatusInitiatorName(
+                            test.status_trail,
+                            test.status
+                          )["name"]
+                        }}
+                      </p>
+                      <p class="px-2">
+                        On:
+                        {{
+                          moment(
+                            getTestStatusInitiatorName(
+                              test.status_trail,
+                              test.status
+                            )["created_at"]
+                          ).format(dateFormat)
+                        }}
+                      </p>
+                    </div>
+                    <div
+                      v-if="
+                        getTestStatusInitiatorName(
+                          test.status_trail,
+                          'completed'
+                        )['name']
+                      "
+                    >
+                      <p class="font-bold">Performed By</p>
+                      <p class="px-2">
+                        {{
+                          getTestStatusInitiatorName(
+                            test.status_trail,
+                            "completed"
+                          )["name"]
+                        }}
+                      </p>
+                      <p class="px-2 mb-2">
+                        On:
+                        {{
+                          moment(
+                            getTestStatusInitiatorName(
+                              test.status_trail,
+                              "completed"
+                            )["created_at"]
+                          ).format(dateFormat)
+                        }}
+                      </p>
+                      <div v-if="getMachineName(test.indicators)" class="mb-2">
+                        <h3 class="font-bold">Laboratory Machine Used</h3>
+                        <p>{{ getMachineName(test.indicators) }}</p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+
+          <div class="m-2" v-show="checkSusceptibilityResults(report)">
+            <h3 class="text-lg font-semibold uppercase mb-3 mt-3">
+              Suscpeptibility Test Results
+            </h3>
+            <div>
+              <div
+                class="grid grid-cols-2 gap-4"
+                v-for="test in report.tests"
+                :key="test.id"
+              >
+                <div
+                  v-for="(result, index) in test.suscept_test_result"
+                  :key="index"
+                  v-if="test.test_type_name.toLowerCase().includes('culture')"
+                >
+                  <div
+                    class="border rounded-tr rounded-tl px-2 py-2 font-medium text-lg"
+                  >
+                    {{ result.name }}
+                  </div>
+                  <table class="w-full">
+                    <thead>
+                      <tr
+                        class="border-b px-2 py-2 text-left border-r border-l"
+                      >
+                        <th class="px-4 py-2 border-r">Drug</th>
+                        <th class="px-4 py-2 border-r">Zone (mm)</th>
+                        <th class="px-4 py-2">Intrepretation</th>
+                      </tr>
+                    </thead>
+                    <tbody classs="border-l border-r">
+                      <tr
+                        v-for="drug in getFilteredDrugs(result.drugs)"
+                        :key="drug.drug_id"
+                      >
+                        <th
+                          class="text-left border-l border-r px-4 py-2 border-b font-normal"
+                        >
+                          {{ drug.name }}
+                        </th>
+                        <th
+                          class="text-left border-l border-r px-4 py-2 border-b font-normal"
+                        >
+                          {{ drug.zone }}
+                        </th>
+                        <th
+                          class="text-left border-l border-r px-4 py-2 border-b font-normal"
+                        >
+                          {{ drug.interpretation }}
+                        </th>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+
+<script>
+ const { createApp, ref } = Vue
+
+const app = createApp({
+  data() {
+    return {
+      dateRange: [],
+      location: {},
+      reportData: {},
+      moment: moment,
+      person_identifiers: [],
+      physicalAddress: "",
+      person: {},
+      facility: {},
+      hasSusceptivibility: false,
+      authorizedTestCount: 0,
+      showPendingTests: false,
+      loading: false
+    };
+  },
+  methods: {
+    getOrderStatusInitiatorName(data) {
+      const specimenStatus = ["specimen-accepted", "specimen-rejected"];
+      const result = data.find((item) =>
+        specimenStatus.includes(item.status.name)
+      );
+      return result
+        ? `${result.initiator.first_name} ${result.initiator.last_name}`
+        : "";
+    },
+    getOrderStatus(status) {
+      return status !== null ? this.capitalizeStr(status.split("-").join(" ")) : "";
+    },
+    getTestStatusInitiatorName(data, status) {
+      const result = data.find((item) => status === item.status.name);
+      return result
+        ? {
+            name: `${result.initiator.first_name} ${result.initiator.last_name}`,
+            created_at: result.created_date,
+          }
+        : {
+            name: "",
+            created_at: "",
+          };
+    },
+    getTestTypes(data) {
+      return data.map((item) => item.name).join(", ");
+    },
+    getDepartments(data) {
+      const uniqueDepartments = [
+        ...new Set(data.map((item) => item.department)),
+      ];
+      return uniqueDepartments.join(", ");
+    },
+    getAuthorizedTestCount(data) {
+      return data.reduce((count, order) => count + order.tests_verified, 0);
+    },
+    showIndicatorRanges(data) {
+      return data.some(
+        (indicator) => indicator.test_indicator_type === "numeric"
+      );
+    },
+    getTestStatusName(status) {
+      if (status == "verified") {
+        status = "Authorized";
+      } else {
+        status = status
+          .split("-")
+          .map((word) => this.capitalizeStr(word))
+          .join(" ");
+      }
+      return status;
+    },
+    capitalizeStr(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+    updateReport(value) {
+      if (value) {
+        this.init();
+      }
+    },
+    checkSusceptibilityResults(report) {
+      return report.tests.some(
+        (test) => test.suscept_test_result.length !== 0
+      );
+    },
+    getFilteredDrugs(drugs) {
+      return drugs.filter((drug) => drug.zone !== null);
+    },
+    showResult(result, susceptibilityResults) {
+      return susceptibilityResults.length > 0
+        ? `Growth of ${susceptibilityResults
+            .map((result) => result.name)
+            .join(", ")}`
+        : result;
+    },
+    getPrintCount(reportData) {
+      return reportData.reduce(
+        (count, report) => count + report.print_count,
+        0
+      );
+    },
+    calculateAge(date) {
+      return moment().diff(date, "years");
+    },
+    getRequiredRange(patient, ranges) {
+      const patientSex = patient.sex == "M" ? "Male" : "Female";
+      const age = Math.ceil(
+        Number(
+          this.calculateAge(patient.date_of_birth) == 0
+            ? 1
+            : this.calculateAge(patient.date_of_birth)
+        )
+      );
+      return ranges.filter(
+        (range) =>
+          (range.sex === patientSex &&
+            age > Number(range.min_age) &&
+            age < Number(range.max_age)) ||
+          (range.sex === "Both" &&
+            age > Number(range.min_age) &&
+            age < Number(range.max_age))
+      )[0];
+    },
+    shouldDisplayRange(
+      indicators,
+      patient,
+      indicator
+    ) {
+      let result = null
+      if (this.showIndicatorRanges(indicators)) {
+        result = this.getRequiredRange(patient, indicator.indicator_ranges);
+      }
+      return result;
+    },
+    getMachineName(indicators) {
+      return indicators[0].result.machine_name;
+    },
+    getCompletedTests(tests){
+      const validStatuses = new Set(["completed", "verified"]);
+      return tests.filter((item) =>
+        validStatuses.has(item.status.toLowerCase())
+      );
+    }
+  },
+  mounted() {
+    let data = <%= raw @test_service.to_json %>
+    this.facility = data.facility
+    data = data.data
+    this.person = data.client.person;
+    this.person_identifiers = data.client.client_identifiers;
+    let formattedData = data.orders.map((order) => {
+      let count = 0;
+      if (order.tests !== undefined) {
+        count += order.tests.filter(
+          (test) =>
+            test.status.toLowerCase() === "verified"
+        ).length;
+      }
+      return {
+        ...order,
+        tests_verified: count,
+      };
+    });
+    this.reportData = formattedData;
+  }
+}).mount('#app')
+</script>
+</body>
+</html>
