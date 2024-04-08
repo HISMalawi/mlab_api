@@ -6,28 +6,26 @@
   <%= javascript_include_tag 'vue' %> 
   <%= javascript_include_tag 'moment' %> 
   <%= javascript_include_tag 'tailwind' %> 
+  <%= javascript_include_tag 'jsbarcode' %>
 </head>
 <body>
-<div id="app", style="font-size: 8px">
-  <div v-if="reportData.length > 0" class="border rounded print-container mt-10">
+<div id="app", style="font-size: 10px">
+  <div v-if="reportData.length > 0" class="border rounded print-container">
         <div class="rounded-tr rounded-tl border-b px-5 py-5">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <img
-                src="@/assets/images/logo.png"
+                src="/images/logo.png"
                 alt="app-logo"
                 class="w-24 h-24 object-cover"
               />
-              <h3 class="text-2xl font-semibold" style="font-size: 16px; line-height: 2rem;">PATIENT REPORT</h3>
+              <h3 class="text-2xl font-semibold" style="font-size: 16px;">PATIENT REPORT</h3>
             </div>
             <div>
-              <barcode
-                :value="reportData[0].accession_number"
-                :display-value="false"
-                :height="50"
-              />
+              <svg id="barcode">
+              </svg>
             </div>
-            <div class="bg-gray-50 px-4 py-2 rounded border border-dotted">
+            <div class="bg-gray-50 px-4 py-1 rounded border border-dotted">
               <address class="font-normal">
                 <span
                   class="flex items-center not-italic text-xl font-semibold border-b mb-2 border-dotted"
@@ -66,28 +64,28 @@
           <table class="w-full mt-2">
             <tbody>
               <tr>
-                <td class="border px-2 py-2 font-bold">Patient Name</td>
-                <td class="border px-2 py-2">
+                <td class="border px-1 py-1 font-bold">Patient Name</td>
+                <td class="border px-1 py-1">
                   {{
                     `${person.first_name} ${
                       person.middle_name ? person.middle_name : ""
                     } ${person.last_name}`
                   }}
                 </td>
-                <td class="border px-2 py-2 font-bold">Sex</td>
-                <td class="border px-2 py-2">
+                <td class="border px-1 py-1 font-bold">Sex</td>
+                <td class="border px-1 py-1">
                   {{ person.sex === "F" ? "Female" : "Male" }}
                 </td>
-                <td class="border px-2 py-2 font-bold">Age</td>
-                <td class="border px-2 py-2">
+                <td class="border px-1 py-1 font-bold">Age</td>
+                <td class="border px-1 py-1">
                   {{ calculateAge(person.date_of_birth) }} yr(s)
                 </td>
               </tr>
               <tr>
-                <td class="border px-2 py-2 font-bold">Patient ID</td>
-                <td class="border px-2 py-2">{{ person.id }}</td>
-                <td class="border px-2 py-2 font-bold" colspan="2">Address</td>
-                <td class="border px-2 py-2" colspan="2">
+                <td class="border px-1 py-1 font-bold">Patient ID</td>
+                <td class="border px-1 py-1">{{ person.id }}</td>
+                <td class="border px-1 py-1 font-bold" colspan="2">Address</td>
+                <td class="border px-1 py-1" colspan="2">
                   {{ getPhysicalAddress }}
                 </td>
               </tr>
@@ -100,7 +98,6 @@
             class="bg-gray-100 text-gray-600 border-b flex items-center justify-between px-2 py-2 font-medium"
           >
             <div class="flex items-center">
-              <!-- <QrCodeIcon class="w-5 h-5 mr-2"></QrCodeIcon> -->
               Accession No: {{ report.accession_number }}
             </div>
             <div>
@@ -113,44 +110,44 @@
           <table class="border-collapse border-slate-500 w-full">
             <tbody>
               <tr>
-                <td class="border-b border-r px-2 py-2 font-bold">
+                <td class="border-b border-r px-1 py-1 font-bold">
                   Specimen Type
                 </td>
-                <td class="border-b border-r px-2 py-2">
+                <td class="border-b border-r px-1 py-1">
                   {{ report.specimen }}
                 </td>
-                <td class="border-b border-r px-2 py-2 font-bold">
+                <td class="border-b border-r px-1 py-1 font-bold">
                   Date Registered
                 </td>
-                <td class="border-b px-2 py-2">
+                <td class="border-b px-1 py-1">
                   {{ moment(report.created_date).format(dateFormat) }}
                 </td>
               </tr>
               <tr>
-                <td class="border-b border-r px-2 py-2 font-bold">
+                <td class="border-b border-r px-1 py-1 font-bold">
                   Test Type(s)
                 </td>
-                <td class="border-b border-r px-2 py-2">
+                <td class="border-b border-r px-1 py-1">
                   {{ getTestTypes(report.test_types) }}
                 </td>
-                <td class="border-b border-r px-2 py-2 font-bold">
+                <td class="border-b border-r px-1 py-1 font-bold">
                   Lab Sections
                 </td>
-                <td class="border-b px-2 py-2">
+                <td class="border-b px-1 py-1">
                   {{ getDepartments(report.test_types) }}
                 </td>
               </tr>
               <tr>
-                <td class="border-b border-r px-2 py-2 font-bold">
+                <td class="border-b border-r px-1 py-1 font-bold">
                   Specimen Status
                 </td>
-                <td class="border-b border-r px-2 py-2">
+                <td class="border-b border-r px-1 py-1">
                   {{ getOrderStatus(report.order_status) }}
                 </td>
-                <td class="border-b border-r px-2 py-2 font-bold">
+                <td class="border-b border-r px-1 py-1 font-bold">
                   Received By
                 </td>
-                <td class="border-b px-2 py-2">
+                <td class="border-b px-1 py-1">
                   {{ getOrderStatusInitiatorName(report.order_status_trail) }}
                 </td>
               </tr>
@@ -160,18 +157,18 @@
           <table class="border-collapse w-full">
             <thead>
               <tr class="bg-gray-100 text-gray-600">
-                <th class="px-2 py-2 text-lg font-semibold">Results</th>
-                <th :colspan="3" class="px-2 py-2 text-lg font-semibold">
+                <th class="px-1 py-1 text-lg font-semibold">Results</th>
+                <th :colspan="3" class="px-1 py-1 text-lg font-semibold">
                   Tests Authorized({{ report.tests_verified }})
                 </th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <th class="border px-2 py-2 font-bold">Test Types</th>
-                <th class="border px-2 py-2 font-bold">Results</th>
-                <th class="border px-2 py-2 font-bold">Remarks</th>
-                <th class="border px-2 py-2 font-bold">Audit details</th>
+                <th class="border px-1 py-1 font-bold">Test Types</th>
+                <th class="border px-1 py-1 font-bold">Results</th>
+                <th class="border px-1 py-1 font-bold">Remarks</th>
+                <th class="border px-1 py-1 font-bold">Audit details</th>
               </tr>
               <template
                 v-for="test in showPendingTests
@@ -180,7 +177,7 @@
                 :key="test.id"
               >
                 <tr>
-                  <td class="border px-2 py-2 text-left">
+                  <td class="border px-1 py-1 text-left">
                     {{ test.test_type_name }}
                   </td>
                   <td class="p-0 border-b" style="padding: 0 !important">
@@ -194,13 +191,13 @@
                     >
                       <thead>
                         <tr class="border-b border-t bg-gray-100">
-                          <th class="border-r border-b px-2 py-2 font-bold">
+                          <th class="border-r border-b px-1 py-1 font-bold">
                             Measure
                           </th>
-                          <th class="border-r border-b px-2 py-2 font-bold">
+                          <th class="border-r border-b px-1 py-1 font-bold">
                             Result
                           </th>
-                          <th class="px-2 py-2 border-b font-bold">Range</th>
+                          <th class="px-1 py-1 border-b font-bold">Range</th>
                         </tr>
                       </thead>
                       <tbody class="border-b">
@@ -209,10 +206,10 @@
                           :key="t"
                         >
                           <tr class="border-b">
-                            <td class="border-r px-2 py-2">
+                            <td class="border-r px-1 py-1">
                               {{ indicator.name }}
                             </td>
-                            <td class="px-2 py-2 flex items-center">
+                            <td class="px-1 py-1 flex items-center">
                               <p
                                 v-html="
                                   showResult(
@@ -222,7 +219,7 @@
                                 "
                               ></p>
                               <span
-                                class="text-xs"
+                                class=""
                                 v-if="indicator.result?.value"
                               >
                                 {{
@@ -236,7 +233,7 @@
                               >
                             </td>
                             <td
-                              class="border-t border-l px-2 py-2 font-bold"
+                              class="border-t border-l px-1 py-1 font-bold"
                               v-if="
                                 shouldDisplayRange(
                                   test.indicators,
@@ -266,14 +263,14 @@
                                 ).upper_range
                               }})
                             </td>
-                            <td class="border px-2 py-2" v-else>N/A</td>
+                            <td class="border px-1 py-1" v-else>N/A</td>
                           </tr>
                         </template>
                       </tbody>
                     </table>
                   </td>
 
-                  <td class="border px-2 py-2">
+                  <td class="border px-1 py-1">
                     <p
                       v-html="
                         test?.result_remarks
@@ -282,11 +279,11 @@
                       "
                     ></p>
                   </td>
-                  <td class="border px-2 py-2">
+                  <td class="border px-1 py-1">
                     <div class="test-status">
                       <p class="font-bold">Test Status</p>
-                      <p class="px-2">{{ getTestStatusName(test.status) }}</p>
-                      <p class="px-2">
+                      <p class="px-1">{{ getTestStatusName(test.status) }}</p>
+                      <p class="px-1">
                         By:
                         {{
                           getTestStatusInitiatorName(
@@ -295,7 +292,7 @@
                           )["name"]
                         }}
                       </p>
-                      <p class="px-2">
+                      <p class="px-1">
                         On:
                         {{
                           moment(
@@ -316,7 +313,7 @@
                       "
                     >
                       <p class="font-bold">Performed By</p>
-                      <p class="px-2">
+                      <p class="px-1">
                         {{
                           getTestStatusInitiatorName(
                             test.status_trail,
@@ -324,7 +321,7 @@
                           )["name"]
                         }}
                       </p>
-                      <p class="px-2 mb-2">
+                      <p class="px-1 mb-2">
                         On:
                         {{
                           moment(
@@ -362,18 +359,18 @@
                   v-if="test.test_type_name.toLowerCase().includes('culture')"
                 >
                   <div
-                    class="border rounded-tr rounded-tl px-2 py-2 font-medium text-lg"
+                    class="border rounded-tr rounded-tl px-1 py-1 font-medium text-lg"
                   >
                     {{ result.name }}
                   </div>
                   <table class="w-full">
                     <thead>
                       <tr
-                        class="border-b px-2 py-2 text-left border-r border-l"
+                        class="border-b px-1 py-1 text-left border-r border-l"
                       >
-                        <th class="px-4 py-2 border-r">Drug</th>
-                        <th class="px-4 py-2 border-r">Zone (mm)</th>
-                        <th class="px-4 py-2">Intrepretation</th>
+                        <th class="px-4 py-1 border-r">Drug</th>
+                        <th class="px-4 py-1 border-r">Zone (mm)</th>
+                        <th class="px-4 py-1">Intrepretation</th>
                       </tr>
                     </thead>
                     <tbody classs="border-l border-r">
@@ -382,17 +379,17 @@
                         :key="drug.drug_id"
                       >
                         <th
-                          class="text-left border-l border-r px-4 py-2 border-b font-normal"
+                          class="text-left border-l border-r px-4 py-1 border-b font-normal"
                         >
                           {{ drug.name }}
                         </th>
                         <th
-                          class="text-left border-l border-r px-4 py-2 border-b font-normal"
+                          class="text-left border-l border-r px-4 py-1 border-b font-normal"
                         >
                           {{ drug.zone }}
                         </th>
                         <th
-                          class="text-left border-l border-r px-4 py-2 border-b font-normal"
+                          class="text-left border-l border-r px-4 py-1 border-b font-normal"
                         >
                           {{ drug.interpretation }}
                         </th>
@@ -414,6 +411,7 @@ const app = createApp({
   data() {
     return {
       dateRange: [],
+      dateFormat: "DD/MMM/YYYY HH:mm",
       location: {},
       reportData: {},
       moment: moment,
@@ -426,7 +424,7 @@ const app = createApp({
       showPendingTests: false,
       loading: false
     };
-  },
+  },  
   methods: {
     getOrderStatusInitiatorName(data) {
       const specimenStatus = ["specimen-accepted", "specimen-rejected"];
@@ -572,6 +570,14 @@ const app = createApp({
       };
     });
     this.reportData = formattedData;
+    this.$nextTick(() => {
+      JsBarcode("#barcode", this.reportData[0].accession_number, {
+        format: "CODE128",
+        height: 50,
+        displayValue: false
+      });
+    });
+
   }
 }).mount('#app')
 </script>

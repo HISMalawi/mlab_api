@@ -102,12 +102,12 @@ module PrintoutService
         Dir.mkdir("tmp/#{directory_name}") unless File.exist?("tmp/#{directory_name}")
       rescue Errno::EEXIST
       end
-      file_path = Rails.root.join('tmp', directory_name, uploaded_file.original_filename)
+      file_path = Rails.root.join('tmp', directory_name, "#{SecureRandom.hex(10 / 2)}.pdf")
       File.open(file_path, 'wb') do |file|
-        file.write(uploaded_file.read)
+        file << uploaded_file
       end
-      # system("nohup lp -d #{printer_name} #{file_path} > /dev/null 2>&1")
-      print_job = system("nohup lp -d '#{printer_name}' '#{file_path}' > log/printing.log 2>&1")
+      print_job = system("nohup lp -d #{printer_name} #{file_path} > /dev/null 2>&1")
+      # print_job = system("nohup lp -d '#{printer_name}' '#{file_path}' > log/printing.log 2>&1")
       system("nohup rm #{file_path}") if print_job
       print_job
     end

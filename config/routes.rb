@@ -8,7 +8,11 @@ Rails.application.routes.draw do
   mount Rswag::Api::Engine => '/'
   mount Sidekiq::Web => '/sidekiq'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-  resources :articles
+  namespace :api, defaults: { format: :html } do
+    namespace :v1 do
+      resources :print_patient_reports
+    end
+  end
 
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
