@@ -127,6 +127,7 @@ class ElasticSearchService
     response.each do |hit|
       test_ids << hit['_source']['test_id']
     end
+    test_ids = Test.where(order_id: Order.where(accession_number: q).first&.id).pluck('id') if test_ids.empty?
     test_ids
   end
 end
