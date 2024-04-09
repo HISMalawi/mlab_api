@@ -64,6 +64,9 @@ node_modules/
 yarn-debug.log*
 .yarn-integrity
 
+# Ignore package-lock file
+package-lock.json
+
 # Ignore uploaded files in development
 /storage/*
 !/storage/.keep

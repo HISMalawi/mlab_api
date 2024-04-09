@@ -449,11 +449,12 @@ module Tests
     end
 
     def test_types(id)
-      test_types = TestType.joins(:department).where(id:).select('test_types.name, departments.name AS department')
+      test_types = TestType.joins(:department).where(id:).select('test_types.name, departments.name AS department, print_device')
       test_types.map do |type|
         {
           name: type['name'],
-          department: type['department']
+          department: type['department'],
+          print_device: type['print_device']
         }
       end
     end
