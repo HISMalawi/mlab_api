@@ -143,7 +143,8 @@ export SECRET_KEY_BASE=$(bundle exec rails secret)
 
 ```shell
 rvm use 3.2.0
-bundle install
+bundle install --local
+npm install
 ```
 
 2. Create and migrate the `mlab_api` database:
