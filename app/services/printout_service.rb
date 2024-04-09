@@ -107,7 +107,6 @@ module PrintoutService
         file << uploaded_file
       end
       print_job = system("nohup lp -d #{printer_name} #{file_path} > /dev/null 2>&1")
-      # print_job = system("nohup lp -d '#{printer_name}' '#{file_path}' > log/printing.log 2>&1")
       system("nohup rm #{file_path}") if print_job
       print_job
     end
