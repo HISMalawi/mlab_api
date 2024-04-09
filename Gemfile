@@ -24,6 +24,9 @@ gem 'puma'
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 gem 'bcrypt', '~> 3.1.7'
 
+# printing gem
+gem 'grover'
+
 # Elastic search
 gem 'elasticsearch', '~> 7.0'
 
@@ -57,10 +60,7 @@ gem 'rack-cors'
 gem 'rswag-api'
 gem 'rswag-ui'
 
-gem "sidekiq-cron"
-gem 'wicked_pdf'
-# gem 'wkhtmltopdf-binary'
-gem 'grover'
+gem 'sidekiq-cron'
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'api_scaffold'
