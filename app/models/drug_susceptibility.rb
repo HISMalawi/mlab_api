@@ -1,7 +1,7 @@
 class DrugSusceptibility < VoidableRecord
   belongs_to :test
   belongs_to :organism
-  belongs_to :drug
+  belongs_to :drug, optional: true
 
 
   def as_json(options = {})

@@ -21,12 +21,11 @@ module Tests
       end
 
       def drug_susceptibility_test_results(params)
+        test_id =  params.require(:test_id)
+        organism_id = params.require(:organism_id)
+        response = DrugSusceptibility.find_or_create_by(test_id:, organism_id:) unless params[:drugs].present?
         response = params[:drugs].collect do |drug|
-          d = DrugSusceptibility.find_or_create_by(
-            test_id: params.require(:test_id),
-            organism_id: params.require(:organism_id),
-            drug_id: drug[:drug_id],
-          )
+          d = DrugSusceptibility.find_or_create_by(test_id:, organism_id:, drug_id: drug[:drug_id])
           d.update!(zone: drug[:zone], interpretation: drug[:interpretation])
           d
         end
@@ -43,10 +42,10 @@ module Tests
             test_id: organism["test_id"],
             organism_id: organism["organism_id"],
             name: Organism.find(organism["organism_id"]).name,
-            drugs: results.select { |r| r["organism_id"] == organism["organism_id"] }.map do |drug|
-              drug["name"] = Drug.where(id: drug["drug_id"]).first&.name
-              drug
-            end
+              drugs: results.select { |r| r["organism_id"] == organism["organism_id"] && r["drug_id"].present? }.map do |drug|
+                drug["name"] = Drug.where(id: drug["drug_id"]).first&.name
+                drug
+              end
           }
         end
         data.uniq { |r| r[:organism_id] }
