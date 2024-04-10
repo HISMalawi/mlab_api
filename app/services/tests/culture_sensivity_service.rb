@@ -44,7 +44,7 @@ module Tests
             organism_id: organism["organism_id"],
             name: Organism.find(organism["organism_id"]).name,
             drugs: results.select { |r| r["organism_id"] == organism["organism_id"] }.map do |drug|
-              drug["name"] = Drug.find(drug["drug_id"]).name
+              drug["name"] = Drug.where(id: drug["drug_id"]).first&.name
               drug
             end
           }
