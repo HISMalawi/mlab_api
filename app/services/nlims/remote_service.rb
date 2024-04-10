@@ -97,7 +97,7 @@ module Nlims
         middle_name = ''
         last_name = name[1]
       end
-      order_details = {
+      {
         tests: tests_,
         tracking_number: tracking_number,
         specimen: details['sample_type'],
@@ -153,13 +153,14 @@ module Nlims
               result_date: result['result_date'])
           end
         end
+        test.update(status_id: Status.where(name: 'verified').first&.id)
       end
     end
 
     def find_or_create_client(nlims_order)
       client_npid = ClientIdentifierType.where(name: 'npid').first
       npid = nlims_order[:patient_identifiers][:npid]
-      npid ||= ""
+      npid ||= ''
       client_identifier_type_id = client_npid.nil? ? '' : client_npid.id
       client_identifier = ClientIdentifier.where(client_identifier_type_id: , value: npid).first
       if client_identifier.nil?
@@ -168,9 +169,9 @@ module Nlims
           date_of_birth: nlims_order[:patient][:date_of_birth]
         )
         person.update(birth_date_estimated: false, date_of_birth: nlims_order[:patient][:date_of_birth])
-        client = Client.find_or_create_by(person_id: person.id)
+        Client.find_or_create_by(person_id: person.id)
       else
-        client = Client.find(client_identifier.id)
+        Client.find(client_identifier.id)
       end
     end
 
@@ -228,7 +229,7 @@ module Nlims
     end
 
     def create_order_from_nlims(encounter_id, nlims_order)
-      Order.create!(encounter_id: , 
+      Order.create!(encounter_id:,
         priority_id: priority(nlims_order[:priority]),
         accession_number: OrderService.generate_accession_number,
         tracking_number: nlims_order[:tracking_number],
@@ -244,31 +245,30 @@ module Nlims
         test_panel = TestPanel.find_by_name(test_[:test_type])
         if test_panel.nil?
           t_ = Test.create!(
-            specimen_id: ,
-            order_id: order_id,
+            specimen_id:,
+            order_id:,
             test_type_id: test_type.id
           )
           unless results.empty?
             status = Status.find_by_name(test_[:test_status])
-            set_test_status(t_.id, status.id) if !status.nil?
+            set_test_status(t_.id, status.id) unless status.nil?
           end
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
-          member_test_types.each do |test_type|
+          member_test_types.each do |test_type_id|
             t_ = Test.create!(
-              specimen_id: ,
-              order_id: order_id,
-              test_type_id: test_type,
+              specimen_id:,
+              order_id:,
+              test_type_id:,
               test_panel_id: test_panel.id
             )
             unless results.empty?
               status = Status.find_by_name(test_[:test_status])
-              set_test_status(t_.id, status.id) if !status.nil?
+              set_test_status(t_.id, status.id) unless status.nil?
             end
           end
         end
       end
     end
-
   end
 end
