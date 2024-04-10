@@ -207,7 +207,7 @@ module Tests
     end
 
     def search_by_test_status(tests, status)
-      status_id = Status.find_by(name: status).id
+      status_id = Status.find_by(name: status)&.id
       tests.where(status_id:)
     end
 

@@ -5,9 +5,11 @@ module Api
     # Test controller
     class TestsController < ApplicationController
       def index
+        lab_reception = Department.find_by_name('Lab Reception')&.id
+        department_id = params[:department_id].present? ? params[:department_id] : lab_reception
         tests = test_service.find_tests(
           params[:search],
-          params[:department_id],
+          department_id,
           params[:status],
           params[:start_date],
           params[:end_date],
