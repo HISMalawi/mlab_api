@@ -122,14 +122,19 @@ module UserManagement
           middle_name: user.middle_name,
           last_name: user.last_name,
           sex: user.sex,
-          is_active: user.is_active == 0 ? true : false,
+          is_active: user.is_active.zero? ? true : false,
           date_of_birth: user.date_of_birth,
           birth_date_estimated: user.birth_date_estimated,
           voided: user.voided,
           voided_reason: user.voided_reason,
-          roles: roles,
-          departments: departments
+          roles:,
+          departments:,
+          lab_locations: lab_locations(user.id)
         }
+      end
+
+      def lab_locations(user_id)
+        UserLabLocationMapping.joins(:lab_location).select('lab_locations.id, lab_locations.name').where(user_id:)
       end
 
       def serialize_users(users)
