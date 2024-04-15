@@ -1,4 +1,4 @@
-class TestType < RetirableRecord
+class TestType < TestTypeVoidableRecord
   belongs_to :department
   has_many :instrument_test_type_mapping
   has_many :specimen_test_type_mappings

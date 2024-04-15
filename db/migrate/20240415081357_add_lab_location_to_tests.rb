@@ -3,7 +3,7 @@
 # AddLabLocationToTests migration
 class AddLabLocationToTests < ActiveRecord::Migration[7.0]
   def up
-    locations = ['Main Lab', 'Cancer Lab', 'Paeds Lab']
+    locations = ['Main Lab', 'Cancer Lab', 'Paediatric Lab']
     locations.each do |name|
       LabLocation.find_or_create_by(name:)
     end

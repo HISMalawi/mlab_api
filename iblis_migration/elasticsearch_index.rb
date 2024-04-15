@@ -10,6 +10,5 @@ Parallel.map(tests, in_processes: 4) do |test|
     puts "Last day to index tests: #{last_date}"
   else
     puts 'Lost connection to Elasticsearch'
-    Parallel.break
   end
 end

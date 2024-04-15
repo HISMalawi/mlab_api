@@ -65,6 +65,15 @@ module UserManagement
         end
       end
 
+      def update_lab_locations(user_id, lab_location_ids)
+        UserLabLocationMapping.where(user_id:).where.not(lab_location_id: lab_location_ids).each do |mapping|
+          mapping.void('lab_location removed from user')
+        end
+        lab_location_ids.each do |lab_location_id|
+          UserLabLocationMapping.find_or_create_by(lab_location_id:, user_id:)
+        end
+      end
+
       def admin_update_password(user, new_password)
         user.last_password_changed = Time.now
         user.password_hash = new_password
