@@ -219,8 +219,8 @@ module Tests
                   end_date.to_date.end_of_day)
     end
 
-    def filter_by_lab_location(tests, lab_location)
-      tests.where(lab_location:)
+    def filter_by_lab_location(tests, lab_location_id)
+      tests.where(lab_location_id:)
     end
 
     def search_string_test_ids(q_string)
