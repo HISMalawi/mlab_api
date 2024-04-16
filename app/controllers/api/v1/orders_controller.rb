@@ -33,7 +33,7 @@ module Api
       end
       
       def add_test_to_order
-        order = OrderService.add_test_to_order(params[:order_id], params[:tests])
+        order = OrderService.add_test_to_order(params[:order_id], params[:tests], params[:lab_location])
         render json: order, status: :created
       end
 
@@ -45,7 +45,7 @@ module Api
         ActiveRecord::Base.transaction do
           @encounter = OrderService.create_encounter(params)
           @order = OrderService.create_order(@encounter.id, params[:order])
-          OrderService.create_test(@order.id, params[:tests])
+          OrderService.create_test(@order.id, params[:tests], params[:lab_location])
         end
         render json: @order, status: :created
       end

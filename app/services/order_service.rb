@@ -45,7 +45,8 @@ module OrderService
       )
     end
 
-    def create_test(order_id, test_params)
+    def create_test(order_id, test_params, lab_location)
+      lab_location_id = lab_location.present? ? lab_location.to_i : nil
       test_params.each do |test_param|
         test_type = TestType.find_by_name(test_param[:test_type])
         test_panel = TestPanel.find_by_name(test_param[:test_type])
@@ -55,13 +56,15 @@ module OrderService
             Test.create!(
               specimen_id:,
               order_id:,
-              test_type_id: test_type.id
+              test_type_id: test_type.id,
+              lab_location_id:
             )
           else
             Test.find_or_create_by!(
               specimen_id:,
               order_id:,
-              test_type_id: test_type.id
+              test_type_id: test_type.id,
+              lab_location_id:
             )
           end
         else
@@ -71,15 +74,16 @@ module OrderService
               specimen_id:,
               order_id:,
               test_type_id:,
-              test_panel_id: test_panel.id
+              test_panel_id: test_panel.id,
+              lab_location_id:
             )
           end
         end
       end
     end
 
-    def add_test_to_order(order_id, tests)
-      create_test(order_id, tests)
+    def add_test_to_order(order_id, tests, lab_location)
+      create_test(order_id, tests, lab_location)
       Order.find(order_id)
     end
 
