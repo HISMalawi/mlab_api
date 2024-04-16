@@ -6,10 +6,10 @@ require 'bantu_soundex'
 module Tests
   # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page, page)
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page, page, lab_location)
       per_page ||= 25
       page ||= 1
-      # TODO: should unscope test types to handle tests that were already entered in the database having paeds and cancer
+      lab_location ||= 1
       default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
       tests = if query.present?
                 use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
@@ -29,6 +29,7 @@ module Tests
                 Test.all
               end
       tests = filter_by_date(tests, start_date, end_date) if start_date.present?
+      tests = filter_by_lab_location(tests, lab_location)
       if department_id.present? && not_reception?(department_id)
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
@@ -216,6 +217,10 @@ module Tests
       end_date = end_date.present? ? end_date : Date.today.strftime('%Y-%m-%d')
       tests.where('created_date >= ? AND created_date <= ?', start_date.to_date.beginning_of_day,
                   end_date.to_date.end_of_day)
+    end
+
+    def filter_by_lab_location(tests, lab_location)
+      tests.where(lab_location:)
     end
 
     def search_string_test_ids(q_string)

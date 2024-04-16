@@ -14,9 +14,9 @@ module Api
           params[:start_date],
           params[:end_date],
           params[:per_page],
-          params[:page]
+          params[:page],
+          params[:lab_location]
         )
-        # tests = tests.as_json(minimal: true) if params.include?(:minimal)
         render json: tests
       end
 
