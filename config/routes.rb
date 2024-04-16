@@ -43,6 +43,7 @@ Rails.application.routes.draw do
       resources :departments
       resources :privileges
       resources :drugs
+      resources :lab_locations
       resources :organisms do
         collection do
           get '/get_organisms_based_test_type' => 'organisms#get_organisms_based_test_type'
