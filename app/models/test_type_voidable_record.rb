@@ -7,8 +7,12 @@ class TestTypeVoidableRecord < ApplicationRecord
   include Auditable
   include Voidable
 
-  default_scope { where("retired = 0 AND (name NOT LIKE '%(Paed%' AND name NOT LIKE '%(cancer%')") }
+  default_scope { where(retired: 0) }
   scope :retired, -> { unscoped.where.not(retired: 0) }
+  scope :active_without_paediatric_cancer, lambda {
+    where.not("name LIKE '%(Paed%'")
+         .where.not("name LIKE '%(cancer%'")
+  }
 
   belongs_to :creator_user, foreign_key: 'creator', class_name: 'User', optional: true
 

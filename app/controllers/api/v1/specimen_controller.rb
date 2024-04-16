@@ -15,6 +15,8 @@ module Api
       def specimen_test_type
         specimen = Specimen.find(params[:specimen_id])
         test_types = SpecimenTestTypeMapping.joins(:test_type).where(specimen_id: specimen.id)
+                                            .where.not("test_types.name LIKE '%(Paed%'")
+                                            .where.not("test_types.name LIKE '%(cancer%'")
         unless params[:department_id].blank?
           test_types = filter_test_types_by_department(params[:department_id],
                                                        test_types)

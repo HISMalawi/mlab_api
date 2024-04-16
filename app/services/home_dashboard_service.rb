@@ -9,7 +9,7 @@ module HomeDashboardService
         drugs: Drug.count,
         diseases: Disease.count,
         test_panels: TestPanel.count,
-        test_types: TestType.count,
+        test_types: TestType.active_without_paediatric_cancer.count,
         specimen_types: Specimen.count,
         lab_sections: Department.count
       }
