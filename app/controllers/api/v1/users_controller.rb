@@ -82,7 +82,8 @@ module Api
 
       def user_params
         params.permit(user: %i[username password old_password],
-                      person: %i[first_name middle_name last_name sex date_of_birth], roles: [], departments: [])
+                      person: %i[first_name middle_name last_name sex date_of_birth], roles: [], departments: [],
+                      lab_locations: [])
       end
 
       def run_validations

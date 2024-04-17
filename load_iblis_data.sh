@@ -67,3 +67,4 @@ else
         esac
     done
 fi
+RAILS_ENV=$environment rails r iblis_migration/update_user_location.rb

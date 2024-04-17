@@ -42,6 +42,7 @@ module UserManagement
             person.update!(first_name_soundex: person.first_name.soundex, last_name_soundex: person.last_name.soundex)
             update_roles(user.id, user_params[:roles])
             update_departments(user.id, user_params[:departments])
+            update_lab_locations(user.id, user_params[:lab_locations])
           end
           user
         end
