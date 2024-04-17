@@ -16,10 +16,13 @@ module UserManagement
           user.password_hash = user_params[:user][:password]
           if user.save!
             user_params[:roles].each do |role|
-              create_role( user.id, role)
+              create_role(user.id, role)
             end
             user_params[:departments].each do |department|
               create_department(user.id, department)
+            end
+            user_params[:lab_locations].each do |location|
+              create_lab_location(user.id, location)
             end
             user
           end
@@ -27,13 +30,16 @@ module UserManagement
       end
 
       def create_role(user_id, role_id)
-        UserRoleMapping.create!(role_id: role_id, user_id: user_id)
+        UserRoleMapping.create!(role_id:, user_id:)
       end
 
       def create_department(user_id, department_id)
-        UserDepartmentMapping.create!(department_id: department_id, user_id: user_id)
+        UserDepartmentMapping.create!(department_id:, user_id:)
       end
 
+      def create_lab_location(user_id, lab_location_id)
+        UserLabLocationMapping.create!(user_id:, lab_location_id:)
+      end
       def update_user(user, user_params)
         ActiveRecord::Base.transaction do
           person = user.person
