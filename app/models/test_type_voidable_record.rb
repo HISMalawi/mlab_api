@@ -13,6 +13,8 @@ class TestTypeVoidableRecord < ApplicationRecord
     where.not("name LIKE '%(Paed%'")
          .where.not("name LIKE '%(cancer%'")
   }
+  scope :active_with_paediatric, -> { where("name LIKE '%(Paed%'") }
+  scope :active_with_cancer, -> { where("name LIKE '%(cancer%'") }
 
   belongs_to :creator_user, foreign_key: 'creator', class_name: 'User', optional: true
 

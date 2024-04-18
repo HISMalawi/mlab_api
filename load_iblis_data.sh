@@ -67,4 +67,5 @@ else
         esac
     done
 fi
-RAILS_ENV=$environment rails r iblis_migration/update_user_location.rb
+RAILS_ENV=$environment rails r iblis_migration/update_user_location.rb &&
+RAILS_ENV=$environment rails r iblis_migration/update_test_lab_location.rb
