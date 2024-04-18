@@ -8,3 +8,7 @@ puts 'Updating paeds tests...'
 Test.where(test_type_id: paeds_test_types).update_all(lab_location_id: paed)
 puts 'Updating cancer tests...'
 Test.where(test_type_id: cancer_test_types).update_all(lab_location_id: cancer)
+puts 'Refreshing home analystics ...'
+HomeDashboard.delete_all
+HomeDashboardJob.perform_async
+puts 'Done updating'
