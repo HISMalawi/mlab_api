@@ -15,6 +15,9 @@ module Api
         else
           @clients = client_service.search_client(params[:search], params[:per_page])
         end
+        if params[:dashboard].present? && params[:lab_location].present?
+          @clients = @clients.where(lab_location_id: params[:lab_location])
+        end
         render json: {
           clients: client_service.serialize_clients(@clients),
           meta: PaginationService.pagination_metadata(@clients)

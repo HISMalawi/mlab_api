@@ -97,7 +97,8 @@ module Tests
           tst.id AS t_status_id,
           tst.name AS t_status,
           sp.name AS specimen,
-          sp.id AS specimen_id
+          sp.id AS specimen_id,
+          t.lab_location_id
         FROM
       tests t
           INNER JOIN
@@ -512,7 +513,8 @@ module Tests
         completed_by: record['t_status'] == 'completed' && is_client_report == false ? completed_by(record['id']) : {},
         client: client_serializer(record),
         status: record['t_status'],
-        order_status: record['o_status']
+        order_status: record['o_status'],
+        lab_location: LabLocation.where(id: record['lab_location_id']).first
       }
       return json if is_test_list
 

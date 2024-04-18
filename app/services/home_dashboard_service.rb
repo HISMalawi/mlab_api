@@ -13,7 +13,7 @@ module HomeDashboardService
         specimen_types: Specimen.count,
         lab_sections: Department.count
       }
-      home_dashboard_reports('test_catalog', data, nil, nil)
+      home_dashboard_reports('test_catalog', data, nil, 1)
     end
 
     def lab_configuration
@@ -24,10 +24,10 @@ module HomeDashboardService
         wards: FacilitySection.count,
         printers: Printer.all.select('id', 'name', 'description')
       }
-      home_dashboard_reports('lab_config', data, nil, nil)
+      home_dashboard_reports('lab_config', data, nil, 1)
     end
 
-    def clients_by_sex
+    def clients_by_sex(lab_location_id)
       by_sex = Report.find_by_sql("
         SELECT
           COUNT(DISTINCT c.id) AS count, p.sex
@@ -36,6 +36,7 @@ module HomeDashboardService
         INNER JOIN
           people p ON p.id = c.person_id AND c.voided = 0
         AND p.voided = 0
+        WHERE c.lab_location_id = #{lab_location_id}
           GROUP BY p.sex
         ")
       count = { 'F' => 0, 'M' => 0 }
@@ -45,12 +46,12 @@ module HomeDashboardService
       count
     end
 
-    def clients
+    def clients(lab_location_id)
       data = {
-        clients: Client.count,
-        by_sex: clients_by_sex
+        clients: Client.where(lab_location_id:).count,
+        by_sex: clients_by_sex(lab_location_id)
       }
-      home_dashboard_reports('clients', data, nil, nil)
+      home_dashboard_reports('clients', data, nil, lab_location_id)
     end
 
     def tests(from, to, department, lab_location)

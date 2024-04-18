@@ -11,13 +11,14 @@ module Api
         if home_dashboard_report?('tests', @department, @lab_location)
           HomeDashboardService.test_catalog
           HomeDashboardService.lab_configuration
-          HomeDashboardService.clients
           HomeDashboardService.tests(@from, @to, @department, @lab_location)
         end
-        other_report_types = %w[lab_config test_catalog clients]
-        other_data = HomeDashboard.where(department: 'All', report_type: other_report_types)
+        HomeDashboardService.clients(@lab_location) if home_dashboard_report?('clients', @department, @lab_location)
+        other_report_types = %w[lab_config test_catalog]
+        other_data = HomeDashboard.where(department: 'All', report_type: other_report_types, lab_location_id: 1)
+        clients_data = HomeDashboard.where(department: 'All', report_type: 'clients', lab_location_id: @lab_location)
         tests_data = HomeDashboard.where(department: @department, report_type: 'tests', lab_location_id: @lab_location)
-        combine_data = tests_data + other_data
+        combine_data = tests_data + other_data + clients_data
         data = combine_data.map { |dashboard| dashboard[:data] }.reduce({}, :merge)
         render json: { data:, from: @from, to: @to }
       end
@@ -26,6 +27,7 @@ module Api
 
       def home_dashboard_report?(report_type, department, lab_location_id)
         department = 'All' if department.nil? || department == 'Lab Reception'
+        department = 'All' if report_type != 'tests'
         HomeDashboard.where(report_type:, department:, lab_location_id:).first.nil?
       end
 

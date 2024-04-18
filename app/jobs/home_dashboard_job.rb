@@ -9,13 +9,15 @@ class HomeDashboardJob
     from = to - 30
     HomeDashboardService.test_catalog
     HomeDashboardService.lab_configuration
-    HomeDashboardService.clients
     Department.all.each do |department|
       depart_name = department.name
       depart_name = 'All' if department.name == 'Lab Reception'
       LabLocation.all.each do |lab_location|
         HomeDashboardService.tests(from, to, depart_name, lab_location.id)
       end
+    end
+    LabLocation.all.each do |lab_location|
+      HomeDashboardService.clients(lab_location.id)
     end
   end
 end

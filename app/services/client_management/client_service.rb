@@ -104,7 +104,8 @@ module ClientManagement
           date_of_birth: person.date_of_birth,
           birth_date_estimated: person.birth_date_estimated,
           uuid: client.uuid,
-          created_at: client.created_date
+          created_at: client.created_date,
+          lab_location: LabLocation.where(id: client.lab_location_id).first
         }
         client_identifiers.each do | client_identifier|
           client_hash["#{client_identifier.name}"] = client_identifier.value
