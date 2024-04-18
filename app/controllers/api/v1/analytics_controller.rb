@@ -8,15 +8,15 @@ module Api
     class AnalyticsController < ApplicationController
       def home_dashboard
         home_params
-        if home_dashboard_report?('tests', @department)
+        if home_dashboard_report?('tests', @department, @lab_location)
           HomeDashboardService.test_catalog
           HomeDashboardService.lab_configuration
           HomeDashboardService.clients
-          HomeDashboardService.tests(@from, @to, @department)
+          HomeDashboardService.tests(@from, @to, @department, @lab_location)
         end
         other_report_types = %w[lab_config test_catalog clients]
         other_data = HomeDashboard.where(department: 'All', report_type: other_report_types)
-        tests_data = HomeDashboard.where(department: @department, report_type: 'tests')
+        tests_data = HomeDashboard.where(department: @department, report_type: 'tests', lab_location_id: @lab_location)
         combine_data = tests_data + other_data
         data = combine_data.map { |dashboard| dashboard[:data] }.reduce({}, :merge)
         render json: { data:, from: @from, to: @to }
@@ -24,9 +24,9 @@ module Api
 
       private
 
-      def home_dashboard_report?(report_type, department)
+      def home_dashboard_report?(report_type, department, lab_location_id)
         department = 'All' if department.nil? || department == 'Lab Reception'
-        HomeDashboard.where(report_type:, department:).first.nil?
+        HomeDashboard.where(report_type:, department:, lab_location_id:).first.nil?
       end
 
       def home_params
@@ -37,6 +37,7 @@ module Api
                       else
                         params[:department]
                       end
+        @lab_location = params[:lab_location].present? ? params[:lab_location] : 1
       end
     end
   end
