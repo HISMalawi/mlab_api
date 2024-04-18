@@ -90,7 +90,7 @@ module Api
       end
 
       def client_params
-        params.permit(client: %i[uuid],
+        params.permit(:lab_location, client: %i[uuid],
           person: %i[first_name middle_name last_name sex date_of_birth birth_date_estimated])
       end
 

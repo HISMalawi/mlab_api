@@ -247,7 +247,8 @@ module Nlims
           t_ = Test.create!(
             specimen_id:,
             order_id:,
-            test_type_id: test_type.id
+            test_type_id: test_type.id,
+            lab_location_id: 1
           )
           unless results.empty?
             status = Status.find_by_name(test_[:test_status])
@@ -260,7 +261,8 @@ module Nlims
               specimen_id:,
               order_id:,
               test_type_id:,
-              test_panel_id: test_panel.id
+              test_panel_id: test_panel.id,
+              lab_location_id: 1
             )
             unless results.empty?
               status = Status.find_by_name(test_[:test_status])

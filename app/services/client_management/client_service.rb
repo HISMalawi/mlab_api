@@ -18,6 +18,7 @@ module ClientManagement
       def create_client(params, identifiers)
         @client = params[:client][:uuid].blank? ? nil : Client.find_by_uuid(params[:client][:uuid])
         middle_name = params[:person][:middle_name].blank? || params[:person][:middle_name].downcase == 'unknown' ? '' : params[:person][:middle_name]
+        lab_location_id = params[:lab_location].present? ? params[:lab_location].to_i : 1
         if @client.nil?
           ActiveRecord::Base.transaction do
             person = Person.create!(
@@ -31,7 +32,7 @@ module ClientManagement
               last_name_soundex: params[:person][:last_name].soundex
             )
             uuid =  params[:client][:uuid]
-            @client = Client.create!(person_id: person.id, uuid: uuid)
+            @client = Client.create!(person_id: person.id, uuid:, lab_location_id:)
             create_client_identifier(identifiers, @client.id)
           end
         end
