@@ -1,7 +1,7 @@
-require_relative '../iblis/iblis_service/drug_organism_service.rb'
-require_relative '../iblis/iblis_service/load_client_service.rb'
-require_relative '../iblis/iblis_service/measure_service.rb'
-require_relative '../iblis/iblis_service/status_service.rb'
+require_relative '../iblis/iblis_service/drug_organism_service'
+require_relative '../iblis/iblis_service/load_client_service'
+require_relative '../iblis/iblis_service/measure_service'
+require_relative '../iblis/iblis_service/status_service'
 
 Rails.logger = Logger.new(STDOUT)
 User.current = User.first
@@ -55,7 +55,7 @@ ActiveRecord::Base.transaction do
     Priority.find_or_create_by!(name: priority.priority)
   end
 
-  # Load specimen
+  # # Load specimen
   specimes = Iblis.find_by_sql("SELECT * FROM specimen_types")
     specimes.each do | specimen |
       begin
@@ -81,10 +81,11 @@ ActiveRecord::Base.transaction do
     Rails.logger.info("=========Loading test type: #{test_type.name}===========")
     mlap_test_type = TestType.find_or_create_by(id: test_type.id, name: test_type.name, short_name: test_type.short_name, department_id: department.id, retired: 0, creator: user_id, created_date: test_type.created_at, updated_date: test_type.updated_at)
     expected_tat_h = extract_number_from_duration(test_type.targetTAT)
-    expected_tat = ExpectedTat.find_or_create_by!(test_type_id: mlap_test_type.id, value: expected_tat_h[:number], unit: expected_tat_h[:unit], creator: user_id)
-    IblisService::MeasureService.create_test_indicator(test_type.id, mlap_test_type.id)
+    ExpectedTat.find_or_create_by!(test_type_id: mlap_test_type.id, value: expected_tat_h[:number], unit: expected_tat_h[:unit], creator: user_id)
     IblisService::DrugOrganismService.test_type_organism_mapping(test_type.id, mlap_test_type.id)
   end
+  IblisService::MeasureService.create_test_indicator
+  IblisService::MeasureService.create_test_type_test_indicator_mapping
   # Map test types with specimen
   testtypes_specimens = Iblis.find_by_sql("SELECT tt.name AS test_type, spt.name AS specimen FROM test_types tt
             INNER JOIN test_categories tc ON tc.id = tt.test_category_id INNER JOIN testtype_specimentypes ttspt ON ttspt.test_type_id = tt.id
@@ -110,7 +111,7 @@ ActiveRecord::Base.transaction do
     TestTypePanelMapping.create(test_panel_id: test_panel.id, test_type_id: test_type.id, creator: user_id, voided: 0, created_date: Time.now, updated_date: Time.now)
   end
 
-  # Load statuses and status reasons
+#   # Load statuses and status reasons
  IblisService::StatusService.create_test_status
  IblisService::StatusService.create_test_status_reason
 end
