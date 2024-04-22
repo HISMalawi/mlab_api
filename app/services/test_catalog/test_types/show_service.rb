@@ -23,7 +23,8 @@ module TestCatalog
   
         def serialize_test_indicators(test_type_id)
           serialized_test_indicators = []
-          test_indicators = TestIndicator.where(test_type_id: test_type_id)
+          tt_ti = TestTypeTestIndicator.where(test_types_id: test_type_id).pluck(:test_indicators_id)
+          test_indicators = TestIndicator.where(id: tt_ti)
           test_indicators.each do |test_indicator|
             test_indicator_ranges = TestIndicatorRange.where(test_indicator_id: test_indicator.id)
             serialized_test_indicators.push({
