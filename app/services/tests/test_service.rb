@@ -353,7 +353,7 @@ module Tests
               INNER JOIN
           statuses s ON s.id = os.status_id
               INNER JOIN
-          users u ON u.id = os.creator
+          users u ON u.id = os.updated_by
               INNER JOIN
           people p ON p.id = u.person_id
               LEFT JOIN
