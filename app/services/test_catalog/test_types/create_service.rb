@@ -6,7 +6,6 @@ module TestCatalog
           ActiveRecord::Base.transaction do
             test_type = TestType.create!(test_type_params)
             expected_tat = params.require(:expected_turn_around_time)
-            test_type.reload
             ExpectedTat.create!(
               test_type_id: test_type.id,
               value: expected_tat[:value],
@@ -25,7 +24,6 @@ module TestCatalog
           test_indicator = TestIndicator.create!(JSON.parse(indicator_param.to_json).slice(
                                                    'name', 'unit', 'description', 'test_indicator_type'
                                                  ))
-          test_indicator.reload
           TestTypeTestIndicator.find_or_create_by!(test_types_id: test_type_id, test_indicators_id: test_indicator.id)
           create_test_indicator_range(indicator_param[:indicator_ranges], test_indicator.id,
                                       indicator_param[:test_indicator_type])
