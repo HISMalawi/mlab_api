@@ -5,7 +5,6 @@ class TestType < RetirableRecord
   has_many :specimens, through: :specimen_test_type_mappings
 
   validates :name, uniqueness: true, presence: true
-  has_many :test_indicators
   has_one :expected_tats, required: false
 
   def as_json(options = {})
