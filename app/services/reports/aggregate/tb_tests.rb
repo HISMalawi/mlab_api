@@ -13,10 +13,12 @@ module Reports
                 INNER JOIN
             test_types tt ON tt.id = t.test_type_id
                 INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
+                INNER JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
                 INNER JOIN
             test_results tr ON tr.test_id = t.id
-                AND ti.id = tr.test_indicator_id
+                AND ti.id = tr.test_indicator_id AND tr.voided = 0
         WHERE
             DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
                 AND tt.id IN #{report_utils.test_type_ids('TB tests')}
