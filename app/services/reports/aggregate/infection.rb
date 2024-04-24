@@ -76,9 +76,9 @@ module Reports
               INNER JOIN
           test_types tt ON tt.id = t.test_type_id
               INNER JOIN
-          test_statuses ts ON ts.test_id = t.id
+          test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
               INNER JOIN
-          test_indicators ti ON ti.test_type_id = t.test_type_id
+          test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
           orders o ON o.id = t.order_id
               INNER JOIN
@@ -88,13 +88,13 @@ module Reports
               INNER JOIN
           people p ON p.id = c.person_id
               LEFT JOIN
-          test_results tr ON tr.test_id = t.id
+          test_results tr ON tr.test_id = t.id AND tr.voided = 0
               AND ti.id = tr.test_indicator_id
               LEFT JOIN
           test_indicator_ranges tir ON tir.test_indicator_id = ti.id
               AND tir.retired = 0
       WHERE
-          ts.status_id IN (4 , 5)
+          t.status_id IN (4 , 5)
               AND (tir.max_age IS NULL OR tir.max_age > 0) AND ti.name != 'Pack No.'
               AND ti.name != 'Expiry Date' AND ti.name != 'Volume'
               AND tr.value IS NOT NULL AND tr.value NOT IN ('', '0') AND
