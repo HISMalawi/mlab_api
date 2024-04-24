@@ -12,15 +12,17 @@ class Test < VoidableRecord
 
   def as_json(options = {})
     if options[:client_report]
-      methods = %i[status indicators culture_observation test_type_name print_device expected_turn_around_time suscept_test_result status_trail]
+      methods = %i[status indicators culture_observation test_type_name print_device expected_turn_around_time
+                   suscept_test_result status_trail]
     else
-      methods = %i[test_panel_name request_origin requesting_ward specimen_type accession_number  completed_by
-        tracking_number requested_by test_type_name client status order_status]
+      methods = %i[test_panel_name request_origin requesting_ward specimen_type accession_number completed_by
+                   tracking_number requested_by test_type_name client status order_status]
       unless options[:minimal]
-        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail is_machine_oriented order_status_trail]
+        methods.concat %i[indicators culture_observation expected_turn_around_time suscept_test_result status_trail
+                          is_machine_oriented order_status_trail]
       end
     end
-    super(options.merge(methods: methods))
+    super(options.merge(methods:))
   end
 
   def short_name
@@ -36,17 +38,20 @@ class Test < VoidableRecord
   end
 
   def indicators
-    unless test_type.nil?
-      test_type.test_indicators.as_json(only: %i[id name test_indicator_type unit description])
-      .map do |i|
-        i.merge!(result: results(i['id']))
-        i.merge!(indicator_ranges: indicator_ranges(i['id']))
-      end
+    return if test_type.nil?
+
+    tt_ti = TestTypeTestIndicator.where(test_types_id: test_type.id).pluck(:test_indicators_id)
+    TestIndicator.where(id: tt_ti).as_json(only: %i[id name test_indicator_type unit description])
+                 .map do |i|
+      i.merge!(result: results(i['id']))
+      i.merge!(indicator_ranges: indicator_ranges(i['id']))
     end
   end
 
   def results(indicator_id)
-    TestResult.where(test_id: id, test_indicator_id: indicator_id)&.last&.as_json(only: %i[id value result_date machine_name])
+    TestResult.where(test_id: id,
+                     test_indicator_id: indicator_id)&.last&.as_json(only: %i[id value result_date
+                                                                              machine_name])
   end
 
   def indicator_ranges(indicator_id)
@@ -124,7 +129,8 @@ class Test < VoidableRecord
   end
 
   def client
-    order_ = order.encounter.client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth birth_date_estimated])
+    order_ = order.encounter.client.person.as_json(only: %i[id first_name middle_name last_name sex date_of_birth
+                                                            birth_date_estimated])
     order_['id'] = order.encounter.client.id
     order_
   end
