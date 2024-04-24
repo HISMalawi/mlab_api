@@ -53,7 +53,9 @@ class ReportRawData < ApplicationRecord
           current_order_status cos ON cos.order_id = t.order_id
               AND cos.status_id IN (10 , 11)
               INNER JOIN
-          test_indicators ti ON ti.test_type_id = tt.id
+                    test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
+              INNER JOIN
+          test_indicators ti ON ti.id = ttim.test_indicators_id
               LEFT JOIN
           test_results tr ON tr.test_id = t.id
               AND ti.id = tr.test_indicator_id

@@ -96,14 +96,14 @@ module Reports
                   JOIN
               facility_sections fs ON fs.id = e.facility_section_id
                   JOIN
-              test_statuses ts ON ts.test_id = t.id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
                   JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   JOIN
               test_results tr ON tr.test_id = t.id
-                  AND ti.id = tr.test_indicator_id
+                  AND ti.id = tr.test_indicator_id AND tr.voided = 0
           WHERE
-              ts.status_id IN (4 , 5)
+              t.status_id IN (4 , 5)
                   AND tr.value IN ('Whole Blood' , 'Packed Red Cells',
                   'Platelets',
                   'FFPs',
@@ -117,7 +117,7 @@ module Reports
 
       def department_critical_values
         sql_query = <<-SQL
-          SELECT 
+          SELECT
               ti.name test_indicator_name,
               fs.name ward,
               CASE
@@ -142,14 +142,16 @@ module Reports
                   JOIN
               facility_sections fs ON fs.id = e.facility_section_id
                   JOIN
-              test_statuses ts ON ts.test_id = t.id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
                   JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id join test_indicator_ranges tir on tir.test_indicator_id = ti.id
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                  JOIN
+              test_indicator_ranges tir on tir.test_indicator_id = ti.id
                   JOIN
               test_results tr ON tr.test_id = t.id
-                  AND ti.id = tr.test_indicator_id
+                  AND ti.id = tr.test_indicator_id AND tr.voided = 0
           WHERE
-              ts.status_id IN (4 , 5)
+              t.status_id IN (4 , 5)
                   AND tr.value NOT IN ('', '0') AND tr.value IS NOT NULL
                   AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
           GROUP BY test_indicator_name,ward, critical_value_level;
