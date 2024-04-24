@@ -6,7 +6,6 @@ module Reports
   module Moh
     # bloodbank reports
     class BloodBank
-      include Reports::Moh::MigrationHelpers::ExecuteQueries
       attr_reader :report, :report_indicator
       attr_accessor :year
 

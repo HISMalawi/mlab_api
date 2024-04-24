@@ -6,7 +6,6 @@ module Reports
   module Moh
     # Biochemistry reports
     class Biochemistry
-      include Reports::Moh::MigrationHelpers::ExecuteQueries
       attr_reader :report, :report_indicator
       attr_accessor :year
 

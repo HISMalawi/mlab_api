@@ -6,7 +6,6 @@ module Reports
   module Moh
     # Haematology report class
     class Haematology
-      include Reports::Moh::MigrationHelpers::ExecuteQueries
       attr_reader :report, :report_indicator
       attr_accessor :year
 
