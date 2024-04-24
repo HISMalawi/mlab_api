@@ -66,12 +66,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Full Blood Count' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('FBC')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -85,14 +83,14 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                         WHERE
               t.test_type_id IN #{report_utils.test_type_ids('FBC')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -106,14 +104,14 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                         WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Haemoglobin')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -127,16 +125,16 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id AND tr.test_id = t.id AND tr.voided = 0
                         WHERE
               t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value <= 6
                   AND tr.value <> ''
@@ -153,16 +151,16 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id AND tr.test_id = t.id AND tr.voided = 0
                         WHERE
               t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value > 6
                   AND tr.value <> ''
@@ -180,9 +178,9 @@ module Reports
           FROM
               tests ot
                   INNER JOIN
-              test_statuses ots ON ots.test_id = ot.id
-                  INNER JOIN
-              test_indicators oti ON oti.test_type_id = ot.test_type_id
+              test_type_indicator_mappings ottim ON ottim.test_types_id = ot.test_type_id
+                  INNER  JOIN
+              test_indicators oti ON oti.id = ottim.test_indicators_id
                   INNER JOIN
               orders oo ON oo.id = ot.order_id
                   INNER JOIN
@@ -193,9 +191,9 @@ module Reports
                   FROM
                       tests t
                           INNER JOIN
-                      test_statuses ts ON ts.test_id = t.id
-                          INNER JOIN
-                      test_indicators ti ON ti.test_type_id = t.test_type_id
+                      test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                          INNER  JOIN
+                      test_indicators ti ON ti.id = ttim.test_indicators_id
                           INNER JOIN
                       orders o ON o.id = t.order_id
                           INNER JOIN
@@ -208,7 +206,7 @@ module Reports
                       t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                           AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                           AND YEAR(t.created_date) = #{year}
-                          AND ts.status_id IN (4 , 5)
+                          AND t.status_id IN (4 , 5)
                           AND t.voided = 0
                           AND tr.value <= 6
                           AND tr.value <> ''
@@ -216,7 +214,7 @@ module Reports
                   AND ot.voided = 0
                   AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
                   AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
-                  AND ots.status_id IN (4 , 5)
+                  AND ot.status_id IN (4 , 5)
           GROUP BY MONTHNAME(ot.created_date)
         SQL
       end
@@ -230,9 +228,9 @@ module Reports
           FROM
               tests ot
                   INNER JOIN
-              test_statuses ots ON ots.test_id = ot.id
-                  INNER JOIN
-              test_indicators oti ON oti.test_type_id = ot.test_type_id
+              test_type_indicator_mappings ottim ON ottim.test_types_id = ot.test_type_id
+                  INNER  JOIN
+              test_indicators oti ON oti.id = ottim.test_indicators_id
                   INNER JOIN
               orders oo ON oo.id = ot.order_id
                   INNER JOIN
@@ -243,9 +241,9 @@ module Reports
                   FROM
                       tests t
                           INNER JOIN
-                      test_statuses ts ON ts.test_id = t.id
-                          INNER JOIN
-                      test_indicators ti ON ti.test_type_id = t.test_type_id
+                      test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                          INNER  JOIN
+                      test_indicators ti ON ti.id = ttim.test_indicators_id
                           INNER JOIN
                       orders o ON o.id = t.order_id
                           INNER JOIN
@@ -258,7 +256,7 @@ module Reports
                       t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                           AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                           AND YEAR(t.created_date) = #{year}
-                          AND ts.status_id IN (4 , 5)
+                          AND t.status_id IN (4 , 5)
                           AND t.voided = 0
                           AND tr.value > 6
                           AND tr.value <> ''
@@ -266,7 +264,7 @@ module Reports
                   AND ot.voided = 0
                   AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
                   AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
-                  AND ots.status_id IN (4 , 5)
+                  AND ot.status_id IN (4 , 5)
           GROUP BY MONTHNAME(ot.created_date)
         SQL
       end
@@ -278,12 +276,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'WBC manual count' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -296,12 +292,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Manual WBC differential' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -314,12 +308,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Erythrocyte Sedimentation Rate (ESR)' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('ESR')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -332,12 +324,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Sickling Test' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Sickling Test')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -351,9 +341,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -362,7 +352,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids(%w[FBC])}
                   AND ti.id IN #{report_utils.test_indicator_ids('RET#')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value <> ''
                   AND tr.value IS NOT NULL
@@ -377,12 +367,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Prothrombin time (PT)' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Prothrombin Time')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -395,12 +383,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Activated Partial Thromboplastin Time (APTT)' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('APTT')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -413,12 +399,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'International Normalized Ratio (INR)' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('INR')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -431,12 +415,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Bleeding/ cloting time' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Bleeding Time')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -450,9 +432,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -461,7 +443,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids(%w[CD4])}
                   AND ti.id IN #{report_utils.test_indicator_ids('CD4 Count')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value <> ''
                   AND tr.value IS NOT NULL
@@ -477,9 +459,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -488,7 +470,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids(%w[CD4])}
                   AND ti.id IN #{report_utils.test_indicator_ids('CD4 %#')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value <> ''
                   AND tr.value IS NOT NULL
@@ -503,12 +485,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Blood film for red cell morphology' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL

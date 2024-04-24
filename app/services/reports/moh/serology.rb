@@ -77,12 +77,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Syphilis screening on patients' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -96,9 +94,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -107,7 +105,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
                   AND ti.id IN #{report_utils.test_indicator_ids(%w[RPR VDRL TPHA])}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value <> ''
                   AND tr.value = 'REACTIVE'
@@ -128,12 +126,10 @@ module Reports
                   INNER JOIN
               encounters e ON e.id = o.encounter_id AND e.voided = 0 AND e.facility_section_id
                   IN #{report_utils.facility_section_ids('Antenatal')}
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
                 AND YEAR(t.created_date) = #{year}
-                AND ts.status_id IN (4 , 5)
+                AND t.status_id IN (4 , 5)
                 AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -151,10 +147,10 @@ module Reports
                   INNER JOIN
               encounters e ON e.id = o.encounter_id AND e.voided = 0 AND e.facility_section_id
                   IN #{report_utils.facility_section_ids('Antenatal')}
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+                      INNER JOIN
+                  test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                      INNER  JOIN
+                  test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -163,7 +159,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
                 AND ti.id IN #{report_utils.test_indicator_ids(%w[RPR VDRL TPHA])}
                 AND YEAR(t.created_date) = #{year}
-                AND ts.status_id IN (4 , 5)
+                AND t.status_id IN (4 , 5)
                 AND t.voided = 0
                 AND tr.value <> ''
                 AND tr.value = 'REACTIVE'
@@ -179,12 +175,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'HepBsAg test done on patients' AS indicator
           FROM
               tests t
-                INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('Hepatitis')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -197,10 +191,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'HepBsAg Positive tests' AS indicator
           FROM
             tests t
-              INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -209,7 +203,7 @@ module Reports
             t.test_type_id IN #{report_utils.test_type_ids('Hepatitis')}
               AND ti.id IN #{report_utils.test_indicator_ids(['Hepatitis B'])}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value = 'Positive'
@@ -225,12 +219,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'HepCcAg test done on patients' AS indicator
           FROM
               tests t
-                INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('Hepatitis C Test')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -243,10 +235,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'HepCcAg Positive tests' AS indicator
           FROM
             tests t
-              INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -255,7 +247,7 @@ module Reports
             t.test_type_id IN #{report_utils.test_type_ids('Hepatitis C')}
               AND ti.id IN #{report_utils.test_indicator_ids('Hepatitis C')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value = 'Positive'
@@ -271,12 +263,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Hcg Pregnacy tests done' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Pregnancy Test')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -290,9 +280,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -301,7 +291,7 @@ module Reports
             t.test_type_id IN #{report_utils.test_type_ids('Pregnancy Test')}
               AND ti.id IN #{report_utils.test_indicator_ids('Pregnancy Test')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value = 'Positive'
@@ -317,12 +307,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'HIV tests on PEP patients' AS indicator
           FROM
               tests t
-                INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('HIV')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -336,9 +324,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -346,7 +334,7 @@ module Reports
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('HIV')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value IN ('Positive', 'Reactive')
@@ -362,12 +350,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Prostate Specific Antigen (PSA) tests' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Prostate Ag Test')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -381,9 +367,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -391,7 +377,7 @@ module Reports
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('Prostate Ag Test')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value > 4
@@ -407,12 +393,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'SARs-COVID-19 rapid antigen tests' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('SARS COV-2 Rapid Antigen')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -426,9 +410,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -436,7 +420,7 @@ module Reports
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('SARS COV-2 Rapid Antigen')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value = 'Positive'
@@ -452,12 +436,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -471,9 +453,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -481,7 +463,7 @@ module Reports
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value = 'Positive'

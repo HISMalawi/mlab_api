@@ -95,10 +95,10 @@ module Reports
             COUNT(DISTINCT t.id) AS total
           FROM
               tests t
-                  INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -107,7 +107,7 @@ module Reports
             t.test_type_id IN #{report_utils.test_type_ids('Glucose')}
               AND ti.id IN #{report_utils.test_indicator_ids('Glucose')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value IS NOT NULL
@@ -156,9 +156,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
                   INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -170,7 +170,7 @@ module Reports
                                                             'Uric Acid', 'Sodium', 'Lipase', 'CRP', 'Cardiac Function Tests', 'LDH', 'Iron',
                                                             'RF', 'Magnesium'])}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value <> ''
               AND tr.value IS NOT NULL

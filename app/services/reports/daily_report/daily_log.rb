@@ -63,7 +63,9 @@ module Reports
                     JOIN
                 test_types tt ON tt.id = t.test_type_id
                     JOIN
-                test_indicators ti ON ti.test_type_id = tt.id
+                test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
+                    JOIN
+                test_indicators ti ON ti.id = ttim.test_indicators_id
                     JOIN
                 departments d ON d.id = tt.department_id
                     JOIN
@@ -74,7 +76,7 @@ module Reports
                 status_reasons sr ON os.status_reason_id = sr.id
                     LEFT JOIN
                 test_results tr ON tr.test_id = t.id
-                    AND tr.test_indicator_id = ti.id
+                    AND tr.test_indicator_id = ti.id AND tr.voided = 0
                 WHERE t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
                 #{test_status_condition}
                 #{depart_condition}

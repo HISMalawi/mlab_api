@@ -119,9 +119,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -130,7 +130,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Smear Microscopy')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -146,9 +146,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -156,7 +156,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -172,9 +172,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -183,7 +183,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Smear Microscopy')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -200,9 +200,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -210,7 +210,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('TB LAM')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -226,9 +226,9 @@ module Reports
             FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -237,7 +237,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -254,9 +254,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -265,7 +265,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -282,9 +282,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -293,7 +293,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -310,9 +310,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -321,7 +321,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -338,9 +338,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -349,7 +349,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -366,9 +366,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -377,7 +377,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -394,9 +394,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -405,7 +405,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -422,9 +422,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -432,7 +432,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('COVID')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -448,9 +448,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -458,7 +458,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('COVID')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -475,9 +475,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -485,7 +485,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('COVID')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -502,9 +502,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -512,7 +512,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('COVID')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -529,9 +529,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -539,7 +539,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('COVID')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -563,9 +563,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -573,7 +573,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -596,9 +596,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -606,7 +606,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0', 'No Growth', 'Growth of contaminants')
                   AND tr.value IS NOT NULL
@@ -631,9 +631,9 @@ module Reports
             COUNT(DISTINCT t.id) AS total
           FROM tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -641,7 +641,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date), indicator
@@ -660,9 +660,9 @@ module Reports
             COUNT(DISTINCT t.id) AS total
           FROM tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -670,7 +670,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date), indicator
@@ -685,9 +685,9 @@ module Reports
             COUNT(DISTINCT t.id) AS total
           FROM tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -696,7 +696,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
                 AND ti.id IN #{report_utils.test_indicator_ids('Cholera')}
                 AND YEAR(t.created_date) = #{year}
-                AND ts.status_id IN (4 , 5)
+                AND t.status_id IN (4 , 5)
                 AND t.voided = 0
                 AND tr.value IS NOT NULL
           GROUP BY MONTHNAME(t.created_date)
@@ -711,9 +711,9 @@ module Reports
             COUNT(DISTINCT t.id) AS total
           FROM tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -722,7 +722,7 @@ module Reports
               t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
                   AND ti.id IN #{report_utils.test_indicator_ids('Culture')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value IS NOT NULL
                   AND tr.value = 'Growth'
@@ -738,9 +738,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -748,7 +748,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id <> 1
+                  AND t.status_id <> 1
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -764,9 +764,9 @@ module Reports
           FROM
               tests t
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
-                  INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -774,7 +774,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
                   AND YEAR(t.created_date) = #{year}
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('', '0')
                   AND tr.value IS NOT NULL
@@ -801,7 +801,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
                 AND YEAR(t.created_date) = #{year}
-                AND ts.status_id IN (4 , 5)
+                AND t.status_id IN (4 , 5)
                 AND t.voided = 0
                 AND tr.value IS NOT NULL
                 AND tr.value NOT IN ('NO value', 'ERROR', 'INVALID', 'NEGATIVE', '', '0', 'h')
@@ -818,9 +818,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -828,7 +828,7 @@ module Reports
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('Viral Load')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id <> 1
+              AND t.status_id <> 1
               AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
@@ -852,7 +852,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
                 AND YEAR(t.created_date) = #{year}
-                AND ts.status_id IN (4 , 5)
+                AND t.status_id IN (4 , 5)
                 AND t.voided = 0
                 AND tr.value IS NOT NULL
                 AND tr.value NOT IN ('NO value', 'ERROR', 'INVALID', 'NEGATIVE', '', '0', 'h')
@@ -870,9 +870,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -880,7 +880,7 @@ module Reports
           WHERE
             t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
               AND YEAR(t.created_date) = #{year}
-              AND ts.status_id IN (4 , 5)
+              AND t.status_id IN (4 , 5)
               AND t.voided = 0
               AND tr.value IS NOT NULL
               AND REPLACE(tr.value, ',', '') < 1000
@@ -901,9 +901,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -911,7 +911,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids('CSF')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT IN ('' , '0')
             AND tr.value IS NOT NULL
@@ -928,9 +928,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -939,7 +939,7 @@ module Reports
           t.specimen_id IN #{report_utils.specimen_ids('CSF')}
             AND t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT IN ('', '0')
             AND tr.value IS NOT NULL
@@ -956,9 +956,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -966,7 +966,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids('CSF')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT IN ('', '0')
             AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
@@ -983,9 +983,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -993,7 +993,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1009,9 +1009,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1019,7 +1019,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value = 'Positive'
@@ -1036,9 +1036,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1046,7 +1046,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1062,9 +1062,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1072,7 +1072,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value LIKE '%Positive%'
@@ -1089,9 +1089,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1099,7 +1099,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids('HVS')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1115,9 +1115,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1125,7 +1125,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids('HVS')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
@@ -1142,9 +1142,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1152,7 +1152,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1168,9 +1168,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1178,7 +1178,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value = 'Positive'
@@ -1195,9 +1195,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1205,7 +1205,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1221,9 +1221,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1231,7 +1231,7 @@ module Reports
         WHERE
           t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value = 'Positive'
@@ -1248,9 +1248,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1258,7 +1258,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids_like('Fluid')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1274,9 +1274,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1284,7 +1284,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND tr.value NOT IN ('', '0')
@@ -1300,9 +1300,9 @@ module Reports
           FROM
             tests t
               INNER JOIN
-            test_statuses ts ON ts.test_id = t.id
-              INNER JOIN
-            test_indicators ti ON ti.test_type_id = t.test_type_id
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
               INNER JOIN
             test_results tr ON tr.test_indicator_id = ti.id
               AND tr.test_id = t.id
@@ -1310,7 +1310,7 @@ module Reports
         WHERE
           t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
             AND YEAR(t.created_date) = #{year}
-            AND ts.status_id IN (4 , 5)
+            AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value IS NOT NULL
             AND (tr.value IN ('seen', 'growth', 'AFB SEEN  SCANTY','Scanty AAFB seen') OR tr.value LIKE '%positive%')
