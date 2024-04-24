@@ -25,9 +25,9 @@ module Reports
                   INNER JOIN
               people p ON p.id = c.person_id
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
                   INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -37,7 +37,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
                   AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('' , '0')
                   AND tr.value IS NOT NULL
@@ -62,9 +62,9 @@ module Reports
                   INNER JOIN
               people p ON p.id = c.person_id
                   INNER JOIN
-              test_statuses ts ON ts.test_id = t.id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
                   INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
@@ -74,7 +74,7 @@ module Reports
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
                   AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
-                  AND ts.status_id IN (4 , 5)
+                  AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('' , '0')
                   AND tr.value IS NOT NULL
@@ -101,9 +101,9 @@ module Reports
                     INNER JOIN
                 people p ON p.id = c.person_id
                     INNER JOIN
-                test_statuses ts ON ts.test_id = t.id
+                test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
                     INNER JOIN
-                test_indicators ti ON ti.test_type_id = t.test_type_id
+                test_indicators ti ON ti.id = ttim.test_indicators_id
                     INNER JOIN
                 test_results tr ON tr.test_indicator_id = ti.id
                     AND tr.test_id = t.id
@@ -113,7 +113,7 @@ module Reports
             WHERE
                 t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
                     AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
-                    AND ts.status_id IN (4 , 5)
+                    AND t.status_id IN (4 , 5)
                     AND t.voided = 0
                     AND tr.value NOT IN ('' , '0')
                     AND tr.value IS NOT NULL
@@ -140,9 +140,9 @@ module Reports
                     INNER JOIN
                 people p ON p.id = c.person_id
                     INNER JOIN
-                test_statuses ts ON ts.test_id = t.id
+                test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
                     INNER JOIN
-                test_indicators ti ON ti.test_type_id = t.test_type_id
+                test_indicators ti ON ti.id = ttim.test_indicators_id
                     INNER JOIN
                 test_results tr ON tr.test_indicator_id = ti.id
                     AND tr.test_id = t.id
@@ -152,7 +152,7 @@ module Reports
             WHERE
                 t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
                     AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
-                    AND ts.status_id IN (4 , 5)
+                    AND t.status_id IN (4 , 5)
                     AND t.voided = 0
                     AND tr.value NOT IN ('' , '0')
                     AND tr.value IS NOT NULL
