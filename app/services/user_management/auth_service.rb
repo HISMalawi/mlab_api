@@ -24,11 +24,11 @@ module UserManagement
         users_departments = UserDepartmentMapping.where(user_id: user.id)
         return nil if users_departments.nil?
         users_departments.each do |user_department|
-          departments << user_department.department.name
+          departments << user_department.department&.name
         end
         departments
       end
-  
+
       def user_departments?(user, department)
         departments = user_departments(user)
         return false if departments.nil?
@@ -48,7 +48,7 @@ module UserManagement
           return false
         end
       end
-  
+
       def login(username, password, department)
         user = User.find_by("BINARY username = ?", username)
         if user && user.active? &&  basic_authentication(user, password)
@@ -61,7 +61,7 @@ module UserManagement
           return nil
         end
       end
-  
+
       def application_login(username, password)
         user = User.find_by("BINARY username = ?", username)
         unless user && user.active? &&  basic_authentication(user, password)
@@ -74,7 +74,7 @@ module UserManagement
       def refresh_token
         exp = Time.now + TOKEN_VALID_TIME
         {
-          token: UserManagement::AuthService.jwt_token_encode(user_id: User.current.id, exp: exp.to_i), 
+          token: UserManagement::AuthService.jwt_token_encode(user_id: User.current.id, exp: exp.to_i),
           expiry_time: exp,
           user: UserManagement::UserService.find_user(User.current.id)
         }
