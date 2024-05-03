@@ -16,53 +16,42 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `people`
+-- Table structure for table `user_lab_location_mappings`
 --
 
-DROP TABLE IF EXISTS `people`;
+DROP TABLE IF EXISTS `user_lab_location_mappings`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `people` (
+CREATE TABLE `user_lab_location_mappings` (
   `id` bigint NOT NULL AUTO_INCREMENT,
-  `first_name` varchar(255) DEFAULT NULL,
-  `middle_name` varchar(255) DEFAULT NULL,
-  `last_name` varchar(255) DEFAULT NULL,
-  `sex` varchar(255) DEFAULT NULL,
-  `date_of_birth` date DEFAULT NULL,
-  `birth_date_estimated` tinyint(1) DEFAULT NULL,
+  `user_id` bigint DEFAULT NULL,
+  `lab_location_id` bigint DEFAULT NULL,
   `voided` int DEFAULT NULL,
   `voided_by` bigint DEFAULT NULL,
   `voided_reason` varchar(255) DEFAULT NULL,
   `voided_date` datetime(6) DEFAULT NULL,
   `creator` bigint DEFAULT NULL,
-  `created_date` datetime(6) DEFAULT NULL,
-  `updated_date` datetime(6) DEFAULT NULL,
+  `created_date` datetime(6) NOT NULL,
+  `updated_date` datetime(6) NOT NULL,
   `updated_by` bigint DEFAULT NULL,
-  `first_name_soundex` varchar(255) DEFAULT NULL,
-  `last_name_soundex` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `fk_rails_a6e182138c` (`voided_by`),
-  KEY `fk_rails_4a9413ff3e` (`creator`),
-  KEY `index_people_on_voided` (`voided`),
-  KEY `index_people_on_first_name` (`first_name`),
-  KEY `index_people_on_last_name` (`last_name`),
-  KEY `index_people_on_sex` (`sex`),
-  KEY `index_people_on_date_of_birth` (`date_of_birth`),
-  KEY `index_people_on_first_name_soundex` (`first_name_soundex`),
-  KEY `index_people_on_last_name_soundex` (`last_name_soundex`),
-  CONSTRAINT `fk_rails_4a9413ff3e` FOREIGN KEY (`creator`) REFERENCES `users` (`id`),
-  CONSTRAINT `fk_rails_a6e182138c` FOREIGN KEY (`voided_by`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `fk_rails_eec919d732` (`creator`),
+  KEY `fk_rails_4de2b936d7` (`updated_by`),
+  KEY `fk_rails_77ada17045` (`voided_by`),
+  CONSTRAINT `fk_rails_4de2b936d7` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_rails_77ada17045` FOREIGN KEY (`voided_by`) REFERENCES `users` (`id`),
+  CONSTRAINT `fk_rails_eec919d732` FOREIGN KEY (`creator`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=223 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `people`
+-- Dumping data for table `user_lab_location_mappings`
 --
 
-LOCK TABLES `people` WRITE;
-/*!40000 ALTER TABLE `people` DISABLE KEYS */;
-INSERT INTO `people` VALUES (1,'LIMS','','Administrator','M',NULL,NULL,0,NULL,NULL,NULL,NULL,'2024-05-02 14:10:46.044405','2024-05-03 06:12:48.946782',NULL,NULL,NULL);
-/*!40000 ALTER TABLE `people` ENABLE KEYS */;
+LOCK TABLES `user_lab_location_mappings` WRITE;
+/*!40000 ALTER TABLE `user_lab_location_mappings` DISABLE KEYS */;
+INSERT INTO `user_lab_location_mappings` VALUES (1,1,3,0,NULL,NULL,NULL,NULL,'2024-05-02 14:11:21.555287','2024-05-02 14:11:21.555287',NULL),(2,1,2,0,NULL,NULL,NULL,NULL,'2024-05-02 14:11:21.566169','2024-05-02 14:11:21.566169',NULL),(3,1,1,0,NULL,NULL,NULL,NULL,'2024-05-02 14:11:21.578058','2024-05-02 14:11:21.578058',NULL);
+/*!40000 ALTER TABLE `user_lab_location_mappings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
