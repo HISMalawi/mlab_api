@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-include Reports::Moh::MigrationHelpers::ExecuteQueries
-
 Rails.logger = Logger.new($stdout)
 
 def get_records(offset, limit)
