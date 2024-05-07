@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: mlab_api_development
+-- Host: 127.0.0.1    Database: mlab_mo
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -48,7 +48,7 @@ CREATE TABLE `encounter_types` (
 
 LOCK TABLES `encounter_types` WRITE;
 /*!40000 ALTER TABLE `encounter_types` DISABLE KEYS */;
-INSERT INTO `encounter_types` VALUES (2,'In Patient','In Patient',1,0,NULL,NULL,NULL,'2023-06-23 04:20:27.605154','2023-06-23 04:20:27.605154',1),(13,'Out Patient','Out Patient',1,0,NULL,NULL,NULL,'2023-06-23 04:20:27.611106','2023-06-23 04:20:27.611106',1),(15,'Referral','Referral',1,0,NULL,NULL,NULL,'2023-06-23 04:20:27.616930','2023-06-23 04:20:27.616930',1);
+INSERT INTO `encounter_types` VALUES (2,'In Patient','In Patient',1,0,NULL,NULL,NULL,'2024-05-02 14:11:17.990971','2024-05-02 14:11:17.990971',1),(13,'Out Patient','Out Patient',1,0,NULL,NULL,NULL,'2024-05-02 14:11:17.993335','2024-05-02 14:11:17.993335',1),(15,'Referral','Referral',1,0,NULL,NULL,NULL,'2024-05-02 14:11:17.995210','2024-05-02 14:11:17.995210',1);
 /*!40000 ALTER TABLE `encounter_types` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -61,4 +61,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-03 14:39:38
+-- Dump completed on 2024-05-03  8:25:01

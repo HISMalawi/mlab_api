@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: mlab_api_development
+-- Host: 127.0.0.1    Database: mlab_mo
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -44,7 +44,7 @@ CREATE TABLE `users` (
   CONSTRAINT `fk_rails_10e8c3ab59` FOREIGN KEY (`voided_by`) REFERENCES `users` (`id`),
   CONSTRAINT `fk_rails_fa67535741` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`),
   CONSTRAINT `fk_rails_fd256d8564` FOREIGN KEY (`creator`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=177 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -53,7 +53,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,1,'administrator','$2y$10$sgh4K0Dup4P6vr0orFDuq.tvrIOokWG8BMrnii7atq6MgXarnoMqy',NULL,0,NULL,NULL,NULL,1,'2023-06-23 04:13:58.079444','2023-06-28 07:53:18.593518',0,NULL);
+INSERT INTO `users` VALUES (1,1,'administrator','$2y$10$sgh4K0Dup4P6vr0orFDuq.tvrIOokWG8BMrnii7atq6MgXarnoMqy',NULL,0,NULL,NULL,NULL,1,'2024-05-02 13:55:43.683846','2024-05-03 06:12:56.337575',0,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -66,4 +66,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-03 15:07:51
+-- Dump completed on 2024-05-03  8:25:02

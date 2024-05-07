@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: mlab_api_development
+-- Host: 127.0.0.1    Database: mlab_mo
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -43,7 +43,7 @@ CREATE TABLE `user_role_mappings` (
   CONSTRAINT `fk_rails_70a7a9087a` FOREIGN KEY (`creator`) REFERENCES `users` (`id`),
   CONSTRAINT `fk_rails_7ddbbdbc99` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`),
   CONSTRAINT `fk_rails_e84071773e` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=185 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=213 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -52,7 +52,7 @@ CREATE TABLE `user_role_mappings` (
 
 LOCK TABLES `user_role_mappings` WRITE;
 /*!40000 ALTER TABLE `user_role_mappings` DISABLE KEYS */;
-INSERT INTO `user_role_mappings` VALUES (1,1,1,0,NULL,NULL,NULL,1,'2023-06-23 04:13:59.430784','2023-06-23 04:13:59.430784',NULL);
+INSERT INTO `user_role_mappings` VALUES (1,1,1,0,NULL,NULL,NULL,1,'2024-05-02 13:55:45.080778','2024-05-02 13:55:45.080778',NULL);
 /*!40000 ALTER TABLE `user_role_mappings` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -65,4 +65,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-03 15:05:29
+-- Dump completed on 2024-05-03  8:25:02

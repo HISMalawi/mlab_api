@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: mlab_api_development
+-- Host: 127.0.0.1    Database: mlab_mo
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -47,7 +47,7 @@ CREATE TABLE `priorities` (
 
 LOCK TABLES `priorities` WRITE;
 /*!40000 ALTER TABLE `priorities` DISABLE KEYS */;
-INSERT INTO `priorities` VALUES (1,'Routine',0,NULL,NULL,NULL,1,'2023-06-23 04:19:20.485033','2023-06-23 04:19:20.485033',1),(2,'Stat',0,NULL,NULL,NULL,1,'2023-06-23 04:19:20.490734','2023-06-23 04:19:20.490734',1);
+INSERT INTO `priorities` VALUES (1,'Routine',0,NULL,NULL,NULL,1,'2024-05-02 14:10:48.989772','2024-05-02 14:10:48.989772',1),(2,'STAT',0,NULL,NULL,NULL,1,'2024-05-02 14:10:48.992259','2024-05-02 14:10:48.992259',1);
 /*!40000 ALTER TABLE `priorities` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -60,4 +60,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-03 14:46:19
+-- Dump completed on 2024-05-03  8:25:01

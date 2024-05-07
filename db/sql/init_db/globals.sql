@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: mlab_api_development
+-- Host: 127.0.0.1    Database: mlab_mo
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -51,7 +51,7 @@ CREATE TABLE `globals` (
 
 LOCK TABLES `globals` WRITE;
 /*!40000 ALTER TABLE `globals` DISABLE KEYS */;
-INSERT INTO `globals` VALUES (1,'Bwaila Hospital','KCH','P.O Box 34, Lilongwe','+265323443',1,0,NULL,NULL,NULL,'2023-06-23 04:20:31.591616','2023-07-19 08:58:01.223321',NULL,'Lilongwe');
+INSERT INTO `globals` VALUES (1,'Bwaila Hospital','KCH','P.O Box 34, Lilongwe','+265323443',1,0,NULL,NULL,NULL,'2024-05-02 14:11:20.223545','2024-05-02 14:11:20.223545',1,'Lilongwe');
 /*!40000 ALTER TABLE `globals` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -64,4 +64,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-08-03 16:00:43
+-- Dump completed on 2024-05-03  8:25:01
