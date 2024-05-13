@@ -12,6 +12,13 @@ module Api
         render json: Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
       end
 
+      def lab_statistics_details
+        from = params[:from]
+        to = params[:to]
+        department = params[:department]
+        render json: Reports::Aggregate::LabStatistic.get_details(from:, to:, department:)
+      end
+
       def malaria_report
         today = Date.today.strftime('%Y-%m-%d')
         to = params[:to].present? ? params[:to] : today
