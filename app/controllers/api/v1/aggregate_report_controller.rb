@@ -16,7 +16,8 @@ module Api
         from = params[:from]
         to = params[:to]
         department = params[:department]
-        render json: Reports::Aggregate::LabStatistic.get_details(from:, to:, department:)
+        test_type = params[:test_type]
+        render json: Reports::Aggregate::LabStatistic.get_details(from:, to:, department:, test_type:)
       end
 
       def malaria_report

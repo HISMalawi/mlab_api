@@ -26,7 +26,7 @@ module Reports
           }
         end
 
-        def get_details(from: nil, to: nil, department: nil)
+        def get_details(from: nil, to: nil, department: nil, test_type: nil)
           today = Date.today.strftime('%Y-%m-%d')
           from = from.present? ? from : today
           to = to.present? ? to : today
@@ -36,10 +36,10 @@ module Reports
           else
             ''
           end
-
+          data = query_count_details(from, to, department, test_type)
         end
 
-        def query_count_details(from, to, department)
+        def query_count_details(from, to, department, test_type)
           ReportRawData.find_by_sql(
             "SELECT
             p.first_name,
@@ -75,8 +75,8 @@ module Reports
               INNER JOIN
             statuses ss ON ss.id = ts.status_id
           WHERE
-            DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
-              AND tt.department_id = #{department}
+            DATE(t.created_date) BETWEEN '#{from}' AND '#{to}' #{department}
+              AND tt.name = '#{test_type}'
               AND ts.status_id IN (4 , 5)"
           )
         end
