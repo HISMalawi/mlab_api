@@ -896,7 +896,7 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Number of CSF samples analysed' AS indicator
+            COUNT(DISTINCT t.order_id) AS total, 'Number of CSF samples analysed' AS indicator
           FROM
             tests t
               INNER JOIN
