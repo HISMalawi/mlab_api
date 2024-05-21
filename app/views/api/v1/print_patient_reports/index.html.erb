@@ -11,7 +11,7 @@
 </head>
 <body>
 <div id="app", style="font-size: 10px">
-  <div v-if="reportData.length > 0" class="border rounded print-container">
+  <div v-if="reportData.length > 0" class="border rounded print-container px-20">
         <div class="rounded-tr rounded-tl border-b px-5 py-5">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -51,7 +51,7 @@
             </div>
             <div>
               <span class="font-medium">No. Printed:</span>
-              {{ getPrintCount(reportData) }}
+              {{ getPrintCount(reportData)}}
             </div>
             <div>
               <span class="font-medium">Date Sample Collected:</span>
@@ -504,7 +504,7 @@ const app = createApp({
     },
     getPrintCount(reportData) {
       return reportData.reduce(
-        (count, report) => count + report.print_count,
+        (count, report) => count + report.print_count + 1,
         0
       );
     },

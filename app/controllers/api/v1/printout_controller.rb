@@ -41,7 +41,7 @@ class Api::V1::PrintoutController < ApplicationController
     directory_name = 'patient_reports'
     grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_patient_reports?from=&to=&client_id=#{client_id}&order_ids=#{JSON.parse(order_ids)}",
                         display_header_footer: true,
-                        footer_template: "<div class='text right' style='align: center'>Page <span class='pageNumber'>
+                        footer_template: "<div class='text right' style='align: center; margin-left: 50%'>Page <span class='pageNumber'>
                         </span> of <span class='totalPages'></span></div>",
                         margin: { top: '0in', bottom: '0.5in' }, format: 'A4', print_background: true).to_pdf
     order_ids = order_ids.is_a?(String) ? JSON.parse(order_ids) : order_ids
