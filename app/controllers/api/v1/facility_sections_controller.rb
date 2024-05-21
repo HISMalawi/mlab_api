@@ -1,5 +1,4 @@
 class Api::V1::FacilitySectionsController < ApplicationController
-
   def index
     if params[:search].present?
       facility_sections = FacilitySection.where(
@@ -8,9 +7,11 @@ class Api::V1::FacilitySectionsController < ApplicationController
     else
       facility_sections = FacilitySection.all
     end
+    return render json: { data: facility_sections } unless params[:page].present?
+
     render json: paginate(facility_sections)
   end
-  
+
   def show
     render json: FacilitySection.find(params[:id])
   end
