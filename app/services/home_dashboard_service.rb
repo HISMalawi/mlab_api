@@ -71,7 +71,7 @@ module HomeDashboardService
                       SELECT
                         COUNT(DISTINCT t.id) AS count
                       FROM tests t
-                      WHERE t.voided = 0 AND t.created_date BETWEEN '#{from}' AND '#{to}'
+                      WHERE t.voided = 0 AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
                       AND t.lab_location_id = #{lab_location_id}")
                    else
                      Report.find_by_sql("
@@ -84,7 +84,7 @@ module HomeDashboardService
                       WHERE
                           t.voided = 0
                         AND t.test_type_id IN #{test_types_ids}
-                        AND t.created_date BETWEEN '#{from}' AND '#{to}'
+                        AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
                         AND t.lab_location_id = #{lab_location_id}
                      ")
                    end
@@ -134,7 +134,7 @@ module HomeDashboardService
           INNER JOIN statuses s ON s.id = t.status_id
           WHERE
             t.voided = 0 AND t.test_type_id IN #{test_types_ids}
-          AND t.created_date BETWEEN '#{from}' AND '#{to}'
+          AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
           AND t.lab_location_id = #{lab_location_id}
           GROUP BY s.id
       ")
