@@ -49,10 +49,22 @@ module MachineService
     def write_measure(hash:)
       hash << {
         indicator_id: @measure_id,
-        value: @result,
+        value: rearrange_sign(@result),
         machine_name:,
         indicator_name: TestIndicator.find_by(id: @measure_id)&.name
       }
+    end
+
+    # Rearranges the sign -/+ to the beginning if it appears at the end of the string
+    def rearrange_sign(value)
+      return value if value.nil?
+
+      match = value.match?(/\s?[+-]$/)
+      return value unless match
+
+      sign = value[-1]
+      number = value[0..-2].strip
+      "#{sign}#{number}"
     end
 
     def check_indicator_exists?(hash:)
@@ -66,7 +78,7 @@ module MachineService
       hash.each do |h|
         next unless h['indicator_id'] == measure_id && h['machine_name'] == machine_name
 
-        h['value'] = result
+        h['value'] = rearrange_sign(result)
         break
       end
     end
