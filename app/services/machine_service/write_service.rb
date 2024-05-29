@@ -59,6 +59,7 @@ module MachineService
     def rearrange_sign(value)
       return value if value.nil?
 
+      value = value.strip
       match = value.match?(/\s?[+-]$/)
       return value unless match
 
