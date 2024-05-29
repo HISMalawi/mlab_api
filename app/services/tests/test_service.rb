@@ -282,7 +282,7 @@ module Tests
         id: test_indicator['id'],
         name: test_indicator['name'],
         test_indicator_type: test_indicator['test_indicator_type'],
-        unit: test_indicator['unit'],
+        unit: add_x_to_test_indicator_unit(test_indicator['unit']),
         description: test_indicator['description'],
         result: result_seriliazer(
           test_indicator['result_id'],
@@ -292,6 +292,19 @@ module Tests
         ),
         indicator_ranges: indicator_ranges(test_indicator['id'], test_indicator['test_indicator_type'], sex, dob)
       }
+    end
+
+    # Add x to the indicator unit to separate result and unit for nummeric unit
+    def add_x_to_test_indicator_unit(unit)
+      return unit if unit.nil? || unit.blank?
+
+      return unit unless starts_with_number?(unit)
+
+      "x#{unit}"
+    end
+
+    def starts_with_number?(string)
+      !!(string =~ /^\d/)
     end
 
     def result_seriliazer(id, value, result_date, machine_name)
