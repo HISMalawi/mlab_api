@@ -298,6 +298,7 @@ module Tests
     def add_x_to_test_indicator_unit(unit)
       return unit if unit.nil? || unit.blank?
 
+      unit = remove_leading_asterisk(unit)
       return unit unless starts_with_number?(unit)
 
       "x#{unit}"
@@ -305,6 +306,11 @@ module Tests
 
     def starts_with_number?(string)
       !!(string =~ /^\d/)
+    end
+
+    def remove_leading_asterisk(string)
+      string = string.strip
+      string.start_with?('*') ? string[1..] : string
     end
 
     def result_seriliazer(id, value, result_date, machine_name)
