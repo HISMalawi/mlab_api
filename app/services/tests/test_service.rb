@@ -251,7 +251,7 @@ module Tests
       !InstrumentTestTypeMapping.where(test_type_id:).empty?
     end
 
-    def test_indicators(test_id, test_type_id)
+    def test_indicators(test_id, test_type_id, sex, dob)
       json_response = []
       test_type = TestType.find(test_type_id)
       fbc_format = Tests::FormatService.fbc_format
@@ -268,16 +268,16 @@ module Tests
                   WHERE ttim.test_types_id = #{test_type_id}")
       records.each do |record|
         if test_type.name.include?('FBC')
-          fbc_format[record['name'].upcase.to_sym] = test_indicator_seriliazer(record)
+          fbc_format[record['name'].upcase.to_sym] = test_indicator_seriliazer(record, sex, dob)
         else
-          json_response << test_indicator_seriliazer(record)
+          json_response << test_indicator_seriliazer(record, sex, dob)
         end
       end
       json_response = Tests::FormatService.to_array(fbc_format) if test_type.name.include?('FBC')
       json_response
     end
 
-    def test_indicator_seriliazer(test_indicator)
+    def test_indicator_seriliazer(test_indicator, sex, dob)
       {
         id: test_indicator['id'],
         name: test_indicator['name'],
@@ -290,7 +290,7 @@ module Tests
           test_indicator['result_date'],
           test_indicator['machine_name']
         ),
-        indicator_ranges: indicator_ranges(test_indicator['id'])
+        indicator_ranges: indicator_ranges(test_indicator['id'], test_indicator['test_indicator_type'], sex, dob)
       }
     end
 
@@ -300,11 +300,26 @@ module Tests
       { id:, value:, result_date:, machine_name: }
     end
 
-    def indicator_ranges(test_indicator_id)
-      TestIndicatorRange.where(test_indicator_id:).select("
-        id, test_indicator_id, sex, min_age, max_age, lower_range, upper_range,
-        interpretation, value
-      ")
+    def indicator_ranges(test_indicator_id, test_indicator_type, sex, dob)
+      age = calculate_age(dob)
+      sex = full_sex(sex)
+      ranges = TestIndicatorRange.where(test_indicator_id:)
+      if test_indicator_type&.downcase == 'numeric'
+        ranges = ranges.where("#{age} BETWEEN min_age AND max_age AND (sex = '#{sex}' OR sex = 'both')")
+      end
+      ranges.select('id, test_indicator_id, sex, min_age, max_age, lower_range, upper_range, interpretation, value')
+    end
+
+    def full_sex(sex)
+      sex.downcase == 'f' ? 'Female' : 'Male'
+    end
+
+    def calculate_age(dob)
+      today = Date.today
+      years_difference = today.year - dob.year
+      years_difference -= 1 if (today.month < dob.month) || (today.month == dob.month && today.day < dob.day)
+      years_difference += 1 if years_difference.zero?
+      years_difference
     end
 
     def expected_tat(test_type_id)
@@ -520,7 +535,7 @@ module Tests
 
       json[:is_machine_oriented] = machine_oriented?(record['test_type_id']) unless is_client_report
       json[:result_remarks] = Remark.where(tests_id: record['id']).first
-      json[:indicators] = test_indicators(record['id'], record['test_type_id'])
+      json[:indicators] = test_indicators(record['id'], record['test_type_id'], record['sex'], record['date_of_birth'])
       json[:expected_turn_around_time] = expected_tat(record['test_type_id']) unless is_client_report
       json[:status_trail] = test_status_trail(record['id'])
       json[:order_status_trail] = order_status_trail(record['order_id']) unless is_client_report
