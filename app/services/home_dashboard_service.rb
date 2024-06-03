@@ -56,6 +56,8 @@ module HomeDashboardService
 
     def tests(from, to, department, lab_location)
       data = {
+        from:,
+        to:,
         tests: total_test_count(from, to, department, lab_location),
         tests_by_status: test_statuses_count(from, to, department, lab_location)
       }

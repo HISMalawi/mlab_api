@@ -12,7 +12,7 @@ nlims_sync_job:
 
 home_dashboard_job:
   name: "Update Home Dashboard analytics Every 6hrs"
-  cron: "0 */6 * * *"
+  cron: "*/5 * * * *"
   class: "HomeDashboardJob"
   queue: default
 
