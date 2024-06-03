@@ -61,6 +61,7 @@ module MachineService
 
       value = value.strip
       match = value.match?(/\s?[+-]$/)
+      value = value.gsub('*', '')
       return value unless match
 
       sign = value[-1]
