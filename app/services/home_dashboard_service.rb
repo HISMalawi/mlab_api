@@ -120,7 +120,7 @@ module HomeDashboardService
 
     def department_id(department)
       dpt = Department.find_by_name(department)&.id
-      dpt || 0
+      dpt ||= 0
       dpt
     end
 
@@ -128,6 +128,7 @@ module HomeDashboardService
       lab_location_id ||= 1
       department_id = department_id(department)
       test_types_ids = lab_location_test_types(department_id, lab_location_id)
+      test_type_condition = department_id.zero? ? '' : "AND t.test_type_id IN #{test_types_ids}"
       statuses_count = Report.find_by_sql("
           SELECT
             COUNT('DISTINCT t.id') AS  count, s.name
@@ -135,7 +136,7 @@ module HomeDashboardService
               tests t
           INNER JOIN statuses s ON s.id = t.status_id
           WHERE
-            t.voided = 0 AND t.test_type_id IN #{test_types_ids}
+            t.voided = 0 #{test_type_condition}
           AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
           AND t.lab_location_id = #{lab_location_id}
           GROUP BY s.id
