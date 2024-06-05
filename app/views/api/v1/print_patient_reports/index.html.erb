@@ -92,7 +92,7 @@
               </tr>
             </tbody>
           </table>
-        </div>
+        
 
         <div v-for="(report, index) in reportData" :key="index">
           <div
@@ -111,44 +111,44 @@
           <table class="border-collapse border-slate-500 w-full">
             <tbody>
               <tr>
-                <td class="border-b border-r px-1 py-1 font-bold">
+                <td class="border px-1 py-1 font-bold">
                   Specimen Type
                 </td>
-                <td class="border-b border-r px-1 py-1">
+                <td class="border px-1 py-1">
                   {{ report.specimen }}
                 </td>
-                <td class="border-b border-r px-1 py-1 font-bold">
+                <td class="border px-1 py-1 font-bold">
                   Date Registered
                 </td>
-                <td class="border-b px-1 py-1">
+                <td class="border px-1 py-1">
                   {{ moment(report.created_date).format(dateFormat) }}
                 </td>
               </tr>
               <tr>
-                <td class="border-b border-r px-1 py-1 font-bold">
+                <td class="border px-1 py-1 font-bold">
                   Test Type(s)
                 </td>
-                <td class="border-b border-r px-1 py-1">
+                <td class="border px-1 py-1">
                   {{ getTestTypes(report.test_types) }}
                 </td>
-                <td class="border-b border-r px-1 py-1 font-bold">
+                <td class="border px-1 py-1 font-bold">
                   Lab Sections
                 </td>
-                <td class="border-b px-1 py-1">
+                <td class="border px-1 py-1">
                   {{ getDepartments(report.test_types) }}
                 </td>
               </tr>
               <tr>
-                <td class="border-b border-r px-1 py-1 font-bold">
+                <td class="border px-1 py-1 font-bold">
                   Specimen Status
                 </td>
-                <td class="border-b border-r px-1 py-1">
+                <td class="border px-1 py-1">
                   {{ getOrderStatus(report.order_status) }}
                 </td>
-                <td class="border-b border-r px-1 py-1 font-bold">
+                <td class="border px-1 py-1 font-bold">
                   Received By
                 </td>
-                <td class="border-b px-1 py-1">
+                <td class="border px-1 py-1">
                   {{ getOrderStatusInitiatorName(report.order_status_trail) }}
                 </td>
               </tr>
@@ -178,7 +178,7 @@
                 :key="test.id"
               >
                 <tr>
-                  <td class="border px-1 py-1 text-left">
+                  <td class="border px-5 py-1 text-left">
                     {{ test.test_type_name }}
                   </td>
                   <td class="p-0 border-b" style="padding: 0 !important">
@@ -401,6 +401,7 @@
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
 </div>
