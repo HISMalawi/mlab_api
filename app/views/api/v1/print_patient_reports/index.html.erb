@@ -5,14 +5,14 @@
   <%= csp_meta_tag %>
   <%= javascript_include_tag 'vue' %>
   <%= stylesheet_link_tag 'font', media: 'all' %>
-  <%= javascript_include_tag 'moment' %> 
-  <%= javascript_include_tag 'tailwind' %> 
+  <%= javascript_include_tag 'moment' %>
+  <%= javascript_include_tag 'tailwind' %>
   <%= javascript_include_tag 'jsbarcode' %>
 </head>
 <body>
 <div id="app", style="font-size: 10px">
-  <div v-if="reportData.length > 0" class="border rounded print-container px-20">
-        <div class="rounded-tr rounded-tl border-b px-5 py-5">
+  <div v-if="reportData.length > 0" class="px-5 print-container">
+        <div class="rounded-tr rounded-tl px-5 py-5">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <img
@@ -92,7 +92,7 @@
               </tr>
             </tbody>
           </table>
-        
+
 
         <div v-for="(report, index) in reportData" :key="index">
           <div
@@ -426,7 +426,7 @@ const app = createApp({
       showPendingTests: false,
       loading: false
     };
-  },  
+  },
   methods: {
     getOrderStatusInitiatorName(data) {
       const specimenStatus = ["specimen-accepted", "specimen-rejected"];
