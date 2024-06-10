@@ -48,12 +48,13 @@ module Reports
               INNER JOIN people p ON p.id = c.person_id AND p.voided = 0
               LEFT JOIN test_types tt ON t.test_type_id = tt.id
               INNER JOIN departments d ON d.id = tt.department_id
-            WHERE t.id IN (#{associated_ids}) AND t.status_id IN (4, 5);
+            WHERE t.id IN (#{DrilldownIdentifier.find(associated_ids).data['associated_ids']}) AND t.status_id IN (4, 5)
             "
           )
         end
 
         def query_data(from, to, department)
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
           Report.find_by_sql(
             "SELECT
                 COUNT(DISTINCT t.id) AS total,
@@ -63,15 +64,13 @@ module Reports
                 d.name AS department
             FROM
                 tests t
-                    RIGHT JOIN
+                    INNER JOIN
                 test_types tt ON t.test_type_id = tt.id
                     INNER JOIN
                 departments d ON d.id = tt.department_id
-                    INNER JOIN
-                test_statuses ts ON ts.test_id = t.id
             WHERE
                 DATE(t.created_date) BETWEEN '#{from}' AND '#{to}' #{department}
-                    AND ts.status_id IN (4 , 5)
+                    AND t.status_id IN (4 , 5)
             GROUP BY month , test_type , department;
             "
           )
@@ -80,13 +79,18 @@ module Reports
         def sanitize_data(data)
           data.group_by { |item| item[:department] }.map do |department, items|
             tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
-              test_items.map { |item| [item[:month], { total: item[:total], associated_ids: item[:associated_ids] }] }.to_h
+              test_items.map do |item|
+                [item[:month],
+                 { total: item[:total],
+                   associated_ids: DrilldownIdentifier.create(id: SecureRandom.uuid,
+                                                              data: { associated_ids: item[:associated_ids],
+                                                                      department: }).id }]
+              end.to_h
             end
 
             { department => tests }
           end
         end
-
       end
     end
   end
