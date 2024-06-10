@@ -26,22 +26,10 @@ module Reports
           }
         end
 
-        def get_details(from: nil, to: nil, department: nil, test_type: nil, associated_ids: nil)
-          today = Date.today.strftime('%Y-%m-%d')
-          from = from.present? ? from : today
-          to = to.present? ? to : today
-          department = if department.present? && department != 'All'
-            " AND d.id =
-            '#{Department.where(name: department).first&.id}'"
-          else
-            ''
-          end
-          data = query_count_details(from, to, department, test_type, associated_ids)
-        end
-
-        def query_count_details(from, to, department, test_type, associated_ids)
+        def query_count_details(associated_ids)
           Report.find_by_sql(
             "SELECT
+              distinct t.id,
               p.first_name,
               p.last_name,
               p.sex,
@@ -49,7 +37,6 @@ module Reports
               o.accession_number,
               tt.name AS test_type,
               d.name AS department,
-              ss.name AS status,
               tt.updated_date
             FROM
               tests t
@@ -61,13 +48,7 @@ module Reports
               INNER JOIN people p ON p.id = c.person_id AND p.voided = 0
               LEFT JOIN test_types tt ON t.test_type_id = tt.id
               INNER JOIN departments d ON d.id = tt.department_id
-              INNER JOIN test_statuses ts ON ts.test_id = t.id
-              INNER JOIN statuses ss ON ss.id = ts.status_id
-            WHERE
-              DATE(t.created_date) BETWEEN '#{from}' AND '#{to}' #{department}
-              AND tt.name = '#{test_type}'
-              AND t.id IN (#{associated_ids})
-              AND ts.status_id IN (4, 5);
+            WHERE t.id IN (#{associated_ids}) AND t.status_id IN (4, 5);
             "
           )
         end
