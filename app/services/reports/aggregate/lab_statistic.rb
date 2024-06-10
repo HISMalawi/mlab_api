@@ -7,7 +7,7 @@ module Reports
     # LabStatistic reports module
     module LabStatistic
       class << self
-        def generate_report(from: nil, to: nil, department: nil)
+        def generate_report(from: nil, to: nil, department: nil, drilldown_identifier: nil)
           today = Date.today.strftime('%Y-%m-%d')
           from = from.present? ? from : today
           to = to.present? ? to : today
@@ -22,7 +22,7 @@ module Reports
           {
             from:,
             to:,
-            data: sanitize_data(data)
+            data: sanitize_data(data:, drilldown_identifier:)
           }
         end
 
@@ -76,18 +76,20 @@ module Reports
           )
         end
 
-        def sanitize_data(data)
+        def sanitize_data(data: nil, drilldown_identifier: nil)
+          id = drilldown_identifier.nil? ? SecureRandom.uuid : drilldown_identifier
           data.group_by { |item| item[:department] }.map do |department, items|
             tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
               test_items.map do |item|
+                associated_ids = DrilldownIdentifier.find_or_create_by(id:)
+                associated_ids.update(data: { associated_ids: item[:associated_ids], department: })
                 [item[:month],
-                 { total: item[:total],
-                   associated_ids: DrilldownIdentifier.create(id: SecureRandom.uuid,
-                                                              data: { associated_ids: item[:associated_ids],
-                                                                      department: }).id }]
+                 {
+                   total: item[:total],
+                   associated_ids: associated_ids.id
+                 }]
               end.to_h
             end
-
             { department => tests }
           end
         end

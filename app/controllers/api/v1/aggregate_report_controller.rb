@@ -9,7 +9,9 @@ module Api
         from = params[:from]
         to = params[:to]
         department = params[:department]
-        render json: Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
+        drilldown_identifier = params[:drilldown_identifier]
+        data = Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:, drilldown_identifier:)
+        render json: data
       end
 
       def lab_statistics_details
