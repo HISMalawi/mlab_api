@@ -27,6 +27,8 @@ module Reports
         end
 
         def query_count_details(associated_ids)
+          ids = DrilldownIdentifier.find(associated_ids).data['associated_ids']
+          DrilldownIdentifier.delete(associated_ids)
           Report.find_by_sql(
             "SELECT
               distinct t.id,
@@ -48,7 +50,7 @@ module Reports
               INNER JOIN people p ON p.id = c.person_id AND p.voided = 0
               LEFT JOIN test_types tt ON t.test_type_id = tt.id
               INNER JOIN departments d ON d.id = tt.department_id
-            WHERE t.id IN (#{DrilldownIdentifier.find(associated_ids).data['associated_ids']}) AND t.status_id IN (4, 5)
+            WHERE t.id IN (#{ids}) AND t.status_id IN (4, 5)
             "
           )
         end
