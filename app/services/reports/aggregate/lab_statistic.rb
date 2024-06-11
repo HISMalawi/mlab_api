@@ -77,10 +77,10 @@ module Reports
         end
 
         def sanitize_data(data: nil, drilldown_identifier: nil)
-          id = drilldown_identifier.nil? ? SecureRandom.uuid : drilldown_identifier
           data.group_by { |item| item[:department] }.map do |department, items|
             tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
               test_items.map do |item|
+                id = drilldown_identifier.nil? ? SecureRandom.uuid : drilldown_identifier
                 associated_ids = DrilldownIdentifier.find_or_create_by(id:)
                 associated_ids.update(data: { associated_ids: item[:associated_ids], department: })
                 [item[:month],
