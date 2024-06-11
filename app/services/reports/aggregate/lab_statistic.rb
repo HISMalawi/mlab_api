@@ -7,28 +7,28 @@ module Reports
     # LabStatistic reports module
     module LabStatistic
       class << self
-        def generate_report(from: nil, to: nil, department: nil, drilldown_identifier: nil)
+        def generate_report(from: nil, to: nil, department: nil)
           today = Date.today.strftime('%Y-%m-%d')
-          from = from.present? ? from : today
-          to = to.present? ? to : today
-          department = if department.present? && department != 'All'
-                         " AND d.id =
-          '#{Department.where(name: department).first&.id}'"
-                       else
-                         ''
-                       end
-
-          data = query_data(from, to, department)
+          from ||= today
+          to ||= today
+          department_condition = build_department_condition(department)
+          data = query_data(from, to, department_condition)
           {
             from:,
             to:,
-            data: sanitize_data(data:, drilldown_identifier:)
+            data: sanitize_data(data)
           }
         end
 
-        def query_count_details(associated_ids)
-          ids = DrilldownIdentifier.find(associated_ids).data['associated_ids']
-          DrilldownIdentifier.delete(associated_ids)
+        def build_department_condition(department)
+          return '' unless department.present? && department != 'All'
+
+          department_id = Department.find_by(name: department)&.id
+          " AND d.id = '#{department_id}'"
+        end
+
+        # rubocop:disable Metrics/MethodLength
+        def query_count_details(drilldown_identifier)
           Report.find_by_sql(
             "SELECT
               distinct t.id,
@@ -50,11 +50,19 @@ module Reports
               INNER JOIN people p ON p.id = c.person_id AND p.voided = 0
               LEFT JOIN test_types tt ON t.test_type_id = tt.id
               INNER JOIN departments d ON d.id = tt.department_id
-            WHERE t.id IN (#{ids}) AND t.status_id IN (4, 5)
+            WHERE t.id IN (#{associated_ids(drilldown_identifier)}) AND t.status_id IN (4, 5)
             "
           )
         end
+        # rubocop:enable Metrics/MethodLength
 
+        def associated_ids(drilldown_identifier)
+          ids = DrilldownIdentifier.find(drilldown_identifier).data['associated_ids']
+          DrilldownIdentifier.delete(drilldown_identifier)
+          ids
+        end
+
+        # rubocop:disable Metrics/MethodLength
         def query_data(from, to, department)
           ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
           Report.find_by_sql(
@@ -77,14 +85,17 @@ module Reports
             "
           )
         end
+        # rubocop:enable Metrics/MethodLength
 
-        def sanitize_data(data: nil, drilldown_identifier: nil)
+        # rubocop:disable Metrics/MethodLength
+        def sanitize_data(data)
           data.group_by { |item| item[:department] }.map do |department, items|
             tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
               test_items.map do |item|
-                id = drilldown_identifier.nil? ? SecureRandom.uuid : drilldown_identifier
-                associated_ids = DrilldownIdentifier.find_or_create_by(id:)
-                associated_ids.update(data: { associated_ids: item[:associated_ids], department: })
+                associated_ids = DrilldownIdentifier.create(
+                  id: SecureRandom.uuid,
+                  data: { associated_ids: item[:associated_ids], department: }
+                )
                 [item[:month],
                  {
                    total: item[:total],
@@ -95,6 +106,7 @@ module Reports
             { department => tests }
           end
         end
+        # rubocop:enable Metrics/MethodLength
       end
     end
   end

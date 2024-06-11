@@ -6,11 +6,8 @@ module Api
     # Controller that handles all requests pertaining to Aggregate Reports
     class AggregateReportController < ApplicationController
       def lab_statistics
-        from = params[:from]
-        to = params[:to]
-        department = params[:department]
-        drilldown_identifier = params[:drilldown_identifier]
-        data = Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:, drilldown_identifier:)
+        from, to, department = params.values_at(:from, :to, :department)
+        data = Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
         render json: data
       end
 
