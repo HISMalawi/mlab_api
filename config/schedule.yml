@@ -21,3 +21,9 @@ update_elasticsearch_job:
   cron: "*/2 * * * *"
   class: "UpdateElasticsearchIndexJob"
   queue: default
+
+drilldown_identifier_clear_job:
+  name: "Delete drilldown identifers at 23:55"
+  cron: "55 23 * * *"
+  class: "DrilldownIdentifierClearJob"
+  queue: default
