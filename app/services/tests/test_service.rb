@@ -282,7 +282,7 @@ module Tests
         id: test_indicator['id'],
         name: test_indicator['name'],
         test_indicator_type: test_indicator['test_indicator_type'],
-        unit: add_x_to_test_indicator_unit(test_indicator['unit']),
+        unit: test_indicator['unit'],
         description: test_indicator['description'],
         result: result_seriliazer(
           test_indicator['result_id'],
