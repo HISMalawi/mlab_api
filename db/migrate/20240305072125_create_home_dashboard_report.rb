@@ -3,6 +3,8 @@
 # Home Dashboard report migration
 class CreateHomeDashboardReport < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:home_dashboard_reports)
+
     create_table :home_dashboard_reports do |t|
       t.string :report_type, null: false
       t.string :department, default: 'All', null: false

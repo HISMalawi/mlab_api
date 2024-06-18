@@ -3,6 +3,8 @@
 #  remarks table
 class CreateRemarks < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:remarks)
+
     create_table :remarks do |t|
       t.references :tests, null: false, foreign_key: true
       t.text :value
