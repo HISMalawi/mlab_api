@@ -157,6 +157,15 @@ module Nlims
       end
     end
 
+    def sexify(sex)
+      if sex.downcase == 'female'
+        sex = 'F'
+      elsif sex.downcase == 'male'
+        sex = 'M'
+      end
+      sex
+    end
+
     def find_or_create_client(nlims_order)
       client_npid = ClientIdentifierType.where(name: 'npid').first
       npid = nlims_order[:patient_identifiers][:npid]
@@ -164,8 +173,9 @@ module Nlims
       client_identifier_type_id = client_npid.nil? ? '' : client_npid.id
       client_identifier = ClientIdentifier.where(client_identifier_type_id: , value: npid).first
       if client_identifier.nil?
+        sex = sexify(nlims_order[:patient][:sex])
         person = Person.find_or_create_by(first_name: nlims_order[:patient][:first_name], last_name: nlims_order[:patient][:last_name], 
-          middle_name: nlims_order[:patient][:middle_name], sex: nlims_order[:patient][:sex], 
+          middle_name: nlims_order[:patient][:middle_name], sex:,
           date_of_birth: nlims_order[:patient][:date_of_birth]
         )
         person.update(birth_date_estimated: false, date_of_birth: nlims_order[:patient][:date_of_birth])
