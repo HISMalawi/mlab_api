@@ -24,7 +24,10 @@ rails db:migrate && {
         # Update User location
         rails r iblis_migration/update_user_location.rb && {
             # Update test lab location
-            rails r iblis_migration/update_test_lab_location.rb
+            rails r iblis_migration/update_test_lab_location.rb && {
+                # Clear existing home dashboard data
+                rails r iblis_migration/update_home_dashboard.rb
+            }
         }
     }
 }
