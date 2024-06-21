@@ -18,11 +18,15 @@ class Person < VoidableRecord
     "#{first_name} #{middle_name} #{last_name}"
   end
 
-  def self.search_by_first_name(first_name)
-    where("first_name LIKE '#{first_name}%'").select('distinct first_name').limit(10).map(&:first_name)
+  def self.search_by_first_name(name)
+    where('first_name LIKE ?', sanitize_name_like(name)).select('distinct first_name').limit(10).map(&:first_name)
   end
 
-  def self.search_by_last_name(last_name)
-    where("last_name LIKE '#{last_name}%'").select('distinct last_name').limit(10).map(&:last_name)
+  def self.search_by_last_name(name)
+    where('last_name LIKE ?', sanitize_name_like(name)).select('distinct last_name').limit(10).map(&:last_name)
+  end
+
+  def self.sanitize_name_like(name)
+    "#{ActiveRecord::Base.sanitize_sql_like(name)}%"
   end
 end
