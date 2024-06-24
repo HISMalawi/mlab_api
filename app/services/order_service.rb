@@ -97,7 +97,7 @@ module OrderService
     end
 
     def serialize_order(order, encounter, tests)
-      ClientManagement::ClientService.get_client(encounter.client_id).merge({
+      ClientManagement::ClientService.client(encounter.client_id).merge({
         order_id: order.id,
         accession_number: order.accession_number,
         tracking_number: order.tracking_number,
