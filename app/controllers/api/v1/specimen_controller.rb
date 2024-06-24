@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 module Api
   module V1
+    # Specimen controller
     class SpecimenController < ApplicationController
       before_action :set_specimen, only: %i[show update destroy]
 
       def index
-        @specimen = Specimen.all.order(:name)
-        render json: @specimen
+        @specimens = service.specimen(department_id: params[:department_id])
+        render json: @specimens
       end
 
       def show
@@ -13,19 +16,8 @@ module Api
       end
 
       def specimen_test_type
-        specimen = Specimen.find(params[:specimen_id])
-        test_types = SpecimenTestTypeMapping.joins(:test_type).where(specimen_id: specimen.id)
-                                            .where.not("test_types.name LIKE '%(Paed%'")
-                                            .where.not("test_types.name LIKE '%(cancer%'")
-        unless params[:department_id].blank?
-          test_types = filter_test_types_by_department(params[:department_id],
-                                                       test_types)
-        end
-        test_panel = TestTypePanelMapping.joins(:test_panel).joins(:test_type).where(
-          test_type_id: test_types.pluck('specimen_test_type_mappings.test_type_id')
-        ).pluck('test_panels.name')
-        test_types = test_types.pluck('name') + test_panel
-        render json: test_types.uniq.sort
+        test_types = service.specimen_test_type(params[:specimen_id], params[:department_id])
+        render json: test_types
       end
 
       def create
@@ -49,12 +41,8 @@ module Api
         @specimen = Specimen.find(params[:id])
       end
 
-      def filter_test_types_by_department(department_id, test_types)
-        department = Department.find(department_id)&.name
-        unless department == 'Lab Reception'
-          test_types = test_types.where("test_types.department_id = #{department_id}")
-        end
-        test_types
+      def service
+        TestCatalog::SpecimenService
       end
 
       def specimen_params
