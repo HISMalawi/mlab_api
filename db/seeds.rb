@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+client_identifier_types = %w[current_village current_district current_traditional_authority physical_address]
+client_identifier_types.each do |client_identifier_type|
+  puts "Creating #{client_identifier_type} client identifier type"
+  ClientIdentifierType.find_or_create_by(name: client_identifier_type)
+end
+
 stock_statuses = ['Draft', 'Pending', 'Requested', 'Received', 'Approved', 'Rejected', 'Not collected']
 stock_statuses.each do |status|
   puts "Creating stock status: #{status}"
@@ -294,7 +300,8 @@ name_mappings = [
   },
   {
     actual_name: 'Cholera',
-    manual_names: ['Cholera', 'Vibrio Cholerae','cholera rapid test', 'cholera rapoid test', 'Cholera RDT', 'Rapid Test', 'cholera test']
+    manual_names: ['Cholera', 'Vibrio Cholerae', 'cholera rapid test', 'cholera rapoid test', 'Cholera RDT',
+                   'Rapid Test', 'cholera test']
   },
   {
     actual_name: 'India Ink',
