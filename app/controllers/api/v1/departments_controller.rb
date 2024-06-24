@@ -22,12 +22,12 @@ module Api
       end
 
       def update
-        @department.update!(department_params) unless @department.name == 'Lab Reception'
+        @department.update!(department_params) unless ['Lab Reception', 'Archives'].include?(@department.name)
         render json: @department
       end
 
       def destroy
-        @department.void(params[:retired_reason]) unless @department.name == 'Lab Reception'
+        @department.void(params[:retired_reason]) unless ['Lab Reception', 'Archives'].include?(@department.name)
         render json: { message: MessageService::RECORD_DELETED }
       end
 
