@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'bcrypt'
 
 class User < VoidableRecord
@@ -6,21 +7,22 @@ class User < VoidableRecord
   belongs_to :person
   has_many :user_department_mappings
   has_many :departments, through: :user_department_mappings
+  has_many :user_role_mappings
 
   def active?
-    self.is_active == 0
+    is_active.zero?
   end
 
   def deactivate
     self.is_active = 1
     self.updated_by = User.current.id
-    self.save!
+    save!
   end
 
   def activate
     self.is_active = 0
     self.updated_by = User.current.id
-    self.save!
+    save!
   end
 
   def self.search(search_term)
@@ -28,7 +30,7 @@ class User < VoidableRecord
   end
 
   def full_name
-    "#{self.person.first_name} #{self.person.last_name}"
+    "#{person.first_name} #{person.last_name}"
   end
 
   def self.current
@@ -47,5 +49,4 @@ class User < VoidableRecord
     @password = Password.create(new_password)
     self.password = @password
   end
-
 end

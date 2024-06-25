@@ -4,7 +4,6 @@ require 'bantu_soundex'
 
 module UserManagement
   module UserService
-
     class << self
       def create_user(user_params)
         ActiveRecord::Base.transaction do
@@ -40,6 +39,7 @@ module UserManagement
       def create_lab_location(user_id, lab_location_id)
         UserLabLocationMapping.create!(user_id:, lab_location_id:)
       end
+
       def update_user(user, user_params)
         ActiveRecord::Base.transaction do
           person = user.person
@@ -55,20 +55,20 @@ module UserManagement
       end
 
       def update_roles(user_id, role_ids)
-        UserRoleMapping.where(user_id: user_id).where.not(role_id: role_ids).each do |user_role_mapping|
+        UserRoleMapping.where(user_id:).where.not(role_id: role_ids).each do |user_role_mapping|
           user_role_mapping.void('Role removed from user')
         end
         role_ids.each do |role_id|
-          UserRoleMapping.find_or_create_by(role_id: role_id, user_id: user_id)
+          UserRoleMapping.find_or_create_by(role_id:, user_id:)
         end
       end
 
       def update_departments(user_id, department_ids)
-        UserDepartmentMapping.where(user_id: user_id).where.not(department_id: department_ids).each do |user_department_mapping|
+        UserDepartmentMapping.where(user_id:).where.not(department_id: department_ids).each do |user_department_mapping|
           user_department_mapping.void('Department removed from user')
         end
         department_ids.each do |department_id|
-          UserDepartmentMapping.find_or_create_by(department_id: department_id, user_id: user_id)
+          UserDepartmentMapping.find_or_create_by(department_id:, user_id:)
         end
       end
 
@@ -89,35 +89,38 @@ module UserManagement
 
       def update_password(user, old_password, new_password)
         unless UserManagement::AuthService.basic_authentication(user, old_password)
-          raise ActiveRecord::RecordNotUnique, "Your old password is incorrect"
-        else
-          user.last_password_changed = Time.now
-          user.password_hash = new_password
-          user.save!
+          raise ActiveRecord::RecordNotUnique, 'Your old password is incorrect'
         end
+
+        user.last_password_changed = Time.now
+        user.password_hash = new_password
+        user.save!
       end
 
       def change_username(user, username)
-          if username_exists?(username)
-            raise ActiveRecord::RecordNotUnique, "Username already exists"
-          else
-            raise ActionController::ParameterMissing, "for username" if username.blank?
-            user.username = username
-            user.save!
-          end
+        raise ActiveRecord::RecordNotUnique, 'Username already exists' if username_exists?(username)
+
+        raise ActionController::ParameterMissing, 'for username' if username.blank?
+
+        user.username = username
+        user.save!
       end
 
       def find_user(id)
-        user = User.joins(:person).select('users.id, username, first_name, middle_name, last_name, sex, date_of_birth, birth_date_estimated, users.is_active, users.voided, users.voided_reason').where(id: id).first
+        user = User.joins(:person).select('users.id, username, first_name, middle_name, last_name, sex, date_of_birth, birth_date_estimated, users.is_active, users.voided, users.voided_reason').where(id:).first
         return nil if user.nil?
-        roles = UserRoleMapping.joins(:user, :role).where(user_id: id).select('roles.id, roles.name, user_role_mappings.retired, user_role_mappings.retired_reason, user_role_mappings.role_id')
-        departments = UserDepartmentMapping.joins(:user, :department).where(user_id: id).select('departments.id, departments.name, user_department_mappings.retired, user_department_mappings.retired_reason')
+
+        roles = UserRoleMapping.joins(:user,
+                                      :role).where(user_id: id).select('roles.id, roles.name, user_role_mappings.retired, user_role_mappings.retired_reason, user_role_mappings.role_id')
+        departments = UserDepartmentMapping.joins(:user,
+                                                  :department).where(user_id: id).select('departments.id, departments.name, user_department_mappings.retired, user_department_mappings.retired_reason')
         serialize(user, roles, departments)
       end
 
       def username_exists?(username)
         user = User.find_by_username(username)
         return false if user.nil?
+
         true
       end
 
@@ -135,9 +138,16 @@ module UserManagement
           voided: user.voided,
           voided_reason: user.voided_reason,
           roles:,
+          permissions: user_privileges(user),
           departments:,
           lab_locations: lab_locations(user.id)
         }
+      end
+
+      def user_privileges(user)
+        user_roles = user.user_role_mappings.pluck(:role_id)
+        privileges = Privilege.where(id: RolePrivilegeMapping.where(role_id: user_roles).pluck(:privilege_id))
+        privileges.select('id, name')
       end
 
       def lab_locations(user_id)
@@ -148,21 +158,20 @@ module UserManagement
         users_a = []
         users.each do |user|
           users_a.push({
-            id: user.id,
-            username: user.username,
-            is_active: user.is_active == 0 ? true : false,
-            first_name: user.person.first_name,
-            middle_name: user.person.middle_name,
-            last_name: user.person.last_name,
-            sex: user.person.sex,
-            date_of_birth: user.person.date_of_birth,
-            birth_date_estimated: user.person.birth_date_estimated,
-            create_date: user.person.created_date
-          })
+                         id: user.id,
+                         username: user.username,
+                         is_active: user.is_active == 0,
+                         first_name: user.person.first_name,
+                         middle_name: user.person.middle_name,
+                         last_name: user.person.last_name,
+                         sex: user.person.sex,
+                         date_of_birth: user.person.date_of_birth,
+                         birth_date_estimated: user.person.birth_date_estimated,
+                         create_date: user.person.created_date
+                       })
         end
         users_a
       end
-
     end
   end
 end

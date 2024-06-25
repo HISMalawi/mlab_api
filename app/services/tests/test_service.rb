@@ -41,7 +41,7 @@ module Tests
       {
         data: serialize_tests(records),
         meta: {
-          current_page: page,
+          current_page: page.to_i,
           next_page: records.count > per_page.to_i ? page.to_i + 1 : page,
           prev_page: page.to_i - 1,
           total_pages: records.count > per_page.to_i ? page.to_i + 1 : page,
