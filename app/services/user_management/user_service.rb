@@ -115,7 +115,7 @@ module UserManagement
       end
 
       def change_username(user, username)
-        raise ActiveRecord::RecordNotUnique, 'Username already exists' if username_exists?(username)
+        raise ActiveRecord::RecordNotUnique, 'Username already exists' if username?(username)
 
         raise ActionController::ParameterMissing, 'for username' if username.blank?
 
@@ -132,7 +132,7 @@ module UserManagement
         serialize(user, roles, departments, list)
       end
 
-      def username_exists?(username)
+      def username?(username)
         user = User.find_by_username(username)
         return false if user.nil?
 

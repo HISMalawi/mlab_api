@@ -18,7 +18,7 @@ def load_people(offset, limit)
         SUBSTRING_INDEX(SUBSTRING_INDEX(p.name, ' ', 1), ' ', -1) AS first_name,
         '' AS middle_name,
         SUBSTRING_INDEX(p.name, ' ', -1) AS last_name,
-        CASE 
+        CASE
             WHEN p.gender = 0 THEN 'M'
             WHEN p.gender = 1 THEN 'F'
         END AS sex,
@@ -37,6 +37,7 @@ def load_people(offset, limit)
     FROM patients p LIMIT #{limit} OFFSET #{offset}
   ")
 end
+
 def load_clients(offset, limit)
   Iblis.find_by_sql("
     SELECT
@@ -66,36 +67,37 @@ end
 def update_user_details
   ActiveRecord::Base.transaction do
     # Load Users
-    users = Iblis.find_by_sql("SELECT * FROM users")
+    users = Iblis.find_by_sql('SELECT * FROM users')
     Parallel.map(users, in_processes: 4) do |user|
       sex = user.gender == 0 ? 'M' : 'F'
-      name = user.name.split()
+      name = user.name.split
       middle_name = ''
       if name.length > 1
         first_name = name[0]
-        last_name = name.length> 2 ? name[2] : name[1]
+        last_name = name.length > 2 ? name[2] : name[1]
         middle_name = name[1] if name.length > 2
       else
         first_name = name[0]
         last_name = name[0]
       end
-      person = Person.where(first_name: first_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at).first
+      person = Person.where(first_name:, last_name:, sex:, created_date: user.created_at,
+                            updated_date: user.updated_at).first
       if person.nil?
         Rails.logger.info("=========Loading Person: #{user.name}===========")
-        person = Person.create!(first_name: first_name, middle_name: middle_name, last_name: last_name, sex: sex, created_date: user.created_at, updated_date: user.updated_at)
+        person = Person.create!(first_name:, middle_name:, last_name:, sex:,
+                                created_date: user.created_at, updated_date: user.updated_at)
       end
-      if UserManagement::UserService.username_exists? user.username
+      if UserManagement::UserService.username? user.username
         mlab_user = User.find_by_username(user.username)
         mlab_user.update(person_id: person.id)
       else
         Rails.logger.info("=========Loading User: #{user.username}===========")
-        mlab_user = User.new(id: user.id, person_id: person.id, username: user.username, password: user.password, is_active:0)
-        if mlab_user.save!
-          if !user.deleted_at.nil?
-            Rails.logger.info("=========Voiding  deleted User: #{user.username}===========")
-            mlab_user.update!(is_active: 1)
-          end
-        end 
+        mlab_user = User.new(id: user.id, person_id: person.id, username: user.username, password: user.password,
+                             is_active: 0)
+        if mlab_user.save! && !user.deleted_at.nil?
+          Rails.logger.info("=========Voiding  deleted User: #{user.username}===========")
+          mlab_user.update!(is_active: 1)
+        end
       end
     end
   end

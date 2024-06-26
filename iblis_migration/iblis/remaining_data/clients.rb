@@ -71,7 +71,7 @@ module Clients
             person = Person.create!(first_name:, middle_name:, last_name:, sex:,
                                     created_date: user.created_at, updated_date: user.updated_at)
           end
-          if UserManagement::UserService.username_exists? user.username
+          if UserManagement::UserService.username? user.username
             mlab_user = User.find_by_username(user.username)
             mlab_user.update(person_id: person.id)
           else

@@ -7,7 +7,7 @@ module Api
     # class UsersController
     class UsersController < ApplicationController
       before_action :set_user, only: %i[show update destroy activate change_username update_password]
-      before_action :run_validations, only: %i[create update]
+      before_action :validate_params, only: %i[create update]
       before_action :check_username, only: [:create]
 
       def index
@@ -82,22 +82,30 @@ module Api
       end
 
       def user_params
-        params.permit(user: %i[username password old_password],
-                      person: %i[first_name middle_name last_name sex date_of_birth], roles: [], departments: [],
-                      lab_locations: [])
+        params.permit(
+          user: %i[username password old_password],
+          person: %i[first_name middle_name last_name sex date_of_birth],
+          roles: [],
+          departments: [],
+          lab_locations: []
+        )
       end
 
-      def run_validations
-        unless params.key?('departments') && params[:departments].is_a?(Array)
-          raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << ' for departments'
-        end
-        return if params.key?('roles') && params[:roles].is_a?(Array)
+      def validate_params
+        validate_array_param(:roles)
+        validate_array_param(:departments)
+        validate_array_param(:lab_locations)
+      end
 
-        raise ActionController::ParameterMissing, MessageService::VALUE_NOT_ARRAY << ' for roles'
+      def validate_array_param(param)
+        param_value = params[param]
+        return if param_value.present? && param_value.is_a?(Array)
+
+        raise ActionController::ParameterMissing, "#{param.to_s.humanize} must be an array and cannot be empty"
       end
 
       def check_username
-        return unless user_service.username_exists?(params[:user][:username])
+        return unless user_service.username?(params[:user][:username])
 
         raise ActiveRecord::RecordNotUnique, 'Username already exists'
       end
