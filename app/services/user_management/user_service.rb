@@ -56,6 +56,7 @@ module UserManagement
       end
 
       # rubocop:disable Metrics/AbcSize
+      # rubocop:disable Metrics/MethodLength
       def update_user(user, params)
         ActiveRecord::Base.transaction do
           person = user.person
@@ -66,10 +67,12 @@ module UserManagement
           update_roles(user.id, params[:roles])
           update_departments(user.id, params[:departments])
           update_lab_locations(user.id, params[:lab_locations])
+          UserManagement::AuthService.invalidate_token_version(user)
           user
         end
       end
       # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/MethodLength
 
       def update_roles(user_id, role_ids)
         UserRoleMapping.where(user_id:).where.not(role_id: role_ids).each do |user_role_mapping|

@@ -1,28 +1,28 @@
+# frozen_string_literal: true
+
+# ApplicationController
 class ApplicationController < ActionController::API
   include ExceptionHandler
   before_action :authorize_request
 
   def authorize_request
     auth_token = request.headers['Authorization']
-    unless auth_token
-      errors = ['Authorization token required']
-      raise UnAuthorized, errors
-    end 
-    authorized_user = UserManagement::AuthService.authenticate auth_token
-    unless authorized_user
-      errors = ['Invalid or expired authentication token']
-      raise UnAuthorized, errors
-    end
-    raise UnAuthorized unless authorized_user.active?
-    User.current = authorized_user
+    raise UnAuthorized, ['Authorization token required'] unless auth_token
+
+    auth_user = UserManagement::AuthService.authenticate(auth_token)
+    raise UnAuthorized, ['Invalid or expired authentication token'] unless auth_user
+
+    User.current = auth_user
     true
   end
 
-  def paginate data
-    page, limit, paginate = params[:page] || 1, params[:per_page] || 10, params[:paginate] || false
+  def paginate(data)
+    page = params[:page] || 1
+    limit = params[:per_page] || 10
+    paginate = params[:paginate] || false
     return data if paginate
-    results = PaginationService.paginate(data, page: page, limit: limit)
-    {data: results, meta: PaginationService.pagination_metadata(results)}
-  end
 
+    results = PaginationService.paginate(data, page:, limit:)
+    { data: results, meta: PaginationService.pagination_metadata(results) }
+  end
 end

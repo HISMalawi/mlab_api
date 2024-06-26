@@ -1,9 +1,9 @@
-# fronzen_string_literal: true
+# frozen_string_literal: true
 
-module UserManagement 
+module UserManagement
+  # RoleService module
   module RoleService
     class << self
-
       def create_role(role_params)
         ActiveRecord::Base.transaction do
           role = Role.create!(name: role_params[:name])
@@ -27,17 +27,23 @@ module UserManagement
         end
       end
 
+      # rubocop:disable Metrics/MethodLength
+      # rubocop:disable Metrics/AbcSize
       def update_permission(role_privileges)
         role_privileges.each do |role_privilege|
           privileges = role_privilege[:privileges].each.with_object(:id).map(&:[])
-          RolePrivilegeMapping.where(role_id: role_privilege[:id]).where.not(privilege_id: privileges).each do |role_privilege_mapping|
+          RolePrivilegeMapping.where(role_id: role_privilege[:id])
+                              .where.not(privilege_id: privileges).each do |role_privilege_mapping|
             role_privilege_mapping.void('Removed')
           end
           privileges.each do |privilege|
             RolePrivilegeMapping.find_or_create_by!(role_id: role_privilege[:id], privilege_id: privilege)
           end
         end
+        User.where.not(id: User.current.id).update_all(token_version: SecureRandom.uuid)
       end
+      # rubocop:enable Metrics/AbcSize
+      # rubocop:enable Metrics/MethodLength
 
       def delete_role(role, reason)
         role.void(reason)
@@ -47,22 +53,19 @@ module UserManagement
       end
 
       def serialize_role(role)
-        role_privileges = RolePrivilegeMapping.joins(:privilege, :role).where(role_id: role.id).select('privileges.id, privileges.name, privileges.display_name')
+        role_privileges = RolePrivilegeMapping.joins(:privilege)
+                                              .where(role_id: role.id)
+                                              .select('privileges.id, privileges.name, privileges.display_name')
         {
           id: role.id,
           name: role.name,
           privileges: role_privileges
         }
       end
-    
-      def serialize_roles(roles)
-        r = []
-        roles.each do |role|
-          r << serialize_role(role)
-        end
-        r
-      end
 
+      def serialize_roles(roles)
+        roles.map { |role| serialize_role(role) }
+      end
     end
   end
 end
