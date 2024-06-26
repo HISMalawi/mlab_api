@@ -63,6 +63,7 @@ module Api
 
       def destroy
         @user.deactivate
+        UserManagement::AuthService.invalidate_token_version(@user)
         render json: { message: MessageService::RECORD_DELETED }
       end
 

@@ -40,7 +40,7 @@ module UserManagement
             RolePrivilegeMapping.find_or_create_by!(role_id: role_privilege[:id], privilege_id: privilege)
           end
         end
-        User.where.not(id: User.current.id).update_all(token_version: SecureRandom.uuid)
+        User.where.not(id: User.current.id).update_all(token_version: SecureRandom.uuid, last_logout_at: Time.now)
       end
       # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/MethodLength

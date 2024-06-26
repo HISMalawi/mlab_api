@@ -92,7 +92,7 @@ module UserManagement
       end
 
       def invalidate_token_version(user)
-        user&.update(token_version: SecureRandom.uuid)
+        user&.update(token_version: SecureRandom.uuid, last_log_out_at: Time.now)
       end
 
       def token_version_equal?(user_token_version, token_version)
@@ -104,6 +104,7 @@ module UserManagement
       end
 
       def valid_token?(token, user_token_version)
+        puts "token: #{token}"
         !token_expired?(token[:exp]) && token_version_equal?(user_token_version, token[:token_version])
       end
 
