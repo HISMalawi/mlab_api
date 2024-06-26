@@ -92,7 +92,7 @@ module UserManagement
       end
 
       def invalidate_token_version(user)
-        user.update(token_version: SecureRandom.uuid)
+        user&.update(token_version: SecureRandom.uuid)
       end
 
       def token_version_equal?(user_token_version, token_version)
