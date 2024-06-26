@@ -11,30 +11,27 @@ module Api
       before_action :check_username, only: [:create]
 
       def index
-        @users = if params[:search].blank?
-                   User.all.page(params[:page]).per(params[:per_page])
-                 else
-                   User.search(params[:search]).page(params[:page]).per(params[:per_page])
-                 end
+        users = user_service.users(params[:search])
+        @users = users.page(params[:page]).per(params[:per_page])
         render json: {
-          data: UserManagement::UserService.serialize_users(@users),
+          data: user_service.serialize_users(@users),
           meta: PaginationService.pagination_metadata(@users)
         }
       end
 
       def show
-        render json: UserManagement::UserService.find_user(@user.id)
+        render json: user_service.find_user(@user.id)
       end
 
       def create
-        @user = UserManagement::UserService.create_user(user_params)
-        render json: UserManagement::UserService.find_user(@user.id), status: :created
+        @user = user_service.create_user(user_params)
+        render json: user_service.find_user(@user.id), status: :created
       end
 
       def update
-        UserManagement::UserService.update_user(@user, user_params)
+        user_service.update_user(@user, user_params)
         unless @user.username == user_params[:user][:username]
-          UserManagement::UserService.change_username(@user, user_params[:user][:username])
+          user_service.change_username(@user, user_params[:user][:username])
         end
         unless user_params[:user][:password].blank?
           roles = UserRoleMapping.joins(:role).where("user_role_mappings.user_id=#{User.current.id}").pluck('roles.name')
@@ -43,25 +40,25 @@ module Api
             raise UnAuthorized, 'You are not authorized to change password'
           end
 
-          UserManagement::UserService.admin_update_password(@user, user_params[:user][:password])
+          user_service.admin_update_password(@user, user_params[:user][:password])
         end
-        render json: UserManagement::UserService.find_user(@user.id)
+        render json: user_service.find_user(@user.id)
       end
 
       def update_password
         raise UnAuthorized, 'User not equal to logged in user' unless @user.id == User.current.id
         raise ActionController::ParameterMissing, 'for password' if params[:user][:password].blank?
 
-        UserManagement::UserService.update_password(@user, user_params[:user][:old_password],
-                                                    user_params[:user][:password])
-        render json: UserManagement::UserService.find_user(@user.id)
+        user_service.update_password(@user, user_params[:user][:old_password],
+                                     user_params[:user][:password])
+        render json: user_service.find_user(@user.id)
       end
 
       def change_username
         raise UnAuthorized, 'User not equal to logged in user' unless @user.id == User.current.id
 
-        UserManagement::UserService.change_username(@user, user_params[:user][:username])
-        render json: UserManagement::UserService.find_user(@user.id)
+        user_service.change_username(@user, user_params[:user][:username])
+        render json: user_service.find_user(@user.id)
       end
 
       def destroy
@@ -80,6 +77,10 @@ module Api
         @user = User.find(params[:id])
       end
 
+      def user_service
+        UserManagement::UserService
+      end
+
       def user_params
         params.permit(user: %i[username password old_password],
                       person: %i[first_name middle_name last_name sex date_of_birth], roles: [], departments: [],
@@ -96,7 +97,7 @@ module Api
       end
 
       def check_username
-        return unless UserManagement::UserService.username_exists?(params[:user][:username])
+        return unless user_service.username_exists?(params[:user][:username])
 
         raise ActiveRecord::RecordNotUnique, 'Username already exists'
       end

@@ -124,6 +124,7 @@ module UserManagement
         true
       end
 
+      # rubocop:disable Metrics/MethodLength
       def serialize(user, roles, departments)
         {
           id: user.id,
@@ -132,7 +133,7 @@ module UserManagement
           middle_name: user.middle_name,
           last_name: user.last_name,
           sex: user.sex,
-          is_active: user.is_active.zero? ? true : false,
+          is_active: user.is_active.zero?,
           date_of_birth: user.date_of_birth,
           birth_date_estimated: user.birth_date_estimated,
           voided: user.voided,
@@ -143,15 +144,22 @@ module UserManagement
           lab_locations: lab_locations(user.id)
         }
       end
+      # rubocop:enable Metrics/MethodLength
 
       def user_privileges(user)
         user_roles = user.user_role_mappings.pluck(:role_id)
         privileges = Privilege.where(id: RolePrivilegeMapping.where(role_id: user_roles).pluck(:privilege_id))
-        privileges.select('id, name')
+        privileges.select('id, name, display_name')
       end
 
       def lab_locations(user_id)
         UserLabLocationMapping.joins(:lab_location).select('lab_locations.id, lab_locations.name').where(user_id:)
+      end
+
+      def users(query)
+        @users = User.all
+        @users = User.search(params[:search]) if query.present?
+        @users
       end
 
       def serialize_users(users)

@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# UserRoleMapping model
 class UserRoleMapping < RetirableRecord
   belongs_to :user
   belongs_to :role
@@ -9,5 +12,4 @@ class UserRoleMapping < RetirableRecord
   def role_name
     role.name
   end
-
 end

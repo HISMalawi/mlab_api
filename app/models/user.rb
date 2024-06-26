@@ -2,6 +2,7 @@
 
 require 'bcrypt'
 
+# User model
 class User < VoidableRecord
   include BCrypt
   belongs_to :person
@@ -25,8 +26,9 @@ class User < VoidableRecord
     save!
   end
 
-  def self.search(search_term)
-    joins(:person).where("users.username LIKE '%#{search_term}%' OR CONCAT(people.first_name, ' ', people.last_name) LIKE '%#{search_term}%'")
+  def self.search(query)
+    joins(:person)
+      .where("users.username LIKE '%#{query}%' OR CONCAT(people.first_name, ' ', people.last_name) LIKE '%#{query}%'")
   end
 
   def full_name
@@ -42,11 +44,11 @@ class User < VoidableRecord
   end
 
   def password_hash
-    @password ||= Password.new(password)
+    @password_hash ||= Password.new(password)
   end
 
   def password_hash=(new_password)
-    @password = Password.create(new_password)
-    self.password = @password
+    @password_hash = Password.create(new_password)
+    self.password = @password_hash
   end
 end
