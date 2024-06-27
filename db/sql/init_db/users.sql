@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.33, for Linux (x86_64)
 --
--- Host: 127.0.0.1    Database: mlab_mo
+-- Host: 127.0.0.1    Database: mlab_demo1
 -- ------------------------------------------------------
 -- Server version	8.0.33
 
@@ -37,14 +37,21 @@ CREATE TABLE `users` (
   `updated_date` datetime(6) DEFAULT NULL,
   `is_active` int DEFAULT NULL,
   `updated_by` bigint DEFAULT NULL,
+  `sign_in_count` int DEFAULT '0',
+  `last_sign_in_at` datetime(6) DEFAULT NULL,
+  `current_sign_in_at` datetime(6) DEFAULT NULL,
+  `last_log_out_at` datetime(6) DEFAULT NULL,
+  `last_jwt_refresh_at` datetime(6) DEFAULT NULL,
+  `token_version` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `index_users_on_token_version` (`token_version`),
   KEY `index_users_on_person_id` (`person_id`),
   KEY `fk_rails_10e8c3ab59` (`voided_by`),
   KEY `fk_rails_fd256d8564` (`creator`),
   CONSTRAINT `fk_rails_10e8c3ab59` FOREIGN KEY (`voided_by`) REFERENCES `users` (`id`),
   CONSTRAINT `fk_rails_fa67535741` FOREIGN KEY (`person_id`) REFERENCES `people` (`id`),
   CONSTRAINT `fk_rails_fd256d8564` FOREIGN KEY (`creator`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=177 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -53,7 +60,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,1,'administrator','$2y$10$sgh4K0Dup4P6vr0orFDuq.tvrIOokWG8BMrnii7atq6MgXarnoMqy',NULL,0,NULL,NULL,NULL,1,'2024-05-02 13:55:43.683846','2024-05-03 06:12:56.337575',0,NULL);
+INSERT INTO `users` VALUES (1,1,'administrator','$2y$10$sgh4K0Dup4P6vr0orFDuq.tvrIOokWG8BMrnii7atq6MgXarnoMqy',NULL,0,NULL,NULL,NULL,1,'2024-05-02 13:55:43.683846','2024-05-03 06:12:56.337575',0,NULL,0,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -66,4 +73,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-05-03  8:25:02
+-- Dump completed on 2024-06-27 10:17:38
