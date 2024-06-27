@@ -9,6 +9,7 @@ Before installing `mlab_api`, ensure that the following requirements are met:
 - MySQL 8
 - Rails 7
 - Redis version 6+
+- Node 18+
 
 ## Installing Redis
 
