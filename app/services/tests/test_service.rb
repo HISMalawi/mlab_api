@@ -6,7 +6,8 @@ require 'bantu_soundex'
 module Tests
   # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page, page, lab_location)
+    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page, page,
+                   lab_location)
       per_page ||= 25
       page ||= 1
       lab_location ||= 1
@@ -326,8 +327,27 @@ module Tests
       if test_indicator_type&.downcase == 'numeric'
         ranges = ranges.where("#{age} BETWEEN min_age AND max_age AND (sex = '#{sex}' OR sex = 'both')")
       end
-      ranges.select('id, test_indicator_id, sex, min_age, max_age, lower_range, upper_range, interpretation, value')
+      unique_ranges = ranges.uniq { |range| [range.test_indicator_id, range.value] }
+      unique_ranges.map do |range|
+        map_indicator_range(range)
+      end
     end
+
+    # rubocop:disable Metrics/MethodLength
+    def map_indicator_range(range)
+      {
+        id: range.id,
+        test_indicator_id: range.test_indicator_id,
+        sex: range.sex,
+        min_age: range.min_age,
+        max_age: range.max_age,
+        lower_range: range.lower_range,
+        upper_range: range.upper_range,
+        interpretation: range.interpretation,
+        value: range.value
+      }
+    end
+    # rubocop:enable Metrics/MethodLength
 
     def full_sex(sex)
       sex.downcase == 'f' ? 'Female' : 'Male'
@@ -345,6 +365,7 @@ module Tests
       ExpectedTat.where(test_type_id:).select('id, test_type_id, value, unit').first
     end
 
+    # rubocop:disable Metrics/MethodLength
     def test_status_trail(test_id)
       records = TestStatus.find_by_sql("
         SELECT
@@ -374,7 +395,9 @@ module Tests
       ")
       status_trail_serializer(records)
     end
+    # rubocop:enable Metrics/MethodLength
 
+    # rubocop:disable Metrics/MethodLength
     def order_status_trail(order_id)
       records = OrderStatus.find_by_sql("
         SELECT
@@ -404,6 +427,7 @@ module Tests
       ")
       status_trail_serializer(records)
     end
+    # rubocop:enable Metrics/MethodLength
 
     def status_change_initiator(record)
       {
@@ -438,6 +462,7 @@ module Tests
       }
     end
 
+    # rubocop:disable Metrics/MethodLength
     def status_trail_serializer(records)
       json_response = []
       records.each do |record|
@@ -453,6 +478,7 @@ module Tests
       end
       json_response
     end
+    # rubocop:enable Metrics/MethodLength
 
     def suscept_test_result(test_id)
       Tests::CultureSensivityService.get_drug_susceptibility_test_results(test_id)
