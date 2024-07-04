@@ -323,3 +323,15 @@ name_mappings.each do |name_mapping|
     NameMapping.find_or_create_by(actual_name: name_mapping[:actual_name], manual_name:)
   end
 end
+
+male_tests = ['Semen Analysis']
+male_tests.each do |name|
+  puts "Updating sex for #{name}"
+  TestType.where(name:).update_all(sex: 'Male')
+end
+
+female_tests = ['Pregnancy Test', 'Chronic Gonatropin', 'HVS analysis', 'Prolactin', 'Wet prep']
+female_tests.each do |name|
+  puts "Updating sex for #{name}"
+  TestType.where(name:).update_all(sex: 'Female')
+end
