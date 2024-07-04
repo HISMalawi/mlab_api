@@ -237,7 +237,7 @@ name_mappings = [
   },
   {
     actual_name: 'TB Tests',
-    manual_names: ['TB Tests', 'TB Microscopy', 'TB', 'TB_Microscopy', 'TB Gene_Xpert']
+    manual_names: ['TB Tests', 'TB Microscopy', 'TB', 'TB_Microscopy', 'TB Gene_Xpert', 'TB Microscopic Exam']
   },
   {
     actual_name: 'TB LAM',
