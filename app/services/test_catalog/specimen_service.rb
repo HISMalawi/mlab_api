@@ -37,7 +37,7 @@ module TestCatalog
       def filter_test_types_by_sex(sex, test_types)
         return test_types if sex.blank?
 
-        test_types.where("test_types.sex = '#{sex}'")
+        test_types.where("test_types.sex = '#{sex}' OR test_types.sex = 'Both'")
       end
 
       def filter_test_types_by_specimen(specimen_id)
