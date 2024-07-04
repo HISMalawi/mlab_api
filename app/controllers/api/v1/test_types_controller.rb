@@ -54,7 +54,7 @@ module Api
       end
 
       def test_type_params
-        params.require(:test_type).permit(:name, :short_name, :department_id, :print_device)
+        params.require(:test_type).permit(:name, :short_name, :department_id, :print_device, :sex)
       end
 
       def check_specimen_indicator_params

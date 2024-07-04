@@ -2,8 +2,7 @@ module TestCatalog
   module TestTypes
     module UpdateService
       class << self
-
-       def update_test_type(test_type, test_type_params, params)
+        def update_test_type(test_type, test_type_params, params)
           ActiveRecord::Base.transaction do
             expected_tat = params.require(:expected_turn_around_time)
             ExpectedTat.find_or_create_by!(test_type_id: test_type.id).update!(
@@ -27,17 +26,17 @@ module TestCatalog
         end
 
         def update_test_type_organism_mapping(test_type_id, organism_ids)
-          TestTypeOrganismMapping.where(test_type_id: test_type_id).where.not(organism_id: organism_ids).each do |test_type_organism_mapping|
+          TestTypeOrganismMapping.where(test_type_id:).where.not(organism_id: organism_ids).each do |test_type_organism_mapping|
             test_type_organism_mapping.void('Removed from test type')
           end
           organism_ids.each do |organism_id|
-            TestTypeOrganismMapping.find_or_create_by(organism_id: organism_id, test_type_id: test_type_id)
+            TestTypeOrganismMapping.find_or_create_by(organism_id:, test_type_id:)
           end
         end
 
         def update_test_indicator_range(test_indicator_ranges, test_indicator_id, test_indicator_type)
           test_indicator_range_ids = test_indicator_ranges.each.with_object(:id).map(&:[])
-          if test_indicator_type == 'rich_text' || test_indicator_type == 'free_text'
+          if %w[rich_text free_text].include?(test_indicator_type)
             test_indicator_range_ids = []
             test_indicator_ranges = []
           end
@@ -64,12 +63,15 @@ module TestCatalog
           # Update or create test indicators and its associated ranges
           test_indicator_params.each do |test_indicator_param|
             test_indicator_param[:test_indicator_type] = test_indicator_param[:test_indicator_type]['id']
-            test_indicator_attributes = JSON.parse(test_indicator_param.to_json).slice('id', 'name','unit','description','test_indicator_type')
+            test_indicator_attributes = JSON.parse(test_indicator_param.to_json).slice('id', 'name', 'unit',
+                                                                                       'description', 'test_indicator_type')
             test_indicator = TestIndicator.find_or_initialize_by(id: test_indicator_attributes['id'])
             test_indicator.update!(test_indicator_attributes)
             test_indicator.reload
-            TestTypeTestIndicator.find_or_create_by!(test_types_id: test_type_id, test_indicators_id: test_indicator.id)
-            update_test_indicator_range(test_indicator_param[:indicator_ranges], test_indicator.id, test_indicator.test_indicator_type)
+            TestTypeTestIndicator.find_or_create_by!(test_types_id: test_type_id,
+                                                     test_indicators_id: test_indicator.id)
+            update_test_indicator_range(test_indicator_param[:indicator_ranges], test_indicator.id,
+                                        test_indicator.test_indicator_type)
           end
         end
       end

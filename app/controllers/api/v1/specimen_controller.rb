@@ -16,7 +16,7 @@ module Api
       end
 
       def specimen_test_type
-        test_types = service.specimen_test_type(params[:specimen_id], params[:department_id])
+        test_types = service.specimen_test_type(params[:specimen_id], params[:department_id], params[:sex])
         render json: test_types
       end
 

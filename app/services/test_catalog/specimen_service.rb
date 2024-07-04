@@ -14,9 +14,10 @@ module TestCatalog
         Specimen.where(id: specimen_ids).order(:name)
       end
 
-      def specimen_test_type(specimen_id, department_id)
+      def specimen_test_type(specimen_id, department_id, sex)
         test_types = filter_test_types_by_specimen(specimen_id)
         test_types = filter_test_types_by_department(department_id, test_types) unless department_id.blank?
+        test_types = filter_test_types_by_sex(sex, test_types)
 
         test_panel = TestTypePanelMapping.joins(:test_panel, :test_type)
                                          .where(
@@ -31,6 +32,12 @@ module TestCatalog
         return test_types if department == 'Lab Reception'
 
         test_types.where("test_types.department_id = #{department_id}")
+      end
+
+      def filter_test_types_by_sex(sex, test_types)
+        return test_types if sex.blank?
+
+        test_types.where("test_types.sex = #{sex}")
       end
 
       def filter_test_types_by_specimen(specimen_id)
