@@ -22,7 +22,7 @@ module Reports
         WHERE
             DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
                 AND tt.id IN #{report_utils.test_type_ids('TB tests')}
-                AND tr.value NOT IN ('' , 0, 'N/A')
+                AND tr.value NOT IN ('' , '0', 'N/A')
         GROUP BY MONTHNAME(t.created_date) , result , test_indicator_name
         SQL
         data = Report.find_by_sql(query)

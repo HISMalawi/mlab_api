@@ -144,7 +144,8 @@ module HomeDashboardService
       result_hash = { 'verified' => 0, 'started' => 0, 'pending' => 0, 'rejected' => 0, 'voided' => 0,
                       'completed' => 0 }
       statuses_count.each do |entry|
-        result_hash[entry['name']] = entry['count']
+        status_name = entry['name'].downcase == 'test-rejected' ? 'rejected' : entry['name']
+        result_hash[status_name] = entry['count']
       end
       result_hash
     end
