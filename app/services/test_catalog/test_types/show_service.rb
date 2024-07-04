@@ -14,7 +14,7 @@ module TestCatalog
             created_date: test_type.created_date,
             retired: test_type.retired,
             retired_reason: test_type.retired_reason,
-            department_id: Department.select(:id, :name).find(test_type.department_id),
+            department: Department.select(:id, :name).find(test_type.department_id),
             specimens:,
             organisms: serialize_test_type_organism(test_type.id),
             indicators: serialize_test_indicators(test_type.id)
