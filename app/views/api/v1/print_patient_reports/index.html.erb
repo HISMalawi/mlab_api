@@ -491,8 +491,8 @@ const app = createApp({
       return drugs.filter((drug) => drug.zone !== null);
     },
     showResult(result, susceptibilityResults) {
-      return susceptibilityResults.length > 0
-        ? `Growth of ${susceptibilityResults
+      return susceptibilityResults.length > 0 && result.toLowerCase() === 'growth'
+        ? `Growth of ${[...new Set(susceptibilityResults)]
             .map((result) => result.name)
             .join(", ")}`
         : result;
