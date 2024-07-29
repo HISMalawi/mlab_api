@@ -11,9 +11,10 @@ module Api
         render json: data
       end
 
-      def lab_statistics_details
+      def drilldown
         associated_ids = params[:associated_ids]
-        render json: Reports::Aggregate::LabStatistic.query_count_details(associated_ids)
+        drilldown_service = Reports::DrilldownService.new
+        render json: drilldown_service.drilldown(associated_ids)
       end
 
       def malaria_report
