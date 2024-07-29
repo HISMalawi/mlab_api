@@ -28,41 +28,6 @@ module Reports
         end
 
         # rubocop:disable Metrics/MethodLength
-        def query_count_details(drilldown_identifier)
-          Report.find_by_sql(
-            "SELECT
-              distinct t.id,
-              p.first_name,
-              p.last_name,
-              p.sex,
-              p.date_of_birth,
-              o.accession_number,
-              tt.name AS test_type,
-              d.name AS department,
-              tt.updated_date
-            FROM
-              tests t
-              RIGHT JOIN orders o ON t.order_id = o.id AND o.voided = 0 AND t.voided = 0
-              INNER JOIN encounters e ON e.id = o.encounter_id AND e.voided = 0
-              LEFT JOIN encounter_types et ON e.encounter_type_id = et.id AND et.voided = 0
-              LEFT JOIN facility_sections fs ON fs.id = e.facility_section_id
-              INNER JOIN clients c ON c.id = e.client_id AND c.voided = 0
-              INNER JOIN people p ON p.id = c.person_id AND p.voided = 0
-              LEFT JOIN test_types tt ON t.test_type_id = tt.id
-              INNER JOIN departments d ON d.id = tt.department_id
-            WHERE t.id IN (#{associated_ids(drilldown_identifier)}) AND t.status_id IN (4, 5)
-            "
-          )
-        end
-        # rubocop:enable Metrics/MethodLength
-
-        def associated_ids(drilldown_identifier)
-          ids = DrilldownIdentifier.find(drilldown_identifier).data['associated_ids']
-          DrilldownIdentifier.delete(drilldown_identifier)
-          ids
-        end
-
-        # rubocop:disable Metrics/MethodLength
         def query_data(from, to, department)
           ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
           Report.find_by_sql(

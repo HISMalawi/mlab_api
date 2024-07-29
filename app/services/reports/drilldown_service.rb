@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Reports
+  # Drilldown reports module
   class DrilldownService
     def initialize(drilldown_type: nil)
       @drilldown_type = drilldown_type
@@ -8,6 +9,7 @@ module Reports
 
     def drilldown(drilldown_identifier)
       drilldowns = default_drilldown(drilldown_identifier) if @drilldown_type.nil?
+      DrilldownIdentifier.delete(drilldown_identifier)
       drilldowns
     end
 
@@ -48,7 +50,6 @@ module Reports
 
     def associated_ids(drilldown_identifier)
       ids = DrilldownIdentifier.find(drilldown_identifier).data['associated_ids']
-      DrilldownIdentifier.delete(drilldown_identifier)
       ids.empty? ? "('unknown')" : "(#{ids})"
     end
 
