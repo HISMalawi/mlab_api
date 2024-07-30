@@ -17,7 +17,8 @@ module Reports
                 tt.name test_type,
                 fs.name ward,
                 MONTHNAME(t.created_date) month,
-                COUNT(DISTINCT t.id) count
+                COUNT(DISTINCT t.id) count,
+                GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
                 tests t
                     JOIN
@@ -38,15 +39,21 @@ module Reports
       end
 
       def generalize_depart_report
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         data = Report.find_by_sql(@sql)
         blood_bank_products = @department == 'Blood Bank' ? blood_bank_product_report : []
-        critical_values = %w[Haematology Biochemistry Paediatric].include?(@department) ? department_critical_values : []
+        critical_values = if %w[Haematology Biochemistry
+                                Paediatric].include?(@department)
+                            department_critical_values
+                          else
+                            []
+                          end
         {
           from:,
           to:,
           department:,
           wards: wards(data),
-          data: serialize_generalize_depart_report(data),
+          data: serialize_generalize_depart_report(data, @department),
           critical_values:,
           blood_bank_products:
         }
@@ -79,7 +86,8 @@ module Reports
                   WHEN p.sex = 'M' THEN 'Male'
                   ELSE 'Female'
               END AS gender,
-              COUNT(DISTINCT t.id) AS count
+              COUNT(DISTINCT t.id) AS count,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   JOIN
@@ -111,8 +119,9 @@ module Reports
                   AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
           GROUP BY blood_product , ward , age_range , gender
         SQL
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         data = Report.find_by_sql(sql_query)
-        serialize_blood_products(data)
+        serialize_blood_products(data, @department)
       end
 
       def department_critical_values
@@ -125,7 +134,8 @@ module Reports
                       WHEN ExtractNumberFromString(tr.value) > tir.upper_range THEN 'High'
                       ELSE 'Normal'
                     END AS critical_value_level,
-              COUNT(DISTINCT t.id) AS count
+              COUNT(DISTINCT t.id) AS count,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   JOIN
@@ -156,11 +166,12 @@ module Reports
                   AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
           GROUP BY test_indicator_name,ward, critical_value_level;
         SQL
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         data = Report.find_by_sql(sql_query)
-        serialize_critical_values(data)
+        serialize_critical_values(data, @department)
       end
 
-      def serialize_generalize_depart_report(data)
+      def serialize_generalize_depart_report(data, department)
         data.group_by { |entry| entry['month'].downcase }.map do |month, month_entries|
           {
             month.to_sym => month_entries.group_by do |entry|
@@ -170,7 +181,16 @@ module Reports
                               {
                                 "test_type": test_type,
                                 "ward": test_type_entries.map do |entry|
-                                          { entry['ward'] => entry['count'] }
+                                          associated_ids = UtilsService.insert_drilldown(
+                                            entry,
+                                            department
+                                          )
+                                          {
+                                            entry['ward'] => {
+                                              total: entry['count'],
+                                              associated_ids:
+                                            }
+                                          }
                                         end.reduce({}, :merge)
                               }
                             end
@@ -178,45 +198,61 @@ module Reports
         end
       end
 
-      def serialize_critical_values(data)
-        data.group_by { |entry| entry['test_indicator_name'].downcase }.map do |test_indicator_name, test_indicator_name_entries|
+      def serialize_critical_values(data, department)
+        data.group_by do |entry|
+          entry['test_indicator_name'].downcase
+        end.map do |test_indicator_name, test_indicator_name_entries|
           {
             test_indicator_name.to_sym => test_indicator_name_entries.group_by do |entry|
-                              entry['critical_value_level'].downcase
-                            end
+                                            entry['critical_value_level'].downcase
+                                          end
                                          .map do |critical_value, critical_value_entries|
-                              {
-                                "critical_value_level": critical_value,
-                                "ward": critical_value_entries.map do |entry|
-                                          { entry['ward'] => entry['count'] }
-                                        end.reduce({}, :merge)
-                              }
-                            end
+                                            {
+                                              "critical_value_level": critical_value,
+                                              "ward": critical_value_entries.map do |entry|
+                                                        associated_ids = UtilsService.insert_drilldown(
+                                                          entry,
+                                                          department
+                                                        )
+                                                        { entry['ward'] => {
+                                                          total: entry['count'],
+                                                          associated_ids:
+                                                        } }
+                                                      end.reduce({}, :merge)
+                                            }
+                                          end
           }
         end
       end
 
-      def serialize_blood_products(data)
+      def serialize_blood_products(data, department)
         data.group_by { |entry| entry['blood_product'].downcase }.map do |blood_product, blood_product_entries|
           {
             blood_product.to_sym => blood_product_entries.group_by do |entry|
-                              entry['gender'].downcase
-                            end
+                                      entry['gender'].downcase
+                                    end
                                          .map do |gender, gender_entries|
-                              {
-                                "gender": gender,
-                                "ward": gender_entries.group_by do |entry|
-                                  entry['ward'].downcase
-                                end
-                                .map do |ward, entries|
-                                  {
-                                    ward.to_sym => entries.map do |entry|
-                                      {entry['age_range'] => entry['count']}
-                                    end.reduce({}, :merge)
-                                  }
-                                end
-                              }
-                            end
+                                      {
+                                        "gender": gender,
+                                        "ward": gender_entries.group_by do |entry|
+                                          entry['ward'].downcase
+                                        end
+                                        .map do |ward, entries|
+                                          {
+                                            ward.to_sym => entries.map do |entry|
+                                              associated_ids = UtilsService.insert_drilldown(
+                                                entry,
+                                                department
+                                              )
+                                              { entry['age_range'] => {
+                                                total: entry['count'],
+                                                associated_ids:
+                                              } }
+                                            end.reduce({}, :merge)
+                                          }
+                                        end
+                                      }
+                                    end
           }
         end
       end
