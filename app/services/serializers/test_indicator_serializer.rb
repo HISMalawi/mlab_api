@@ -3,23 +3,29 @@
 module Serializers
   # TestIndicatorSerializer for building the JSON response for the Test Indicator
   class TestIndicatorSerializer
-    def serialize(test_id, test_type_id, sex, dob)
-      test_indicators = test_indicators(test_id, test_type_id)
-      test_indicators_serializer(test_indicators, test_type_id, sex, dob)
+    def initialize(test_id, test_type_id, sex, dob)
+      @test_id = test_id
+      @test_type_id = test_type_id
+      @sex = sex
+      @dob = dob
+    end
+
+    def serialize
+      test_indicators_serializer(test_indicators)
     end
 
     private
 
     # rubocop:disable Metrics/MethodLength
-    def test_indicators_serializer(test_indicators, test_type_id, sex, dob)
+    def test_indicators_serializer(test_indicators)
       response = []
-      test_type = TestType.find(test_type_id)
+      test_type = TestType.find(@test_type_id)
       fbc_format = Tests::FormatService.fbc_format
       test_indicators.each do |test_indicator|
         if test_type.name.include?('FBC')
-          fbc_format[test_indicator['name'].upcase.to_sym] = test_indicator_seriliazer(test_indicator, sex, dob)
+          fbc_format[test_indicator['name'].upcase.to_sym] = test_indicator_seriliazer(test_indicator)
         else
-          response << test_indicator_seriliazer(test_indicator, sex, dob)
+          response << test_indicator_seriliazer(test_indicator)
         end
       end
       response = Tests::FormatService.to_array(fbc_format) if test_type.name.include?('FBC')
@@ -27,32 +33,31 @@ module Serializers
     end
     # rubocop:enable Metrics/MethodLength
 
-    def test_indicator_seriliazer(test_indicator, sex, dob)
+    def test_indicator_seriliazer(test_indicator)
       {
         id: test_indicator['id'],
         name: test_indicator['name'],
         test_indicator_type: test_indicator['test_indicator_type'],
         unit: test_indicator['unit'],
         description: test_indicator['description'],
-        result: result_seriliazer(test_indicator['result_id'], test_indicator['value'], test_indicator['result_date'],
-                                  test_indicator['machine_name']),
-        indicator_ranges: test_indicator_ranges(test_indicator, sex, dob)
+        result: Serializers::TestResultSerializer.serialize(@test_id, test_indicator_id: test_indicator['id'])&.first,
+        indicator_ranges: test_indicator_ranges(test_indicator)
       }
     end
 
-    def test_indicators(test_id, test_type_id)
-      TestIndicator
-        .find_by_sql("SELECT ti.id, ti.name, ti.test_indicator_type, ti.unit, ti.description,
-                      tr.id AS result_id, tr.value, tr.result_date, tr.machine_name
-                      FROM test_indicators ti INNER JOIN test_type_indicator_mappings ttim
-                      ON ttim.test_indicators_id = ti.id LEFT JOIN test_results tr ON ti.id = tr.test_indicator_id
-                      AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
-                      WHERE ttim.test_types_id = #{test_type_id}")
+    def test_indicators
+      TestIndicator.find_by_sql(
+        "SELECT
+          ti.id, ti.name, ti.test_indicator_type, ti.unit, ti.description
+        FROM test_indicators ti INNER JOIN test_type_indicator_mappings ttim
+            ON ttim.test_indicators_id = ti.id AND ti.retired = 0
+            AND ttim.test_types_id = #{@test_type_id} AND ttim.voided = 0"
+      )
     end
 
-    def test_indicator_ranges(test_indicator, sex, dob)
-      sex = UtilsService.full_sex(sex)
-      age = UtilsService.age(dob)
+    def test_indicator_ranges(test_indicator)
+      sex = UtilsService.full_sex(@sex)
+      age = UtilsService.age(@dob)
       ranges = TestIndicatorRange.where(test_indicator_id: test_indicator['id'])
       if test_indicator['test_indicator_type'].downcase == 'numeric'
         ranges = ranges.where(age_condition(age)).where(sex_condition(sex))

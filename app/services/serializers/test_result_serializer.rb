@@ -4,23 +4,15 @@
 module Serializers
   # TestResultSerializer module
   module TestResultSerializer
-    def self.serialize(test_id)
-      TestResult.find_by_sql(query(test_id))
+    def self.serialize(test_id, test_indicator_id: nil)
+      query(test_id, test_indicator_id)
     end
 
-    def self.query(test_id)
-      <<-SQL
-        SELECT
-          tr.id,
-          ti.name,
-          tr.value,
-          tr.machine_name,
-          tr.result_date
-        FROM
-          test_results tr INNER JOIN test_indicators ti
-        ON ti.id = tr.test_indicator_id AND tr.test_id = #{test_id}
-          AND tr.voided = 0 AND ti.retired = 0
-      SQL
+    def self.query(test_id, test_indicator_id)
+      test_results = TestResult.joins(:test_indicator).where(test_id:)
+                               .select('test_results.id, name, value, machine_name, result_date')
+      test_results = test_results.where(test_indicator_id:) if test_indicator_id.present?
+      test_results
     end
   end
 end
