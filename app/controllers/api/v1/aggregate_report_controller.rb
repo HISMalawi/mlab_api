@@ -13,7 +13,7 @@ module Api
 
       def drilldown
         associated_ids = params[:associated_ids]
-        drilldown_service = Reports::DrilldownService.new
+        drilldown_service = Reports::DrilldownService.new(page: params[:page], limit: params[:per_page])
         render json: drilldown_service.drilldown(associated_ids)
       end
 
