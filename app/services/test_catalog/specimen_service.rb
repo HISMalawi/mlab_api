@@ -6,13 +6,17 @@ module TestCatalog
   module SpecimenService
     class << self
       def specimen(department_id: nil)
-        dpt = Department.where(id: department_id).first
-        department_name = dpt.nil? ? 'Lab Reception' : dpt.name
-        test_types = department_name == 'Lab Reception' ? TestType.all : TestType.where(department_id: dpt.id)
-        specimen_test_type_mappings = SpecimenTestTypeMapping.where(test_type_id: test_types.pluck(:id))
-        specimen_ids = specimen_test_type_mappings.pluck(:specimen_id).uniq
-        Specimen.where(id: specimen_ids).order(:name)
-      end
+        specimen = Specimen.order(:name)
+        return specimen if department_id.blank?
+        department = Department.find_by(id: department_id)
+        return specimen if department.nil? || department.name == "Lab Reception"
+        specimen_ids = SpecimenTestTypeMapping
+          .joins(:test_type)
+          .where(test_types: { department_id: department.id })
+          .select(:specimen_id)
+          .distinct
+        specimen.where(id: specimen_ids)
+      end      
 
       def specimen_test_type(specimen_id, department_id, sex)
         test_types = filter_test_types_by_specimen(specimen_id)
