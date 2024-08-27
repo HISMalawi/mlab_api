@@ -104,7 +104,6 @@ module UserManagement
       end
 
       def valid_token?(token, user_token_version)
-        puts "token: #{token}"
         !token_expired?(token[:exp]) && token_version_equal?(user_token_version, token[:token_version])
       end
 
