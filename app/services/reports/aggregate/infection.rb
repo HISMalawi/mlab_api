@@ -2,14 +2,14 @@ module Reports
   module Aggregate
     class Infection
       def generate_report(from: Date.today.to_s, to: Date.today.to_s, department: nil)
-        department = Department.find_by_name(department)&.id
-        process_data(serliarize_data(get_data(from, to, department)))
+        department = Department.find_by_name(department)
+        data = process_data(serliarize_data(get_data(from, to, department&.id)), department&.name)
+        summary = get_summary(from:, to:, department:)
+        { data:, summary: }
       end
 
       def get_summary(from: Date.today.to_s, to: Date.today.to_s, department: nil)
-        department = Department.find_by_name(department)
         department_condition = department.present? ? " AND tt.department_id = #{department&.id}" : ''
-
         query = <<-SQL
           SELECT tt.name, COUNT(DISTINCT t.id) AS count, GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM tests AS t
@@ -140,7 +140,7 @@ module Reports
         data
       end
 
-      def process_data(data)
+      def process_data(data, department)
         test_hash = {}
         data.each do |test_|
           test_type = test_[:test_type].to_s
@@ -149,7 +149,7 @@ module Reports
           age_group = test_[:age_group].to_s
           result = test_[:result].to_s
           gender = test_[:gender].to_s
-          associated_ids = UtilsService.insert_drilldown(test_, nil)
+          associated_ids = UtilsService.insert_drilldown(test_, department)
 
           test_hash[test_type] ||= {}
           test_hash[test_type][indicator] ||= []

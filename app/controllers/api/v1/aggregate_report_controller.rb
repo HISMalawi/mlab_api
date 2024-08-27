@@ -39,13 +39,13 @@ module Api
       end
 
       def infection
-        from = params[:from]
-        to = params[:to]
-        department = params[:department]
+        from, to, department, report_id = params.values_at(:from, :to, :department, :report_id)
         service = Reports::Aggregate::Infection.new
-        data = service.generate_report(from:, to:, department:)
-        summary = service.get_summary(from:, to:, department:)
-        render json: { data:, summary: }
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          service.generate_report(from:, to:, department:)
+        )
+        render json: data
       end
 
       def turn_around_time
