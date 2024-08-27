@@ -4,8 +4,7 @@
 class DrilldownIdentifierClearJob
   include Sidekiq::Job
 
-  def perform
-    DrilldownIdentifier.delete_all
+  def perform(id)
+    DrilldownIdentifier.find_by(id:)&.delete
   end
 end
-DrilldownIdentifierClearJob.perform_async

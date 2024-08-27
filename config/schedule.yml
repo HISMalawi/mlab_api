@@ -11,7 +11,7 @@ nlims_sync_job:
   queue: default
 
 home_dashboard_job:
-  name: "Update Home Dashboard analytics Every 6hrs"
+  name: "Update Home Dashboard analytics Every 5mins"
   cron: "*/5 * * * *"
   class: "HomeDashboardJob"
   queue: default
@@ -20,10 +20,4 @@ update_elasticsearch_job:
   name: "Update elastic search every 2mins"
   cron: "*/2 * * * *"
   class: "UpdateElasticsearchIndexJob"
-  queue: default
-
-drilldown_identifier_clear_job:
-  name: "Delete drilldown identifers at 23:55"
-  cron: "55 23 * * *"
-  class: "DrilldownIdentifierClearJob"
   queue: default
