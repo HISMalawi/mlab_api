@@ -58,10 +58,12 @@ module Api
       end
 
       def rejected
-        from = params[:from]
-        to = params[:to]
-        department = params[:department]
-        render json: { data: Reports::Aggregate::Rejected.generate_report(from:, to:, department:) }
+        from, to, department, report_id = params.values_at(:from, :to, :department, :report_id)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Rejected.generate_report(from:, to:, department:)
+        )
+        render json: data
       end
 
       def general_count

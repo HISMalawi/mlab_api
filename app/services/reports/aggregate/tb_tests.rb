@@ -26,6 +26,7 @@ module Reports
                 AND tr.value NOT IN ('' , '0', 'N/A')
         GROUP BY MONTHNAME(t.created_date) , result , test_indicator_name
         SQL
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         data = Report.find_by_sql(query)
         months = []
         data.each do |entry|
