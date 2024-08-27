@@ -57,13 +57,11 @@ module Reports
           data.group_by { |item| item[:department] }.map do |department, items|
             tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
               test_items.map do |item|
-                associated_ids = DrilldownIdentifier.create(
-                  data: { associated_ids: item[:associated_ids], department: }
-                )
+                associated_ids = UtilsService.insert_drilldown(item, department)
                 [item[:month],
                  {
                    total: item[:total],
-                   associated_ids: associated_ids.id
+                   associated_ids:
                  }]
               end.to_h
             end

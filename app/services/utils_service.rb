@@ -18,7 +18,6 @@ module UtilsService
 
   def self.insert_drilldown(entry_ids, department)
     DrilldownIdentifier.create(
-      id: SecureRandom.uuid,
       data: { associated_ids: entry_ids[:associated_ids], department: }
     )&.id
   end
