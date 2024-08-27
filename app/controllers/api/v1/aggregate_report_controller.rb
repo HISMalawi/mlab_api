@@ -108,17 +108,22 @@ module Api
       end
 
       def tb_tests
-        from = params[:from]
-        to = params[:to]
         service = Reports::Aggregate::TbTests.new
-        render json: service.generate_report(from:, to:)
+        data = Reports::ReportCacheService.find(params[:report_id])
+        data ||= Reports::ReportCacheService.create(
+          service.generate_report(from: params[:from], to: params[:to])
+        )
+        render json: data
       end
 
       private
 
       def department_report_service
-        Reports::Aggregate::DepartmentReport.new(params.require(:from), params.require(:to),
-                                                 params.require(:department))
+        Reports::Aggregate::DepartmentReport.new(
+          params.require(:from),
+          params.require(:to),
+          params.require(:department)
+        )
       end
     end
   end

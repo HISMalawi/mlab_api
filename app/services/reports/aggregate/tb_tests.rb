@@ -7,7 +7,8 @@ module Reports
             ti.name AS test_indicator_name,
             MONTHNAME(t.created_date) AS month,
             tr.value AS result,
-            COUNT(DISTINCT t.id) count
+            COUNT(DISTINCT t.id) count,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
         FROM
             tests t
                 INNER JOIN
@@ -37,22 +38,26 @@ module Reports
       end
 
       def serialize_data(data)
-        data.group_by do |entry|
-          entry['test_indicator_name'].downcase
-        end.map do |test_indicator_name, test_indicator_name_entries|
-          {
-            test_indicator_name.to_sym => test_indicator_name_entries.group_by do |entry|
-                                            entry['result'].downcase
-                                          end
-                                                                     .map do |result, result_entries|
-                                            {
-                                              "result": result,
-                                              "month": result_entries.map do |entry|
-                                                         { entry['month'] => entry['count'] }
-                                                       end.reduce({}, :merge)
-                                            }
-                                          end
-          }
+        data.group_by { |entry| entry['test_indicator_name'].downcase }
+            .transform_values do |test_indicator_name_entries|
+          test_indicator_name_entries.group_by { |entry| entry['result'].downcase }
+                                     .map do |result, result_entries|
+            months = result_entries.each_with_object({}) do |entry, acc|
+              month = entry['month']
+              count = entry['count']
+              associated_ids = UtilsService.insert_drilldown(entry, nil)
+
+              acc[month] = {
+                count:,
+                associated_ids:
+              }
+            end
+
+            {
+              result:,
+              month: months
+            }
+          end
         end
       end
 
