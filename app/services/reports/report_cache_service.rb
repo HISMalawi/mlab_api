@@ -5,10 +5,17 @@ module Reports
   # ReportCacheService module
   module ReportCacheService
     class << self
-      def find_or_create_cache(id, data)
-        report = ReportCache.find_or_create_by(id:) do |cache|
-          cache.data = data
-        end
+      def find(id)
+        report = ReportCache.find_by(id:)
+        report.present? ? serialize(report) : nil
+      end
+
+      def create(data)
+        report = ReportCache.create(data:)
+        serialize(report)
+      end
+
+      def serialize(report)
         report.data.merge(report_id: report.id)
       end
     end

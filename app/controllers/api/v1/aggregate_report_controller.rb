@@ -7,8 +7,11 @@ module Api
     class AggregateReportController < ApplicationController
       def lab_statistics
         from, to, department, report_id = params.values_at(:from, :to, :department, :report_id)
-        data = Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
-        render json: Reports::ReportCacheService.find_or_create_cache(report_id, data)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
+        )
+        render json: data
       end
 
       def drilldown
@@ -97,7 +100,11 @@ module Api
       end
 
       def department_report
-        render json: department_report_service.generalize_depart_report
+        data = Reports::ReportCacheService.find(params[:report_id])
+        data ||= Reports::ReportCacheService.create(
+          department_report_service.generalize_depart_report
+        )
+        render json: data
       end
 
       def tb_tests
