@@ -26,7 +26,7 @@ module Reports
 
     def default_drilldown(drilldown_identifier)
       records = Report.find_by_sql(Sql::Test.query(associated_ids(drilldown_identifier)))
-      paginated_records = PaginationService.paginate_array(records, page: @page, limit: @page)
+      paginated_records = PaginationService.paginate_array(records, page: @page, limit: @limit)
       {
         data: map_drilldowns(paginated_records),
         meta: PaginationService.pagination_metadata(paginated_records)

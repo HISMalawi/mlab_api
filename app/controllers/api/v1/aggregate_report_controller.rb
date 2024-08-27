@@ -6,9 +6,9 @@ module Api
     # Controller that handles all requests pertaining to Aggregate Reports
     class AggregateReportController < ApplicationController
       def lab_statistics
-        from, to, department = params.values_at(:from, :to, :department)
+        from, to, department, report_id = params.values_at(:from, :to, :department, :report_id)
         data = Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
-        render json: data
+        render json: Reports::ReportCacheService.find_or_create_cache(report_id, data)
       end
 
       def drilldown

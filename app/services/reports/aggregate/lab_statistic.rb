@@ -58,7 +58,6 @@ module Reports
             tests = items.group_by { |item| item[:test_type] }.transform_values do |test_items|
               test_items.map do |item|
                 associated_ids = DrilldownIdentifier.create(
-                  id: SecureRandom.uuid,
                   data: { associated_ids: item[:associated_ids], department: }
                 )
                 [item[:month],

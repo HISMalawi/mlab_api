@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-# DrilldownIdentifier model
-class DrilldownIdentifier < VoidableRecord
+# ReportCache model
+class ReportCache < VoidableRecord
   before_create :set_uuid
-  self.table_name = 'drilldown_identifiers'
 
   private
 
