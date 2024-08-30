@@ -9,17 +9,22 @@ module Reports
         def process_data(records)
           data = expect_outcome
           records.each do |record|
-            data["#{record[:result]}".to_sym] = record[:total]
+            data["#{record[:result]}".to_sym] = {
+              total: record[:total],
+              associated_ids: UtilsService.insert_drilldown(record, 'Microbiology')
+            }
           end
           data
         end
 
         def query_record(month: nil, year: nil)
           department = Department.find_by(name: 'Microbiology').id
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
           Report.find_by_sql(
             "SELECT
               tr.value AS result,
-              count(DISTINCT t.id) AS total
+              count(DISTINCT t.id) AS total,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
               tests t
                   INNER JOIN
@@ -42,8 +47,13 @@ module Reports
         end
 
         def expect_outcome
-          { "Growth": 0, "No growth": 0, "Mixed growth; no predominant organism": 0,
-            "Growth of normal flora; no pathogens isolated": 0, "Growth of contaminants": 0 }
+          {
+            "Growth": { total: 0, associated_ids: '' },
+            "No growth": { total: 0, associated_ids: '' },
+            "Mixed growth; no predominant organism": { total: 0, associated_ids: '' },
+            "Growth of normal flora; no pathogens isolated": { total: 0, associated_ids: '' },
+            "Growth of contaminants": { total: 0, associated_ids: '' }
+          }
         end
 
         def report_utils

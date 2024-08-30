@@ -67,31 +67,39 @@ module Api
       end
 
       def general_count
-        month = params[:month]
-        year = params[:year]
-        service = Reports::Aggregate::Culture::GeneralCount.new
-        render json: { data: service.generate_report(month:, year:) }
+        month, year = params.values_at(:month, :year)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Culture::GeneralCount.new.generate_report(month:, year:)
+        )
+        render json: data
       end
 
       def wards_based_count
-        month = params[:month]
-        year = params[:year]
-        service = Reports::Aggregate::Culture::WardsBased.new
-        render json: { data: service.generate_report(month:, year:) }
+        month, year = params.values_at(:month, :year)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Culture::WardsBased.new.generate_report(month:, year:)
+        )
+        render json: data
       end
 
       def organisms_based_count
-        month = params[:month]
-        year = params[:year]
-        service = Reports::Aggregate::Culture::OrganismsBased.new
-        render json: { data: service.generate_report(month:, year:) }
+        month, year = params.values_at(:month, :year)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Culture::OrganismsBased.new.generate_report(month:, year:)
+        )
+        render json: data
       end
 
       def organisms_in_wards_count
-        month = params[:month]
-        year = params[:year]
-        service = Reports::Aggregate::Culture::OrganismsInWardCount.new
-        render json: { data: service.generate_report(month:, year:) }
+        month, year = params.values_at(:month, :year)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Culture::OrganismsInWardCount.new.generate_report(month:, year:)
+        )
+        render json: data
       end
 
       def ast

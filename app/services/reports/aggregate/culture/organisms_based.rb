@@ -8,8 +8,12 @@ module Reports
 
         def query_record(month: nil, year: nil)
           department = Department.find_by(name: 'Microbiology').id
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
           Report.find_by_sql(
-            "SELECT o.name AS organism, COUNT(DISTINCT t.id) AS total
+            "SELECT
+              o.name AS organism,
+              COUNT(DISTINCT t.id) AS total,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
                 tests t
                     INNER JOIN
@@ -40,7 +44,8 @@ module Reports
           records.each do |record|
             data << {
               organism: record[:organism],
-              count: record[:total]
+              count: record[:total],
+              associated_ids: UtilsService.insert_drilldown(record, 'Microbiology')
             }
           end
           data
