@@ -54,6 +54,7 @@ module Reports
               associated_ids: UtilsService.insert_drilldown(record, 'Microbiology')
             }
           end
+          data
         end
 
         def report_utils
