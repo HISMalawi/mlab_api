@@ -103,10 +103,12 @@ module Api
       end
 
       def ast
-        month = params[:month]
-        year = params[:year]
-        service = Reports::Aggregate::Culture::Ast.new
-        render json: { data: service.generate_report(month:, year:) }
+        month, year, report_id = params.values_at(:month, :year, :report_id)
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Culture::Ast.new.generate_report(month:, year:)
+        )
+        render json: data
       end
 
       def department_report
