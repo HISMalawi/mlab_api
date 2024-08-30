@@ -67,7 +67,7 @@ module Api
       end
 
       def general_count
-        month, year = params.values_at(:month, :year)
+        month, year = params.values_at(:month, :year, :report_id)
         data = Reports::ReportCacheService.find(report_id)
         data ||= Reports::ReportCacheService.create(
           Reports::Aggregate::Culture::GeneralCount.new.generate_report(month:, year:)
@@ -76,7 +76,7 @@ module Api
       end
 
       def wards_based_count
-        month, year = params.values_at(:month, :year)
+        month, year = params.values_at(:month, :year, :report_id)
         data = Reports::ReportCacheService.find(report_id)
         data ||= Reports::ReportCacheService.create(
           Reports::Aggregate::Culture::WardsBased.new.generate_report(month:, year:)
@@ -85,7 +85,7 @@ module Api
       end
 
       def organisms_based_count
-        month, year = params.values_at(:month, :year)
+        month, year = params.values_at(:month, :year, :report_id)
         data = Reports::ReportCacheService.find(report_id)
         data ||= Reports::ReportCacheService.create(
           Reports::Aggregate::Culture::OrganismsBased.new.generate_report(month:, year:)
@@ -94,7 +94,7 @@ module Api
       end
 
       def organisms_in_wards_count
-        month, year = params.values_at(:month, :year)
+        month, year = params.values_at(:month, :year, :report_id)
         data = Reports::ReportCacheService.find(report_id)
         data ||= Reports::ReportCacheService.create(
           Reports::Aggregate::Culture::OrganismsInWardCount.new.generate_report(month:, year:)
