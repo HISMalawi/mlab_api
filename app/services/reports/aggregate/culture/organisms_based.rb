@@ -3,7 +3,7 @@ module Reports
     module Culture
       class OrganismsBased
         def generate_report(month: nil, year: nil)
-          process_data(query_record(month:, year:))
+          { data: process_data(query_record(month:, year:)) }
         end
 
         def query_record(month: nil, year: nil)

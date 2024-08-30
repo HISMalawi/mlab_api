@@ -3,7 +3,7 @@ module Reports
     module Culture
       class WardsBased
         def generate_report(month: nil, year: nil)
-          process_data(query_records(month:, year:))
+          { data: process_data(query_records(month:, year:)) }
         end
 
         def query_records(month: nil, year: nil)
