@@ -8,7 +8,8 @@ module Reports
     module Malaria
       class << self
         def query_data_by_ward(from: nil, to: nil)
-          ReportRawData.find_by_sql("
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+          Report.find_by_sql("
           SELECT
             IF(fs.name IS NULL, 'N/A', fs.name) AS ward,
             #{sql}
@@ -45,7 +46,8 @@ module Reports
         end
 
         def query_data_by_female_preg(from: nil, to: nil)
-          ReportRawData.find_by_sql("
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+          Report.find_by_sql("
             SELECT
               'Female Pregant' AS indicator,
               #{sql}
@@ -84,7 +86,8 @@ module Reports
         end
 
         def query_data_by_gender(from: nil, to: nil)
-          ReportRawData.find_by_sql("
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+          Report.find_by_sql("
             SELECT
               p.sex AS gender,
               #{sql}
@@ -121,7 +124,8 @@ module Reports
         end
 
         def query_data_by_encounter_type(from: nil, to: nil)
-          ReportRawData.find_by_sql("
+          ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+          Report.find_by_sql("
             SELECT
               et.name AS encounter_type,
               #{sql}
@@ -175,6 +179,20 @@ module Reports
                 AND tr.value NOT LIKE '%No parasi%',
               t.id,
               NULL)) AS micro_pos_over5,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                DATE(p.date_of_birth),
+                DATE(t.created_date)) > 5
+                AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                AND tr.value NOT IN ('NMPS' , 'Negative',
+                'no malaria palasite seen',
+                'No malaria parasites seen',
+                'No tryps seen',
+                'No parasite seen',
+                'NPS',
+                ' NMPS')
+                AND tr.value NOT LIKE '%No parasi%',
+              t.id,
+              NULL)) AS micro_pos_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
@@ -189,6 +207,20 @@ module Reports
                       AND tr.value NOT LIKE '%No parasi%',
                   t.id,
                   NULL)) AS micro_pos_under5,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) <= 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND tr.value NOT IN ('NMPS' , 'Negative',
+                      'no malaria palasite seen',
+                      'No malaria parasites seen',
+                      'No tryps seen',
+                      'No parasite seen',
+                      'NPS',
+                      ' NMPS')
+                      AND tr.value NOT LIKE '%No parasi%',
+                  t.id,
+                  NULL)) AS micro_pos_under5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) > 5
@@ -203,6 +235,20 @@ module Reports
                       OR tr.value LIKE '%No parasi%'),
                   t.id,
                   NULL)) AS micro_neg_over5,
+          GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) > 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND (tr.value IN ('NMPS' , 'Negative',
+                      'no malaria palasite seen',
+                      'No malaria parasites seen',
+                      'No tryps seen',
+                      'No parasite seen',
+                      'NPS',
+                      ' NMPS')
+                      OR tr.value LIKE '%No parasi%'),
+                  t.id,
+                  NULL)) AS micro_neg_over5_associated_ids,
           COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
@@ -217,6 +263,20 @@ module Reports
                       OR tr.value LIKE '%No parasi%'),
                   t.id,
                   NULL)) AS micro_neg_under5,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) <= 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND (tr.value IN ('NMPS' , 'Negative',
+                      'no malaria palasite seen',
+                      'No malaria parasites seen',
+                      'No tryps seen',
+                      'No parasite seen',
+                      'NPS',
+                      ' NMPS')
+                      OR tr.value LIKE '%No parasi%'),
+                  t.id,
+                  NULL)) AS micro_neg_under5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) > 5
@@ -224,20 +284,41 @@ module Reports
                       AND tr.value = 'Invalid',
                   t.id,
                   NULL)) AS micro_inv_over5,
-                  COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) > 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND tr.value = 'Invalid',
+                  t.id,
+                  NULL)) AS micro_inv_over5_associated_ids,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
                       AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
                       AND tr.value = 'Invalid',
                   t.id,
                   NULL)) AS micro_inv_under5,
-              COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                      DATE(p.date_of_birth),
+                      DATE(t.created_date)) <= 5
+                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND tr.value = 'Invalid',
+                  t.id,
+                  NULL)) AS micro_inv_under5_associated_ids,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                   DATE(p.date_of_birth),
                   DATE(t.created_date)) > 5
                   AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
                   AND tr.value IN ('Positive', 'postive'),
               t.id,
               NULL)) AS mrdt_pos_over5,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                  DATE(p.date_of_birth),
+                  DATE(t.created_date)) > 5
+                  AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                  AND tr.value IN ('Positive', 'postive'),
+              t.id,
+              NULL)) AS mrdt_pos_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
@@ -245,13 +326,27 @@ module Reports
                         AND tr.value IN ('Positive', 'postive'),
                     t.id,
                     NULL)) AS mrdt_pos_under5,
-              COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value IN ('Positive', 'postive'),
+                    t.id,
+                    NULL)) AS mrdt_pos_under5_associated_ids,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) > 5
                         AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
                         AND tr.value ='Negative',
                     t.id,
                     NULL)) AS mrdt_neg_over5,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) > 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value ='Negative',
+                    t.id,
+                    NULL)) AS mrdt_neg_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
@@ -259,20 +354,41 @@ module Reports
                         AND tr.value ='Negative',
                     t.id,
                     NULL)) AS mrdt_neg_under5,
-          COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value ='Negative',
+                    t.id,
+                    NULL)) AS mrdt_neg_under5_associated_ids,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) > 5
                         AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
                         AND tr.value = 'Invalid',
                     t.id,
                     NULL)) AS mrdt_inv_over5,
-                    COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) > 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value = 'Invalid',
+                    t.id,
+                    NULL)) AS mrdt_inv_over5_associated_ids,
+            COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
                         AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
                         AND tr.value = 'Invalid',
                     t.id,
-                    NULL)) AS mrdt_inv_under5
+                    NULL)) AS mrdt_inv_under5,
+            GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
+                        DATE(p.date_of_birth),
+                        DATE(t.created_date)) <= 5
+                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND tr.value = 'Invalid',
+                    t.id,
+                    NULL)) AS mrdt_inv_under5_associated_ids
           RUBY
         end
 
@@ -447,10 +563,10 @@ module Reports
             from:,
             to:,
             data: {
-              by_ward:,
-              by_gender:,
-              by_encounter_type:,
-              by_female_preg:
+              by_ward: transform_data(by_ward, 'ward'),
+              by_gender: transform_data(by_gender, 'gender'),
+              by_encounter_type: transform_data(by_encounter_type, 'encounter_type'),
+              by_female_preg: transform_data(by_female_preg, 'indicator')
             },
             summary:
           }
@@ -458,6 +574,103 @@ module Reports
 
         def report_utils
           Reports::Moh::ReportUtils
+        end
+
+        def transform_data(data, key)
+          data.map do |item|
+            {
+              key.to_sym => item[key]
+            }.merge(format(item))
+          end
+        end
+
+        def format(item)
+          {
+            micro_pos_over5: {
+              count: item['micro_pos_over5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['micro_pos_over5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            micro_pos_under5: {
+              count: item['micro_pos_under5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['micro_pos_under5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            micro_neg_over5: {
+              count: item['micro_neg_over5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['micro_neg_over5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            micro_neg_under5: {
+              count: item['micro_neg_under5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['micro_neg_under5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            micro_inv_over5: {
+              count: item['micro_inv_over5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['micro_inv_over5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            micro_inv_under5: {
+              count: item['micro_inv_under5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['micro_inv_under5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            mrdt_pos_over5: {
+              count: item['mrdt_pos_over5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['mrdt_pos_over5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            mrdt_pos_under5: {
+              count: item['mrdt_pos_under5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['mrdt_pos_under5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            mrdt_neg_over5: {
+              count: item['mrdt_neg_over5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['mrdt_neg_over5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            mrdt_neg_under5: {
+              count: item['mrdt_neg_under5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['mrdt_neg_under5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            mrdt_inv_over5: {
+              count: item['mrdt_inv_over5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['mrdt_inv_over5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            },
+            mrdt_inv_under5: {
+              count: item['mrdt_inv_under5'] || 0,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => item['mrdt_inv_under5_associated_ids'] || '' },
+                'Parasitology'
+              )
+            }
+          }
         end
       end
     end
