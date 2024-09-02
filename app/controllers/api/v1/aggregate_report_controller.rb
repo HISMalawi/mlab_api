@@ -22,9 +22,14 @@ module Api
 
       def malaria_report
         today = Date.today.strftime('%Y-%m-%d')
-        to = params[:to].present? ? params[:to] : today
-        from = params[:from].present? ? params[:from] : today
-        render json: Reports::Aggregate::Malaria.generate_report(from, to)
+        from, to, report_id = params.values_at(:from, :to, :report_id)
+        to = to.present? ? to : today
+        from = from.present? ? from : today
+        data = Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::Aggregate::Malaria.generate_report(from, to)
+        )
+        render json: data
       end
 
       def user_statistics
