@@ -394,156 +394,361 @@ module Reports
 
         def process_data_by_ward(record_data)
           summary = {
-            total_tested: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            },
-            total_positive: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            },
-            total_negative: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            }
+            total_tested: summary_format,
+            total_positive: summary_format,
+            total_negative: summary_format
           }
           record_data.each do |data|
-            summary[:total_tested][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                     data[:micro_inv_over5]
-            summary[:total_tested][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                      data[:micro_inv_under5]
-            summary[:total_tested][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                    data[:mrdt_inv_over5]
-            summary[:total_tested][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                     data[:mrdt_inv_under5]
-            summary[:total_positive][:micro_over_5] += data[:micro_pos_over5]
-            summary[:total_positive][:micro_under_5] += data[:micro_pos_under5]
-            summary[:total_positive][:mrdt_over_5] += data[:mrdt_pos_over5]
-            summary[:total_positive][:mrdt_under_5] += data[:mrdt_pos_under5]
-            summary[:total_negative][:micro_over_5] += data[:micro_neg_over5]
-            summary[:total_negative][:micro_under_5] += data[:micro_neg_under5]
-            summary[:total_negative][:mrdt_over_5] += data[:mrdt_neg_over5]
-            summary[:total_negative][:mrdt_under_5] += data[:mrdt_neg_under5]
+            # Micro over 5
+            summary[:total_tested][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+            summary[:total_tested][:micro_over_5][:associated_ids] = [
+              summary[:total_tested][:micro_over_5][:associated_ids],
+              data[:micro_neg_over5_associated_ids],
+              data[:micro_pos_over5_associated_ids],
+              data[:micro_inv_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+
+            # Micro under 5
+            summary[:total_tested][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+            summary[:total_tested][:micro_under_5][:associated_ids] = [
+              summary[:total_tested][:micro_under_5][:associated_ids],
+              data[:micro_neg_under5_associated_ids],
+              data[:micro_pos_under5_associated_ids],
+              data[:micro_inv_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+
+            # MRDT over 5
+            summary[:total_tested][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+            summary[:total_tested][:mrdt_over_5][:associated_ids] = [
+              summary[:total_tested][:mrdt_over_5][:associated_ids],
+              data[:mrdt_neg_over5_associated_ids],
+              data[:mrdt_pos_over5_associated_ids],
+              data[:mrdt_inv_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+
+            # MRDT under 5
+            summary[:total_tested][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+            summary[:total_tested][:mrdt_under_5][:associated_ids] = [
+              summary[:total_tested][:mrdt_under_5][:associated_ids],
+              data[:mrdt_neg_under5_associated_ids],
+              data[:mrdt_pos_under5_associated_ids],
+              data[:mrdt_inv_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # micro over 5 positive
+            summary[:total_positive][:micro_over_5][:count] += data[:micro_pos_over5]
+            summary[:total_positive][:micro_over_5][:associated_ids] = [
+              summary[:total_positive][:micro_over_5][:associated_ids],
+              data[:micro_pos_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # micro under 5 positive
+            summary[:total_positive][:micro_under_5][:count] += data[:micro_pos_under5]
+            summary[:total_positive][:micro_under_5][:associated_ids] = [
+              summary[:total_positive][:micro_under_5][:associated_ids],
+              data[:micro_pos_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # mrdt over 5 positive
+            summary[:total_positive][:mrdt_over_5][:count] += data[:mrdt_pos_over5]
+            summary[:total_positive][:mrdt_over_5][:associated_ids] = [
+              summary[:total_positive][:mrdt_over_5][:associated_ids],
+              data[:mrdt_pos_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # mrdt under 5 positive
+            summary[:total_positive][:mrdt_under_5][:count] += data[:mrdt_pos_under5]
+            summary[:total_positive][:mrdt_under_5][:associated_ids] = [
+              summary[:total_positive][:mrdt_under_5][:associated_ids],
+              data[:mrdt_pos_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            #  micro over 5 negative
+            summary[:total_negative][:micro_over_5][:count] += data[:micro_neg_over5]
+            summary[:total_negative][:micro_over_5][:associated_ids] = [
+              summary[:total_negative][:micro_over_5][:associated_ids],
+              data[:micro_neg_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # Micro under 5 negative
+            summary[:total_negative][:micro_under_5][:count] += data[:micro_neg_under5]
+            summary[:total_negative][:micro_under_5][:associated_ids] = [
+              summary[:total_negative][:micro_under_5][:associated_ids],
+              data[:micro_neg_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # mrdt over 5 neg
+            summary[:total_negative][:mrdt_over_5][:count] += data[:mrdt_neg_over5]
+            summary[:total_negative][:mrdt_over_5][:associated_ids] = [
+              summary[:total_negative][:mrdt_over_5][:associated_ids],
+              data[:mrdt_neg_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+            # MRDT under 5 negative
+            summary[:total_negative][:mrdt_under_5][:count] += data[:mrdt_neg_under5]
+            summary[:total_negative][:mrdt_under_5][:associated_ids] = [
+              summary[:total_negative][:mrdt_under_5][:associated_ids],
+              data[:mrdt_neg_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
           end
           summary
         end
 
         def summary_by_gender(record_data)
           summary = {
-            total_male: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            },
-            total_female: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            }
+            total_male: summary_format,
+            total_female: summary_format
           }
           record_data.each do |data|
             if data[:gender] == 'M'
-              summary[:total_male][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                     data[:micro_inv_over5]
-              summary[:total_male][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                      data[:micro_inv_under5]
-              summary[:total_male][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                    data[:mrdt_inv_over5]
-              summary[:total_male][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                     data[:mrdt_inv_under5]
+              # Micro over 5
+              summary[:total_male][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+              summary[:total_male][:micro_over_5][:associated_ids] = [
+                summary[:total_male][:micro_over_5][:associated_ids],
+                data[:micro_neg_over5_associated_ids],
+                data[:micro_pos_over5_associated_ids],
+                data[:micro_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # Micro under 5
+              summary[:total_male][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+              summary[:total_male][:micro_under_5][:associated_ids] = [
+                summary[:total_male][:micro_under_5][:associated_ids],
+                data[:micro_neg_under5_associated_ids],
+                data[:micro_pos_under5_associated_ids],
+                data[:micro_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT over 5
+              summary[:total_male][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+              summary[:total_male][:mrdt_over_5][:associated_ids] = [
+                summary[:total_male][:mrdt_over_5][:associated_ids],
+                data[:mrdt_neg_over5_associated_ids],
+                data[:mrdt_pos_over5_associated_ids],
+                data[:mrdt_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT under 5
+              summary[:total_male][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+              summary[:total_male][:mrdt_under_5][:associated_ids] = [
+                summary[:total_male][:mrdt_under_5][:associated_ids],
+                data[:mrdt_neg_under5_associated_ids],
+                data[:mrdt_pos_under5_associated_ids],
+                data[:mrdt_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
             else
-              summary[:total_female][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                       data[:micro_inv_over5]
-              summary[:total_female][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                        data[:micro_inv_under5]
-              summary[:total_female][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                      data[:mrdt_inv_over5]
-              summary[:total_female][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                       data[:mrdt_inv_under5]
+              # Micro over 5
+              summary[:total_female][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+              summary[:total_female][:micro_over_5][:associated_ids] = [
+                summary[:total_female][:micro_over_5][:associated_ids],
+                data[:micro_neg_over5_associated_ids],
+                data[:micro_pos_over5_associated_ids],
+                data[:micro_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # Micro under 5
+              summary[:total_female][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+              summary[:total_female][:micro_under_5][:associated_ids] = [
+                summary[:total_female][:micro_under_5][:associated_ids],
+                data[:micro_neg_under5_associated_ids],
+                data[:micro_pos_under5_associated_ids],
+                data[:micro_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT over 5
+              summary[:total_female][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+              summary[:total_female][:mrdt_over_5][:associated_ids] = [
+                summary[:total_female][:mrdt_over_5][:associated_ids],
+                data[:mrdt_neg_over5_associated_ids],
+                data[:mrdt_pos_over5_associated_ids],
+                data[:mrdt_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT under 5
+              summary[:total_female][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+              summary[:total_female][:mrdt_under_5][:associated_ids] = [
+                summary[:total_female][:mrdt_under_5][:associated_ids],
+                data[:mrdt_neg_under5_associated_ids],
+                data[:mrdt_pos_under5_associated_ids],
+                data[:mrdt_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
             end
           end
           summary
         end
 
         def summary_by_female_preg(record_data)
-          summary = {
-            total_female_preg: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            }
-          }
+          summary = { total_female_preg: summary_format }
           record_data.each do |data|
-            summary[:total_female_preg][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                          data[:micro_inv_over5]
-            summary[:total_female_preg][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                           data[:micro_inv_under5]
-            summary[:total_female_preg][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                         data[:mrdt_inv_over5]
-            summary[:total_female_preg][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                          data[:mrdt_inv_under5]
+            # Micro over 5
+            summary[:total_female_preg][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+            summary[:total_female_preg][:micro_over_5][:associated_ids] = [
+              summary[:total_female_preg][:micro_over_5][:associated_ids],
+              data[:micro_neg_over5_associated_ids],
+              data[:micro_pos_over5_associated_ids],
+              data[:micro_inv_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+
+            # Micro under 5
+            summary[:total_female_preg][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+            summary[:total_female_preg][:micro_under_5][:associated_ids] = [
+              summary[:total_female_preg][:micro_under_5][:associated_ids],
+              data[:micro_neg_under5_associated_ids],
+              data[:micro_pos_under5_associated_ids],
+              data[:micro_inv_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+
+            # MRDT over 5
+            summary[:total_female_preg][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+            summary[:total_female_preg][:mrdt_over_5][:associated_ids] = [
+              summary[:total_female_preg][:mrdt_over_5][:associated_ids],
+              data[:mrdt_neg_over5_associated_ids],
+              data[:mrdt_pos_over5_associated_ids],
+              data[:mrdt_inv_over5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
+
+            # MRDT under 5
+            summary[:total_female_preg][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+            summary[:total_female_preg][:mrdt_under_5][:associated_ids] = [
+              summary[:total_female_preg][:mrdt_under_5][:associated_ids],
+              data[:mrdt_neg_under5_associated_ids],
+              data[:mrdt_pos_under5_associated_ids],
+              data[:mrdt_inv_under5_associated_ids]
+            ].compact.reject(&:empty?).join(',')
           end
           summary
         end
 
+        def summary_format
+          {
+            micro_over_5: {
+              count: 0,
+              associated_ids: ''
+            },
+            micro_under_5: {
+              count: 0,
+              associated_ids: ''
+            },
+            mrdt_over_5: {
+              count: 0,
+              associated_ids: ''
+            },
+            mrdt_under_5: {
+              count: 0,
+              associated_ids: ''
+            }
+          }
+        end
+
         def summary_by_encounter_type(record_data)
           summary = {
-            total_in_patient: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            },
-            total_out_patient: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            },
-            total_referal: {
-              micro_over_5: 0,
-              micro_under_5: 0,
-              mrdt_over_5: 0,
-              mrdt_under_5: 0
-            }
+            total_in_patient: summary_format,
+            total_out_patient: summary_format,
+            total_referal: summary_format
           }
           record_data.each do |data|
             if data[:encounter_type] == 'In Patient'
-              summary[:total_in_patient][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                           data[:micro_inv_over5]
-              summary[:total_in_patient][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                            data[:micro_inv_under5]
-              summary[:total_in_patient][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                          data[:mrdt_inv_over5]
-              summary[:total_in_patient][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                           data[:mrdt_inv_under5]
+              # Micro over 5
+              summary[:total_in_patient][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+              summary[:total_in_patient][:micro_over_5][:associated_ids] = [
+                summary[:total_in_patient][:micro_over_5][:associated_ids],
+                data[:micro_neg_over5_associated_ids],
+                data[:micro_pos_over5_associated_ids],
+                data[:micro_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # Micro under 5
+              summary[:total_in_patient][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+              summary[:total_in_patient][:micro_under_5][:associated_ids] = [
+                summary[:total_in_patient][:micro_under_5][:associated_ids],
+                data[:micro_neg_under5_associated_ids],
+                data[:micro_pos_under5_associated_ids],
+                data[:micro_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT over 5
+              summary[:total_in_patient][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+              summary[:total_in_patient][:mrdt_over_5][:associated_ids] = [
+                summary[:total_in_patient][:mrdt_over_5][:associated_ids],
+                data[:mrdt_neg_over5_associated_ids],
+                data[:mrdt_pos_over5_associated_ids],
+                data[:mrdt_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT under 5
+              summary[:total_in_patient][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+              summary[:total_in_patient][:mrdt_under_5][:associated_ids] = [
+                summary[:total_in_patient][:mrdt_under_5][:associated_ids],
+                data[:mrdt_neg_under5_associated_ids],
+                data[:mrdt_pos_under5_associated_ids],
+                data[:mrdt_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
             elsif data[:encounter_type] == 'Out Patient'
-              summary[:total_out_patient][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                            data[:micro_inv_over5]
-              summary[:total_out_patient][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                             data[:micro_inv_under5]
-              summary[:total_out_patient][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                           data[:mrdt_inv_over5]
-              summary[:total_out_patient][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                            data[:mrdt_inv_under5]
+              # Micro over 5
+              summary[:total_out_patient][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+              summary[:total_out_patient][:micro_over_5][:associated_ids] = [
+                summary[:total_out_patient][:micro_over_5][:associated_ids],
+                data[:micro_neg_over5_associated_ids],
+                data[:micro_pos_over5_associated_ids],
+                data[:micro_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # Micro under 5
+              summary[:total_out_patient][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+              summary[:total_out_patient][:micro_under_5][:associated_ids] = [
+                summary[:total_out_patient][:micro_under_5][:associated_ids],
+                data[:micro_neg_under5_associated_ids],
+                data[:micro_pos_under5_associated_ids],
+                data[:micro_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT over 5
+              summary[:total_out_patient][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+              summary[:total_out_patient][:mrdt_over_5][:associated_ids] = [
+                summary[:total_out_patient][:mrdt_over_5][:associated_ids],
+                data[:mrdt_neg_over5_associated_ids],
+                data[:mrdt_pos_over5_associated_ids],
+                data[:mrdt_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT under 5
+              summary[:total_out_patient][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+              summary[:total_out_patient][:mrdt_under_5][:associated_ids] = [
+                summary[:total_out_patient][:mrdt_under_5][:associated_ids],
+                data[:mrdt_neg_under5_associated_ids],
+                data[:mrdt_pos_under5_associated_ids],
+                data[:mrdt_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
             else
-              summary[:total_referal][:micro_over_5] += data[:micro_neg_over5] + data[:micro_pos_over5] +
-                                                        data[:micro_inv_over5]
-              summary[:total_referal][:micro_under_5] += data[:micro_neg_under5] + data[:micro_pos_under5] +
-                                                         data[:micro_inv_under5]
-              summary[:total_referal][:mrdt_over_5] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] +
-                                                       data[:mrdt_inv_over5]
-              summary[:total_referal][:mrdt_under_5] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] +
-                                                        data[:mrdt_inv_under5]
+              # Micro over 5
+              summary[:total_referal][:micro_over_5][:count] += data[:micro_neg_over5] + data[:micro_pos_over5] + data[:micro_inv_over5]
+              summary[:total_referal][:micro_over_5][:associated_ids] = [
+                summary[:total_referal][:micro_over_5][:associated_ids],
+                data[:micro_neg_over5_associated_ids],
+                data[:micro_pos_over5_associated_ids],
+                data[:micro_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # Micro under 5
+              summary[:total_referal][:micro_under_5][:count] += data[:micro_neg_under5] + data[:micro_pos_under5] + data[:micro_inv_under5]
+              summary[:total_referal][:micro_under_5][:associated_ids] = [
+                summary[:total_referal][:micro_under_5][:associated_ids],
+                data[:micro_neg_under5_associated_ids],
+                data[:micro_pos_under5_associated_ids],
+                data[:micro_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT over 5
+              summary[:total_referal][:mrdt_over_5][:count] += data[:mrdt_neg_over5] + data[:mrdt_pos_over5] + data[:mrdt_inv_over5]
+              summary[:total_referal][:mrdt_over_5][:associated_ids] = [
+                summary[:total_referal][:mrdt_over_5][:associated_ids],
+                data[:mrdt_neg_over5_associated_ids],
+                data[:mrdt_pos_over5_associated_ids],
+                data[:mrdt_inv_over5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
+
+              # MRDT under 5
+              summary[:total_referal][:mrdt_under_5][:count] += data[:mrdt_neg_under5] + data[:mrdt_pos_under5] + data[:mrdt_inv_under5]
+              summary[:total_referal][:mrdt_under_5][:associated_ids] = [
+                summary[:total_referal][:mrdt_under_5][:associated_ids],
+                data[:mrdt_neg_under5_associated_ids],
+                data[:mrdt_pos_under5_associated_ids],
+                data[:mrdt_inv_under5_associated_ids]
+              ].compact.reject(&:empty?).join(',')
             end
           end
           summary
@@ -559,6 +764,7 @@ module Reports
           summary_by_encounter_type = summary_by_encounter_type(by_encounter_type)
           summary_by_female_preg = summary_by_female_preg(by_female_preg)
           summary = summary_by_ward.merge(summary_by_gender).merge(summary_by_encounter_type).merge(summary_by_female_preg)
+          transform_summary_associated_ids(summary)
           {
             from:,
             to:,
@@ -584,89 +790,100 @@ module Reports
           end
         end
 
+        def transform_summary_associated_ids(data)
+          data.each do |_key, value|
+            value.each do |_sub_key, sub_value|
+              associated_ids = sub_value[:associated_ids] || ''
+              # Replace with method call
+              sub_value[:associated_ids] =
+                UtilsService.insert_drilldown({ associated_ids: }, 'Parasitology')
+            end
+          end
+        end
+
         def format(item)
           {
             micro_pos_over5: {
               count: item['micro_pos_over5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['micro_pos_over5_associated_ids'] || '' },
+                { associated_ids: item['micro_pos_over5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             micro_pos_under5: {
               count: item['micro_pos_under5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['micro_pos_under5_associated_ids'] || '' },
+                { associated_ids: item['micro_pos_under5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             micro_neg_over5: {
               count: item['micro_neg_over5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['micro_neg_over5_associated_ids'] || '' },
+                { associated_ids: item['micro_neg_over5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             micro_neg_under5: {
               count: item['micro_neg_under5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['micro_neg_under5_associated_ids'] || '' },
+                { associated_ids: item['micro_neg_under5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             micro_inv_over5: {
               count: item['micro_inv_over5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['micro_inv_over5_associated_ids'] || '' },
+                { associated_ids: item['micro_inv_over5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             micro_inv_under5: {
               count: item['micro_inv_under5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['micro_inv_under5_associated_ids'] || '' },
+                { associated_ids: item['micro_inv_under5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             mrdt_pos_over5: {
               count: item['mrdt_pos_over5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['mrdt_pos_over5_associated_ids'] || '' },
+                { associated_ids: item['mrdt_pos_over5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             mrdt_pos_under5: {
               count: item['mrdt_pos_under5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['mrdt_pos_under5_associated_ids'] || '' },
+                { associated_ids: item['mrdt_pos_under5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             mrdt_neg_over5: {
               count: item['mrdt_neg_over5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['mrdt_neg_over5_associated_ids'] || '' },
+                { associated_ids: item['mrdt_neg_over5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             mrdt_neg_under5: {
               count: item['mrdt_neg_under5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['mrdt_neg_under5_associated_ids'] || '' },
+                { associated_ids: item['mrdt_neg_under5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             mrdt_inv_over5: {
               count: item['mrdt_inv_over5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['mrdt_inv_over5_associated_ids'] || '' },
+                { associated_ids: item['mrdt_inv_over5_associated_ids'] || '' },
                 'Parasitology'
               )
             },
             mrdt_inv_under5: {
               count: item['mrdt_inv_under5'] || 0,
               associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => item['mrdt_inv_under5_associated_ids'] || '' },
+                { associated_ids: item['mrdt_inv_under5_associated_ids'] || '' },
                 'Parasitology'
               )
             }
