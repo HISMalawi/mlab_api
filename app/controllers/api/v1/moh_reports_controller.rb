@@ -5,6 +5,9 @@ module Api
   module V1
     # Controller that handles all requests pertaining to MoH Reports
     class MohReportsController < ApplicationController
+      before_action :report_params
+      skip_before_action :report_params, only: %i[report_indicators]
+
       def report_indicators
         department = params.require(:department)
         render json: Reports::MohService.report_indicators(department)
@@ -18,9 +21,10 @@ module Api
       end
 
       def blood_bank
-        year = params.require(:year)
-        data = Report.where(year:, name: 'moh_blood_bank').first&.data
-        data = Reports::MohService.generate_blood_bank_report(year) if data.nil?
+        data = Reports::ReportCacheService.find(@report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::MohService.generate_blood_bank_report(@year)
+        )
         render json: data
       end
 
@@ -54,14 +58,9 @@ module Api
 
       private
 
-      def check_pregenerated_report_setting
-        config_data = YAML.load_file("#{Rails.root}/config/application.yml")
-        default = config_data['default']
-        !default.nil? && default['pregenerate_report_moh_report'] ? true : false
-      end
-
-      def use_pregenerated_report(department, year)
-        Reports::Moh::ReportUtils.check_if_file_exists(department, year) && check_pregenerated_report_setting
+      def report_params
+        @year = params.require(:year)
+        @report_id = params[:report_id]
       end
     end
   end

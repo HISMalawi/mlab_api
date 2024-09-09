@@ -16,6 +16,9 @@ module Reports
       end
 
       def generate_report
+        data = Report.where(year:, name: 'moh_blood_bank').first&.data
+        return data if data.present?
+
         report_data = blood_grouping_on_patient + x_match + x_match_maternity + x_match_paeds +
                       x_match_other + patient_with_hb_greater_6_transfused + patient_with_hb_less_equal_6_transfused +
                       product_results
