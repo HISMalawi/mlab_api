@@ -45,7 +45,10 @@ module Reports
         I18n.t('date.month_names').compact.map(&:downcase).each do |month_name|
           @report[month_name] = {}
           REPORT_INDICATORS.each do |indicator|
-            @report[month_name][indicator.to_sym] = 0
+            @report[month_name][indicator.to_sym] = {
+              count: 0,
+              associated_ids: ''
+            }
           end
         end
       end
@@ -54,17 +57,22 @@ module Reports
         counts.each do |count|
           month_name = count.month.downcase
           REPORT_INDICATORS.each do |_indicator|
-            @report[month_name][count.indicator.to_sym] = count.total
+            @report[month_name][count.indicator.to_sym] = {
+              count: count.total,
+              associated_ids: UtilsService.insert_drilldown({ 'associated_ids' => count.associated_ids }, 'Blood Bank')
+            }
           end
         end
         @report
       end
 
       def blood_grouping_on_patient
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Blood grouping done on Patients' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Blood grouping done on Patients' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -79,10 +87,12 @@ module Reports
       end
 
       def x_match
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total X-matched' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Total X-matched' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -97,10 +107,12 @@ module Reports
       end
 
       def x_match_maternity
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'X-matched for matenity' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'X-matched for matenity' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -120,10 +132,12 @@ module Reports
       end
 
       def x_match_paeds
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'X-matched for peads' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'X-matched for peads' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -143,10 +157,12 @@ module Reports
       end
 
       def x_match_other
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'X-matched for others' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'X-matched for others' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -166,11 +182,13 @@ module Reports
       end
 
       def patient_with_hb_less_equal_6_transfused
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(ot.created_date) AS month,
             COUNT(DISTINCT ot.id) AS total,
-            'X-matches done on patients with Hb ≤ 6.0g/dl' AS indicator
+            'X-matches done on patients with Hb ≤ 6.0g/dl' AS indicator,
+            GROUP_CONCAT(DISTINCT ot.id) AS associated_ids
           FROM
               tests ot
                 INNER JOIN
@@ -217,11 +235,13 @@ module Reports
       end
 
       def patient_with_hb_greater_6_transfused
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(ot.created_date) AS month,
             COUNT(DISTINCT ot.id) AS total,
-            'X-matches done on patients with Hb > 6.0 g/dl' AS indicator
+            'X-matches done on patients with Hb > 6.0 g/dl' AS indicator,
+            GROUP_CONCAT(DISTINCT ot.id) AS associated_ids
           FROM
               tests ot
                   INNER JOIN
@@ -268,6 +288,7 @@ module Reports
       end
 
       def product_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -279,7 +300,8 @@ module Reports
                 ELSE 'other'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
                 INNER JOIN
