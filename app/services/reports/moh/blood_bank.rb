@@ -15,6 +15,7 @@ module Reports
         initialize_report_counts
       end
 
+      # rubocop:disable Metrics/AbcSize
       def generate_report
         data = Report.where(year:, name: 'moh_blood_bank').first&.data
         return data if data.present?
@@ -26,6 +27,7 @@ module Reports
         Report.find_or_create_by(name: 'moh_blood_bank', year:).update(data:)
         data
       end
+      # rubocop:enable Metrics/AbcSize
 
       private
 
