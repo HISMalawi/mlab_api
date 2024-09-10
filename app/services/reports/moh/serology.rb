@@ -16,12 +16,15 @@ module Reports
       end
 
       def generate_report
-        report_data = syphilis_screening_patients + syphilis_positive_tests + syphilis_screening_antenatal_mothers +
-                      syphilis_positive_tests_antenatal_mothers + hep_bs_ag_test_done_patients + hep_bs_ag_positive_tests +
-                      hep_cc_ag_test_done_patients + hep_cc_ag_positive_tests + hcg_pregnancy_tests_done + hcg_pregnancy_positive_tests +
-                      hiv_tests_on_pep_patients + hiv_pep_positives_tests + prostate_specific_antigen_tests + psa_positive +
-                      sars_covid_19_rapid_antigen_tests + sars_covid_19_positive + serum_crag + serum_crag_positive
+        data = Report.where(year:, name: 'moh_serology').first&.data
+        return data if data.present?
 
+        report_data = syphilis_screening_patients + syphilis_positive_tests + syphilis_screening_antenatal_mothers +
+                      syphilis_positive_tests_antenatal_mothers + hep_bs_ag_test_done_patients +
+                      hep_bs_ag_positive_tests + hep_cc_ag_test_done_patients + hep_cc_ag_positive_tests +
+                      hcg_pregnancy_tests_done + hcg_pregnancy_positive_tests + hiv_tests_on_pep_patients +
+                      hiv_pep_positives_tests + prostate_specific_antigen_tests + psa_positive +
+                      sars_covid_19_rapid_antigen_tests + sars_covid_19_positive + serum_crag + serum_crag_positive
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_serology', year:).update(data:)
         data
@@ -54,7 +57,10 @@ module Reports
         I18n.t('date.month_names').compact.map(&:downcase).each do |month_name|
           @report[month_name] = {}
           REPORT_INDICATORS.each do |indicator|
-            @report[month_name][indicator.to_sym] = 0
+            @report[month_name][indicator.to_sym] = {
+              count: 0,
+              associated_ids: ''
+            }
           end
         end
       end
@@ -63,17 +69,22 @@ module Reports
         counts.each do |count|
           month_name = count.month.downcase
           REPORT_INDICATORS.each do |_indicator|
-            @report[month_name][count.indicator.to_sym] = count.total
+            @report[month_name][count.indicator.to_sym] = {
+              count: count.total,
+              associated_ids: UtilsService.insert_drilldown({ 'associated_ids' => count.associated_ids }, 'Serology')
+            }
           end
         end
         @report
       end
 
       def syphilis_screening_patients
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Syphilis screening on patients' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Syphilis screening on patients' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -86,10 +97,12 @@ module Reports
       end
 
       def syphilis_positive_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Syphilis Positive tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Syphilis Positive tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -114,10 +127,12 @@ module Reports
       end
 
       def syphilis_screening_antenatal_mothers
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Syphilis screening on antenatal mothers' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Syphilis screening on antenatal mothers' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
               tests t
                   INNER JOIN
@@ -135,10 +150,12 @@ module Reports
       end
 
       def syphilis_positive_tests_antenatal_mothers
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Syphilis Positive tests on antenatal mothers' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Syphilis Positive tests on antenatal mothers' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
               tests t
                   INNER JOIN
@@ -168,10 +185,12 @@ module Reports
       end
 
       def hep_bs_ag_test_done_patients
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HepBsAg test done on patients' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'HepBsAg test done on patients' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -184,10 +203,12 @@ module Reports
       end
 
       def hep_bs_ag_positive_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HepBsAg Positive tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'HepBsAg Positive tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
                 INNER JOIN
@@ -212,10 +233,12 @@ module Reports
       end
 
       def hep_cc_ag_test_done_patients
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HepCcAg test done on patients' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'HepCcAg test done on patients' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -228,10 +251,12 @@ module Reports
       end
 
       def hep_cc_ag_positive_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HepCcAg Positive tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'HepCcAg Positive tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
                 INNER JOIN
@@ -256,10 +281,12 @@ module Reports
       end
 
       def hcg_pregnancy_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Hcg Pregnacy tests done' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Hcg Pregnacy tests done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -272,10 +299,12 @@ module Reports
       end
 
       def hcg_pregnancy_positive_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Hcg Pregnacy Positive tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Hcg Pregnacy Positive tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
@@ -300,10 +329,12 @@ module Reports
       end
 
       def hiv_tests_on_pep_patients
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HIV tests on PEP patients' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'HIV tests on PEP patients' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -316,10 +347,12 @@ module Reports
       end
 
       def hiv_pep_positives_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HIV PEP positives tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'HIV PEP positives tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
@@ -343,10 +376,12 @@ module Reports
       end
 
       def prostate_specific_antigen_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Prostate Specific Antigen (PSA) tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Prostate Specific Antigen (PSA) tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -359,10 +394,12 @@ module Reports
       end
 
       def psa_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'PSA Positive' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'PSA Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
@@ -386,10 +423,12 @@ module Reports
       end
 
       def sars_covid_19_rapid_antigen_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'SARs-COVID-19 rapid antigen tests' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'SARs-COVID-19 rapid antigen tests' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -402,10 +441,12 @@ module Reports
       end
 
       def sars_covid_19_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'SARs-COVID-19 Positive' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'SARs-COVID-19 Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
@@ -429,10 +470,12 @@ module Reports
       end
 
       def serum_crag
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
           WHERE
@@ -445,10 +488,12 @@ module Reports
       end
 
       def serum_crag_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
