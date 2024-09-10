@@ -35,6 +35,8 @@ module Reports
 
     def associated_ids(drilldown_identifier)
       ids = DrilldownIdentifier.find(drilldown_identifier).data['associated_ids']
+      return "('unknown')" if ids.nil?
+
       ids.empty? ? "('unknown')" : "(#{ids})"
     end
   end
