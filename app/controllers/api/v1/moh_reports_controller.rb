@@ -38,9 +38,10 @@ module Api
       end
 
       def parasitology
-        year = params.require(:year)
-        data = Report.where(year:, name: 'moh_parasitology').first&.data
-        data = Reports::MohService.generate_parasitology_report(year) if data.nil?
+        data = Reports::ReportCacheService.find(@report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::MohService.generate_parasitology_report(@year)
+        )
         render json: data
       end
 
