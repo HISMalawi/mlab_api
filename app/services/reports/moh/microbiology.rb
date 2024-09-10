@@ -16,15 +16,21 @@ module Reports
       end
 
       def generate_report
+        data = Report.where(year:, name: 'moh_microbiology').first&.data
+        return data if data.present?
+
         report_data = number_of_afb_examined + new_tb_cases_examined + positive_new_tb_cases_examined + total_tb_lam +
                       rif_resistance_detected + mtb_not_detected + mtb_detected + rif_resistance_not_detected +
                       rif_resistance_indeterminate + no_results + invalid + covid_tests_performed +
                       covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
-                      covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results + vl_samples_received +
-                      vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
-                      csf_samples_organism + india_link_positive + gram_stain_done + gram_stain_positive + hvs_analysed + hvs_organism +
-                      cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests + serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism +
-                      fluids_analysed + culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive + cholera_rp_positive
+                      covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results +
+                      vl_samples_received + vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed +
+                      csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
+                      csf_samples_organism + india_link_positive + gram_stain_done + gram_stain_positive +
+                      hvs_analysed + hvs_organism + cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests +
+                      serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism + fluids_analysed +
+                      culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive +
+                      cholera_rp_positive
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -95,7 +101,10 @@ module Reports
         I18n.t('date.month_names').compact.map(&:downcase).each do |month_name|
           @report[month_name] = {}
           REPORT_INDICATORS.each do |indicator|
-            @report[month_name][indicator.to_sym] = 0
+            @report[month_name][indicator.to_sym] = {
+              count: 0,
+              associated_ids: ''
+            }
           end
         end
       end
@@ -104,17 +113,22 @@ module Reports
         counts.each do |count|
           month_name = count.month.downcase
           REPORT_INDICATORS.each do |_indicator|
-            @report[month_name][count.indicator.to_sym] = count.total
+            @report[month_name][count.indicator.to_sym] = {
+              count: count.total,
+              associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Microbiology')
+            }
           end
         end
         @report
       end
 
       def number_of_afb_examined
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Number of AFB sputum examined' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Number of AFB sputum examined' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -138,10 +152,12 @@ module Reports
       end
 
       def new_tb_cases_examined
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Number of  new TB cases examined' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Number of  new TB cases examined' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -164,10 +180,12 @@ module Reports
       end
 
       def positive_new_tb_cases_examined
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total,  'New cases with positive smear' AS indicator
+            COUNT(DISTINCT t.id) AS total,  'New cases with positive smear' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -192,10 +210,12 @@ module Reports
       end
 
       def total_tb_lam
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'TB LAM Total' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'TB LAM Total' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -218,10 +238,12 @@ module Reports
       end
 
       def mtb_not_detected
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
             SELECT
               MONTHNAME(t.created_date) AS month,
-              COUNT(DISTINCT t.id) AS total, 'MTB Not Detected' AS indicator
+              COUNT(DISTINCT t.id) AS total, 'MTB Not Detected' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
               tests t
                   INNER JOIN
@@ -246,10 +268,12 @@ module Reports
       end
 
       def mtb_detected
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'MTB Detected' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'MTB Detected' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -274,10 +298,12 @@ module Reports
       end
 
       def rif_resistance_detected
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Detected' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Detected' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -302,10 +328,12 @@ module Reports
       end
 
       def rif_resistance_indeterminate
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Indeterminate' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Indeterminate' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -330,10 +358,12 @@ module Reports
       end
 
       def rif_resistance_not_detected
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Not Detected' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'RIF Resistant Not Detected' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -358,10 +388,12 @@ module Reports
       end
 
       def invalid
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Invalid' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Invalid' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -386,10 +418,12 @@ module Reports
       end
 
       def no_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'No results' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'No results' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -414,10 +448,12 @@ module Reports
       end
 
       def covid_tests_performed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total number of COVID-19 tests performed' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Total number of COVID-19 tests performed' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -440,10 +476,12 @@ module Reports
       end
 
       def covid_tests_positive_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total number of SARS-COV2 Positive' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Total number of SARS-COV2 Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -467,10 +505,12 @@ module Reports
       end
 
       def covid_tests_invalid_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total number of INVALID SARS-COV2 results' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Total number of INVALID SARS-COV2 results' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -494,10 +534,12 @@ module Reports
       end
 
       def covid_tests_no_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total number of NO RESULTS' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Total number of NO RESULTS' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -521,10 +563,12 @@ module Reports
       end
 
       def covid_tests_error_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total number of ERROR results' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Total number of ERROR results' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -548,6 +592,7 @@ module Reports
       end
 
       def positive_culture
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -558,7 +603,8 @@ module Reports
               ELSE 'Unknown'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -582,6 +628,7 @@ module Reports
       end
 
       def swab_positive_culture
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -591,7 +638,8 @@ module Reports
               ELSE 'Unknown'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -615,6 +663,7 @@ module Reports
       end
 
       def culture
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -627,7 +676,8 @@ module Reports
               ELSE 'Unknown'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM tests t
                   INNER JOIN
               test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
@@ -648,6 +698,7 @@ module Reports
       end
 
       def cholera_culture
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -656,7 +707,8 @@ module Reports
               ELSE 'Unknown'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM tests t
                   INNER JOIN
               test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
@@ -677,11 +729,13 @@ module Reports
       end
 
       def cholera_rp_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             'Positive Cholera Rapid Diagnostic test' AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM tests t
                   INNER JOIN
               test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
@@ -703,11 +757,13 @@ module Reports
       end
 
       def cholera_culture_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             'Positive cholera samples' AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM tests t
                   INNER JOIN
               test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
@@ -730,10 +786,12 @@ module Reports
       end
 
       def dna_eid_samples_received
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'DNA-EID samples received' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'DNA-EID samples received' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -756,10 +814,12 @@ module Reports
       end
 
       def dna_eid_samples_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'DNA-EID tests done' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'DNA-EID tests done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -783,10 +843,12 @@ module Reports
 
       # Number with positive results
       def dna_eid_positive_results
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Number with positive results' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'Number with positive results' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                 INNER JOIN
@@ -810,10 +872,12 @@ module Reports
       end
 
       def vl_samples_received
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
@@ -834,10 +898,12 @@ module Reports
       end
 
       def vl_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                 INNER JOIN
@@ -862,10 +928,12 @@ module Reports
 
       # VL results with less than 1000 copies per ml
       def vl_results_less_100copies_permil
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'VL results with less than 1000 copies per ml' AS indicator
+            COUNT(DISTINCT t.id) AS total, 'VL results with less than 1000 copies per ml' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
               INNER JOIN
@@ -893,428 +961,460 @@ module Reports
 
       # Number of CSF samples analysed
       def csf_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.order_id) AS total, 'Number of CSF samples analysed' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('CSF')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value NOT IN ('' , '0')
-            AND tr.value IS NOT NULL
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Number of CSF samples analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       # Number of CSF samples analysed for AFB
       def csf_samples_analysed_afb
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Number of CSF samples analysed for AFB' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('CSF')}
-            AND t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value NOT IN ('', '0')
-            AND tr.value IS NOT NULL
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Number of CSF samples analysed for AFB' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+              AND t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       # Number of CSF samples with Organism
       def csf_samples_organism
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Number of CSF samples with Organism' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('CSF')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value NOT IN ('', '0')
-            AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
-            AND tr.value IS NOT NULL
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Number of CSF samples with Organism' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('', '0')
+              AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def india_ink_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total India ink done' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Total India ink done' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def india_link_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'India ink positive' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value = 'Positive'
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'India ink positive' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value = 'Positive'
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def gram_stain_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Total Gram stain done' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Total Gram stain done' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def gram_stain_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Gram stain positive' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value LIKE '%Positive%'
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Gram stain positive' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value LIKE '%Positive%'
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def hvs_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HVS analysed' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('HVS')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'HVS analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('HVS')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def hvs_organism
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'HVS with organism' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('HVS')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'HVS with organism' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('HVS')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND (tr.value IN ('seen', 'growth') OR tr.value LIKE '%positive%')
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def cryptococcal_antigen_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Cryptococcal antigen test' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Cryptococcal antigen test' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def positive_cryptococcal_antigen_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Cryptococcal antigen test Positive' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value = 'Positive'
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Cryptococcal antigen test Positive' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value = 'Positive'
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def serum_crag
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def positive_serum_crag
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value = 'Positive'
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value = 'Positive'
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def fluids_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.order_id) AS total, 'Total number of fluids analysed' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids_like('Fluid')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of fluids analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids_like('Fluid')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def other_swabs_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Other swabs analysed' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Other swabs analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def other_swabs_organism
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Other swabs with organism' AS indicator
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
-        WHERE
-          t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
-            AND YEAR(t.created_date) = #{year}
-            AND t.status_id IN (4 , 5)
-            AND t.voided = 0
-            AND tr.value IS NOT NULL
-            AND (tr.value IN ('seen', 'growth', 'AFB SEEN  SCANTY','Scanty AAFB seen') OR tr.value LIKE '%positive%')
-            AND tr.value NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Other swabs with organism' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND (tr.value IN ('seen', 'growth', 'AFB SEEN  SCANTY','Scanty AAFB seen') OR tr.value LIKE '%positive%')
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
