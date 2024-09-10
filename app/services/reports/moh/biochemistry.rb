@@ -16,6 +16,9 @@ module Reports
       end
 
       def generate_report
+        data = Report.where(year:, name: 'moh_biochemistry').first&.data
+        return data if data.present?
+
         report_data = glucose + liver_fuction_test + biochem_tests
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_biochemistry', year:).update(data:)
@@ -67,7 +70,10 @@ module Reports
         I18n.t('date.month_names').compact.map(&:downcase).each do |month_name|
           @report[month_name] = {}
           REPORT_INDICATORS.each do |indicator|
-            @report[month_name][indicator.to_sym] = 0
+            @report[month_name][indicator.to_sym] = {
+              count: 0,
+              associated_ids: ''
+            }
           end
         end
       end
@@ -76,13 +82,20 @@ module Reports
         counts.each do |count|
           month_name = count.month.downcase
           REPORT_INDICATORS.each do |_indicator|
-            @report[month_name][count.indicator.to_sym] = count.total
+            @report[month_name][count.indicator.to_sym] = {
+              count: count.total,
+              associated_ids: UtilsService.insert_drilldown(
+                { 'associated_ids' => count.associated_ids },
+                'Biochemistry'
+              )
+            }
           end
         end
         @report
       end
 
       def glucose
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -91,7 +104,8 @@ module Reports
                 ELSE 'other'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                 INNER JOIN
@@ -115,6 +129,7 @@ module Reports
       end
 
       def liver_fuction_test
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -151,7 +166,8 @@ module Reports
                 ELSE 'other'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
@@ -178,6 +194,7 @@ module Reports
       end
 
       def biochem_tests
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
             CASE
@@ -188,7 +205,8 @@ module Reports
                 ELSE 'other'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
                   INNER JOIN
