@@ -84,10 +84,7 @@ module Reports
           REPORT_INDICATORS.each do |_indicator|
             @report[month_name][count.indicator.to_sym] = {
               count: count.total,
-              associated_ids: UtilsService.insert_drilldown(
-                { 'associated_ids' => count.associated_ids },
-                'Biochemistry'
-              )
+              associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Biochemistry')
             }
           end
         end
