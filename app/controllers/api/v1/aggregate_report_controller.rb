@@ -34,13 +34,15 @@ module Api
 
       def user_statistics
         service = Reports::Aggregate::UserStatistic.new
-        from = params[:from]
-        to = params[:to]
-        user = params[:user] == '0' ? nil : params[:user]
-        report_type = params[:report_type]
-        limit = params[:limit]
-        page = params[:page]
-        render json: { data: service.generate_report(from:, to:, user:, report_type:, page:, limit:) }
+        from, to, user, report_type, page, limit, report_id = user_stat_params
+        user = %w[0 undefined].include?(user) ? nil : user
+        data = nil
+        data ||= service.generate_report(from:, to:, user:, report_type:, page:, limit:) unless report_type == 'summary'
+        data ||= Reports::ReportCacheService.find(report_id)
+        data ||= Reports::ReportCacheService.create(
+          service.generate_report(from:, to:, user:, report_type:, page:, limit:)
+        )
+        render json: { data: }
       end
 
       def infection
@@ -54,10 +56,7 @@ module Api
       end
 
       def turn_around_time
-        from = params[:from]
-        to = params[:to]
-        department = params[:department]
-        unit = params[:unit]
+        from, to, department, unit = params.values_at(:from, :to, :department, :unit)
         service = Reports::Aggregate::TurnAroundTime.new
         render json: { data: service.generate_report(from:, to:, unit:, department:) }
       end
@@ -141,6 +140,10 @@ module Api
           params.require(:to),
           params.require(:department)
         )
+      end
+
+      def user_stat_params
+        params.values_at(:from, :to, :user, :report_type, :page, :limit, :report_id)
       end
     end
   end
