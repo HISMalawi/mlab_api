@@ -9,19 +9,17 @@ module OrderService
           client: params[:client],
           person: params[:person]
         }
-      client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
-      client_id = client.id
+        client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
+        client_id = client.id
       end
       g = Global.find(params[:encounter][:sending_facility])
       facility = Facility.find_or_create_by!(name: g.name).id
       facility_section = params[:encounter][:facility_section]
       encounterType = EncounterType.find(params[:encounter][:encounter_type])
       destination = facility
-      if encounterType.name == 'Referral'
-        destination = params[:encounter][:facility_section]
-      end
+      destination = params[:encounter][:facility_section] if encounterType.name == 'Referral'
       Encounter.create!(
-        client_id: client_id,
+        client_id:,
         facility_id: facility,
         destination_id: destination,
         facility_section_id: facility_section,
@@ -34,9 +32,11 @@ module OrderService
       accession_number = generate_accession_number
       tracking_number = order_params[:tracking_number].blank? ? "X#{accession_number}" : order_params[:tracking_number]
       s_collection_time = order_params[:sample_collected_time].blank? ? Time.now : order_params[:sample_collected_time]
+      priority_id = Priority.find_by(id: order_params[:priority])&.id
+      priority_id ||= Priority.first&.id
       Order.create!(
-        encounter_id: encounter_id,
-        priority_id: order_params[:priority],
+        encounter_id:,
+        priority_id:,
         accession_number:,
         tracking_number:,
         sample_collected_time: s_collection_time,
@@ -98,20 +98,20 @@ module OrderService
 
     def serialize_order(order, encounter, tests)
       ClientManagement::ClientService.client(encounter.client_id).merge({
-        order_id: order.id,
-        accession_number: order.accession_number,
-        tracking_number: order.tracking_number,
-        requested_by: order.requested_by,
-        collected_by: order.collected_by,
-        registered_by: User.find(order.creator)&.username,
-        priority: order.priority.name,
-        sending_facility: encounter.facility&.name,
-        destination_facility: encounter.destination&.name,
-        date_created: order.created_date,
-        order_status_id: order.status_id,
-        order_status_name: Status.where(id: order.status_id).first&.name,
-        tests: serialize_test(tests)
-      })
+                                                                          order_id: order.id,
+                                                                          accession_number: order.accession_number,
+                                                                          tracking_number: order.tracking_number,
+                                                                          requested_by: order.requested_by,
+                                                                          collected_by: order.collected_by,
+                                                                          registered_by: User.find(order.creator)&.username,
+                                                                          priority: order.priority.name,
+                                                                          sending_facility: encounter.facility&.name,
+                                                                          destination_facility: encounter.destination&.name,
+                                                                          date_created: order.created_date,
+                                                                          order_status_id: order.status_id,
+                                                                          order_status_name: Status.where(id: order.status_id).first&.name,
+                                                                          tests: serialize_test(tests)
+                                                                        })
     end
 
     def serialize_test(tests)
@@ -130,14 +130,18 @@ module OrderService
     def generate_accession_number
       zero_padding = 8
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
-      default_accession_number_length = config_data['default'].nil? ? true : config_data['default']["accession_number_length"]
+      default_accession_number_length = config_data['default'].nil? ? true : config_data['default']['accession_number_length']
       zero_padding = 6 unless default_accession_number_length
       mutex = Mutex.new if mutex.blank?
       mutex.lock
       max_acc_num = 0
       code = GlobalService.current_location['code']
       year = Time.current.year.to_s.last(2)
-      record = Order.where.not(accession_number: nil).order(id: :desc).limit(1).last.accession_number rescue nil
+      record = begin
+        Order.where.not(accession_number: nil).order(id: :desc).limit(1).last.accession_number
+      rescue StandardError
+        nil
+      end
       if record.blank?
         max_acc_num = 1
       else
