@@ -14,7 +14,7 @@ module Reports
           rejected_tests = ActiveRecord::Base.connection.execute(query)
           results = result_by_ward(rejected_tests, department)
           wards = wards(results)
-          { wards:, result: results.values }
+          { wards:, results: results.values }
         end
 
         private
