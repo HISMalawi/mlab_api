@@ -554,6 +554,12 @@ module Tests
       }
     end
 
+    def rejection_reason(test_id, order_id)
+      status_reason_id = TestStatus.find_by(test_id:)&.status_reason_id
+      status_reason_id ||= OrderStatus.find_by(order_id:)&.status_reason_id
+      StatusReason.find_by(id: status_reason_id)&.description || ''
+    end
+
     def serialize_test(record, is_test_list: true, is_client_report: false)
       json = {
         id: record['id'],
@@ -578,6 +584,10 @@ module Tests
         lab_location: LabLocation.where(id: record['lab_location_id']).first
       }
       return json if is_test_list
+
+      if record['t_status'].downcase == 'test-rejected'
+        json[:rejection_reason] = rejection_reason(record['id'], record['order_id'])
+      end
 
       json[:is_machine_oriented] = machine_oriented?(record['test_type_id']) unless is_client_report
       json[:result_remarks] = Remark.where(tests_id: record['id']).first
