@@ -555,9 +555,9 @@ module Tests
     end
 
     def rejection_reason(test_id, order_id)
-      status_reason_id = TestStatus.find_by(test_id:)&.status_reason_id
-      status_reason_id ||= OrderStatus.find_by(order_id:)&.status_reason_id
-      StatusReason.find_by(id: status_reason_id)&.description || ''
+      status_reason = TestStatus.find_by(test_id:, status_id: Status.find_by_name('test-rejected')&.id)
+      status_reason ||= OrderStatus.find_by(order_id:, status_id: Status.find_by_name('specimen-rejected')&.id)
+      StatusReason.find_by(id: status_reason&.status_reason_id)&.description || ''
     end
 
     def serialize_test(record, is_test_list: true, is_client_report: false)
