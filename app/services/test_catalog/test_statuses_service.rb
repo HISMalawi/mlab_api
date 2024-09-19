@@ -8,6 +8,7 @@ module TestCatalog::TestStatusesService
         status_id = status.id
         new_test_status = TestStatus.find_or_create_by(test_id:, status_id:)
         void_results(test_status, reason) if status.name == 'test-rejected'
+        Test.where(id: test_id).first&.update(status_id:)
         new_test_status.update!(status_reason_id: reason, person_talked_to:)
         result = {
           id: test_id,
