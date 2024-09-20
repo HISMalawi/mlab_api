@@ -145,7 +145,7 @@ module OrderService
       if record.blank?
         max_acc_num = 1
       else
-        max_acc_num = record.match(/\d+/)[0].to_i
+        max_acc_num = record.to_s.gsub(code, '').to_i
         max_acc_num += 1
         max_yr = max_acc_num.to_s.slice!(0, 2).to_i
         max_acc_num = year.to_i > max_yr ? 1 : max_acc_num.to_s[2..].to_i
