@@ -19,11 +19,8 @@ rails db:environment:set RAILS_ENV=$ENV
 
 # Only update metadata if migration is successful
 rails db:migrate && {
-    # Clear existing home dashboard data
-    rails r iblis_migration/update_home_dashboard.rb && {
-        # Add client identifier types
-        rails r iblis_migration/client_identifier_type.rb
-    } && {
-        rails db:seed
-        }
+    rails r iblis_migration/clear_cached_reports.rb && 
+    rails r iblis_migration/client_identifier_type.rb &&
+    rails r iblis_migration/update_user_location.rb &&
+    rails db:seed
 }
