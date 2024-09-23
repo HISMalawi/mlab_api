@@ -1,8 +1,8 @@
 Rails.logger = Logger.new(STDOUT)
 module Nlims
   module Sync
-    def self.create_order
-      nlims  = nlims_token
+    def self.create_order(id: nil)
+      nlims = nlims_token
       return if nlims[:token].blank?
 
       orders =  Order.find_by_sql(
@@ -12,6 +12,7 @@ module Nlims
                   INNER JOIN unsync_orders uo ON
                     uo.test_or_order_id = o.id
                   WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
+                  #{id_condition(id)}
                   ORDER BY uo.id DESC LIMIT 100"
       )
       facility_details = GlobalService.current_location
@@ -72,7 +73,7 @@ module Nlims
       end
     end
 
-    def self.update_order
+    def self.update_order(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
 
@@ -82,7 +83,7 @@ module Nlims
         INNER JOIN current_order_status cos ON cos.order_id = uo.test_or_order_id
         INNER JOIN orders o ON uo.test_or_order_id = o.id
         WHERE uo.data_level = 'order' AND (uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected')
-          AND uo.sync_status = 0 LIMIT 100
+          AND uo.sync_status = 0 #{id_condition(id)} LIMIT 100
         ")
       orders.each do |order|
         Rails.logger.info('=======Updating orders in nlims=============')
@@ -115,7 +116,7 @@ module Nlims
       end
     end
 
-    def self.update_test
+    def self.update_test(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
 
@@ -128,7 +129,7 @@ module Nlims
           INNER JOIN tests t ON t.id = uo.test_or_order_id
           INNER JOIN orders o ON t.order_id  = o.id
           WHERE
-            uo.data_level = 'test' AND uo.sync_status = 0 ORDER BY uo.id DESC LIMIT 100
+            uo.data_level = 'test' AND uo.sync_status = 0 #{id_condition(id)} ORDER BY uo.id DESC LIMIT 100
       ")
       tests.each do |test_res|
         Rails.logger.info('=======Updating tests in nlims=============')
@@ -196,6 +197,10 @@ module Nlims
 
     def self.update_unsync_order(unsync_order)
       unsync_order&.update!(sync_status: 1)
+    end
+
+    def self.id_condition(id)
+      id.present? ? " AND uo.id = #{id}" : ''
     end
 
     def self.nlims_token
