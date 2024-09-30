@@ -7,7 +7,8 @@ module Nlims
 
       orders =  Order.find_by_sql(
         "SELECT o.id, o.encounter_id, o.tracking_number, o.sample_collected_time,
-                    o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id
+                    o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id,
+                    o.creator
                   FROM orders o
                   INNER JOIN unsync_orders uo ON
                     uo.test_or_order_id = o.id
@@ -19,6 +20,7 @@ module Nlims
       orders.each do |order|
         Rails.logger.info('=======Creating orders in nlims=============')
         tests = Test.where(order_id: order[:id])
+        person_creator = Person.find_by(id: User.find_by(id: order[:creator])&.person_id)
         priority = Priority.find(order[:priority_id]).name
         encounter = Encounter.find(order[:encounter_id])
         client = encounter.client.person
@@ -39,8 +41,8 @@ module Nlims
           reason_for_test: priority,
           order_location: encounter.facility_section.name,
           who_order_test_id: nil,
-          who_order_test_last_name: '',
-          who_order_test_first_name: '',
+          who_order_test_last_name: person_creator&.last_name || '',
+          who_order_test_first_name: person_creator&.first_name || '',
           who_order_test_phone_number: '',
           first_name: client[:first_name],
           last_name: client[:last_name],
