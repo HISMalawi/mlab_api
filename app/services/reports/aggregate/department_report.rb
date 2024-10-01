@@ -12,6 +12,7 @@ module Reports
         @from = from
         @to = to
         @department = department
+        depart_condition = department == 'All' ? '' : "AND tt.department_id = #{Department.find_by_name(@department)&.id}"
         @sql = <<-SQL
             SELECT
                 tt.name test_type,
@@ -22,7 +23,7 @@ module Reports
             FROM
                 tests t
                     JOIN
-                test_types tt ON tt.id = t.test_type_id AND tt.department_id = #{Department.find_by_name(@department)&.id}
+                test_types tt ON tt.id = t.test_type_id #{depart_condition}
                     JOIN
                 orders o ON o.id = t.order_id
                     JOIN
