@@ -1,23 +1,26 @@
 Rails.logger = Logger.new(STDOUT)
 module Nlims
   module Sync
-    def self.create_order
-      nlims  = nlims_token
+    def self.create_order(id: nil)
+      nlims = nlims_token
       return if nlims[:token].blank?
 
       orders =  Order.find_by_sql(
         "SELECT o.id, o.encounter_id, o.tracking_number, o.sample_collected_time,
-                    o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id
+                    o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id,
+                    o.creator
                   FROM orders o
                   INNER JOIN unsync_orders uo ON
                     uo.test_or_order_id = o.id
                   WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
+                  #{id_condition(id)}
                   ORDER BY uo.id DESC LIMIT 100"
       )
       facility_details = GlobalService.current_location
       orders.each do |order|
         Rails.logger.info('=======Creating orders in nlims=============')
         tests = Test.where(order_id: order[:id])
+        person_creator = Person.find_by(id: User.find_by(id: order[:creator])&.person_id)
         priority = Priority.find(order[:priority_id]).name
         encounter = Encounter.find(order[:encounter_id])
         client = encounter.client.person
@@ -38,8 +41,8 @@ module Nlims
           reason_for_test: priority,
           order_location: encounter.facility_section.name,
           who_order_test_id: nil,
-          who_order_test_last_name: '',
-          who_order_test_first_name: '',
+          who_order_test_last_name: person_creator&.last_name || '',
+          who_order_test_first_name: person_creator&.first_name || '',
           who_order_test_phone_number: '',
           first_name: client[:first_name],
           last_name: client[:last_name],
@@ -72,7 +75,7 @@ module Nlims
       end
     end
 
-    def self.update_order
+    def self.update_order(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
 
@@ -82,7 +85,7 @@ module Nlims
         INNER JOIN current_order_status cos ON cos.order_id = uo.test_or_order_id
         INNER JOIN orders o ON uo.test_or_order_id = o.id
         WHERE uo.data_level = 'order' AND (uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected')
-          AND uo.sync_status = 0 LIMIT 100
+          AND uo.sync_status = 0 #{id_condition(id)} LIMIT 100
         ")
       orders.each do |order|
         Rails.logger.info('=======Updating orders in nlims=============')
@@ -115,7 +118,7 @@ module Nlims
       end
     end
 
-    def self.update_test
+    def self.update_test(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
 
@@ -128,7 +131,7 @@ module Nlims
           INNER JOIN tests t ON t.id = uo.test_or_order_id
           INNER JOIN orders o ON t.order_id  = o.id
           WHERE
-            uo.data_level = 'test' AND uo.sync_status = 0 ORDER BY uo.id DESC LIMIT 100
+            uo.data_level = 'test' AND uo.sync_status = 0 #{id_condition(id)} ORDER BY uo.id DESC LIMIT 100
       ")
       tests.each do |test_res|
         Rails.logger.info('=======Updating tests in nlims=============')
@@ -196,6 +199,10 @@ module Nlims
 
     def self.update_unsync_order(unsync_order)
       unsync_order&.update!(sync_status: 1)
+    end
+
+    def self.id_condition(id)
+      id.present? ? " AND uo.id = #{id}" : ''
     end
 
     def self.nlims_token
