@@ -555,7 +555,8 @@ module Tests
     end
 
     def rejection_reason(test_id, order_id)
-      status_reason = TestStatus.find_by(test_id:, status_id: Status.find_by_name('test-rejected')&.id)
+      status_ids = Status.where(name: %w[test-rejected rejected voided not-done])&.ids
+      status_reason = TestStatus.find_by(test_id:, status_id: status_ids)
       status_reason ||= OrderStatus.find_by(order_id:, status_id: Status.find_by_name('specimen-rejected')&.id)
       StatusReason.find_by(id: status_reason&.status_reason_id)&.description || ''
     end
@@ -585,7 +586,7 @@ module Tests
       }
       return json if is_test_list
 
-      if record['t_status'].downcase == 'test-rejected'
+      if %w[test-rejected rejected not-done voided].include?(record['t_status'].downcase)
         json[:rejection_reason] = rejection_reason(record['id'], record['order_id'])
       end
 
