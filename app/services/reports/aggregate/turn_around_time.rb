@@ -81,7 +81,9 @@ module Reports
       end
 
       def lab_reception?(department)
-        Department.find_by(name: 'Lab Reception')&.id&.to_s == department
+        lab_reception = Department.find_by(name: 'Lab Reception')&.id
+        department = department.present? && department != 'All' && department != '0' ? department : lab_reception
+        lab_reception&.to_s == department.to_s
       end
 
       def difference(unit, diff)
