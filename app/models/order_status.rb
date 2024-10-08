@@ -39,37 +39,35 @@ class OrderStatus < VoidableRecord
   end
 
   def insert_into_report_data_raw
-    if ['specimen-accepted', 'specimen-rejected'].include?(Status.find_by(id: status_id).name)
-      test_ids = Test.where(order_id: order.id).pluck(:id)
-      test_ids.each do |test_id|
-        begin  
-          InsertIntoReportRawDataJob.perform_async(test_id)
-        rescue => e
-          Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
-        end
-      end
+    return unless %w[specimen-accepted specimen-rejected].include?(Status.find_by(id: status_id).name)
+
+    test_ids = Test.where(order_id: order.id).pluck(:id)
+    test_ids.each do |test_id|
+      InsertIntoReportRawDataJob.perform_async(test_id)
+    rescue StandardError => e
+      Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
     end
   end
 
   def update_moh_report_data
-    if ['specimen-accepted', 'specimen-rejected'].include?(Status.find_by(id: status_id).name)
-      begin
-        created_date = order.created_date.nil? ? '' : order.created_date.strftime('%Y-%m-%d').to_s
-        UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
-      rescue => e
-        Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
-      end
+    return unless %w[specimen-accepted specimen-rejected].include?(Status.find_by(id: status_id).name)
+
+    begin
+      created_date = order.created_date.nil? ? '' : order.created_date.strftime('%Y-%m-%d').to_s
+      UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
+    rescue StandardError => e
+      Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
     end
   end
 
   def create_unsync_order
-    if ['specimen-accepted', 'specimen-rejected'].include?(Status.find_by(id: status_id).name)
-      UnsyncOrder.create(
-        test_or_order_id: order.id,
-        data_not_synced: Status.find_by(id: status_id).name,
-        data_level: 'order',
-        sync_status: 0
-      )
-    end
+    return unless %w[specimen-accepted specimen-rejected].include?(Status.find_by(id: status_id).name)
+
+    UnsyncOrder.create(
+      test_or_order_id: order.id,
+      data_not_synced: Status.find_by(id: status_id).name,
+      data_level: 'order',
+      sync_status: 0
+    )
   end
 end

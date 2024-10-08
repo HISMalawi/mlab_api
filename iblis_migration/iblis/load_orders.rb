@@ -190,9 +190,7 @@ loop do
   break if records.empty?
 
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --ORDERS--  => (step 3 of 10)")
-  unless records.empty?
-    Order.upsert_all(records.map(&:attributes), returning: false)
-  end
+  Order.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size
 end
@@ -203,13 +201,12 @@ offset = 0
 count = total_records
 priority_id = Priority.find_or_create_by(name: 'Stat').id
 loop do
-  records = iblis_orders_with_stat(offset, batch_size, priority_id, specimen_not_collected, specimen_accepted, specimen_rejected)
+  records = iblis_orders_with_stat(offset, batch_size, priority_id, specimen_not_collected, specimen_accepted,
+                                   specimen_rejected)
   break if records.empty?
 
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Update Orders--  => (step 4 of 10)")
-  unless records.empty?
-    Order.upsert_all(records.map(&:attributes), returning: false)
-  end
+  Order.upsert_all(records.map(&:attributes), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size
 end
@@ -218,6 +215,8 @@ def fix_people(records)
   user = User.first.id
   records.map!(&:attributes).map do |record|
     record[:creator] = user unless User.exists?(id: record[:creator])
+    record[:created_date] = record[:created_date] || Time.now
+    record[:updated_date] = record[:updated_date] || Time.now
     record
   end
 end
@@ -231,9 +230,7 @@ loop do
   break if records.empty?
 
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Orders Statuses--  => (step 5 of 10)")
-  unless records.empty?
-    OrderStatus.insert_all(fix_people(records), returning: false)
-  end
+  OrderStatus.insert_all(fix_people(records), returning: false) unless records.empty?
   offset += batch_size
   count -= batch_size
 end
@@ -249,7 +246,9 @@ loop do
 
   Rails.logger.info("Processing batch #{offset} of #{total_records}: Remaining - #{count} --Rejected Orders Statuses--  => (step 6 of 10)")
   unless records.empty?
-    OrderStatus.upsert_all(records.map { |record| record.attributes.merge('status_reason_id' => StatusReason.find_or_create_by(description: record.reason).id).except('reason') }, returning: false)
+    OrderStatus.upsert_all(records.map do |record|
+      record.attributes.merge('status_reason_id' => StatusReason.find_or_create_by(description: record.reason).id).except('reason')
+    end, returning: false)
   end
   offset += batch_size
   count -= batch_size
