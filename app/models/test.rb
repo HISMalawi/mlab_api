@@ -145,6 +145,8 @@ class Test < VoidableRecord
 
   def update_elastic_search_index
     UpdateElasticsearchIndexJob.perform_async
+  rescue StandardError => e
+    puts "Error updating elasticsearch #{e.message}"
   end
 
   def test_service

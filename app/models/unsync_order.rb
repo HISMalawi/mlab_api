@@ -6,5 +6,7 @@ class UnsyncOrder < VoidableRecord
 
   def push_to_nlims
     NlimsSyncNowJob.perform_async(id)
+  rescue StandardError => e
+    puts "Error pushing to nlims #{e.message}"
   end
 end
