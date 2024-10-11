@@ -22,5 +22,6 @@ rails db:migrate && {
     rails r iblis_migration/clear_cached_reports.rb && 
     rails r iblis_migration/client_identifier_type.rb &&
     rails r iblis_migration/update_user_location.rb &&
+    rails r iblis_migration/update_test_lab_location.rb &&
     rails db:seed
 }
