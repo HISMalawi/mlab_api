@@ -30,7 +30,7 @@ module Reports
                       hvs_analysed + hvs_organism + cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests +
                       serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism + fluids_analysed +
                       culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive +
-                      cholera_rp_positive
+                      cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -697,15 +697,10 @@ module Reports
         SQL
       end
 
-      def cholera_culture
+      def cholera_rapid_diagnostic_done
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            CASE
-              WHEN ti.id IN #{report_utils.test_indicator_ids('Culture')} THEN 'Cholera cultures done'
-              WHEN ti.id IN #{report_utils.test_indicator_ids('Cholera')} THEN 'Cholera Rapid Diagnostic test done'
-              ELSE 'Unknown'
-            END AS indicator,
+          SELECT 'Cholera Rapid Diagnostic test done' AS indicator,
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
@@ -720,6 +715,7 @@ module Reports
                   AND tr.voided = 0
           WHERE
               t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
+              AND ti.id IN #{report_utils.test_indicator_ids('Cholera')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -728,7 +724,7 @@ module Reports
         SQL
       end
 
-      def cholera_rp_positive
+      def cholera_rapid_diagonostic_positive
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
@@ -757,6 +753,33 @@ module Reports
         SQL
       end
 
+      def cholera_culture
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT 'Cholera cultures done' AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM tests t
+                  INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.specimen_id IN #{report_utils.specimen_ids('Stool')}
+              AND ti.id IN #{report_utils.test_indicator_ids('Culture')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND t.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
       def cholera_culture_positive
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
@@ -774,9 +797,11 @@ module Reports
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
                   AND tr.voided = 0
+              INNER JOIN drug_susceptibilities ds ON ds.test_id = t.id
+              INNER JOIN organisms o ON o.id = ds.organism_id
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Culture')}
+                  ti.id IN #{report_utils.test_indicator_ids('Culture')}
+                  AND o.id IN #{report_utils.organism_ids('Cholera')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0

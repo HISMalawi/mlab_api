@@ -56,6 +56,15 @@ module Reports
           "(#{ids.join(', ')})"
         end
 
+        def organism_ids(actual_name)
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = Array(actual_name) + manual_names
+          ids = Organism.where(name: manual_names).map(&:id)
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
+
         def facility_section_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
