@@ -472,47 +472,59 @@ module Reports
       def serum_crag
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator,
-            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
-          FROM
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Serum Crag' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
               tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
-                  AND YEAR(t.created_date) = #{year}
-                  AND t.status_id IN (4 , 5)
-                  AND t.voided = 0
-          GROUP BY MONTHNAME(t.created_date)
+            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            AND t.specimen_id IN #{report_utils.specimen_ids('Blood')}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
       def serum_crag_positive
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
-          SELECT
-            MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator,
-            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
-          FROM
-            tests t
-              INNER JOIN
-            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
-                INNER  JOIN
-            test_indicators ti ON ti.id = ttim.test_indicators_id
-              INNER JOIN
-            test_results tr ON tr.test_indicator_id = ti.id
-              AND tr.test_id = t.id
-              AND tr.voided = 0
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.id) AS total, 'Serum Crag Positive' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            AND t.specimen_id IN #{report_utils.specimen_ids('Blood')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
-              AND tr.value <> ''
-              AND tr.value = 'Positive'
               AND tr.value IS NOT NULL
-          GROUP BY MONTHNAME(t.created_date)
+              AND tr.value = 'Positive'
+              AND tr.value NOT IN ('', '0')
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 

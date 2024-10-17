@@ -314,6 +314,11 @@ name_mappings = [
   {
     actual_name: 'Urine Chemistry',
     manual_names: ['Urine Chemistries', 'Urine chemistry (paeds)']
+  },
+  {
+    actual_name: 'Cryptococcus Antigen Test',
+    manual_names: ['Cryptococcus Antigen Test', 'Cryptococcus Antigen Test (Paeds)', 'Cryptococcal Antigen Test',
+                   'CrAg']
   }
 ]
 

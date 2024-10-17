@@ -752,6 +752,7 @@ module Reports
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
                 AND tr.value IS NOT NULL
+                AND tr.value = 'Positive'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -1294,7 +1295,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            AND t.specimen_id IN #{report_utils.specimen_ids('Blood')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1322,7 +1324,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')}
+            t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            AND t.specimen_id IN #{report_utils.specimen_ids('Blood')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
