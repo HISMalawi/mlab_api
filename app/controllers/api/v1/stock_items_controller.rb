@@ -67,6 +67,7 @@ module Api
       def stock_item_params
         params.require(:stock_item).permit(
           :name,
+          :product_code
           :stock_category_id,
           :description,
           :measurement_unit,
