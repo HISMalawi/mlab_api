@@ -286,7 +286,7 @@ module StockManagement
           stock_item = StockItem.create!(
             product_code: row['productCode'],
             name: row['name'],
-            stock_category_id: StockCategory.find_or_create_by!(name: row['category']).id,
+            stock_category_id: StockCategory.find_or_create_by!(name: row['categoryDescription'], short_name: row['category']).id,
             description: row['description'],
             measurement_unit: StockUnit.find_or_create_by!(name: row['dispensable'].gsub('dispensingUnit:', '').strip).id,
             quantity_unit: row['packSize'],

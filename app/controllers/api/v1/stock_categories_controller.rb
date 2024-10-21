@@ -35,7 +35,7 @@ module Api
       private
 
       def stock_category_params
-        params.require(:stock_category).permit(:name)
+        params.require(:stock_category).permit(:name, :short_name)
       end
 
       def set_stock_category
