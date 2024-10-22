@@ -19,11 +19,18 @@ module StockManagement
 
       def stock_item(stock_item)
         stock = Stock.find_by_stock_item_id(stock_item.id)
-        stock_item_json = JSON.parse(stock_item.attributes.to_json)
-        stock_item_json[:stock] = stock
-        stock_item_json[:stock_unit] = StockUnit.find(stock_item.measurement_unit).name
-        stock_item_json[:stock_category] = StockCategory.find(stock_item.stock_category_id).name
-        stock_item_json[:stock_location] = StockLocation.find(stock.stock_location_id).name
+        transactions = StockTransaction.where(stock_id: stock.id).select('DISTINCT batch, lot')
+        batches = transactions.pluck(:batch).compact.uniq
+        lots = transactions.pluck(:lot).compact.uniq
+        stock_item_json = stock_item.attributes.as_json
+        stock_item_json.merge!({
+          stock: stock,
+          stock_unit: StockUnit.find(stock_item.measurement_unit).name,
+          stock_category: StockCategory.find(stock_item.stock_category_id).name,
+          stock_location: stock ? StockLocation.find(stock.stock_location_id).name : nil,
+          batches: batches,
+          lots: lots
+        })
         stock_item_json
       end
 
