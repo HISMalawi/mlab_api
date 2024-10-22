@@ -8,6 +8,8 @@ class StockItem < VoidableRecord
   before_save :strip_name_whitespace
   before_save :set_measurement_unit
 
+  has_many :stock_transactions, through: :stocks
+
   private
 
   def set_measurement_unit
