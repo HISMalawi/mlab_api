@@ -22,10 +22,10 @@ stock_transaction_types.each do |type|
   )
 end
 
-stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other]
+stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other Misplace_stock Incorrect_entry Phased_out Banned Missing Transfer_to_another_facility For_trainings]
 stock_adjustment_reasons.each do |reason|
   puts "Creating stock adjustment reason: #{reason}"
-  StockAdjustmentReason.find_or_create_by!(name: reason)
+  StockAdjustmentReason.find_or_create_by!(name: reason.gsub('_', ' '))
 end
 
 name_mappings = [
