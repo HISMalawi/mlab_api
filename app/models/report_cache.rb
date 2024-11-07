@@ -13,5 +13,8 @@ class ReportCache < VoidableRecord
 
   def clear_report_cache
     ReportCacheClearJob.perform_at(2.hours.from_now, id)
+  rescue StandardError => e
+    puts "Error:
+     #{e.message}"
   end
 end

@@ -13,6 +13,9 @@ class DrilldownIdentifier < VoidableRecord
   end
 
   def clear_drilldown_identifier_cache
-    DrilldownIdentifierClearJob.perform_at(2.hours.from_now, id)
+    DrilldownIdentifierClearJob.perform_at(24.hours.from_now, id)
+  rescue StandardError => e
+    puts "Error:
+     #{e.message}"
   end
 end
