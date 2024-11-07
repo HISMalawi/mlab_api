@@ -249,11 +249,11 @@ name_mappings = [
   },
   {
     actual_name: 'Malaria',
-    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..']
+    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..', 'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
   },
   {
     actual_name: 'Malaria Indicators',
-    manual_names: ['Blood film', 'Results', 'Malaria Species']
+    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite']
   },
   {
     actual_name: 'Trypanosome',
