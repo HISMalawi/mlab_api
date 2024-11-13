@@ -16,6 +16,8 @@ def migrate_instruments
   puts 'Clean Instrument Test Type Mapping Table'
   ActiveRecord::Base.connection.execute('TRUNCATE TABLE instrument_test_type_mappings')
   puts 'Inserting Instrument test type mapping records'
+  return if instrument_mapping_batch.empty?
+
   InstrumentTestTypeMapping.upsert_all(instrument_mapping_batch
       .flatten)
 end
