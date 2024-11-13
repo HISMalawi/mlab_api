@@ -211,8 +211,8 @@ module Tests
     end
 
     def search_by_test_status(tests, status)
-      status = status.downcase == 'rejected' ? 'test-rejected' : status
       status_id = Status.find_by(name: status)&.id
+      status_id ||= Status.find_by(name: 'test-rejected')&.id if status.downcase == 'rejected'
       tests.where(status_id:)
     end
 
