@@ -4,10 +4,10 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
+User=emr-user
 WorkingDirectory=/var/www/mlab_api
 Environment="RAILS_ENV=production"
-ExecStart=/bin/bash -lc 'cd /var/www/mlab_api && rvm use 3.2.0 && bundle exec sidekiq'
-User=meduser
+ExecStart=/bin/bash -lc 'exec $HOME/.rbenv/shims/bundle exec sidekiq -e production'
 UMask=0002
 RestartSec=1
 Restart=on-failure

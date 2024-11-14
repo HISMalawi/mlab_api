@@ -4,14 +4,17 @@ After=network.target
 
 [Service]
 Type=simple
-User=meduser
+User=emr-user
 WorkingDirectory=/var/www/mlab_api/
 Environment="RAILS_ENV=production"
 Environment="SECRET_KEY_BASE=$(bundle exec rails secret)"
-ExecStart=/bin/bash -lc '/home/meduser/.rvm/gems/ruby-3.2.0/bin/puma -C /var/www/mlab_api/config/puma.rb'
+ExecStartPre=/bin/bash -lc 'rm -f tmp/pids/server.pid && (fuser -k 8005/tcp || true)'
+ExecStart=/bin/bash -lc 'source $HOME/.nvm/nvm.sh && nvm use 18 && $HOME/.rbenv/shims/rails s -b 0.0.0.0 -e production -p 8005'
 RestartSec=1
 Restart=on-failure
 KillMode=process
 
 [Install]
 WantedBy=multi-user.target
+
+
