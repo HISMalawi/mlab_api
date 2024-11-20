@@ -36,7 +36,7 @@ module Api
             end
 
             # Handle cross match results with same pack number
-            void_previous_x_matches(test_indicator_id, value) if Test.find(test_id).test_type_id == 30
+            # void_previous_x_matches(test_indicator_id, value) if Test.find(test_id).test_type_id == 30
             test_result = TestResult.find_by(test_id:, test_indicator_id:)
             test_result&.void('Edited')
             TestResult.create!(test_id:, test_indicator_id:, value:,
