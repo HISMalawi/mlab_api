@@ -33,7 +33,8 @@ module OrderService
         destination_id: destination,
         facility_section_id: facility_section,
         start_date: Time.now,
-        encounter_type_id: encounterType.id
+        encounter_type_id: encounterType.id,
+        client_history: params[:encounter][:client_history]
       )
     end
 

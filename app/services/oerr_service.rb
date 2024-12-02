@@ -2,6 +2,7 @@
 
 module OerrService
   class << self
+    # Segments: "Jane^Doe~DF5U00~0~487720800~44~chaliram~mass~3~1733123041~32^31~R"
     def order_dto(segments, lab_location)
       segments = segments.split('~')
       specimen = Specimen.find_by(id: segments[7])&.id
@@ -25,7 +26,8 @@ module OerrService
         encounter: {
           sending_facility: Facility.find_by(id: GlobalService.current_location.id)&.id,
           encounter_type: EncounterType.find_by(name: 'In Patient')&.id,
-          facility_section: FacilitySection.find_by(id: segments[4])&.id
+          facility_section: FacilitySection.find_by(id: segments[4])&.id,
+          client_history: segments[6]
         },
         lab_location:,
         order: {

@@ -75,6 +75,7 @@ module Tests
           t.id,
           t.order_id,
           t.voided,
+          e.client_history,
           t.test_type_id,
           c.id AS patient_no,
           p.first_name,
@@ -459,7 +460,8 @@ module Tests
         last_name: record['last_name'],
         sex: record['sex'],
         date_of_birth: record['date_of_birth'],
-        birth_date_estimated: record['birth_date_estimated']
+        birth_date_estimated: record['birth_date_estimated'],
+        client_history: record['client_history']
       }
     end
 
