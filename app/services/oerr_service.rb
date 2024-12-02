@@ -19,7 +19,7 @@ module OerrService
           first_name: segments[0].split('^').first,
           middle_name: '',
           last_name: segments[0].split('^').last,
-          sex: segments[2],
+          sex: segments[2].to_i.zero? ? 'F' : 'M',
           date_of_birth: Time.at(segments[3].to_i).to_date,
           birth_date_estimated: false
         },

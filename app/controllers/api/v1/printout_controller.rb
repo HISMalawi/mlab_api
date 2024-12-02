@@ -3,6 +3,7 @@ class Api::V1::PrintoutController < ApplicationController
     order = Order.find_by_accession_number(params[:accession_number])
     person = order.encounter.client.person
     label = PrintoutService.print_accession_number(person, order)
+    label = PrintoutService.oerr_printout(label, person, order) if params[:oerr].present?
     send_data label, type: 'application/label;charset=utf-8',
                      stream: false,
                      filename: "#{person.id}-#{SecureRandom.hex(12)}.lbl",
