@@ -10,6 +10,7 @@ class TestStatus < VoidableRecord
 
   # after_commit :insert_into_report_data_raw, on: :create
   after_create :create_unsync_order
+  after_create :create_oerr_sync_trails
 
   def as_json(options = {})
     super(options.merge(methods: %i[status initiator statuses_reason],
@@ -37,13 +38,11 @@ class TestStatus < VoidableRecord
   end
 
   def insert_into_report_data_raw
-    begin
       # created_date = test.created_date.nil? ? '' : test.created_date.strftime('%Y-%m-%d').to_s
       InsertIntoReportRawDataJob.perform_async(test.id)
       # UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
-    rescue => e
+  rescue StandardError => e
       Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
-    end
   end
 
   def create_unsync_order
@@ -53,5 +52,12 @@ class TestStatus < VoidableRecord
       data_level: 'test',
       sync_status: 0
     )
+  end
+
+  def create_oerr_sync_trails
+    oerr_sync_trail = OerrSyncTrail.find_by(test_id: test.id)
+    return if oerr_sync_trail.nil?
+
+    OerrService.create_oerr_sync_trail_on_update(oerr_sync_trail)
   end
 end

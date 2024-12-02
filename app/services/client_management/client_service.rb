@@ -22,11 +22,12 @@ module ClientManagement
         client = find_or_initialize_client(params[:client][:uuid])
         middle_name = sanitize_middle_name(params[:person][:middle_name])
         lab_location_id = params[:lab_location].present? ? params[:lab_location].to_i : 1
-        return unless client.new_record?
+        return client unless client.new_record?
 
         ActiveRecord::Base.transaction do
+          uuid = params[:client][:uuid].blank? ? SecureRandom.uuid : params[:client][:uuid]
           person = create_person(params[:person], middle_name)
-          client = create_client_record(person, params[:client][:uuid], lab_location_id)
+          client = create_client_record(person, uuid, lab_location_id)
           create_client_identifier(identifiers, client.id)
         end
         client
@@ -98,7 +99,10 @@ module ClientManagement
       end
 
       def find_or_initialize_client(uuid)
-        uuid.present? ? Client.find_or_initialize_by(uuid:) : Client.new
+        client = Client.find_by(uuid:)
+        client ||= Client.find_by_npid(uuid)
+        client ||= Client.new
+        client
       end
 
       def sanitize_middle_name(middle_name)
