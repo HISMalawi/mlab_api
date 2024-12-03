@@ -73,13 +73,13 @@
                     } ${person.last_name}`
                   }}
                 </td>
-                <td class="border px-1 py-1 font-bold">Sex</td>
-                <td class="border px-1 py-1">
+                <td class="border-t border-l px-1 py-1 font-bold">Sex: </td>
+                <td class="border-t px-1 py-1">
                   {{ person.sex === "F" ? "Female" : "Male" }}
                 </td>
-                <td class="border px-1 py-1 font-bold">Age</td>
-                <td class="border px-1 py-1">
-                  {{ calculateAge(person.date_of_birth) }} yr(s)
+                <td class="border-t border-l px-1 py-1 font-bold">Age: </td>
+                <td class="border-t border-r px-1 py-1">
+                  {{ getPatientAge(person.date_of_birth) }}
                 </td>
               </tr>
               <tr>
@@ -505,6 +505,20 @@ const app = createApp({
     },
     calculateAge(date) {
       return moment().diff(date, "years");
+    },
+    getPatientAge(date) {
+      const now = moment();
+      const start = moment(date);
+      const years = now.diff(start, "years");
+      start.add(years, "years");
+      const months = now.diff(start, "months");
+      start.add(months, "months");
+      const weeks = now.diff(start, "weeks");
+      start.add(weeks, "weeks");
+      const days = now.diff(start, "days");
+      start.add(days, "days");
+      const hrs = now.diff(start, "hours");
+      return `${years} yrs ${months} months ${weeks} wks ${days} days ${hrs} hrs`;
     },
     getRequiredRange(patient, ranges) {
       const patientSex = patient.sex == "M" ? "Male" : "Female";
