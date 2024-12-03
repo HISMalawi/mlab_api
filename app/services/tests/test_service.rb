@@ -265,7 +265,7 @@ module Tests
                     tr.value, tr.result_date, tr.machine_name
                   FROM test_indicators ti
                   INNER JOIN
-                    test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id
+                    test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id AND ttim.voided = 0
                   LEFT JOIN test_results tr ON ti.id = tr.test_indicator_id
                     AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
                   WHERE ttim.test_types_id = #{test_type_id}")
