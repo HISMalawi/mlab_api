@@ -71,8 +71,9 @@ module OerrService
       end
     end
 
-    def oerr_sync_trail_update(oerr_sync_trail)
-      oerr_sync_trail.update(synced: true, synced_at: Time.now)
+    def oerr_sync_trail_update(oerr_sync_trail, doc_id = '')
+      oerr_sync_trail.update(synced: true, synced_at: Time.now, doc_id:)
+      OerrSyncTrail.where(order_id: oerr_sync_trail.order_id).update_all(doc_id:)
     end
 
     def create_oerr_sync_trail_on_update(oerr_sync_trail)
@@ -83,6 +84,7 @@ module OerrService
         facility_section_id: oerr_sync_trail.facility_section_id,
         requested_by: oerr_sync_trail.requested_by,
         sample_collected_time: oerr_sync_trail.sample_collected_time,
+        doc_id: oerr_sync_trail.doc_id,
         synced: false,
         synced_at: nil
       )
@@ -92,6 +94,18 @@ module OerrService
       test_obj = Tests::TestService.new.find(oerr_sync_trail.test_id)
       test_obj[:oerr_identifiers] = oerr_sync_trail
       test_obj
+    end
+
+    def oerr_configs
+      config_data = YAML.load_file("#{Rails.root}/config/application.yml")
+      oerr_config = config_data['oerr_service']
+      raise 'OERR configuration not found' if oerr_config.nil?
+
+      {
+        base_url: oerr_config['base_url'],
+        username: oerr_config['username'],
+        password: oerr_config['password']
+      }
     end
   end
 end
