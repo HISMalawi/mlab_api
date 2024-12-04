@@ -96,6 +96,29 @@ module OerrService
       test_obj
     end
 
+    def push_to_oerr(oerr_sync_trail)
+      oerr_config = OerrService.oerr_configs
+      url = "#{oerr_config[:base_url]}/oerr_update/"
+      response = RestClient::Request.execute(
+                method: :post,
+                url:,
+                payload: to_oerr_dto(oerr_sync_trail).to_json,
+                headers: { content_type: :json, accept: :json },
+                user: oerr_config[:username],
+                password: oerr_config[:password]
+              )
+      if response.code == 200
+        data = JSON.parse(response.body)
+        Rails.logger.info "Pushed to oerr #{data}"
+        puts "Pushed to oerr #{data}"
+        Rails.logger.info "Pushed to oerr #{data}"
+        oerr_sync_trail_update(oerr_sync_trail, data['doc_id']) if data['doc_id']
+      else
+        Rails.logger.error "Error pushing to oerr #{response.body}"
+        raise "Error pushing to oerr #{response.body}"
+      end
+    end
+
     def oerr_configs
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
       oerr_config = config_data['oerr_service']
