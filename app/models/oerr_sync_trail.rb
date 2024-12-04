@@ -6,8 +6,16 @@ class OerrSyncTrail < VoidableRecord
   after_create :push_to_oerr
 
   def as_json(options = {})
-    super(options.merge({ only: %i[id order_id test_id npid facility_section_id requested_by sample_collected_time
-                                   doc_id] }))
+    super(options.merge(
+      {
+        only: %i[id order_id test_id npid facility_section_id requested_by sample_collected_time doc_id],
+        methods: %i[test_type_id]
+      }
+    ))
+  end
+
+  def test_type_id
+    Test.find_by(id: test_id)&.test_type_id
   end
 
   private

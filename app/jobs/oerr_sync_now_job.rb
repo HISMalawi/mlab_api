@@ -7,7 +7,7 @@ class OerrSyncNowJob
   def perform(id)
     oerr_sync_trail = OerrSyncTrail.find_by(id:)
     oerr_config = OerrService.oerr_configs
-    url = "#{oerr_config[:base_url]}/update_order"
+    url = "#{oerr_config[:base_url]}/oerr_update/"
     response = RestClient::Request.execute(
               method: :post,
               url:,
