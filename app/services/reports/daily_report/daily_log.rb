@@ -10,10 +10,13 @@ module Reports
         def generate_report(report_type, options = {})
           case report_type
           when 'test_record'
-            collection = query(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
-            test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type], collection)
+            collection = query(options[:from], options[:to], options[:test_status], options[:department],
+                               options[:test_type])
+            test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type],
+                        collection)
           when 'patient_record'
-            collection = query(options[:from], options[:to], options[:test_status], options[:department], options[:test_type])
+            collection = query(options[:from], options[:to], options[:test_status], options[:department],
+                               options[:test_type])
             patient_record(options[:from], options[:to], collection)
           else
             []
@@ -23,13 +26,20 @@ module Reports
         def query(from, to, test_status, department, test_type)
           from = from.present? ? from : Date.today
           to = to.present? ? to : Date.today
-          test_status_ids = (test_status.present?) ? report_utils.status_ids(test_status) : report_utils.status_ids(['completed', 'verified'])
+          test_status_ids = if test_status.present?
+                              report_utils.status_ids(test_status)
+                            else
+                              report_utils.status_ids(%w[
+                                                        completed verified
+                                                      ])
+                            end
           test_status_condition = test_status.present? && test_status.downcase == "'all'" ? ' ' : "AND ts.status_id IN #{test_status_ids}"
           depart_condition = department.present? ? " AND d.name = '#{department}' " : ' '
           test_type_condition = test_type.present? ? " AND tt.name = '#{test_type}' " : ' '
           Report.find_by_sql("
             SELECT
                 t.id AS test_id,
+                t.created_date AS test_created_date,
                 c.id AS patient_no,
                 tr.result_date,
                 e.id AS visit_no,
@@ -42,8 +52,8 @@ module Reports
                 tr.value AS result,
                 ts.created_date AS test_status_created_date,
                 os.created_date AS order_status_created_date,
-                ts.status_id AS test_status_id,
-                os.status_id AS order_status_id,
+                t.status_id AS test_status_id,
+                o.status_id AS order_status_id,
                 os.person_talked_to AS status_person_talked_to,
                 sr.description AS status_rejection_reason,
                 p.sex AS gender,
@@ -84,7 +94,7 @@ module Reports
           ")
         end
 
-        def test_record(from, to, test_status, department, test_type, collection)
+        def test_record(from, to, _test_status, department, test_type, collection)
           data = serialize_test_record(collection)
           {
             from:,
@@ -112,27 +122,31 @@ module Reports
             test_id = hash[:test_id]
             result_date = hash[:result_date].present? ? hash[:result_date] : ''
             test_indicator_name = hash[:test_indicator_name]
-            performed_by = TestStatus.where(test_id:, status_id: 4).first
-            authorized_by = TestStatus.where(test_id:, status_id: 5).first
+            performed_by = TestStatus.where(test_id:, status_id: 4)
+            authorized_by = TestStatus.where(test_id:, status_id: 5)
             result = hash[:result].nil? ? '' : hash[:result]
             if unique_hashes[test_id].nil?
               unique_hashes[test_id] = {
                 test_id:,
                 patient_id: hash[:patient_no],
-                visit_no: hash[:encounter_id],
+                visit_no: hash[:visit_no],
                 patient_name: hash[:patient_name],
                 accession_number: hash[:accession_number],
                 specimen: hash[:specimen],
                 receipt_date: hash[:order_status_created_date],
                 test: hash[:test_type],
-                test_status: hash[:status_name],
+                test_status: Status.find_by(id: hash[:test_status_id])&.name,
                 test_status_date: hash[:test_status_created_date],
-                order_status: hash[:order_status_name],
+                order_status: Status.find_by(id: hash[:order_status_id])&.name,
                 department: hash[:department],
                 rejection_reason: hash[:status_rejection_reason],
                 person_talked_to: hash[:status_person_talked_to],
-                performed_by: performed_by.nil? ? '' : User.find(performed_by.creator).person.fullname,
-                authorized_by: authorized_by.nil? ? '' : User.find(authorized_by.creator).person.fullname,
+                performed_by: performed_by.empty? ? '' : User.find(performed_by.first&.creator)&.person&.fullname,
+                completed_date: performed_by.empty? ? '' : performed_by.first&.created_date,
+                authorized_by: authorized_by.empty? ? '' : User.find(authorized_by.first&.creator)&.person&.fullname,
+                authorized_date: authorized_by.empty? ? '' : authorized_by.first&.created_date,
+                created_date: hash[:test_created_date],
+                tat: authorized_by.empty? ? 'N/A' : tat(hash[:test_created_date], authorized_by.first&.created_date),
                 remarks: '',
                 result_date:,
                 results: { test_indicator_name => result }
@@ -142,6 +156,11 @@ module Reports
             end
           end
           unique_hashes.values
+        end
+
+        def tat(start_date, end_date)
+          diff = end_date - start_date
+          Time.at(diff.to_i).utc.strftime('%H:%M:%S')
         end
 
         def serialize_patient_record(collection)

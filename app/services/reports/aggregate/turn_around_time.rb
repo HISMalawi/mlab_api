@@ -11,9 +11,13 @@ module Reports
           tat = system_tat(test_type.expected_turn_around_time.value, test_type.expected_turn_around_time.unit, unit)
 
           test_type_data = initialize_test_type_data(test_type.name, tat)
-          diff_sum, count = calculate_differences(test_type_tests, unit)
+          diff_sum, count, within_tat_count = calculate_differences(test_type_tests, unit, tat)
 
           test_type_data['average'] = count.positive? ? (diff_sum / count).round(4) : 0
+          test_type_data['total_tests'] = count
+          test_type_data['tests_within_normal_tat'] = within_tat_count
+          test_type_data['percentage_within_normal_tat'] = count.positive? ? (within_tat_count.to_f / count * 100).round(2) : 0
+
           data << test_type_data
         end
 
@@ -43,13 +47,17 @@ module Reports
         {
           'test_type' => name,
           'turn_around_time' => tat.round(4),
-          'average' => 0
+          'average' => 0,
+          'total_tests' => 0,
+          'tests_within_normal_tat' => 0,
+          'percentage_within_normal_tat' => 0
         }
       end
 
-      def calculate_differences(test_type_tests, unit)
+      def calculate_differences(test_type_tests, unit, tat)
         diff_sum = 0
         count = 0
+        within_tat_count = 0
 
         test_type_tests.each do |test|
           created_date, completed_date = extract_dates(test)
@@ -57,11 +65,16 @@ module Reports
           next unless created_date.present? && completed_date.present?
 
           diff = (Time.parse(completed_date) - Time.parse(created_date))
-          diff_sum += difference(unit, diff).round(4)
+          diff_in_unit = difference(unit, diff).round(4)
+
+          diff_sum += diff_in_unit
           count += 1
+
+          # Check if the test is within normal TAT
+          within_tat_count += 1 if diff_in_unit <= tat
         end
 
-        [diff_sum, count]
+        [diff_sum, count, within_tat_count]
       end
 
       def extract_dates(test)
