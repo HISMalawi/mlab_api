@@ -215,7 +215,8 @@ module Nlims
         base_url: "#{nlims_config['base_url']}:#{nlims_config['port']}",
         token: '',
         username: nlims_config['username'],
-        password: nlims_config['password']
+        password: nlims_config['password'],
+        enable_real_time_sync: nlims_config['enable_real_time_sync']
       )
       if @nlims_service.ping_nlims
         auth = @nlims_service.authenticate
@@ -229,7 +230,8 @@ module Nlims
       end
       {
         token:,
-        base_url:
+        base_url:,
+        enable_real_time_sync: @nlims_service.enable_real_time_sync
       }
     end
   end

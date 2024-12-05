@@ -2,7 +2,7 @@ require 'rest-client'
 
 module Nlims
   class RemoteService
-    attr_accessor :base_url, :username, :password, :token
+    attr_accessor :base_url, :username, :password, :token, :enable_real_time_sync
 
     def initialize(nlims_configs = {})
       nlims_configs.each do |key, value|
