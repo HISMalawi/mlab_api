@@ -20,6 +20,8 @@ module Api
         tests_data = HomeDashboard.where(department: @department, report_type: 'tests', lab_location_id: @lab_location)
         combine_data = tests_data + other_data + clients_data
         data = combine_data.map { |dashboard| dashboard[:data] }.reduce({}, :merge)
+        nlims = Nlims::Sync.nlims_token
+        data[:nlims_status] = nlims[:token].present? && nlims[:base_url].present? ? 'Active' : 'Inactive'
         render json: { data:, from: @from, to: @to }
       end
 
