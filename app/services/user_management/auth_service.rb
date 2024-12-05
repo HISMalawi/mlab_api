@@ -60,11 +60,13 @@ module UserManagement
       end
 
       def jwt_token_payload(user)
-        expiry_time = Time.now + TOKEN_VALID_TIME
+        server_time = Time.now
+        expiry_time = server_time + TOKEN_VALID_TIME
         token = jwt_token_encode({ user_id: user.id, exp: expiry_time.to_i, token_version: user.token_version })
         {
           token:,
           expiry_time:,
+          server_time:,
           user: UserManagement::UserService.find_user(user.id)
         }
       end
