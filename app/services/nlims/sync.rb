@@ -231,7 +231,8 @@ module Nlims
       {
         token:,
         base_url:,
-        enable_real_time_sync: @nlims_service.enable_real_time_sync
+        enable_real_time_sync: @nlims_service.enable_real_time_sync,
+        ping: @nlims_service.ping_nlims
       }
     end
   end
