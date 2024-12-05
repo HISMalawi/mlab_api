@@ -118,6 +118,7 @@ Rails.application.routes.draw do
       resources :global do
         collection do
           get 'current_api_tag' => 'global#current_git_tag'
+          get 'nlims_status' => 'global#nlims_status'
         end
       end
       resources :priorities
