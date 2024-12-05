@@ -6,17 +6,8 @@ module Api
     class TestsController < ApplicationController
       def index
         lab_reception = Department.find_by_name('Lab Reception').id
-        department_id = params[:department_id].present? ? params[:department_id] : lab_reception
-        tests = test_service.find_tests(
-          params[:search],
-          department_id,
-          params[:status],
-          params[:start_date],
-          params[:end_date],
-          params[:per_page],
-          params[:page],
-          params[:lab_location]
-        )
+        params[:department_id].present? ? params[:department_id] : lab_reception
+        tests = test_service.find_tests
         render json: tests
       end
 
@@ -57,13 +48,12 @@ module Api
       private
 
       def test_service
-        Tests::TestService.new
+        Tests::TestService.new(params)
       end
 
       def test_params
         params.permit(:specimen_id, :order_id, :test_type_id)
       end
-
     end
   end
 end

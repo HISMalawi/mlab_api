@@ -6,47 +6,50 @@ require 'bantu_soundex'
 module Tests
   # Class for managing tests related activities
   class TestService
-    def find_tests(query, department_id = nil, test_status = nil, start_date = nil, end_date = nil, per_page, page,
-                   lab_location)
-      per_page ||= 25
-      page ||= 1
-      lab_location ||= 1
-      default = YAML.load_file("#{Rails.root}/config/application.yml")['default']
-      tests = if query.present?
-                use_elasticsearch = default.nil? ? false : default['use_elasticsearch']
-                if use_elasticsearch
-                  es = ElasticSearchService.new
-                  if archive_department?(department_id)
-                    Test.where(id: search_string_test_ids(query))
-                  elsif es.ping
-                    Test.where(id: es.search(query))
-                  else
-                    Test.where(id: search_string_test_ids(query))
-                  end
-                else
-                  Test.where(id: search_string_test_ids(query))
-                end
+    # rubocop:disable Metrics/AbcSize
+    # rubocop:disable Metrics/MethodLength
+    def initialize(params = {})
+      depart_id = params[:department_id]
+      @query = params[:search]
+      @department_id = depart_id.present? ? depart_id : Department.find_by(name: 'Lab Reception').id
+      @test_status = params[:status]
+      @start_date = params[:start_date]
+      @end_date = params[:end_date]
+      @facility_sections = params[:facility_sections]
+      @per_page = (params[:per_page] || 25).to_i
+      @page = (params[:page] || 1).to_i
+      @lab_location = params[:lab_location] || 1
+      @use_elasticsearch = YAML.load_file(
+        Rails.root.join('config/application.yml')
+      )['default']&.fetch('use_elasticsearch', false)
+    end
+    # rubocop:enable Metrics/AbcSize
+    # rubocop:enable Metrics/MethodLength
+
+    def find_tests
+      tests = if @query.present?
+                @use_elasticsearch ? use_elasticsearch_search : use_native_search
               else
                 Test.all
               end
-      tests = filter_by_date(tests, start_date, end_date) if start_date.present?
-      tests = filter_by_lab_location(tests, lab_location)
-      if department_id.present? && not_reception?(department_id)
+      tests = filter_by_date(tests, @start_date, @end_date) if @start_date.present?
+      tests = filter_by_lab_location(tests, @lab_location)
+      if @department_id.present? && not_reception?(@department_id)
         tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
       end
-      tests = search_by_test_status(tests, test_status) if test_status.present?
+      tests = search_by_test_status(tests, @test_status) if @test_status.present?
       tests_ = tests
-      tests = tests.order('tests.id DESC').page(page).per(per_page.to_i + 1)
-      tests = tests_.order('tests.id DESC').limit(per_page) if tests.empty? && query.present?
+      tests = tests.order('tests.id DESC').page(@page).per(@per_page + 1)
+      tests = tests_.order('tests.id DESC').limit(@per_page) if tests.empty? && @query.present?
       records = Report.find_by_sql(query(process_ids(tests.pluck('id'))))
       {
         data: serialize_tests(records),
         meta: {
-          current_page: page.to_i,
-          next_page: records.count > per_page.to_i ? page.to_i + 1 : page,
-          prev_page: page.to_i - 1,
-          total_pages: records.count > per_page.to_i ? page.to_i + 1 : page,
-          total_count: records.count > per_page.to_i ? per_page.to_i * (page.to_i + 1) : ((per_page.to_i * (page.to_i - 1)) + records.count)
+          current_page: @page,
+          next_page: records.count > @per_page ? @page + 1 : @page,
+          prev_page: @page - 1,
+          total_pages: records.count > @per_page ? @page + 1 : @page,
+          total_count: records.count > @per_page ? @per_page * (@page + 1) : ((@per_page * (@page - 1)) + records.count)
         }
       }
     end
@@ -202,6 +205,19 @@ module Tests
 
     private
 
+    def use_elasticsearch_search
+      es = ElasticSearchService.new
+      if es.ping && !archive_department?(@department_id)
+        Test.where(id: es.search(@query, @facility_sections))
+      else
+        use_native_search
+      end
+    end
+
+    def use_native_search
+      Test.where(id: search_string_test_ids)
+    end
+
     def not_reception?(department_id)
       Department.find(department_id).name != 'Lab Reception' && !archive_department?(department_id)
     end
@@ -226,15 +242,31 @@ module Tests
       tests.where(lab_location_id:)
     end
 
-    def search_string_test_ids(q_string)
-      acc_number = GlobalService.current_location.code << q_string
-      Test.find_by_sql("
-        SELECT t.id FROM tests t WHERE t.order_id IN (SELECT o.id FROM orders o
-        WHERE o.accession_number = '#{q_string}' OR o.accession_number = '#{acc_number}'
-        OR o.tracking_number = '#{q_string}')
-        OR t.order_id IN (#{client_query(q_string)}) OR t.test_type_id IN
-        (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{q_string}%')
-        ORDER BY t.id DESC LIMIT 1000").pluck(:id)
+    # rubocop:disable Metrics/MethodLength
+    def search_string_test_ids
+      acc_number = GlobalService.current_location.code << @query
+      Test.find_by_sql(
+        "SELECT t.id FROM tests t WHERE (t.order_id IN (
+          SELECT o.id FROM orders o
+            WHERE o.accession_number = '#{@query}'
+              OR o.accession_number = '#{acc_number}'
+              OR o.tracking_number = '#{@query}'
+          )
+          OR t.order_id IN (#{client_query(@query)})
+          OR t.test_type_id IN (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{@query}%'))
+          #{facility_section_condition}
+        ORDER BY t.id DESC LIMIT 1000"
+      ).pluck(:id)
+    end
+    # rubocop:enable Metrics/MethodLength
+
+    def facility_section_condition
+      return '' unless @facility_sections.present?
+
+      f_section_ids = FacilitySection.where(name: @facility_sections)&.ids
+      f_section_join = "(#{f_section_ids.join(', ')})"
+      " AND t.order_id IN (SELECT eeo.id FROM orders eeo INNER JOIN encounters e ON e.id = eeo.encounter_id
+        AND e.voided = 0 AND e.facility_section_id IN #{f_section_join})"
     end
 
     def client_query(query)

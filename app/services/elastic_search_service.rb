@@ -13,7 +13,6 @@ class ElasticSearchService
   end
 
   def index_test(test)
-    begin
       @elasticsearch.index(
         index: 'tests',
         id: test.id,
@@ -30,9 +29,8 @@ class ElasticSearchService
         }
       )
       puts "Indexing record---> tracking_number: #{test&.order&.tracking_number}  Accession number: #{test&.accession_number} current date: #{test.created_date.to_date}"
-    rescue => e
+  rescue StandardError => e
       puts e.message
-    end
   end
 
   def update_index
@@ -58,68 +56,74 @@ class ElasticSearchService
         )
         puts "Updating record---> tracking_number: #{test&.order&.tracking_number}"
       end
-    rescue => e
+    rescue StandardError => e
       puts e.message
     end
   end
 
-  def search(q)
+  def search(q, facility_section)
+    base_query = {
+      bool: {
+        should: [
+          {
+            match: {
+              patient_name: {
+                query: q,
+                fuzziness: 2
+              }
+            }
+          },
+          {
+            match: {
+              location: {
+                query: q
+              }
+            }
+          },
+          {
+            match: {
+              test_name: {
+                query: q,
+                fuzziness: 2
+              }
+            }
+          },
+          {
+            match: {
+              accession_number: {
+                query: "#{GlobalService.current_location&.code}#{q}"
+              }
+            }
+          },
+          {
+            match: {
+              accession_number: {
+                query: q
+              }
+            }
+          },
+          {
+            match: {
+              tracking_number: {
+                query: q
+              }
+            }
+          }
+        ]
+      }
+    }
+    if facility_section.present?
+      base_query[:bool][:filter] = {
+        terms: { location: facility_section }
+      }
+    end
     params = {
       index: 'tests',
       from: 0,
       size: 10_000,
       body: {
         min_score: 0.05345,
-        query: {
-          bool: {
-            should: [
-              {
-                match: {
-                  patient_name: {
-                    query: q,
-                    fuzziness: 2
-                  }
-                }
-              },
-              {
-                match: {
-                  location: {
-                    query: q
-                  }
-                }
-              },
-              {
-                match: {
-                  test_name: {
-                    query: q,
-                    fuzziness: 2
-                  }
-                }
-              },
-              {
-                match: {
-                  accession_number: {
-                    query: "#{GlobalService.current_location&.code}#{q}"
-                  }
-                }
-              },
-              {
-                match: {
-                  accession_number: {
-                    query: q
-                  }
-                }
-              },
-              {
-                match: {
-                  tracking_number: {
-                    query: q
-                  }
-                }
-              }
-            ]
-          }
-        }
+        query: base_query
       }
     }
     test_ids = []
