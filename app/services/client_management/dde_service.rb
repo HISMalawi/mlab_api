@@ -27,16 +27,18 @@ module ClientManagement
     end
 
     def authenticate
-        response = RestClient::Request.execute(
-                  method: :post,
-                  url: "#{base_url}/v1/login",
-                  payload: { username:, password: }.to_json,
-                  headers: { content_type: :json, accept: :json }
-                )
-        self.token = JSON.parse(response.body)['access_token']
-        true
+      response = RestClient::Request.execute(
+                method: :post,
+                url: "#{base_url}/v1/login",
+                payload: { username:, password: }.to_json,
+                headers: { content_type: :json, accept: :json }
+              )
+      self.token = JSON.parse(response.body)['access_token']
+      true
     rescue RestClient::Unauthorized
-        false
+      false
+    rescue StandardError
+      false
     end
 
     def re_authenticate
@@ -49,6 +51,8 @@ module ClientManagement
 
           authenticate
         end
+    rescue StandardError
+      false
     end
 
     def search_client_by_name_and_gender(first_name, last_name, gender)
