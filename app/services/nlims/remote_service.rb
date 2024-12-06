@@ -14,11 +14,13 @@ module Nlims
     def ping_nlims
         RestClient::Request.execute(
           method: :get,
-          url: "#{base_url}/api/v1/re_authenticate/#{username}/#{password}",
+          url: "#{base_url}/api/v1/query_results_by_tracking_number/xxxx",
           headers: { content_type: :json, accept: :json }
         )
         true
     rescue Errno::ECONNREFUSED
+        false
+    rescue RestClient::InternalServerError
         false
     end
 
