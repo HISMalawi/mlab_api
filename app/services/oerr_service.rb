@@ -38,9 +38,17 @@ module OerrService
           tracking_number: ''
         },
         tests: segments[9].split('^').collect do |test_type_id|
-          { specimen:, test_type: TestType.find(test_type_id).name }
+          { specimen:, test_type: find_tests(segments, test_type_id) }
         end
       }
+    end
+
+    def panel?(segments)
+      segments[11].present? && segments[11] == 'P'
+    end
+
+    def find_tests(segments, id)
+      panel?(segments) ? TestPanel.find(id)&.name : TestType.find(id).name
     end
 
     def sample_collector(segment)
@@ -117,6 +125,9 @@ module OerrService
         Rails.logger.error "Error pushing to oerr #{response.body}"
         raise "Error pushing to oerr #{response.body}"
       end
+    rescue RestClient::NotFound
+      Rails.logger.info 'OERR record not matching'
+      raise "OERR record not matching #{oerr_sync_trail.to_json}"
     end
 
     def oerr_configs
