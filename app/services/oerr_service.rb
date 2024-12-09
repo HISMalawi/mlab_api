@@ -81,7 +81,6 @@ module OerrService
 
     def oerr_sync_trail_update(oerr_sync_trail, doc_id = '')
       oerr_sync_trail.update(synced: true, synced_at: Time.now, doc_id:)
-      OerrSyncTrail.where(order_id: oerr_sync_trail.order_id).update_all(doc_id:)
     end
 
     def create_oerr_sync_trail_on_update(oerr_sync_trail)
