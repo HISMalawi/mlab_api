@@ -248,7 +248,7 @@ module Tests
 
       acc_number = GlobalService.current_location.code << @query
       Test.find_by_sql(
-        "SELECT tests.id FROM tests t WHERE (tests.order_id IN (
+        "SELECT tests.id FROM tests WHERE (tests.order_id IN (
           SELECT o.id FROM orders o
             WHERE o.accession_number = '#{@query}'
               OR o.accession_number = '#{acc_number}'
