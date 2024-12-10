@@ -244,18 +244,20 @@ module Tests
 
     # rubocop:disable Metrics/MethodLength
     def search_string_test_ids
+      return Test.where("tests.voided= 0 #{facility_section_condition}").pluck(:id) unless @query.present?
+
       acc_number = GlobalService.current_location.code << @query
       Test.find_by_sql(
-        "SELECT t.id FROM tests t WHERE (t.order_id IN (
+        "SELECT tests.id FROM tests t WHERE (tests.order_id IN (
           SELECT o.id FROM orders o
             WHERE o.accession_number = '#{@query}'
               OR o.accession_number = '#{acc_number}'
               OR o.tracking_number = '#{@query}'
           )
-          OR t.order_id IN (#{client_query(@query)})
-          OR t.test_type_id IN (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{@query}%'))
+          OR tests.order_id IN (#{client_query(@query)})
+          OR tests.test_type_id IN (SELECT DISTINCT tt.id FROM test_types tt WHERE tt.name LIKE '%#{@query}%'))
           #{facility_section_condition}
-        ORDER BY t.id DESC LIMIT 1000"
+        ORDER BY tests.id DESC LIMIT 1000"
       ).pluck(:id)
     end
     # rubocop:enable Metrics/MethodLength
@@ -265,7 +267,7 @@ module Tests
 
       f_section_ids = FacilitySection.where(name: @facility_sections)&.ids
       f_section_join = "(#{f_section_ids.join(', ')})"
-      " AND t.order_id IN (SELECT eeo.id FROM orders eeo INNER JOIN encounters e ON e.id = eeo.encounter_id
+      " AND tests.order_id IN (SELECT eeo.id FROM orders eeo INNER JOIN encounters e ON e.id = eeo.encounter_id
         AND e.voided = 0 AND e.facility_section_id IN #{f_section_join})"
     end
 

@@ -61,7 +61,7 @@ class ElasticSearchService
     end
   end
 
-  def search(q, facility_section)
+  def search(q, facility_sections)
     base_query = {
       bool: {
         should: [
@@ -112,18 +112,19 @@ class ElasticSearchService
         ]
       }
     }
-    if facility_section.present?
+    if facility_sections.present?
       base_query[:bool][:filter] = {
-        terms: { location: facility_section }
+        terms: { 'location.keyword' => facility_sections }
       }
     end
+    # debugger
     params = {
       index: 'tests',
       from: 0,
       size: 10_000,
       body: {
-        min_score: 0.05345,
-        query: base_query
+        min_score: q.present? ? 0.05345 : 0.0,
+        query: q.present? ? base_query : { bool: { filter: { terms: { 'location.keyword' => facility_sections } } } }
       }
     }
     test_ids = []
