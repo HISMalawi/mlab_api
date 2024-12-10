@@ -15,7 +15,7 @@ module Tests
       @test_status = params[:status]
       @start_date = params[:start_date]
       @end_date = params[:end_date]
-      @facility_sections = params[:facility_sections]
+      @facility_sections = params[:facility_sections].present? ? params[:facility_sections].split(',') : []
       @per_page = (params[:per_page] || 25).to_i
       @page = (params[:page] || 1).to_i
       @lab_location = params[:lab_location] || 1
