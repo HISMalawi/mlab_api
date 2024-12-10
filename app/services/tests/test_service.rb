@@ -27,7 +27,7 @@ module Tests
     # rubocop:enable Metrics/MethodLength
 
     def find_tests
-      tests = if @query.present?
+      tests = if @query.present? || @facility_sections.present?
                 @use_elasticsearch ? use_elasticsearch_search : use_native_search
               else
                 Test.all
