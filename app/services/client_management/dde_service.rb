@@ -12,56 +12,57 @@ module ClientManagement
     end
 
     def check_dde_status
-      begin
         RestClient::Request.execute(
           method: :get,
           url: base_url,
           timeout: 3
         )
         true
-      rescue RestClient::Unauthorized
-        true
-      rescue Errno::ECONNREFUSED
+    rescue RestClient::Unauthorized
         false
-      rescue RestClient::Exceptions::OpenTimeout
+    rescue Errno::ECONNREFUSED
         false
-      end
+    rescue RestClient::Exceptions::OpenTimeout
+        false
     end
 
     def authenticate
-      begin
-        response = RestClient::Request.execute(
-                  method: :post,
-                  url: "#{ base_url }/v1/login",
-                  payload: { username: username, password: password }.to_json,
-                  headers: { content_type: :json, accept: :json }
-                )
-        self.token = JSON.parse(response.body)['access_token']
-        true
-      rescue RestClient::Unauthorized
-        false
-      end
+      response = RestClient::Request.execute(
+                method: :post,
+                url: "#{base_url}/v1/login",
+                payload: { username:, password: }.to_json,
+                headers: { content_type: :json, accept: :json }
+              )
+      self.token = JSON.parse(response.body)['access_token']
+      true
+    rescue RestClient::Unauthorized
+      false
+    rescue StandardError
+      false
     end
 
     def re_authenticate
       RestClient::Request.execute(
           method: :post,
-          url: "#{ base_url }/v1/verify_token",
+          url: "#{base_url}/v1/verify_token",
           headers: { 'Authorization': "#{token}" }
         ) do |response|
           return true if response.code == 200
+
           authenticate
         end
+    rescue StandardError
+      false
     end
 
     def search_client_by_name_and_gender(first_name, last_name, gender)
       if re_authenticate
         begin
           response = RestClient::Request.execute(
-            method: :post, 
+            method: :post,
             url: "#{base_url}/v1/search_by_name_and_gender",
             headers: { 'Authorization': "#{token}" },
-            payload: { given_name: first_name, family_name: last_name, gender: gender}
+            payload: { given_name: first_name, family_name: last_name, gender: }
           )
           serialize_dde_clients(JSON.parse(response.body))
         rescue RestClient::NotFound
@@ -100,20 +101,19 @@ module ClientManagement
 
     def create_client(params)
       payload = build_create_client_payload(params)
-      response = RestClient::Request.execute(
-        method: :post, 
+      RestClient::Request.execute(
+        method: :post,
         url: "#{base_url}v1/add_person",
         headers: { 'Authorization': "#{token}" },
-        payload: payload
+        payload:
       )
-      response
     end
 
     def build_create_client_payload(params)
       attributes = {}
       identifiers = {}
       params[:client_identifiers].each do |identifier|
-        if ['art_number', 'htn_number'].include?.(identifier[:type])
+        if %w[art_number htn_number].include?.call(identifier[:type])
           identifiers[identifier[:type]] = identifier[:value]
         else
           attributes[identifier[:type]] = identifier[:value]
@@ -126,11 +126,9 @@ module ClientManagement
                 gender: params[:person][:gender],
                 birthdate: params[:person][:date_of_birth],
                 birthdate_estimated: params[:person][:date_of_birth_estimated],
-                attributes: attributes,
-                identifiers: identifiers
+                attributes:,
+                identifiers:
       }
     end
-
   end
 end
-

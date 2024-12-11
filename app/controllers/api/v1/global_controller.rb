@@ -3,15 +3,24 @@
 module Api
   module V1
     class GlobalController < ApplicationController
-      skip_before_action :authorize_request, only: [:index,:update, :destroy, :show, :current_git_tag]
-      before_action :set_global, only: [:update, :destroy, :show]
+      skip_before_action :authorize_request, only: %i[index update destroy show current_git_tag nlims_status]
+      before_action :set_global, only: %i[update destroy show]
 
       def index
         render json: GlobalService.current_location
       end
 
       def current_git_tag
-        render json: { git_tag: git_tag }
+        render json: { git_tag: }
+      end
+
+      def nlims_status
+        nlims = Nlims::Sync.nlims_token
+        data = {
+          is_running: nlims[:ping],
+          is_authenticated: nlims[:token].present?
+        }
+        render json: data
       end
 
       def create
@@ -32,7 +41,7 @@ module Api
 
       def destroy
         @global.void('No longer used')
-        render json: {message: MessageService::RECORD_DELETED}
+        render json: { message: MessageService::RECORD_DELETED }
       end
 
       private

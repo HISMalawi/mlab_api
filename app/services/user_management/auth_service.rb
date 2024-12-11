@@ -3,7 +3,7 @@
 module UserManagement
   module AuthService
     SECRET_KEY = ENV['SECRET_KEY_BASE'] || Rails.application.secrets.secret_key_base
-    TOKEN_VALID_TIME = 6.hours
+    TOKEN_VALID_TIME = 2.hours
 
     class << self
       def jwt_token_encode(payload)
@@ -60,11 +60,13 @@ module UserManagement
       end
 
       def jwt_token_payload(user)
-        expiry_time = Time.now + TOKEN_VALID_TIME
+        server_time = Time.now
+        expiry_time = server_time + TOKEN_VALID_TIME
         token = jwt_token_encode({ user_id: user.id, exp: expiry_time.to_i, token_version: user.token_version })
         {
           token:,
           expiry_time:,
+          server_time:,
           user: UserManagement::UserService.find_user(user.id)
         }
       end

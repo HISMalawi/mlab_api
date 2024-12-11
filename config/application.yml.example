@@ -9,6 +9,7 @@ nlims_service:
   port: 3009
   username: username
   password: password
+  enable_real_time_sync: true
 
 default:
   accession_number_length: true 
