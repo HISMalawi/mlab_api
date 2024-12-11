@@ -52,34 +52,30 @@ module OrderService
         test_panel = TestPanel.find_by_name(test_param[:test_type])
         specimen_id = test_param[:specimen]
         if test_panel.nil?
-          if test_type.name.downcase == 'cross-match'
-            Test.create!(
-              specimen_id:,
-              order_id:,
-              test_type_id: test_type.id,
-              lab_location_id:
-            )
-          else
-            Test.find_or_create_by!(
-              specimen_id:,
-              order_id:,
-              test_type_id: test_type.id,
-              lab_location_id:
-            )
-          end
+          find_or_create_test(specimen_id, order_id, test_type, test_panel&.id, lab_location_id)
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
           member_test_types.each do |test_type_id|
-            Test.find_or_create_by!(
-              specimen_id:,
-              order_id:,
-              test_type_id:,
-              test_panel_id: test_panel.id,
-              lab_location_id:
-            )
+            test_type = TestType.find_by_id(test_type_id)
+            find_or_create_test(specimen_id, order_id, test_type, test_panel&.id, lab_location_id)
           end
         end
       end
+    end
+
+    def find_or_create_test(specimen_id, order_id, test_type, test_panel_id, lab_location_id)
+      status_ids = Status.where(name: %w[pending started completed]).ids
+      test = Test.find_by(specimen_id:, order_id:, test_type_id: test_type.id, test_panel_id:, lab_location_id:)
+      if test.nil?
+        return Test.create!(specimen_id:, order_id:, test_type_id: test_type.id, test_panel_id:, lab_location_id:)
+      end
+
+      if test_type.name.downcase == 'cross-match'
+        return Test.create!(specimen_id:, order_id:, test_type_id: test_type.id, test_panel_id:, lab_location_id:)
+      end
+      return if status_ids.include?(test.status_id)
+
+      Test.create!(specimen_id:, order_id:, test_type_id: test_type.id, test_panel_id:, lab_location_id:)
     end
 
     def add_test_to_order(order_id, tests, lab_location)
