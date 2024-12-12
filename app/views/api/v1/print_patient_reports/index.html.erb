@@ -267,11 +267,7 @@
 
                   <td class="border px-1 py-1">
                     <p
-                      v-html="
-                        test?.result_remarks
-                          ? test?.result_remarks.value
-                          : 'N/A'
-                      "
+                      v-html="getRemarks(test)"
                     ></p>
                   </td>
                   <td class="border px-1 py-1">
@@ -539,6 +535,18 @@ const app = createApp({
             age < Number(range.max_age))
       )[0];
     },
+    getRemarks(test) {
+      const rejectedReason = test?.status_trail.find((trail) => trail.status.name.toLowerCase() === "test-rejected");
+      let reasonDescription = "N/A";
+      if (rejectedReason) {
+        reasonDescription = `<b>Rejected Reason:</b> ${rejectedReason?.status_reason?.description}`;
+      }
+      const remarks = test?.result_remarks?.value;
+      if (remarks && reasonDescription !== "N/A") {
+        return `${remarks}<br>${reasonDescription}`;
+      }
+      return remarks || reasonDescription;
+    },
     shouldDisplayRange(
       indicators,
       patient,
@@ -554,7 +562,7 @@ const app = createApp({
       return indicators[0].result.machine_name;
     },
     getCompletedTests(tests){
-      const validStatuses = new Set(["completed", "verified"]);
+      const validStatuses = new Set(["completed", "verified", "test-rejected", "rejected"]);
       return tests.filter((item) =>
         validStatuses.has(item.status.toLowerCase())
       );
