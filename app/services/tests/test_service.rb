@@ -9,9 +9,12 @@ module Tests
     # rubocop:disable Metrics/AbcSize
     # rubocop:disable Metrics/MethodLength
     def initialize(params = {})
-      depart_id = params[:department_id]
       @query = params[:search]
-      @department_id = depart_id.present? ? depart_id : Department.find_by(name: 'Lab Reception').id
+      @department_id = if params[:department_id].present?
+                         params[:department_id]
+                       else
+                         Department.find_by(name: 'Lab Reception').id
+                       end
       @test_status = params[:status]
       @start_date = params[:start_date]
       @end_date = params[:end_date]
@@ -35,7 +38,7 @@ module Tests
       tests = filter_by_date(tests, @start_date, @end_date) if @start_date.present?
       tests = filter_by_lab_location(tests, @lab_location)
       if @department_id.present? && not_reception?(@department_id)
-        tests = tests.where(test_type_id: TestType.where(department_id:).pluck(:id))
+        tests = tests.where(test_type_id: TestType.where(department_id: @department_id).pluck(:id))
       end
       tests = search_by_test_status(tests, @test_status) if @test_status.present?
       tests_ = tests

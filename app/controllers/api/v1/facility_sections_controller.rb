@@ -1,12 +1,14 @@
 class Api::V1::FacilitySectionsController < ApplicationController
+  skip_before_action :authorize_request, only: [:index]
+
   def index
-    if params[:search].present?
-      facility_sections = FacilitySection.where(
-        "name LIKE '%#{params[:search]}%'"
-      )
-    else
-      facility_sections = FacilitySection.all
-    end
+    facility_sections = if params[:search].present?
+                          FacilitySection.where(
+                            "name LIKE '%#{params[:search]}%'"
+                          )
+                        else
+                          FacilitySection.all
+                        end
     return render json: { data: facility_sections } unless params[:page].present?
 
     render json: paginate(facility_sections)
