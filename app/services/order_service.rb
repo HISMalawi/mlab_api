@@ -2,6 +2,15 @@ module OrderService
   class << self
     # TO DO: IMPLEMENT PARAMS VALIDATIONS
 
+    def create(params)
+      ActiveRecord::Base.transaction do
+        @encounter = OrderService.create_encounter(params)
+        @order = OrderService.create_order(@encounter.id, params[:order])
+        OrderService.create_test(@order.id, params[:tests], params[:lab_location])
+      end
+      @order
+    end
+
     def create_encounter(params)
       client_id = params[:client][:id]
       if client_id.blank?
@@ -24,7 +33,8 @@ module OrderService
         destination_id: destination,
         facility_section_id: facility_section,
         start_date: Time.now,
-        encounter_type_id: encounterType.id
+        encounter_type_id: encounterType.id,
+        client_history: params[:encounter][:client_history]
       )
     end
 

@@ -21,3 +21,9 @@ update_elasticsearch_job:
   cron: "*/2 * * * *"
   class: "UpdateElasticsearchIndexJob"
   queue: default
+
+oerr_sync_job:
+  name: "Sync with oerr Every 20mins"
+  cron: "*/20 * * * *"
+  class: "OerrSyncJob"
+  queue: default

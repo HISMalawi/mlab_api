@@ -9,27 +9,31 @@ class Order < VoidableRecord
   after_create :create_unsync_order
 
   def create_default_status
-    OrderStatus.create!(order_id: id, status_id: Status.find_by_name('specimen-not-collected').id, creator: User.current.id)
+    OrderStatus.create!(order_id: id, status_id: Status.find_by_name('specimen-not-collected').id,
+                        creator: User.current.id)
   end
 
   def as_json(options = {})
     specimen_test_type = specimen_test_type()
-    super(options).merge({
-      client_id: encounter.as_json['client_id'],
-      client: encounter.as_json['client'],
-      specimen: specimen_test_type[:specimen],
-      test_types: specimen_test_type[:test_types],
-      order_status: order_status,
-      print_count: print_count,
-      order_status_trail: order_status_trail,
-      request_origin: request_origin,
-      requesting_ward: requesting_ward,
-      tests: order_tests
-    }).as_json
+    super(options).merge(
+      {
+        client_id: encounter.as_json['client_id'],
+        client: encounter.as_json['client'],
+        client_history: encounter.client_history,
+        specimen: specimen_test_type[:specimen],
+        test_types: specimen_test_type[:test_types],
+        order_status:,
+        print_count:,
+        order_status_trail:,
+        request_origin:,
+        requesting_ward:,
+        tests: order_tests
+      }
+    ).as_json
   end
 
   def order_tests
-    tests.as_json({client_report: true})
+    tests.as_json({ client_report: true })
   end
 
   def specimen_test_type
@@ -39,13 +43,13 @@ class Order < VoidableRecord
       specimen.push(test.specimen.name)
       test_t = test.test_type&.short_name.blank? ? test.test_type&.name : test.test_type&.short_name
       test_types.push({
-        name: test_t,
-        department: test.test_type&.department&.name,
-      })
+                        name: test_t,
+                        department: test.test_type&.department&.name
+                      })
     end
     {
-      test_types: test_types,
-       specimen: specimen.uniq.join(", ")
+      test_types:,
+      specimen: specimen.uniq.join(', ')
     }
   end
 

@@ -12,6 +12,7 @@ class OrderStatus < VoidableRecord
   # after_commit :insert_into_report_data_raw, on: :create
   # after_commit :update_moh_report_data, on: :create
   after_create :create_unsync_order
+  after_create :create_oerr_sync_trails
 
   def as_json(options = {})
     super(options.merge(methods: %i[status initiator statuses_reason],
@@ -69,5 +70,20 @@ class OrderStatus < VoidableRecord
       data_level: 'order',
       sync_status: 0
     )
+  end
+
+  def create_oerr_sync_trails
+    oerr_sync_trails = OerrSyncTrail.where(order_id: order.id)
+    return if oerr_sync_trails.empty?
+
+    return unless %w[
+      specimen-accepted
+      specimen-rejected
+      specimen-not-collected
+    ].include?(Status.find_by(id: status_id).name)
+
+    oerr_sync_trails.each do |oerr_sync_trail|
+      OerrService.create_oerr_sync_trail_on_update(oerr_sync_trail)
+    end
   end
 end
