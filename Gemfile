@@ -33,6 +33,9 @@ gem 'elasticsearch', '~> 7.0'
 # JWT
 gem 'jwt'
 
+# listening for changes
+gem 'listen'
+
 # Sidekiq
 gem 'sidekiq'
 
