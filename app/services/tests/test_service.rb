@@ -295,6 +295,7 @@ module Tests
       json_response = []
       test_type = TestType.find(test_type_id)
       fbc_format = Tests::FormatService.fbc_format
+      fbc_tests = ['fbc', 'full blood count']
       records = TestIndicator.find_by_sql("
                   SELECT
                     ti.id, ti.name, ti.test_indicator_type,
@@ -307,13 +308,13 @@ module Tests
                     AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
                   WHERE ttim.test_types_id = #{test_type_id}")
       records.each do |record|
-        if test_type.name.include?('FBC')
+        if fbc_tests.include?(test_type.name.downcase)
           fbc_format[record['name'].upcase.to_sym] = test_indicator_seriliazer(record, sex, dob)
         else
           json_response << test_indicator_seriliazer(record, sex, dob)
         end
       end
-      json_response = Tests::FormatService.to_array(fbc_format) if test_type.name.include?('FBC')
+      json_response = Tests::FormatService.to_array(fbc_format) if fbc_tests.include?(test_type.name.downcase)
       json_response
     end
 

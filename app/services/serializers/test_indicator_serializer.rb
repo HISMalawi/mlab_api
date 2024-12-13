@@ -21,14 +21,15 @@ module Serializers
       response = []
       test_type = TestType.find(@test_type_id)
       fbc_format = Tests::FormatService.fbc_format
+      fbc_tests = ['fbc', 'full blood count']
       test_indicators.each do |test_indicator|
-        if test_type.name.include?('FBC')
+        if fbc_tests.include?(test_type.name.downcase)
           fbc_format[test_indicator['name'].upcase.to_sym] = test_indicator_seriliazer(test_indicator)
         else
           response << test_indicator_seriliazer(test_indicator)
         end
       end
-      response = Tests::FormatService.to_array(fbc_format) if test_type.name.include?('FBC')
+      response = Tests::FormatService.to_array(fbc_format) if fbc_tests.include?(test_type.name.downcase)
       response
     end
     # rubocop:enable Metrics/MethodLength
