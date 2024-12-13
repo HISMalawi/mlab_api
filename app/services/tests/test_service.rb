@@ -308,13 +308,13 @@ module Tests
                     AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
                   WHERE ttim.test_types_id = #{test_type_id}")
       records.each do |record|
-        if fbc_tests.include?(test_type.name.downcase)
+        if fbc_tests.include?(test_type.name.strip.downcase)
           fbc_format[record['name'].upcase.to_sym] = test_indicator_seriliazer(record, sex, dob)
         else
           json_response << test_indicator_seriliazer(record, sex, dob)
         end
       end
-      json_response = Tests::FormatService.to_array(fbc_format) if fbc_tests.include?(test_type.name.downcase)
+      json_response = Tests::FormatService.to_array(fbc_format) if fbc_tests.include?(test_type.name.strip.downcase)
       json_response
     end
 
