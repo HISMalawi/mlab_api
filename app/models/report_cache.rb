@@ -4,7 +4,7 @@
 class ReportCache < VoidableRecord
   before_create :set_uuid
   after_create :clear_report_cache
-
+  default_scope { where('updated_date >= ?', 20.hours.ago) }
   private
 
   def set_uuid

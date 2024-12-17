@@ -7,7 +7,9 @@ module Reports
     class << self
       def find(id)
         report = ReportCache.find_by(id:)
-        report.present? ? serialize(report) : nil
+        return nil if report.nil?
+
+        serialize(report)
       end
 
       def create(data)
