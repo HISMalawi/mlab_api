@@ -17,6 +17,8 @@ set -x
 export RAILS_ENV=$ENV
 rails db:environment:set RAILS_ENV=$ENV
 
+bundle install --local
+
 # Only update metadata if migration is successful
 rails db:migrate && {
     rails r iblis_migration/clear_cached_reports.rb && 
