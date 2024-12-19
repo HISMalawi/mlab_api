@@ -99,8 +99,7 @@ module ClientManagement
       end
 
       def find_or_initialize_client(uuid)
-        client = Client.find_by(uuid:)
-        client ||= Client.find_by_npid(uuid)
+        client = uuid.present? ? Client.find_by(uuid:) || Client.find_by_npid(uuid) : nil
         client ||= Client.new
         client
       end
