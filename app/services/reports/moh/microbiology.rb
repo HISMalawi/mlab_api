@@ -1321,7 +1321,7 @@ module Reports
                 AND tr.voided = 0
           WHERE
             (t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')})
-            AND t.specimen_id IN #{report_utils.specimen_ids('Blood')}
+            AND (t.specimen_id IN #{report_utils.specimen_ids('Blood')} OR t.specimen_id IN #{report_utils.specimen_ids('Serum')})
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1350,7 +1350,7 @@ module Reports
                 AND tr.voided = 0
           WHERE
             (t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')})
-            AND t.specimen_id IN #{report_utils.specimen_ids('Blood')}
+            AND (t.specimen_id IN #{report_utils.specimen_ids('Blood')} OR t.specimen_id IN #{report_utils.specimen_ids('Serum')})
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
