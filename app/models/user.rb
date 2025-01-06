@@ -10,6 +10,8 @@ class User < VoidableRecord
   has_many :departments, through: :user_department_mappings
   has_many :user_role_mappings
 
+  validates :username, uniqueness: true, presence: true
+
   def active?
     is_active.zero?
   end

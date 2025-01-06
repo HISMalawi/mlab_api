@@ -4,8 +4,13 @@ namespace :oerr do
   desc 'TODO'
   task create_user: :environment do
     puts 'creating oerr user'
-    UserManagement::UserService.create_user(user_params)
-    puts "Account created successfully for #{OerrService.oerr_configs[:username]}"
+    user = User.find_by(username: OerrService.oerr_configs[:username])
+    if user
+      puts 'User already exist'
+    else
+      UserManagement::UserService.create_user(user_params)
+      puts "Account created successfully for #{OerrService.oerr_configs[:username]}"
+    end
   end
 
   def user_params
