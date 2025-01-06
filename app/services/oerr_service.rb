@@ -74,7 +74,8 @@ module OerrService
           requested_by: params[:order][:requested_by],
           sample_collected_time: params[:order][:sample_collected_time],
           synced: false,
-          synced_at: nil
+          synced_at: nil,
+          test_type_id: test.test_type_id
         )
       end
     end
@@ -97,7 +98,8 @@ module OerrService
         sample_collected_time: oerr_sync_trail.sample_collected_time,
         doc_id: oerr_sync_trail.doc_id,
         synced: false,
-        synced_at: nil
+        synced_at: nil,
+        test_type_id: oerr_sync_trail.test_type_id
       )
     end
 
@@ -140,7 +142,8 @@ module OerrService
         npid: params[:npid],
         facility_section_id: params[:facility_section_id],
         requested_by: params[:requested_by],
-        sample_collected_time: Time.at(params[:sample_collected_time].to_i)
+        sample_collected_time: Time.at(params[:sample_collected_time].to_i),
+        test_type_id: params[:test_type_id]
         )
     end
 
