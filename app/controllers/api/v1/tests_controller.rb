@@ -43,6 +43,17 @@ module Api
         render json: { tests_count: test_count, statuses_count: total_tests_count }
       end
 
+      def oerr_find_test
+        oerr_test = OerrService.oerr_find_test(params)
+        data = if oerr_test
+                 { message: 'Test found',
+                   data: OerrService.to_oerr_dto(oerr_test) }
+               else
+                 { message: 'Test not found', data: {} }
+               end
+        render json: data, status: oerr_test ? 200 : 404
+      end
+
       private
 
       def test_service

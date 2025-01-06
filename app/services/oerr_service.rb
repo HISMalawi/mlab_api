@@ -83,6 +83,10 @@ module OerrService
       oerr_sync_trail.update(synced: true, synced_at: Time.now, doc_id:)
     end
 
+    def set_to_push?
+      oerr_configs[:push].present? ? oerr_configs[:push] : false
+    end
+
     def create_oerr_sync_trail_on_update(oerr_sync_trail)
       OerrSyncTrail.create(
         order_id: oerr_sync_trail.order_id,
@@ -129,6 +133,17 @@ module OerrService
       raise "OERR record not matching #{oerr_sync_trail.to_json}"
     end
 
+    def oerr_find_test(params)
+      return OerrSyncTrail.find_by(test_id: params[:test_id]) if params[:test_id].present?
+
+      OerrSyncTrail.find_by(
+        npid: params[:npid],
+        facility_section_id: params[:facility_section_id],
+        requested_by: params[:requested_by],
+        sample_collected_time: Time.at(params[:sample_collected_time].to_i)
+        )
+    end
+
     def oerr_configs
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
       oerr_config = config_data['oerr_service']
@@ -137,7 +152,8 @@ module OerrService
       {
         base_url: oerr_config['base_url'],
         username: oerr_config['username'],
-        password: oerr_config['password']
+        password: oerr_config['password'],
+        push: oerr_config['push']
       }
     end
   end

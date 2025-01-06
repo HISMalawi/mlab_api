@@ -55,6 +55,8 @@ class TestStatus < VoidableRecord
   end
 
   def create_oerr_sync_trails
+    return unless OerrService.set_to_push?
+
     oerr_sync_trail = OerrSyncTrail.find_by(test_id: test.id)
     return if oerr_sync_trail.nil?
 

@@ -58,6 +58,7 @@ Rails.application.routes.draw do
       resources :tests do
         collection do
           get '/:client_id/report' => 'tests#report'
+          get '/find_oerr_test' => 'tests#oerr_find_test'
         end
       end
 
