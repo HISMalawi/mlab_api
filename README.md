@@ -126,6 +126,27 @@ curl -X GET 'http://localhost:9200'  #This should output something about name, c
 sudo systemctl enable elasticsearch
 ```
 
+## Elasticsearch Memory Management
+If you are running elasticsearch on a machine with limited memory or you want to limit the memory usage of elasticsearch, you can configure the memory settings in the `/etc/elasticsearch/jvm.options` file.
+Look for the following lines:
+```
+-Xms4g
+-Xmx4g
+```
+These set the heap size to 4GB. Reduce them to match your workload. For example:
+```
+-Xms1g
+-Xmx1g
+```
+Ensure -Xms (minimum) and -Xmx (maximum) are the same value.
+
+You can know the current memory usage of elasticsearch by running the following command:
+```shell
+ top -o %MEM
+```
+This will show you the memory usage of all running processes. Look for the Java process and see the memory usage.
+
+
 
 ## Configure Database Connection Details
 
