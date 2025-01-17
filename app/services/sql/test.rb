@@ -34,7 +34,8 @@ module Sql
           tst.name AS t_status,
           sp.name AS specimen,
           sp.id AS specimen_id,
-          t.lab_location_id
+          t.lab_location_id,
+          srs.description AS rejected_reason
         FROM
           tests t
               INNER JOIN
@@ -59,7 +60,11 @@ module Sql
           test_panels tp ON tp.id = t.test_panel_id AND tp.retired = 0
               INNER JOIN
           statuses tst ON tst.id = t.status_id
-              INNER JOIN
+              LEFT JOIN 
+          test_statuses tss ON tss.test_id = t.id
+            LEFT JOIN 
+          status_reasons srs ON srs.id = tss.status_reason_id
+            INNER JOIN 
           statuses ost ON ost.id = o.status_id
             WHERE t.id IS NOT NULL AND t.id IN #{tests_ids} ORDER BY t.id DESC
       SQL

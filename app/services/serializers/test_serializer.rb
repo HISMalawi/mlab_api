@@ -25,6 +25,7 @@ module Serializers
         completed_by: completed_by(record['id'], record['t_status_id']),
         client: client_object(record),
         status: record['t_status'],
+        rejection_reason: record['rejected_reason'],
         order_status: record['o_status'],
         lab_location: LabLocation.find_by(id: record['lab_location_id'])
       }
