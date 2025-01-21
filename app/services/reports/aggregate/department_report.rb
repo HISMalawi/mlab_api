@@ -30,10 +30,8 @@ module Reports
                 encounters e ON e.id = o.encounter_id
                     JOIN
                 facility_sections fs ON fs.id = e.facility_section_id
-                    JOIN
-                test_statuses ts on ts.test_id = t.id
             WHERE
-                  ts.status_id IN (4,5)
+                  t.status_id IN (4,5)
                     AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
             GROUP BY test_type , ward , MONTHNAME(t.created_date)
         SQL
