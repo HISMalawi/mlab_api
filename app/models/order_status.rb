@@ -73,6 +73,8 @@ class OrderStatus < VoidableRecord
   end
 
   def create_oerr_sync_trails
+    return unless OerrService.set_to_push?
+
     oerr_sync_trails = OerrSyncTrail.where(order_id: order.id)
     return if oerr_sync_trails.empty?
 

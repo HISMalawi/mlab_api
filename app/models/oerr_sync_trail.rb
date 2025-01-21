@@ -29,6 +29,8 @@ class OerrSyncTrail < VoidableRecord
   private
 
   def push_to_oerr
+    return unless OerrService.set_to_push?
+
     OerrSyncNowJob.perform_async(id)
   rescue StandardError => e
     puts "Error pushing to oerr #{e.message}"
