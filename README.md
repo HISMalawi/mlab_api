@@ -126,6 +126,27 @@ curl -X GET 'http://localhost:9200'  #This should output something about name, c
 sudo systemctl enable elasticsearch
 ```
 
+## Elasticsearch Memory Management
+If you are running elasticsearch on a machine with limited memory or you want to limit the memory usage of elasticsearch, you can configure the memory settings in the `/etc/elasticsearch/jvm.options` file.
+Look for the following lines:
+```
+-Xms4g
+-Xmx4g
+```
+These set the heap size to 4GB. Reduce them to match your workload. For example:
+```
+-Xms1g
+-Xmx1g
+```
+Ensure -Xms (minimum) and -Xmx (maximum) are the same value.
+
+You can know the current memory usage of elasticsearch by running the following command:
+```shell
+ top -o %MEM
+```
+This will show you the memory usage of all running processes. Look for the Java process and see the memory usage.
+
+
 
 ## Configure Database Connection Details
 
@@ -184,6 +205,10 @@ Run the following command to initialize the database:
 
 ```shell
 ./bin/initialize_db.sh development # development can be replace by production or test depending on the enviroment you have set you application
+```
+## Updating metadata when a new version of the api is deployed
+```shell
+./bin/update_metadata.sh development # development can be replace by production or test depending on the enviroment you have set you application
 ```
 
 ## Configuring mlab_api PUMA serivice
@@ -262,7 +287,16 @@ sudo systemctl enable sidekiq.service
 6. Check if sidekiq and redis are running properly, Navigate to: SERVER_IP_ADDRESS:API_PORT/sidekiq
 
 ## Elasticsearch Indexing available data
+1. Indexing all data in elasticsearch
 ```shell
 rails r iblis_migration/elasticsearch_index.rb
+```
+2. Update all later  data in elasticsearch
+```shell
+rails r iblis_migration/elasticsearch_update.rb
+```
+3. Add elasticsearch update to crontab to be running every 2 minutes. But by default, updating elasticsearch is done via sidekiq. This is just to ensure that the data is updated in elasticsearch even if sidekiq is not running.
+```shell
+./bin/add_cronjob.sh
 ```
 Congratulations! You have successfully installed and set up `mlab_api`.

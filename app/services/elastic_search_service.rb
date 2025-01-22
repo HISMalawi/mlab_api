@@ -6,6 +6,7 @@ require 'elasticsearch'
 class ElasticSearchService
   def initialize
     @elasticsearch = Elasticsearch::Client.new
+    @index_name = 'tests'
   end
 
   def ping
@@ -14,7 +15,7 @@ class ElasticSearchService
 
   def index_test(test)
       @elasticsearch.index(
-        index: 'tests',
+        index: @index_name,
         id: test.id,
         body: {
           test_id: test.id,
@@ -34,13 +35,13 @@ class ElasticSearchService
   end
 
   def update_index
-    params = { index: 'tests', size: 1, sort: 'test_id:desc' }
+    params = { index: @index_name, size: 1, sort: 'test_id:desc' }
     begin
       es_test_id = @elasticsearch.search(params)['hits']['hits'][0]['sort'][0]
       tests = Test.where(id: (es_test_id + 1)...)
       Parallel.map(tests, in_processes: 4) do |test|
         @elasticsearch.create(
-          index: 'tests',
+          index: @index_name,
           id: test&.id,
           body: {
             test_id: test&.id,
@@ -119,7 +120,7 @@ class ElasticSearchService
     end
     # debugger
     params = {
-      index: 'tests',
+      index: @index_name,
       from: 0,
       size: 10_000,
       body: {

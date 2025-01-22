@@ -4,11 +4,11 @@ moh_report_job:
   class: "MohReportJob"
   queue: default
 
-nlims_sync_job:
-  name: "Sync with Nlims Every 5mins"
-  cron: "*/5 * * * *"
-  class: "NlimsSyncJob"
-  queue: default
+# nlims_sync_job:
+#   name: "Sync with Nlims Every 5mins"
+#   cron: "*/5 * * * *"
+#   class: "NlimsSyncJob"
+#   queue: default
 
 home_dashboard_job:
   name: "Update Home Dashboard analytics Every 5mins"
@@ -16,11 +16,11 @@ home_dashboard_job:
   class: "HomeDashboardJob"
   queue: default
 
-update_elasticsearch_job:
-  name: "Update elastic search every 2mins"
-  cron: "*/2 * * * *"
-  class: "UpdateElasticsearchIndexJob"
-  queue: default
+# update_elasticsearch_job:
+#   name: "Update elastic search every 2mins"
+#   cron: "*/2 * * * *"
+#   class: "UpdateElasticsearchIndexJob"
+#   queue: default
 
 oerr_sync_job:
   name: "Sync with oerr Every 20mins"
