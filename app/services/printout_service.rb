@@ -16,20 +16,25 @@ module PrintoutService
           test_.short_name
         end
       end
+      priority = order&.priority&.name
+      priority = priority.downcase == 'stat' ? " #{priority}  " : priority
       data = is_accession_number ? order.accession_number.scan(/\d+/).first.to_i : order.tracking_number
       f_number = is_accession_number ? order.accession_number : order.tracking_number
       label = ZebraPrinter::Label.new(801, 329, 'T', nil, true)
       # left_align_from = 40
-      client_details = "#{person.fullname} #{person.date_of_birth.strftime('%d-%b-%Y')} #{UtilsService.age(person.date_of_birth)} #{person.sex}"
-      label.draw_text(client_details, 20, 3, 0, 2, 1, 1)
-      # label.draw_text("#{person.date_of_birth&.strftime('%d/%b/%Y')} #{person.sex}", 6 + left_align_from, 29, 0, 1, 1, 2)
-      label.draw_barcode(51, 22, 0, '1A', 2, 2, 50, false, data)
-      label.draw_text("#{f_number} * #{data}", 51, 81, 0, 2, 1, 1)
+      client_details = "#{person.fullname}"
+      label.draw_text(client_details, 40, 3, 0, 2, 1, 1)
+      label.draw_text(
+        "#{person.date_of_birth.strftime('%d-%b-%Y')} #{UtilsService.age(person.date_of_birth)} #{person.sex}", 40, 22, 0, 2, 1, 1
+      )
+      label.draw_barcode(51, 41, 0, '1A', 2, 2, 50, false, data)
+      label.draw_text("#{f_number} * #{data}", 51, 100, 0, 2, 1, 1)
       label.draw_text(
         "Col: #{order.created_date.strftime('%d/%b/%Y %H:%M')} #{User.find(order.creator).username}",
-        20, 99, 0, 2, 1, 1
+        40, 122, 0, 2, 1, 1
       )
-      label.draw_text(tests.uniq.join(','), 20, 119, 0, 2, 1, 1)
+      label.draw_text(tests.uniq.join(','), 40, 149, 0, 2, 1, 1)
+      label.draw_text(priority.to_s, 30, 3, 1, 2, 1, 2, 'R')
       label
     end
 
