@@ -100,6 +100,7 @@ Rails.application.routes.draw do
           post '/merge_order_from_nlims' => 'orders#merge_order_from_nlims'
           get '/search_order_from_nlims_by_tracking_number' => 'orders#search_order_from_nlims_by_tracking_number'
           get '/search_by_requesting_clinician' => 'orders#search_by_requesting_clinician'
+          post '/add_order_to_encounter' => 'orders#add_order_to_encounter'
         end
       end
 
