@@ -85,7 +85,7 @@ module OerrService
     end
 
     def set_to_push?
-      oerr_configs[:push].present? ? oerr_configs[:push] : false
+      oerr_configs && oerr_configs[:push].present? ? oerr_configs[:push] : false
     end
 
     def create_oerr_sync_trail_on_update(oerr_sync_trail)
@@ -150,13 +150,11 @@ module OerrService
     def oerr_configs
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
       oerr_config = config_data['oerr_service']
-      raise 'OERR configuration not found' if oerr_config.nil?
-
       {
-        base_url: oerr_config['base_url'],
-        username: oerr_config['username'],
-        password: oerr_config['password'],
-        push: oerr_config['push']
+        base_url: oerr_config.nil? ? '' : oerr_config['base_url'],
+        username: oerr_config.nil? ? '' : oerr_config['username'],
+        password: oerr_config.nil? ? '' : oerr_config['password'],
+        push: oerr_config.nil? ? false : oerr_config['push']
       }
     end
   end
