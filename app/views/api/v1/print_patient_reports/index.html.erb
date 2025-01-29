@@ -326,26 +326,6 @@
               </template>
             </tbody>
           </table>
-
-           <div>
-            <div class="bg-gray-100 px-4 py-2 border-b">
-              <h3 class="text-lg font-semibold">Test Remarks</h3>
-            </div>
-            <template v-if="hasAnyRemarks(report.tests)">
-              <div v-for="test in showPendingTests ? report.tests : getAuthorizedTests(report.tests)" :key="test.id">
-                <div v-if="getRemarks(test) !== 'N/A'" class="mb-3 px-4 border-b border-l border-r pb-2 py-2">
-                  <p class="font-medium">{{ test.test_type_name }}:</p>
-                  <p class="ml-4" v-html="getRemarks(test)"></p>
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div class="px-4 py-2 border-b">
-                <p class="text-gray-600">No remarks available for these tests.</p>
-              </div>
-            </template>
-          </div>
-
           <div class="m-2" v-show="checkSusceptibilityResults(report)">
             <h3 class="text-lg font-semibold uppercase mb-3 mt-3">
               Suscpeptibility Test Results
@@ -402,6 +382,24 @@
                 </div>
               </div>
             </div>
+          </div>
+            <div>
+            <div class="bg-gray-100 px-4 py-2 border-b">
+              <h3 class="text-lg font-semibold">Test Remarks</h3>
+            </div>
+            <template v-if="hasAnyRemarks(report.tests)">
+              <div v-for="test in showPendingTests ? report.tests : getAuthorizedTests(report.tests)" :key="test.id">
+                <div v-if="getRemarks(test) !== 'N/A'" class="mb-3 px-4 border-b border-l border-r pb-2 py-2">
+                  <p class="font-medium">{{ test.test_type_name }}:</p>
+                  <p class="ml-4" v-html="getRemarks(test)"></p>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="px-4 py-2 border-b">
+                <p class="text-gray-600">No remarks available for these tests.</p>
+              </div>
+            </template>
           </div>
         </div>
         </div>
@@ -492,7 +490,7 @@ const app = createApp({
     },
     checkSusceptibilityResults(report) {
       return report.tests.some(
-        (test) => test.suscept_test_result.length !== 0
+        (test) => test.suscept_test_result.length !== 0 && this.getAuthorizedTests(report.tests).length > 0
       );
     },
     getFilteredDrugs(drugs) {
@@ -588,7 +586,6 @@ const app = createApp({
     hasAnyRemarks(tests) {
       return tests.some(test => {
         const remarks = this.getRemarks(test);
-        console.log(remarks)
         return remarks && remarks !== "N/A" && remarks !== '';
       });
     }
