@@ -30,10 +30,8 @@ module Reports
                 encounters e ON e.id = o.encounter_id
                     JOIN
                 facility_sections fs ON fs.id = e.facility_section_id
-                    JOIN
-                test_statuses ts on ts.test_id = t.id
             WHERE
-                  ts.status_id IN (4,5)
+                  t.status_id IN (4,5)
                     AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
             GROUP BY test_type , ward , MONTHNAME(t.created_date)
         SQL
@@ -153,11 +151,11 @@ module Reports
                   JOIN
               facility_sections fs ON fs.id = e.facility_section_id
                   JOIN
-              test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = tt.id AND ttim.voided = 0
                   JOIN
-              test_indicators ti ON ti.id = ttim.test_indicators_id
+              test_indicators ti ON ti.id = ttim.test_indicators_id AND ti.retired = 0
                   JOIN
-              test_indicator_ranges tir on tir.test_indicator_id = ti.id
+              test_indicator_ranges tir on tir.test_indicator_id = ti.id AND tir.retired = 0
                   JOIN
               test_results tr ON tr.test_id = t.id
                   AND ti.id = tr.test_indicator_id AND tr.voided = 0
