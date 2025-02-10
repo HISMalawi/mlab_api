@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-users = User.all.pluck('id')
+user_lab_locations = UserLabLocationMapping.all.pluck(:user_id)
+users = User.where.not(id: user_lab_locations).pluck('id')
 
 def departments_contains?(names, substring)
   departments = names.select do |name|
