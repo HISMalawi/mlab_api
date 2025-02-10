@@ -99,7 +99,7 @@ module Reports
                   INNER  JOIN
               test_indicators ti ON ti.id = ttim.test_indicators_id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('FBC')}
+              t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                   AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
