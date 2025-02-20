@@ -20,6 +20,7 @@ Rails.application.routes.draw do
         collection do
           get '/fetch_results/' => 'interfacer#fetch_results'
           get '/result_available/' => 'interfacer#result_available'
+          post '/genexpert/' => 'interfacer#process_external_machine_results'
         end
       end
       resources :specimen do
