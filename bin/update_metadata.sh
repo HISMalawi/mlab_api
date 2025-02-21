@@ -25,5 +25,6 @@ rails db:migrate && {
     rails r iblis_migration/client_identifier_type.rb &&
     rails r iblis_migration/update_user_location.rb &&
     rails r iblis_migration/update_test_lab_location.rb &&
-    rails db:seed
+    rails db:seed &&
+    rake db:reindex_tests
 }
