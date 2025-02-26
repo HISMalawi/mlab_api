@@ -21,3 +21,14 @@ oerr_service:
   username: username
   password: password
   push: true
+
+ciheb_gex_subscription:
+  ciheb_eid_vl_enpoint: "http://eid_vl_server_ip/api/v1/subscribe/genexprt"
+  app_name: "IBLIS"
+  organization_name: "EGPAF"
+  iblis_result_endpoint: "/api/v1/interfacer/genexpert"
+  iblis_ip_address: "192.168.1.1"
+  iblis_backend_port: 8005
+  iblis_username: "YourUsername"
+  iblis_password: "YourPassword"
+  client_type: "other"
