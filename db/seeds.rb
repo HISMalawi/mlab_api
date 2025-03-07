@@ -249,7 +249,8 @@ name_mappings = [
   },
   {
     actual_name: 'Malaria',
-    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..', 'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
+    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..',
+                   'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
   },
   {
     actual_name: 'Malaria Indicators',
@@ -341,3 +342,23 @@ female_tests.each do |name|
   puts "Updating sex for #{name}"
   TestType.where(name:).update_all(sex: 'Female')
 end
+
+settings = [
+      {
+        name: 'elasticsearch_enable_high_accuracy',
+        value: 'true'
+      },
+      {
+        name: 'use_elasticsearch',
+        value: 'true'
+      },
+      {
+        name: 'default_accession_number_length',
+        value: '10'
+      }
+    ]
+    settings.each do |setting|
+      puts "Creating setting #{setting[:name]}"
+      set = AppSetting.find_or_create_by(name: setting[:name])
+      set.update(value: setting[:value])
+    end

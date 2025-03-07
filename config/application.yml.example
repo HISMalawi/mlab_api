@@ -12,9 +12,7 @@ nlims_service:
   enable_real_time_sync: true
 
 default:
-  accession_number_length: true 
   pregenerate_report_moh_report: false
-  use_elasticsearch: true
 
 oerr_service:
   base_url: http://localhost:8080
