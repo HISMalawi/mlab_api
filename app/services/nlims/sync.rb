@@ -218,7 +218,9 @@ module Nlims
         password: nlims_config['password'],
         enable_real_time_sync: nlims_config['enable_real_time_sync']
       )
-      if @nlims_service.ping_nlims
+      ping = @nlims_service.ping_nlims
+      puts '2345678976543'
+      if ping
         auth = @nlims_service.authenticate
         unless auth
           Rails.logger.error('=========Unable to authenticate to nlims service: Nlims service not available==========')
@@ -232,7 +234,7 @@ module Nlims
         token:,
         base_url:,
         enable_real_time_sync: @nlims_service.enable_real_time_sync,
-        ping: @nlims_service.ping_nlims
+        ping:
       }
     end
   end

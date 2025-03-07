@@ -15,12 +15,15 @@ module Nlims
         RestClient::Request.execute(
           method: :get,
           url: "#{base_url}/api/v1/query_results_by_tracking_number/xxxx",
-          headers: { content_type: :json, accept: :json }
+          headers: { content_type: :json, accept: :json },
+          timeout: 3
         )
         true
     rescue Errno::ECONNREFUSED
         false
     rescue RestClient::InternalServerError
+        false
+    rescue StandardError
         false
     end
 
@@ -32,13 +35,16 @@ module Nlims
       response = RestClient::Request.execute(
                 method: :get,
                 url: "#{base_url}/api/v1/re_authenticate/#{username}/#{password}",
-                headers: { content_type: :json, accept: :json }
+                headers: { content_type: :json, accept: :json },
+                timeout: 3
               )
       response = JSON.parse(response.body)
       return false if response['status'] != 200
 
       self.token = response['data']['token']
       true
+    rescue StandardError
+      false
     end
 
     def query_order_by_tracking_number(tracking_number)
