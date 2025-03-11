@@ -20,7 +20,7 @@ module Reports
         return data if data.present?
 
         report_data = number_of_afb_examined + new_tb_cases_examined + positive_new_tb_cases_examined + total_tb_lam +
-                      rif_resistance_detected + mtb_not_detected + mtb_detected + rif_resistance_not_detected +
+                      total_pos_tb_lam + rif_resistance_detected + mtb_not_detected + mtb_detected + rif_resistance_not_detected +
                       rif_resistance_indeterminate + no_results + invalid + covid_tests_performed +
                       covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
                       covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results +
@@ -169,7 +169,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -237,6 +237,35 @@ module Reports
         SQL
       end
 
+      def total_pos_tb_lam
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'TB LAM Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{report_utils.test_type_ids('TB LAM')}
+                  AND YEAR(t.created_date) = #{year}
+                  AND t.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value = 'Positive'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
       def mtb_not_detected
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
@@ -255,8 +284,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -285,8 +314,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -315,8 +344,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert RIF')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -345,8 +374,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert RIF')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -375,8 +404,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert RIF Resistance')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert RIF')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -405,8 +434,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -435,8 +464,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Gene Xpert MTB')}
+              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
