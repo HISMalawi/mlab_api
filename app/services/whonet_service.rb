@@ -1,3 +1,4 @@
+require 'csv'
 module WhonetService
   class WhoNet
     def initialize(start_date, end_date)
@@ -59,7 +60,7 @@ module WhonetService
             AND tt.name IN ('Gram Stain', 'Culture & Sensitivity')
         GROUP BY t.id, ds.organism_id, p.first_name, p.last_name, p.sex, p.date_of_birth,
                   fs.name, o.accession_number, s.name, o.requested_by, organism
-      ")
+      ").as_json
     end
 
     def process_data
@@ -68,6 +69,23 @@ module WhonetService
         end_date: @end_date,
         data: @data
       }
+    end
+
+    def generate_csv
+      CSV.generate(headers: true) do |csv|
+        csv << @data.first.as_json.keys
+        @data.each do |row|
+          csv << row.values
+        end
+      end
+    end
+
+    def save_csv_to_file
+      file_path = Rails.root.join('public', 'whonet_reports', "whonet_report_#{@start_date}_to_#{@end_date}.csv")
+      FileUtils.mkdir_p(File.dirname(file_path))
+      csv_data = generate_csv
+      File.write(file_path, csv_data)
+      file_path
     end
   end
 end

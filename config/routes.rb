@@ -221,6 +221,11 @@ Rails.application.routes.draw do
           get '/stock_movement' => 'stock_reports#stock_movement_report'
         end
       end
+      resources :whonet do
+        collection do
+          get 'report' => 'whonet#whonet_report'
+        end
+      end
     end
   end
 end
