@@ -224,6 +224,7 @@ Rails.application.routes.draw do
       resources :whonet do
         collection do
           get 'report' => 'whonet#whonet_report'
+          get 'report/csv' => 'whonet#whonet_report_csv'
         end
       end
     end

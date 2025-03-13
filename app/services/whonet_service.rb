@@ -4,8 +4,10 @@ module WhonetService
     def initialize(start_date, end_date)
       @start_date = start_date.to_date.beginning_of_day
       @end_date = end_date.to_date.end_of_day
+      @site_origin = GlobalService.current_location.name
       @data = Report.find_by_sql("
           SELECT
+            #{@site_origin} AS laboratory,
             p.first_name, p.last_name, p.sex AS gender, p.date_of_birth AS dob,
             fs.name AS ward_or_location, o.accession_number, s.name AS specimen_type,
             o.requested_by, t.id AS test_id, ds.organism_id,
