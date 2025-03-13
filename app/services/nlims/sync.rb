@@ -14,12 +14,17 @@ module Nlims
                     uo.test_or_order_id = o.id
                   WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
                   #{id_condition(id)}
-                  ORDER BY uo.id DESC LIMIT 100"
+                  ORDER BY uo.id DESC LIMIT 500"
       )
       facility_details = GlobalService.current_location
       orders.each do |order|
-        Rails.logger.info('=======Creating orders in nlims=============')
+        Rails.logger.info("=======Creating order #{order&.tracking_number} in nlims =============")
         tests = Test.where(order_id: order[:id])
+        next if tests.empty?
+
+        specimen_type = tests.first&.specimen_type
+        next if specimen_type.nil?
+
         person_creator = Person.find_by(id: User.find_by(id: order[:creator])&.person_id)
         priority = Priority.find(order[:priority_id]).name
         encounter = Encounter.find(order[:encounter_id])
@@ -33,7 +38,7 @@ module Nlims
           target_lab: facility_details[:name],
           requesting_clinician: order[:requested_by],
           return_json: 'true',
-          sample_type: tests.first.specimen_type,
+          sample_type: specimen_type,
           tests: tests.joins(:test_type).pluck('test_types.name'),
           sample_status: OrderStatus.where(order_id: order[:id]).order(created_date: :asc).first.status.name.gsub('-',
                                                                                                                   '_'),
