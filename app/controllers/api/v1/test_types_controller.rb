@@ -29,7 +29,7 @@ module Api
       end
 
       def show
-        render json: TestCatalog::TestTypes::ShowService.show_test_type(@test_type)
+        render json: @test_type.as_json(single_item: true)
       end
 
       def create

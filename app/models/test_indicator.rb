@@ -23,4 +23,15 @@ class TestIndicator < RetirableRecord
     }[value] || value
     super(normalized_value)
   end
+
+  def test_indicator_type_info
+    type_id = read_attribute_before_type_cast(:test_indicator_type)
+    type_name = test_indicator_type&.to_s&.gsub('_', ' ')&.titleize || 'Unknown'
+
+    { id: type_id, name: type_name }
+  end
+
+  def as_json(options = {})
+    super(options).merge({ test_indicator_type: test_indicator_type_info, indicator_ranges: test_indicator_ranges })
+  end
 end

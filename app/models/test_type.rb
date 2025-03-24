@@ -13,17 +13,21 @@ class TestType < TestTypeVoidableRecord
   has_many :organisms, through: :test_type_organism_mappings
   has_many :test_type_test_indicator, class_name: 'TestTypeTestIndicator', foreign_key: 'test_types_id'
   has_many :test_indicators, through: :test_type_test_indicator
-  has_one :expected_tats, required: false
+  has_one :expected_tats, required: false, class_name: 'ExpectedTat'
   has_many :test_type_lab_test_sites, class_name: 'TestTypeLabTestSite'
   has_many :lab_test_sites, through: :test_type_lab_test_sites
 
   def as_json(options = {})
-    methods = %i[expected_turn_around_time]
-    super(options.merge(methods:))
-  end
+    base_json = super(options).merge(expected_turn_around_time: expected_tats, department:)
+    return base_json if options[:single_item].nil?
 
-  def expected_turn_around_time
-    ExpectedTat.where(test_type_id: id).first
+    base_json.merge({
+                      department:,
+                      specimens:,
+                      organisms:,
+                      indicators: test_indicators,
+                      expected_turn_around_time: expected_tats
+                    })
   end
 
   def self.search(search_term)

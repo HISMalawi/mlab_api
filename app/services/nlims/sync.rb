@@ -248,7 +248,7 @@ module Nlims
       end
     end
 
-    def check_new_test_catalog_version(version)
+    def self.check_new_test_catalog_version(version)
       nlims = nlims_token
       response = RestClient::Request.execute(
           method: :get,

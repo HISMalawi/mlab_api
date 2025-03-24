@@ -221,6 +221,8 @@ Rails.application.routes.draw do
           get '/stock_movement' => 'stock_reports#stock_movement_report'
         end
       end
+      get '/check_for_new_test_catalog_version' => 'sync_test_catalog#check_new_test_catalog_version'
+      post '/sync_test_catalog' => 'sync_test_catalog#sync_test_catalog'
     end
   end
 end

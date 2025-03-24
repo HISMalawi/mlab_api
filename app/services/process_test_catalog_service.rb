@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # module ProcessTestCatalog
-module ProcessTestCatalog
+module ProcessTestCatalogService
   class << self
     def check_new_version(current_version)
-      Nlims::Sync.check_new_test_catalog_version(current_version)
+      Nlims::Sync.check_new_test_catalog_version(current_version || '0')
     end
 
     def get_test_catalog(version)
@@ -12,9 +12,12 @@ module ProcessTestCatalog
     end
 
     def process_test_catalog(test_catalog)
-      ActiveRecordcord::Base.transaction do
+      return false if test_catalog.nil?
+
+      ActiveRecord::Base.transaction do
         create_or_update_test_types(test_catalog[:test_types])
       end
+      true
     end
 
     def create_or_update_record(record, data)
@@ -46,6 +49,7 @@ module ProcessTestCatalog
         record = Drug.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
         record ||= Drug.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
         record ||= Drug.find_by(name: item[:name])
+        record ||= Drug.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
         record ||= Drug.new
         create_or_update_record(record, item)
       end
@@ -56,6 +60,7 @@ module ProcessTestCatalog
         record = Organism.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
         record ||= Organism.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
         record ||= Organism.find_by(name: item[:name])
+        record ||= Organism.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
         record ||= Organism.new
         record = create_or_update_record(record, item)
         record.drugs = create_or_update_drugs(item[:drugs])
@@ -68,6 +73,7 @@ module ProcessTestCatalog
         record = Specimen.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
         record ||= Specimen.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
         record ||= Specimen.find_by(name: item[:name])
+        record ||= Specimen.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
         record ||= Specimen.new
         create_or_update_record(record, item)
       end
@@ -77,6 +83,7 @@ module ProcessTestCatalog
       record = Department.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
       record ||= Department.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
       record ||= Department.find_by(name: item[:name])
+      record ||= Department.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
       record ||= Department.new
       create_or_update_record(record, item)
     end
@@ -105,6 +112,7 @@ module ProcessTestCatalog
         record = TestIndicator.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
         record ||= TestIndicator.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
         record ||= TestIndicator.find_by(name: item[:name])
+        record ||= TestIndicator.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
         record ||= TestIndicator.new
         if record.new_record?
           record.name = item[:name]
@@ -123,6 +131,7 @@ module ProcessTestCatalog
         record = TestType.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
         record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
         record ||= TestType.find_by(name: item[:name])
+        record ||= TestType.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
         record ||= TestType.new
         if record.new_record?
           record.name = item[:name]
