@@ -3,14 +3,17 @@
 # module ProcessTestCatalog
 module ProcessTestCatalog
   class << self
-    def check_new_version(current_version); end
+    def check_new_version(current_version)
+      Nlims::Sync.check_new_test_catalog_version(current_version)
+    end
 
-    def get_test_catalog(_version)
-      RestClient
+    def get_test_catalog(version)
+      Nlims::Sync.get_test_catalog(version)
     end
 
     def process_test_catalog(test_catalog)
-      test_catalog.each do |test_type|
+      ActiveRecordcord::Base.transaction do
+        create_or_update_test_types(test_catalog[:test_types])
       end
     end
 

@@ -234,12 +234,26 @@ module Nlims
       }
     end
 
-    def self.get_test_catalog
+    def self.get_test_catalog(version)
       nlims = nlims_token
       response = RestClient::Request.execute(
           method: :get,
-          url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog?version=v2",
-          headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" }
+          url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog?version=#{version}",
+          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
+        )
+      if response.code == 200
+        JSON.parse(response.body, symbolize_names: true)
+      else
+        {}
+      end
+    end
+
+    def check_new_test_catalog_version(version)
+      nlims = nlims_token
+      response = RestClient::Request.execute(
+          method: :get,
+          url: "#{nlims[:base_url]}/api/v1/check_new_test_catalog_version_available?version=#{version}",
+          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
         )
       JSON.parse(response.body, symbolize_names: true)
     end
