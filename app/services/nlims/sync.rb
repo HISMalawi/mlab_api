@@ -220,9 +220,7 @@ module Nlims
       )
       if @nlims_service.ping_nlims
         auth = @nlims_service.authenticate
-        unless auth
-          Rails.logger.error('=========Unable to authenticate to nlims service: Nlims service not available==========')
-        end
+        Rails.logger.error('=========Unable to authenticate to nlims service==========') unless auth
         token = @nlims_service.token
         base_url = @nlims_service.base_url
       else
@@ -234,6 +232,16 @@ module Nlims
         enable_real_time_sync: @nlims_service.enable_real_time_sync,
         ping: @nlims_service.ping_nlims
       }
+    end
+
+    def self.get_test_catalog
+      nlims = nlims_token
+      response = RestClient::Request.execute(
+          method: :get,
+          url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog?version=v2",
+          headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" }
+        )
+      JSON.parse(response.body, symbolize_names: true)
     end
   end
 end

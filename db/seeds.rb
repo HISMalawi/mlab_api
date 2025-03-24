@@ -83,29 +83,29 @@ name_mappings = [
   },
   {
     actual_name: 'ALP',
-    manual_names: ['ALPU', 'ALP', 'Alkaline Phosphate(ALP)']
+    manual_names: ['ALPU', 'ALP', 'Alkaline Phosphate(ALP)', 'Alkaline Phosphatase']
   },
   {
     actual_name: 'ALT',
-    manual_names: ['ALT/GPT', 'ALT', 'GPT/ALT']
+    manual_names: ['ALT/GPT', 'ALT', 'GPT/ALT', 'Alanine-Aminotransferase']
   },
   {
     actual_name: 'AST',
-    manual_names: ['AST/GOT', 'AST', 'GOT/AST']
+    manual_names: ['AST/GOT', 'AST', 'GOT/AST', 'Aspartate-Aminotransferase']
   },
   {
     actual_name: 'GGT',
-    manual_names: ['GGT/r-GT', 'GGT', 'GGT/a-GT']
+    manual_names: ['GGT/r-GT', 'GGT', 'GGT/a-GT', 'Gamma-Glutamyltransferase']
   },
   {
     actual_name: 'BIT',
     manual_names: ['Bilirubin Total(BIT))', 'Bilirubin Total(BIT)', 'TBIL-DSA', 'TBIL-DSA-H',
-                   'Bilirubin Total(TBIL-DSA))', 'Total Bilirubin (T-BIL-V)']
+                   'Bilirubin Total(TBIL-DSA))', 'Total Bilirubin (T-BIL-V)', 'Total Bilirubin']
   },
   {
     actual_name: 'BID',
     manual_names: ['Bilirubin Direct(BID)', 'DBIL-DSA', 'DBIL-DSA-H', 'Bilirubin Direct(DBIL-DSA)',
-                   'Direct Bilirubin (D-BIL-V)']
+                   'Direct Bilirubin (D-BIL-V)', 'Direct Bilirubin']
   },
   {
     actual_name: 'LFT',
@@ -249,7 +249,8 @@ name_mappings = [
   },
   {
     actual_name: 'Malaria',
-    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..', 'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
+    manual_names: ['Malaria Screening', 'Malaria Screening (Paeds)', 'Malaria Blood Film', 'MRDT', 'MRDT ..',
+                   'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
   },
   {
     actual_name: 'Malaria Indicators',
