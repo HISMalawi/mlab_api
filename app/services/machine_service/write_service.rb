@@ -57,17 +57,17 @@ module MachineService
 
     # Rearranges the sign -/+ to the beginning if it appears at the end of the string
     def rearrange_sign(value)
-      value
-      # return value if value.nil?
+      return value if value.nil?
 
-      # value = value.strip
-      # match = value.match?(/\s?[+-]$/)
-      # value = value.gsub('*', '')
-      # return value unless match
+      value = value.strip
+      match = value.match?(/\s?[+-]$/)
+      value = value.gsub('*', '')
+      return value unless match
 
       # sign = value[-1]
-      # number = value[0..-2].strip
+      number = value[0..-2].strip
       # "#{sign}#{number}"
+      number.to_s
     end
 
     def check_indicator_exists?(hash:)
