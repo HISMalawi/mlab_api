@@ -22,10 +22,10 @@ module PrintoutService
       f_number = is_accession_number ? order.accession_number : order.tracking_number
       label = ZebraPrinter::Label.new(801, 329, 'T', nil, true)
       # left_align_from = 40
-      client_details = "#{person.fullname}"
+      client_details = "#{person.fullname}   Sex:#{person.sex}"
       label.draw_text(client_details, 40, 3, 0, 2, 1, 1)
       label.draw_text(
-        "#{person.date_of_birth.strftime('%d-%b-%Y')} #{UtilsService.age(person.date_of_birth)} #{person.sex}", 40, 22, 0, 2, 1, 1
+        "DoB:#{person.date_of_birth.strftime('%d-%b-%Y')} Age:#{UtilsService.detailed_age(person.date_of_birth)}", 40, 22, 0, 2, 1, 1
       )
       label.draw_barcode(51, 41, 0, '1A', 2, 2, 50, false, data)
       label.draw_text("#{f_number} * #{data}", 51, 100, 0, 2, 1, 1)
