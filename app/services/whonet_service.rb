@@ -7,7 +7,7 @@ module WhonetService
       @site_origin = GlobalService.current_location.name
       @data = Report.find_by_sql("
           SELECT
-            #{@site_origin} AS laboratory,
+            '#{@site_origin}' AS laboratory,
             p.first_name, p.last_name, p.sex AS gender, p.date_of_birth AS dob,
             fs.name AS ward_or_location, o.accession_number, s.name AS specimen_type,
             o.requested_by, t.id AS test_id, ds.organism_id,
