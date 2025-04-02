@@ -13,6 +13,12 @@ module WhonetService
             o.requested_by, t.id AS test_id,
             tt.name as test_type,
             t.created_date AS date_registered,
+            MAX(CASE WHEN ts.status_id = 3 THEN ts.created_date ELSE '' END) AS time_started,
+            MAX(
+              CASE WHEN ts.status_id = 5 THEN ts.created_date
+                WHEN ts.status_id = 4 THEN ts.created_date
+              ELSE '' END
+            ) AS time_verified,
             ds.organism_id,
             MAX(CASE
               WHEN tr.value = '0' OR tr.value IS NULL THEN NULL
@@ -61,6 +67,7 @@ module WhonetService
           LEFT JOIN drug_susceptibilities ds ON ds.test_id = t.id
           LEFT JOIN organisms o2 ON o2.id = ds.organism_id
           LEFT JOIN drugs d ON d.id = ds.drug_id
+          LEFT JOIN test_statuses ts ON ts.test_id = t.id
         WHERE t.created_date BETWEEN '#{@start_date}' AND '#{@end_date}'
             AND tt.name IN ('Gram Stain', 'Culture & Sensitivity')
         GROUP BY t.id, ds.organism_id, p.first_name, p.last_name, p.sex, p.date_of_birth,
