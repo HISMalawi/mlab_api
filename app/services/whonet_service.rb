@@ -10,12 +10,15 @@ module WhonetService
             '#{@site_origin}' AS laboratory,
             p.first_name, p.last_name, p.sex AS gender, p.date_of_birth AS dob,
             fs.name AS ward_or_location, o.accession_number, s.name AS specimen_type,
-            o.requested_by, t.id AS test_id, ds.organism_id,
-            CASE
+            o.requested_by, t.id AS test_id,
+            tt.name as test_type,
+            t.created_date AS date_registered,
+            ds.organism_id,
+            MAX(CASE
               WHEN tr.value = '0' OR tr.value IS NULL THEN NULL
               WHEN UPPER(tr.value) = 'GROWTH' AND o2.id IS NOT NULL THEN o2.name
               ELSE tr.value
-            END AS organism,
+            END) AS organism,
             MAX(CASE WHEN d.name = 'Amoxicillin/Clavulanate' THEN ds.zone ELSE '' END) AS `Amoxicillin/Clavulanate`,
             MAX(CASE WHEN d.name = 'Ampicillin' THEN ds.zone ELSE '' END) AS `Ampicillin`,
             MAX(CASE WHEN d.name = 'Ceftriaxone' THEN ds.zone ELSE '' END) AS `Ceftriaxone`,
@@ -61,7 +64,7 @@ module WhonetService
         WHERE t.created_date BETWEEN '#{@start_date}' AND '#{@end_date}'
             AND tt.name IN ('Gram Stain', 'Culture & Sensitivity')
         GROUP BY t.id, ds.organism_id, p.first_name, p.last_name, p.sex, p.date_of_birth,
-                  fs.name, o.accession_number, s.name, o.requested_by, organism
+                  fs.name, o.accession_number, s.name, o.requested_by
       ").as_json
     end
 
