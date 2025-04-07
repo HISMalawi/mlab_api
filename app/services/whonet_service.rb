@@ -9,7 +9,7 @@ module WhonetService
           SELECT
             '#{@site_origin}' AS laboratory,
             p.first_name, p.last_name, p.sex AS gender, p.date_of_birth AS dob,
-            fs.name AS ward_or_location, et.name AS ward_type,
+            fs.name AS ward_or_location, et.name AS ward_type, dt.name AS department,
             o.accession_number, s.name AS specimen_type,
             o.requested_by, t.id AS test_id,
             tt.name as test_type,
@@ -58,6 +58,7 @@ module WhonetService
             MAX(CASE WHEN d.name = 'Fuscidic acid' THEN ds.zone ELSE '' END) AS `Fuscidic acid`
         FROM tests t
           INNER JOIN test_types tt ON tt.id = t.test_type_id
+          INNER JOIN departments dt ON dt.id = tt.department_id
           INNER JOIN specimen s ON s.id = t.specimen_id
           INNER JOIN orders o ON o.id = t.order_id
           INNER JOIN encounters e ON e.id = o.encounter_id
@@ -73,7 +74,7 @@ module WhonetService
         WHERE t.created_date BETWEEN '#{@start_date}' AND '#{@end_date}'
             AND tt.name IN ('Gram Stain', 'Culture & Sensitivity')
         GROUP BY t.id, ds.organism_id, p.first_name, p.last_name, p.sex, p.date_of_birth,
-                  fs.name, o.accession_number, s.name, o.requested_by, ward_type ORDER BY date_registered
+                  fs.name, o.accession_number, s.name, o.requested_by, ward_type, department ORDER BY date_registered
       ").as_json
     end
 
