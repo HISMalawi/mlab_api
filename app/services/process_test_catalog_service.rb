@@ -185,6 +185,21 @@ module ProcessTestCatalogService
       end
     end
 
-    def create_or_update_test_panels(test_panels); end
+    def create_or_update_test_panels(test_panels)
+      test_panels.each do |item|
+        record = TestPanel.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
+        record ||= TestPanel.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
+        record ||= TestPanel.find_by(name: item[:name])
+        record ||= TestPanel.new
+        if record.new_record?
+          record.name = item[:name]
+          record.description = item[:description]
+          record.save!
+        else
+          record = create_or_update_record(record, item)
+        end
+        record.test_types = TestType.where(id: item.map { |tt| tt[:id] })
+      end
+    end
   end
 end

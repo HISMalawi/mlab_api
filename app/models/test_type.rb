@@ -16,6 +16,8 @@ class TestType < TestTypeVoidableRecord
   has_one :expected_tats, required: false, class_name: 'ExpectedTat'
   has_many :test_type_lab_test_sites, class_name: 'TestTypeLabTestSite'
   has_many :lab_test_sites, through: :test_type_lab_test_sites
+  has_many :test_type_panel_mappings, dependent: :destroy
+  has_many :test_types, through: :test_type_panel_mappings
 
   def as_json(options = {})
     base_json = super(options).merge(expected_turn_around_time: expected_tats, department:)
