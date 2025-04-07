@@ -35,7 +35,10 @@ module Sql
           sp.name AS specimen,
           sp.id AS specimen_id,
           t.lab_location_id,
-          srs.description AS rejected_reason
+          MAX(CASE
+            WHEN srs.description IS NOT NULL AND srs.description != '' THEN srs.description
+            ELSE osrs.description
+          END) AS rejected_reason
         FROM
           tests t
               INNER JOIN
@@ -60,13 +63,17 @@ module Sql
           test_panels tp ON tp.id = t.test_panel_id AND tp.retired = 0
               INNER JOIN
           statuses tst ON tst.id = t.status_id
-              LEFT JOIN 
+              LEFT JOIN
           test_statuses tss ON tss.test_id = t.id
-            LEFT JOIN 
+            LEFT JOIN
           status_reasons srs ON srs.id = tss.status_reason_id
-            INNER JOIN 
+            INNER JOIN
           statuses ost ON ost.id = o.status_id
-            WHERE t.id IS NOT NULL AND t.id IN #{tests_ids} ORDER BY t.id DESC
+            LEFT JOIN
+          order_statuses oost ON oost.order_id = o.id
+            LEFT JOIN
+          status_reasons osrs ON osrs.id = oost.status_reason_id
+            WHERE t.id IS NOT NULL AND t.id IN #{tests_ids} GROUP BY t.id ORDER BY t.id DESC
       SQL
     end
   end
