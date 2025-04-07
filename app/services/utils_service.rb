@@ -30,16 +30,21 @@ module UtilsService
 
     # Calculate the difference in years, months, and days
     years = today.year - dob.year
-    years -= 1 if (today.month < dob.month) || (today.month == dob.month && today.day < dob.day)
-
     months = today.month - dob.month
-    months += 12 if months.negative?
-    months -= 1 if today.day < dob.day
-
-    # Calculate remaining days in the current month
-    days_in_month = (dob >> (years * 12 + months)).next_month.prev_day.day
     days = today.day - dob.day
-    days += days_in_month if days.negative?
+
+    # Adjust for negative days
+    if days.negative?
+      previous_month = today.prev_month
+      days += Date.new(previous_month.year, previous_month.month, -1).day
+      months -= 1
+    end
+
+    # Adjust for negative months
+    if months.negative?
+      months += 12
+      years -= 1
+    end
 
     # Convert remaining days to weeks and days
     weeks = days / 7

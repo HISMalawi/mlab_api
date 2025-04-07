@@ -224,7 +224,6 @@ module Nlims
         enable_real_time_sync: nlims_config['enable_real_time_sync']
       )
       ping = @nlims_service.ping_nlims
-      puts '2345678976543'
       if ping
         auth = @nlims_service.authenticate
         unless auth
