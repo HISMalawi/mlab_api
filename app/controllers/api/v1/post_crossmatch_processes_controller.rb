@@ -10,22 +10,22 @@ module Api
           )
         render json: post_crossmatch_process, status: :created
       end
-    end
 
-    private
+      private
 
-    def post_crossmatch_process_params
-      params.require(:post_crossmatch_process).permit(
-        :facility_section_id,
-        :test_id,
-        :collected_by,
-        :collection_date,
-        :transfusion_outcome,
-        :returned,
-        :returned_by,
-        :returned_date,
-        :returned_reason
-      )
+      def post_crossmatch_process_params
+        params.require(:post_crossmatch_process).permit(
+          :facility_section_id,
+          :test_id,
+          :collected_by,
+          :collection_date,
+          :transfusion_outcome,
+          :returned,
+          :returned_by,
+          :returned_date,
+          :returned_reason
+        )
+      end
     end
   end
 end
