@@ -620,7 +620,8 @@ module Tests
         client: client_serializer(record),
         status: record['t_status'],
         order_status: record['o_status'],
-        lab_location: LabLocation.where(id: record['lab_location_id']).first
+        lab_location: LabLocation.where(id: record['lab_location_id']).first,
+        post_crossmatch_process: PostCrossmatchProcess.find_by(test_id: record['id'])
       }
       return json if is_test_list
 

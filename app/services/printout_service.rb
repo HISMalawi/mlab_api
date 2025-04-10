@@ -46,15 +46,35 @@ module PrintoutService
       by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id),
                                            status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = ''
+      post_crossmatch_process = []
       test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
                                .select('test_results.id, test_indicators.name, test_results.value', 'test_indicators.unit')
 
       if is_cross_match
+        test_id = Test.where(order_id: order.id)
+        post_crossmatch_process = PostCrossmatchProcess.joins(:facility_section).where(test_id:).select(
+          'collected_by',
+          'facility_sections.name AS to_ward',
+          'collection_date',
+          'transfusion_outcome',
+          'returned',
+          'returned_by',
+          'returned_date',
+          'returned_reason'
+        )&.first || post_crossmatch_process
+        post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
+          { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
+        end
         pack_abo_group = TestResult.where(
-          test_id: Test.where(order_id: order.id),
+          test_id:,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
+      is_collected = post_crossmatch_process.present?
+      test_result_records = test_results.map do |test_result|
+        { name: test_result.name, value: test_result.value, unit: test_result.unit }
+      end
+      test_results = test_result_records + post_crossmatch_process
 
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
@@ -86,15 +106,17 @@ module PrintoutService
 
       test_results.each_slice(results_per_row).with_index do |test_group, row_index|
         test_group.each_with_index do |test_result, col_index|
-          next if test_result.value.blank?
+          next if test_result[:value].blank?
 
           # Apply padding to result names & values
           name_x_pos = left_align_from + padding + (col_width * col_index * 2)
           value_x_pos = name_x_pos + col_width
           y_pos = table_start_y + (row_index * 25) - vertical_pos_reduct_by
 
-          z_label.draw_text(test_result.name.to_s[0, 18], name_x_pos - 6, y_pos + 3, 0, 1, 1, 2)
-          z_label.draw_text("#{test_result.value} #{test_result.unit || ''}", value_x_pos - 6, y_pos + 3, 0, 1, 1, 2)
+          value = "#{test_result[:value] || ''} #{test_result[:unit] || ''}"
+          result_value = value.present? ? value.to_s : 'N/A'
+          z_label.draw_text(test_result[:name].to_s[0, 18].strip, name_x_pos - 6, y_pos + 3, 0, 1, 1, 2)
+          z_label.draw_text(result_value.strip, value_x_pos - 6, y_pos + 3, 0, 1, 1, 2)
         end
       end
 
@@ -104,8 +126,11 @@ module PrintoutService
         y_pos = table_start_y + (i * 25) - vertical_pos_reduct_by
         z_label.draw_line(left_align_from, y_pos, 760, 2)
       end
-      z_label.draw_barcode(100, last_y_post + 10, 0, '1A', 2, 2, 50, false,
-                           order.accession_number.scan(/\d+/).first.to_i)
+      unless is_collected
+        z_label.draw_barcode(
+          100, last_y_post + 10, 0, '1A', 2, 2, 50, false, order.accession_number.scan(/\d+/).first.to_i
+          )
+      end
 
       # Vertical lines for columns
       4.times do |i|

@@ -223,6 +223,7 @@ Rails.application.routes.draw do
           get '/stock_movement' => 'stock_reports#stock_movement_report'
         end
       end
+      resources :post_crossmatch_processes
     end
   end
 end
