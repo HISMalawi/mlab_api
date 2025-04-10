@@ -6,6 +6,7 @@ class TestResult < VoidableRecord
   belongs_to :test_indicator
 
   after_create :set_test_status_to_completed
+  after_create :log_pack_number
 
   def set_test_status_to_completed
     ActiveRecord::Base.transaction do
@@ -22,5 +23,14 @@ class TestResult < VoidableRecord
 
       test.update!(status_id:)
     end
+  end
+
+  def log_pack_number
+    pack_number_test_indicator = TestIndicator.find_by(name: 'Pack No.')
+    return if test_indicator.nil?
+
+    return unless test_indicator.id == pack_number_test_indicator.id
+
+    PackNumberLog.create!(test_id: test.id, pack_number: value)
   end
 end

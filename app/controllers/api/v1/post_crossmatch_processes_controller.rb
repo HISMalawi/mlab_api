@@ -11,6 +11,15 @@ module Api
         render json: post_crossmatch_process, status: :created
       end
 
+      def pack_number_exist
+        pack_number = params.require(:pack_number)
+        alread_exist = PackNumberLog.pack_number_exist?(pack_number)
+        render json: {
+          pack_number_exist: alread_exist,
+          next_suffix: PackNumberLog.next_pack_number_suffix(pack_number)
+          }, status: :ok
+      end
+
       private
 
       def post_crossmatch_process_params

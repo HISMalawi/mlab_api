@@ -6,6 +6,7 @@ class Test < VoidableRecord
   has_one :current_test_status
   belongs_to :test_panel, optional: true
   has_many :post_crossmatch_processes, dependent: :destroy
+  has_many :pack_number_logs, dependent: :destroy
 
   after_create :create_default_status
   after_create :update_elastic_search_index
