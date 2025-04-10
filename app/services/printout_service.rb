@@ -62,15 +62,17 @@ module PrintoutService
           'returned_date',
           'returned_reason'
         )&.first || post_crossmatch_process
-        post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
-          { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
-        end
         pack_abo_group = TestResult.where(
           test_id:,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
       is_collected = post_crossmatch_process.present?
+      if is_collected
+        post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
+          { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
+        end
+      end
       test_result_records = test_results.map do |test_result|
         { name: test_result.name, value: test_result.value, unit: test_result.unit }
       end
