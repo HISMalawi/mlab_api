@@ -70,6 +70,7 @@ module PrintoutService
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
+      is_collected = post_crossmatch_process.present?
       test_result_records = test_results.map do |test_result|
         { name: test_result.name, value: test_result.value, unit: test_result.unit }
       end
@@ -125,8 +126,11 @@ module PrintoutService
         y_pos = table_start_y + (i * 25) - vertical_pos_reduct_by
         z_label.draw_line(left_align_from, y_pos, 760, 2)
       end
-      z_label.draw_barcode(100, last_y_post + 10, 0, '1A', 2, 2, 50, false,
-                           order.accession_number.scan(/\d+/).first.to_i)
+      unless is_collected
+        z_label.draw_barcode(
+          100, last_y_post + 10, 0, '1A', 2, 2, 50, false, order.accession_number.scan(/\d+/).first.to_i
+          )
+      end
 
       # Vertical lines for columns
       4.times do |i|
