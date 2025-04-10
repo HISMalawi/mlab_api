@@ -76,7 +76,9 @@ module PrintoutService
       test_result_records = test_results.map do |test_result|
         { name: test_result.name, value: test_result.value, unit: test_result.unit }
       end
-      test_results = test_result_records + post_crossmatch_process
+      test_results = (test_result_records + post_crossmatch_process).select do |test_result|
+        test_result[:value].present?
+      end
 
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
