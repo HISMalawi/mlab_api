@@ -134,17 +134,16 @@ module OrderService
     end
 
     def generate_accession_number
-      zero_padding = 8
-      config_data = YAML.load_file("#{Rails.root}/config/application.yml")
-      default_accession_number_length = config_data['default'].nil? ? true : config_data['default']['accession_number_length']
-      zero_padding = 6 unless default_accession_number_length
+      default_accession_number_length = AppSetting.find_by(name: 'default_accession_number_length')&.value
+      default_accession_number_length ||= 10
+      zero_padding = default_accession_number_length.to_i - 2
       mutex = Mutex.new if mutex.blank?
       mutex.lock
       max_acc_num = 0
       code = GlobalService.current_location['code']
       year = Time.current.year.to_s.last(2)
       record = begin
-        Order.where.not(accession_number: nil).order(id: :desc).limit(1).last.accession_number
+        AccessionNumberTracker.last&.accession_number
       rescue StandardError
         nil
       end
@@ -157,8 +156,11 @@ module OrderService
         max_acc_num = year.to_i > max_yr ? 1 : max_acc_num.to_s[2..].to_i
       end
       max_acc_num = max_acc_num.to_i.to_s.rjust(zero_padding, '0')
+      accession_number = "#{code}#{year}#{max_acc_num}"
+      AccessionNumberTracker.create!(accession_number:)
+      AccessionNumberTracker.find_by(accession_number: record)&.delete
       mutex.unlock
-      "#{code}#{year}#{max_acc_num}"
+      accession_number
     end
   end
 end

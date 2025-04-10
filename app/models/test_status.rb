@@ -9,7 +9,7 @@ class TestStatus < VoidableRecord
   belongs_to :status_reason, optional: true
 
   # after_commit :insert_into_report_data_raw, on: :create
-  after_create :create_unsync_order
+  after_commit :create_unsync_order
   after_create :create_oerr_sync_trails
 
   def as_json(options = {})
