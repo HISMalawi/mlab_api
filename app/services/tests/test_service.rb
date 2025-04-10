@@ -87,6 +87,7 @@ module Tests
           p.last_name,
           p.sex,
           o.requested_by,
+          o.encounter_id,
           p.date_of_birth,
           p.birth_date_estimated,
           o.id AS order_id,
@@ -602,6 +603,7 @@ module Tests
     def serialize_test(record, is_test_list: true, is_client_report: false)
       json = {
         id: record['id'],
+        encounter_id: record['encounter_id'],
         order_id: record['order_id'],
         specimen_id: record['specimen_id'],
         specimen_type: record['specimen'],

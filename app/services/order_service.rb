@@ -11,6 +11,14 @@ module OrderService
       @order
     end
 
+    def add_order(params)
+      ActiveRecord::Base.transaction do
+        @order = OrderService.create_order(params[:encounter_id], params[:order])
+        OrderService.create_test(@order.id, params[:tests], params[:lab_location])
+      end
+      @order
+    end
+
     def create_encounter(params)
       client_id = params[:client][:id]
       if client_id.blank?
@@ -161,6 +169,22 @@ module OrderService
       AccessionNumberTracker.find_by(accession_number: record)&.delete
       mutex.unlock
       accession_number
+    end
+
+    def add_order_dto(encounter_id, test_params, lab_location)
+      previous_order = Order.where(encounter_id:).last
+      {
+        encounter_id:,
+        order: {
+          priority: previous_order&.priority_id,
+          requested_by: previous_order&.requested_by,
+          collected_by: previous_order&.collected_by,
+          sample_collected_time: previous_order&.sample_collected_time,
+          tracking_number: ''
+        },
+        tests: test_params,
+        lab_location:
+      }
     end
   end
 end
