@@ -22,9 +22,7 @@ module Tests
       @per_page = (params[:per_page] || 25).to_i
       @page = (params[:page] || 1).to_i
       @lab_location = params[:lab_location] || 1
-      @use_elasticsearch = YAML.load_file(
-        Rails.root.join('config/application.yml')
-      )['default']&.fetch('use_elasticsearch', false)
+      @use_elasticsearch = AppSetting.find_by(name: 'use_elasticsearch')&.value == 'true'
     end
     # rubocop:enable Metrics/AbcSize
     # rubocop:enable Metrics/MethodLength
