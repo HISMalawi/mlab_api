@@ -22,7 +22,7 @@ module PrintoutService
       f_number = is_accession_number ? order.accession_number : order.tracking_number
       label = ZebraPrinter::Label.new(801, 329, 'T', nil, true)
       # left_align_from = 40
-      client_details = "#{person.fullname}   Sex:#{person.sex}"
+      client_details = "#{person.fullname} #{person.sex}"
       label.draw_text(client_details, 40, 3, 0, 2, 1, 1)
       label.draw_text(
         "DoB:#{person.date_of_birth.strftime('%d-%b-%Y')} Age:#{UtilsService.detailed_age(person.date_of_birth)}", 40, 22, 0, 2, 1, 1
