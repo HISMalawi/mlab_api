@@ -15,5 +15,9 @@ module PostCrossmatchProcessService
         PostCrossmatchProcess.create!(params)
       end
     end
+
+    def pack_number_exist?(pack_number)
+      PostCrossmatchProcess.find_by(pack_number:).present?
+    end
   end
 end

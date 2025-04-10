@@ -2,6 +2,8 @@
 
 # Model for post cross match process
 class PostCrossmatchProcess < VoidableRecord
+  belongs_to :test
+  belongs_to :facility_section
   before_create :set_collection_date
   before_create :set_returned_detail
 
