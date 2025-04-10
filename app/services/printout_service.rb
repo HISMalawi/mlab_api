@@ -134,7 +134,7 @@ module PrintoutService
 
       ## ─────────────────────────── DRAW LINES ───────────────────────────
       last_y_post = table_start_y + ((test_results.size / results_per_row.to_f).ceil * 25) - vertical_pos_reduct_by
-      ((test_results.size + 4) / 2).times do |i|
+      ((test_results.size / 2)+ 1).times do |i|
         y_pos = table_start_y + (i * 25) - vertical_pos_reduct_by
         z_label.draw_line(left_align_from, y_pos, 760, 2)
       end
