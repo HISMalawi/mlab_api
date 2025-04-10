@@ -85,7 +85,7 @@ module PrintoutService
         { name: test_result.name, value: test_result.value, unit: test_result.unit }
       end
       test_results = (test_result_records + post_crossmatch_process).select do |test_result|
-        test_result[:value].present?
+        !test_result[:value].nil?
       end
 
       z_label = ZebraPrinter::Label.new
