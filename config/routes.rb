@@ -223,6 +223,12 @@ Rails.application.routes.draw do
           get '/stock_movement' => 'stock_reports#stock_movement_report'
         end
       end
+      resources :whonet do
+        collection do
+          get 'report' => 'whonet#whonet_report'
+          get 'report/csv' => 'whonet#whonet_report_csv'
+        end
+      end
       resources :post_crossmatch_processes
     end
   end
