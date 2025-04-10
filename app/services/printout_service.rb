@@ -133,8 +133,9 @@ module PrintoutService
       end
 
       ## ─────────────────────────── DRAW LINES ───────────────────────────
-      last_y_post = table_start_y + ((test_results.size / results_per_row.to_f).ceil * 25) - vertical_pos_reduct_by
-      ((test_results.size / 2)+ 1).times do |i|
+      test_result_size = test_results.size.odd? ? test_results.size + 1 : test_results.size
+      last_y_post = table_start_y + ((test_result_size / results_per_row.to_f).ceil * 25) - vertical_pos_reduct_by
+      ((test_result_size / 2) + 1).times do |i|
         y_pos = table_start_y + (i * 25) - vertical_pos_reduct_by
         z_label.draw_line(left_align_from, y_pos, 760, 2)
       end
@@ -148,7 +149,7 @@ module PrintoutService
       4.times do |i|
         x_pos = (left_align_from + (col_width * i) + padding) - 15
         z_label.draw_line(x_pos, table_start_y - vertical_pos_reduct_by, 1,
-                          (test_results.size / results_per_row.to_f).ceil * 27)
+                          (test_result_size / results_per_row.to_f).ceil * 27)
       end
 
       ## ─────────────────────────── PRINT LABEL ───────────────────────────
