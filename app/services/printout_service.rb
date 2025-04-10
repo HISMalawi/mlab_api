@@ -70,7 +70,15 @@ module PrintoutService
       is_collected = post_crossmatch_process.present?
       if is_collected
         post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
-          { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
+          if key.include?('date')
+            {
+              name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '),
+              value: value.present? ? value.strftime('%Y-%m-%d %H:%M') : nil,
+              unit: nil
+            }
+          else
+            { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
+          end
         end
       end
       test_result_records = test_results.map do |test_result|
