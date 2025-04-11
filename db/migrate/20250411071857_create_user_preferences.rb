@@ -20,7 +20,7 @@ class CreateUserPreferences < ActiveRecord::Migration[7.0]
     add_foreign_key :user_preferences, :users, column: :voided_by, primary_key: :id
     add_index :user_preferences, :name
     add_index :user_preferences, %i[name creator], unique: true
-    add_index :user_preferences, %i[name voided], unique: true
-    add_index :user_preferences, %i[name creator voided], unique: true
+    add_index :user_preferences, %i[name voided]
+    add_index :user_preferences, %i[name creator voided]
   end
 end
