@@ -124,6 +124,7 @@ Rails.application.routes.draw do
           get 'nlims_status' => 'global#nlims_status'
           get 'app_settings' => 'global#app_settings'
           put 'app_settings' => 'global#update_app_settings'
+          get 'preferences' => 'global#preferences'
         end
       end
       resources :priorities
