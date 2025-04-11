@@ -12,7 +12,7 @@ class User < VoidableRecord
   has_many :user_preferences, dependent: :destroy, class_name: 'UserPreference', foreign_key: 'creator'
 
   validates :username, uniqueness: true, presence: true
-  afer_create :set_default_preferences
+  after_create :set_default_preferences
 
   def active?
     is_active.zero?
