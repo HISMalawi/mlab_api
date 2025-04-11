@@ -14,7 +14,11 @@ module Api
       end
 
       def create
-        @user_preference = UserPreference.create!(user_preference_params)
+        @user_preference = UserPreference.find_or_create_by!(
+          name: user_preference_params[:name],
+          value: user_preference_params[:value],
+          creator: User.current&.id
+        )
         render json: @user_preference, status: :created
       end
 
