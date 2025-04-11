@@ -133,7 +133,7 @@ class ElasticSearchService
         terms: { 'location.keyword' => facility_sections }
       }
     end
-    unless AppSetting.find_by(name: 'elasticsearch_enable_high_accuracy')&.value == 'true'
+    unless UserPreference.find_by(name: 'elasticsearch_enable_high_accuracy', creator: User.current&.id)&.value == 'true'
       base_query[:bool][:should] << {
         match: {
           patient_name: {

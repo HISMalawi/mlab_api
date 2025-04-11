@@ -235,6 +235,7 @@ Rails.application.routes.draw do
           get 'pack_number_exist' => 'post_crossmatch_processes#pack_number_exist'
         end
       end
+      resources :user_preferences
     end
   end
 end

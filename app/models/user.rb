@@ -9,6 +9,7 @@ class User < VoidableRecord
   has_many :user_department_mappings
   has_many :departments, through: :user_department_mappings
   has_many :user_role_mappings
+  has_many :user_preferences, dependent: :destroy, class_name: 'UserPreference', foreign_key: 'creator'
 
   validates :username, uniqueness: true, presence: true
 
