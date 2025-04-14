@@ -225,7 +225,7 @@ module Reports
                   WHERE
                       t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                           AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
-                          AND YEAR(t.created_date) = #{year}
+                          AND YEAR(ot.created_date) = #{year}
                           AND t.status_id IN (4 , 5)
                           AND t.voided = 0
                           AND tr.value <= 6
@@ -277,7 +277,7 @@ module Reports
                   WHERE
                       t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
                           AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
-                          AND YEAR(t.created_date) = #{year}
+                          AND YEAR(ot.created_date) = #{year}
                           AND t.status_id IN (4 , 5)
                           AND t.voided = 0
                           AND tr.value > 6
