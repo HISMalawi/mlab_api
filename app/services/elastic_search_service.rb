@@ -70,22 +70,25 @@ class ElasticSearchService
     { first_name: first, last_name: last }
   end
 
-  def search(q, facility_sections)
-    q_soundex = extract_first_and_last(q)
-    base_query = {
+  def only_one_word?(q)
+    q.split.size == 1
+  end
+
+  def search_by_one_word(q)
+    {
       bool: {
         should: [
           {
             match: {
-              patient_name_soundex: {
-                query: "#{q_soundex[:first_name].soundex}#{q_soundex[:last_name].soundex}"
+              first_name_soundex: {
+                query: q.soundex
               }
             }
           },
           {
             match: {
-              patient_name_soundex: {
-                query: "#{q_soundex[:last_name].soundex}#{q_soundex[:first_name].soundex}"
+              last_name_soundex: {
+                query: q.soundex
               }
             }
           },
@@ -128,12 +131,77 @@ class ElasticSearchService
         ]
       }
     }
+  end
+
+  def search(q, facility_sections)
+    if only_one_word?(q)
+      base_query = search_by_one_word(q)
+    else
+      q_soundex = extract_first_and_last(q)
+      base_query = {
+        bool: {
+          should: [
+            {
+              match: {
+                patient_name_soundex: {
+                  query: "#{q_soundex[:first_name].soundex}#{q_soundex[:last_name].soundex}"
+                }
+              }
+            },
+            {
+              match: {
+                patient_name_soundex: {
+                  query: "#{q_soundex[:last_name].soundex}#{q_soundex[:first_name].soundex}"
+                }
+              }
+            },
+            {
+              match: {
+                location: {
+                  query: q
+                }
+              }
+            },
+            {
+              match: {
+                test_name: {
+                  query: q,
+                  fuzziness: 2
+                }
+              }
+            },
+            {
+              match: {
+                accession_number: {
+                  query: "#{GlobalService.current_location&.code}#{q}"
+                }
+              }
+            },
+            {
+              match: {
+                accession_number: {
+                  query: q
+                }
+              }
+            },
+            {
+              match: {
+                tracking_number: {
+                  query: q
+                }
+              }
+            }
+          ]
+        }
+      }
+    end
     if facility_sections.present?
       base_query[:bool][:filter] = {
         terms: { 'location.keyword' => facility_sections }
       }
     end
-    unless AppSetting.find_by(name: 'elasticsearch_enable_high_accuracy')&.value == 'true'
+    unless UserPreference.find_by(name: 'elasticsearch_enable_high_accuracy',
+                                  creator: User.current&.id)&.value == 'true'
       base_query[:bool][:should] << {
         match: {
           patient_name: {

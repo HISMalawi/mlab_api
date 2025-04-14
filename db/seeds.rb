@@ -257,7 +257,8 @@ name_mappings = [
   },
   {
     actual_name: 'Smear Microscopy',
-    manual_names: ['Smear microscopy result', 'Smear microscopy result 1', 'TB Microscopy Sample 1', 'TB Microscopy Sample 2']
+    manual_names: ['Smear microscopy result', 'Smear microscopy result 1', 'TB Microscopy Sample 1',
+                   'TB Microscopy Sample 2']
   },
   {
     actual_name: 'Malaria',
@@ -357,10 +358,6 @@ end
 
 settings = [
       {
-        name: 'elasticsearch_enable_high_accuracy',
-        value: 'true'
-      },
-      {
         name: 'use_elasticsearch',
         value: 'true'
       },
@@ -371,6 +368,9 @@ settings = [
     ]
     settings.each do |setting|
       puts "Creating setting #{setting[:name]}"
+      next if setting[:name].blank? || setting[:value].blank?
+      next if AppSetting.where(name: setting[:name]).exists?
+
       set = AppSetting.find_or_create_by(name: setting[:name])
       set.update(value: setting[:value])
     end

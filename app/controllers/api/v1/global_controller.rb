@@ -55,6 +55,10 @@ module Api
         render json: app_setting
       end
 
+      def preferences
+        render json: Preference.all
+      end
+
       private
 
       def set_global

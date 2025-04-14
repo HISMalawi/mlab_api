@@ -124,6 +124,7 @@ Rails.application.routes.draw do
           get 'nlims_status' => 'global#nlims_status'
           get 'app_settings' => 'global#app_settings'
           put 'app_settings' => 'global#update_app_settings'
+          get 'preferences' => 'global#preferences'
         end
       end
       resources :priorities
@@ -230,7 +231,12 @@ Rails.application.routes.draw do
           get 'report/csv' => 'whonet#whonet_report_csv'
         end
       end
-      resources :post_crossmatch_processes
+      resources :post_crossmatch_processes do
+        collection do
+          get 'pack_number_exist' => 'post_crossmatch_processes#pack_number_exist'
+        end
+      end
+      resources :user_preferences
     end
   end
 end

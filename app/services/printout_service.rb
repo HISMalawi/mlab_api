@@ -62,19 +62,31 @@ module PrintoutService
           'returned_date',
           'returned_reason'
         )&.first || post_crossmatch_process
-        post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
-          { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
-        end
         pack_abo_group = TestResult.where(
           test_id:,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
       is_collected = post_crossmatch_process.present?
+      if is_collected
+        post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
+          if key.include?('date')
+            {
+              name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '),
+              value: value.present? ? value.strftime('%Y-%m-%d %H:%M') : nil,
+              unit: nil
+            }
+          else
+            { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
+          end
+        end
+      end
       test_result_records = test_results.map do |test_result|
         { name: test_result.name, value: test_result.value, unit: test_result.unit }
       end
-      test_results = test_result_records + post_crossmatch_process
+      test_results = (test_result_records + post_crossmatch_process).select do |test_result|
+        !test_result[:value].nil?
+      end
 
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
@@ -121,8 +133,9 @@ module PrintoutService
       end
 
       ## ─────────────────────────── DRAW LINES ───────────────────────────
-      last_y_post = table_start_y + ((test_results.size / results_per_row.to_f).ceil * 25) - vertical_pos_reduct_by
-      ((test_results.size + 4) / 2).times do |i|
+      test_result_size = test_results.size.odd? ? test_results.size + 1 : test_results.size
+      last_y_post = table_start_y + ((test_result_size / results_per_row.to_f).ceil * 25) - vertical_pos_reduct_by
+      ((test_result_size / 2) + 1).times do |i|
         y_pos = table_start_y + (i * 25) - vertical_pos_reduct_by
         z_label.draw_line(left_align_from, y_pos, 760, 2)
       end
@@ -136,7 +149,7 @@ module PrintoutService
       4.times do |i|
         x_pos = (left_align_from + (col_width * i) + padding) - 15
         z_label.draw_line(x_pos, table_start_y - vertical_pos_reduct_by, 1,
-                          (test_results.size / results_per_row.to_f).ceil * 27)
+                          (test_result_size / results_per_row.to_f).ceil * 27)
       end
 
       ## ─────────────────────────── PRINT LABEL ───────────────────────────

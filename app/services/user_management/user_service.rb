@@ -165,6 +165,7 @@ module UserManagement
         user_odt[:departments] = departments
         user_odt[:permissions] = user_privileges(user)
         user_odt[:lab_locations] = lab_locations(user.id)
+        user_odt[:preferences] = user&.user_preferences&.select(:id, :name, :value)
         user_odt
       end
       # rubocop:enable Metrics/AbcSize
