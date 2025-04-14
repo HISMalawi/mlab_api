@@ -74,6 +74,10 @@ class ElasticSearchService
     q.split.size == 1
   end
 
+  def q_include_number?(q)
+    q.match?(/\d/)
+  end
+
   def search_by_one_word(q)
     {
       bool: {
@@ -134,7 +138,7 @@ class ElasticSearchService
   end
 
   def search(q, facility_sections)
-    if only_one_word?(q)
+    if only_one_word?(q) && !q_include_number?(q)
       base_query = search_by_one_word(q)
     else
       q_soundex = extract_first_and_last(q)
