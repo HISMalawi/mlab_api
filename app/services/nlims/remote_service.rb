@@ -129,7 +129,13 @@ module Nlims
         order = create_order_from_nlims(encounter.id, nlims_order)
         set_order_status_to_accepted(order.id)
         specimen = Specimen.find_by_name(nlims_order[:specimen])
-        create_test_from_nlims(order.id, nlims_order[:tests], specimen.id, nlims_order[:results])
+        create_test_from_nlims(
+          order.id,
+          nlims_order[:tests],
+          specimen.id,
+          nlims_order[:results],
+          nlims_order[:lab_location]
+        )
         save_results_from_nlims(order.id, nlims_order[:results]) unless nlims_order[:results].empty?
       end
       order
@@ -246,16 +252,17 @@ module Nlims
                     collected_by: nlims_order[:collected_by])
     end
 
-    def create_test_from_nlims(order_id, tests, specimen_id, results)
+    def create_test_from_nlims(order_id, tests, specimen_id, results, lab_location)
       tests.each do |test_|
         test_type = TestType.find_by_name(test_[:test_type])
         test_panel = TestPanel.find_by_name(test_[:test_type])
+        lab_location_id = lab_location || LabLocation.first&.id
         if test_panel.nil?
           t_ = Test.create!(
             specimen_id:,
             order_id:,
             test_type_id: test_type.id,
-            lab_location_id: 1
+            lab_location_id:
           )
           unless results.empty?
             status = Status.find_by_name(test_[:test_status])
@@ -269,7 +276,7 @@ module Nlims
               order_id:,
               test_type_id:,
               test_panel_id: test_panel.id,
-              lab_location_id: 1
+              lab_location_id:
             )
             unless results.empty?
               status = Status.find_by_name(test_[:test_status])
