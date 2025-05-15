@@ -79,7 +79,13 @@ git checkout main
 cp application.yml.example application.yml
 ```
 
-2. Edit the `application.yml` file to configure the DDE and NLIMS settings and default settings:
+2. Edit the `application.yml` file to configure DDE. Add username and password of user in the DDE section. The same user credentials used in the EMR-API for the site. If DDE is not configured locally, follow the instructions [here](https://github.com/HISMalawi/Demographics-Data-Exchange)
+
+```shell
+vim application.yml
+```
+
+3. Edit the `application.yml` file and NLIMS settings and default settings:
 
 ```shell
 vim application.yml
