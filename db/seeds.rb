@@ -142,8 +142,8 @@ name_mappings = [
                    'Maternity Ward', 'Antenatal', 'ANC']
   },
   {
-    actual_name: 'Hepatitis',
-    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)']
+    actual_name: 'Hepatitis B',
+    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)', 'Hepatitis B']
   },
   {
     actual_name: 'Hepatitis C',
@@ -357,20 +357,20 @@ female_tests.each do |name|
 end
 
 settings = [
-      {
-        name: 'use_elasticsearch',
-        value: 'true'
-      },
-      {
-        name: 'default_accession_number_length',
-        value: '10'
-      }
-    ]
-    settings.each do |setting|
-      puts "Creating setting #{setting[:name]}"
-      next if setting[:name].blank? || setting[:value].blank?
-      next if AppSetting.where(name: setting[:name]).exists?
+  {
+    name: 'use_elasticsearch',
+    value: 'true'
+  },
+  {
+    name: 'default_accession_number_length',
+    value: '10'
+  }
+]
+settings.each do |setting|
+  puts "Creating setting #{setting[:name]}"
+  next if setting[:name].blank? || setting[:value].blank?
+  next if AppSetting.where(name: setting[:name]).exists?
 
-      set = AppSetting.find_or_create_by(name: setting[:name])
-      set.update(value: setting[:value])
-    end
+  set = AppSetting.find_or_create_by(name: setting[:name])
+  set.update(value: setting[:value])
+end
