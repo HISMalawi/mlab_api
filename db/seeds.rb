@@ -55,7 +55,8 @@ name_mappings = [
   },
   {
     actual_name: 'Maternity',
-    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward']
+    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward',
+                   'Antinatal', 'Postnatal Ward']
   },
   {
     actual_name: 'paeds',
@@ -63,7 +64,7 @@ name_mappings = [
                    'Nursery', 'Paediatric', 'Peads Special Care Ward', 'Paeds Medical', 'Peads Isolation Centre',
                    'Paediatric Surgical', 'Paediatric Medical', 'Paeds Orthopedic',
                    'Children\'s ward', 'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics',
-                   'Peads Surgical Ward', 'Mercy James Paediatric Centre']
+                   'Peads Surgical Ward', 'Mercy James Paediatric Centre', 'Peads']
   },
   {
     actual_name: 'Pack ABO Group',
