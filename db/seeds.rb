@@ -140,7 +140,7 @@ name_mappings = [
   {
     actual_name: 'Antenatal',
     manual_names: ['EM THEATRE', 'Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW',
-                   'Maternity Ward', 'Antenatal', 'ANC']
+                   'Maternity Ward', 'Antenatal', 'ANC', 'Antinatal']
   },
   {
     actual_name: 'Hepatitis B',
@@ -148,7 +148,8 @@ name_mappings = [
   },
   {
     actual_name: 'Hepatitis C',
-    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)']
+    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)',
+                   'Hep C']
   },
   {
     actual_name: 'HIV',
