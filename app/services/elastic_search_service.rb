@@ -16,39 +16,38 @@ class ElasticSearchService
 
   def index_body(test)
     {
-        test_id: test.id,
-        patient_name: test&.order&.encounter&.client&.person&.fullname,
-        patient_name_soundex: "#{test&.order&.encounter&.client&.person&.first_name_soundex}#{test&.order&.encounter&.client&.person&.last_name_soundex}",
-        first_name: test&.order&.encounter&.client&.person&.first_name,
-        last_name: test&.order&.encounter&.client&.person&.last_name,
-        first_name_soundex: test&.order&.encounter&.client&.person&.first_name_soundex,
-        last_name_soundex: test&.order&.encounter&.client&.person&.last_name_soundex,
-        accession_number: test&.order&.accession_number,
-        tracking_number: test&.order&.tracking_number,
-        test_name: test&.test_type&.name,
-        location: test&.order&.encounter&.facility_section&.name,
-        test_status: Status.where(id: test&.status_id).first&.name,
-        order_status: Status.where(id: test&.order&.status_id).first&.name,
-        test_time_created: test&.created_date
-      }
+      test_id: test.id,
+      patient_name: test&.order&.encounter&.client&.person&.fullname,
+      patient_name_soundex: "#{test&.order&.encounter&.client&.person&.first_name_soundex}#{test&.order&.encounter&.client&.person&.last_name_soundex}",
+      first_name: test&.order&.encounter&.client&.person&.first_name,
+      last_name: test&.order&.encounter&.client&.person&.last_name,
+      first_name_soundex: test&.order&.encounter&.client&.person&.first_name_soundex,
+      last_name_soundex: test&.order&.encounter&.client&.person&.last_name_soundex,
+      accession_number: test&.order&.accession_number,
+      tracking_number: test&.order&.tracking_number,
+      test_name: test&.test_type&.name,
+      location: test&.order&.encounter&.facility_section&.name,
+      test_status: Status.where(id: test&.status_id).first&.name,
+      order_status: Status.where(id: test&.order&.status_id).first&.name,
+      test_time_created: test&.created_date
+    }
   end
 
   def index_test(test)
-      @elasticsearch.index(
-        index: @index_name,
-        id: test.id,
-        body: index_body(test)
-      )
-      puts "Indexing record---> tracking_number: #{test&.order&.tracking_number}  Accession number: #{test&.accession_number} current date: #{test.created_date.to_date}"
+    @elasticsearch.index(
+      index: @index_name,
+      id: test.id,
+      body: index_body(test)
+    )
+    puts "Indexing record---> tracking_number: #{test&.order&.tracking_number}  Accession number: #{test&.accession_number} current date: #{test.created_date.to_date}"
   rescue StandardError => e
-      puts e.message
+    puts e.message
   end
 
   def update_index
     params = { index: @index_name, size: 1, sort: 'test_id:desc' }
     begin
-      @elasticsearch.search(params)['hits']['hits'][0]['sort'][0]
-      es_test_id = 40_032
+      es_test_id = @elasticsearch.search(params)['hits']['hits'][0]['sort'][0]
       tests = Test.where(id: (es_test_id + 1)...)
       Parallel.map(tests, in_processes: 4) do |test|
         @elasticsearch.create(
