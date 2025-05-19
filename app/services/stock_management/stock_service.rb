@@ -272,17 +272,33 @@ module StockManagement
       end
 
       def dump_products(file_path)
-        spreadsheet = ::Roo::Spreadsheet.open(file_path.to_s)
-        header = spreadsheet.row(1)
+        begin
+          spreadsheet = ::Roo::Spreadsheet.open(file_path.to_s, { encoding: 'utf-8' })
+          header = spreadsheet.row(1)
 
-        (2..spreadsheet.last_row).each do |i|
-          row = Hash[[header, spreadsheet.row(i)].transpose]
-          create_or_skip_stock_item(row)
+          (2..spreadsheet.last_row).each do |i|
+            begin
+              row = Hash[[header, spreadsheet.row(i)].transpose]
+              create_or_skip_stock_item(row)
+            rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+              Rails.logger.error("Encoding error in line #{i}: #{e.message}")
+              raise "Invalid byte sequence in UTF-8 in line #{i}. Please check this line for special characters."
+            end
+          end
+        rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+          Rails.logger.error("Encoding error when opening file: #{e.message}")
+          raise "Invalid byte sequence in UTF-8 when opening file. The file may not be properly encoded in UTF-8."
         end
       end
 
       def create_or_skip_stock_item(row)
         ActiveRecord::Base.transaction do
+          row.each do |key, value|
+            if value.is_a?(String)
+              row[key] = value.encode('UTF-8', 'UTF-8', invalid: :replace, undef: :replace, replace: '')
+            end
+          end
+
           existing_stock_item = StockItem.find_by(name: row['name'])
 
           if existing_stock_item
@@ -290,25 +306,70 @@ module StockManagement
             next
           end
 
+          dispensable = row['dispensable'].to_s
+          dispensable_unit = dispensable.include?('dispensingUnit:') ?
+                             dispensable.gsub('dispensingUnit:', '').strip :
+                             dispensable.strip
+
           stock_item = StockItem.create!(
             product_code: row['productCode'],
             name: row['name'],
-            stock_category_id: StockCategory.find_or_create_by!(name: row['categoryDescription'], short_name: row['category']).id,
+            stock_category_id: StockCategory.find_or_create_by!(
+              name: row['categoryDescription'] || row['category'],
+              short_name: row['category']
+            ).id,
             description: row['description'],
-            measurement_unit: StockUnit.find_or_create_by!(name: row['dispensable'].gsub('dispensingUnit:', '').strip).id,
+            measurement_unit: StockUnit.find_or_create_by!(name: dispensable_unit).id,
             quantity_unit: row['packSize'],
             strength: row['Strength']
           )
 
+          stock_location_id = nil
+
+          if row['Stock Location ID'].present?
+            stock_location_id = row['Stock Location ID']
+          elsif row['stock_location_id'].present?
+            stock_location_id = row['stock_location_id']
+          end
+
+          if stock_location_id.nil? || !StockLocation.exists?(stock_location_id)
+            default_location = StockLocation.find_or_create_by!(name: 'Main Store') do |location|
+              location.description = 'Default stock location created during import'
+            end
+            stock_location_id = default_location.id
+          end
+
           Stock.create!(
             stock_item_id: stock_item.id,
-            stock_location_id: row['Stock Location ID'] || 1,
+            stock_location_id: stock_location_id,
             quantity: 0,
             minimum_order_level: row['Minimum Order Level'] || 0
           )
 
           Rails.logger.info "Stock item '#{stock_item.name}' created successfully."
         end
+      rescue StandardError => e
+        Rails.logger.error "Error creating stock item: #{e.message}"
+        Rails.logger.error "Problem row data: #{row.inspect}"
+
+        if e.is_a?(ActiveRecord::RecordInvalid)
+          invalid_record = e.record
+          Rails.logger.error "Validation errors: #{invalid_record.errors.full_messages.join(', ')}"
+
+          if invalid_record.errors.include?(:stock_location)
+            Rails.logger.error "Stock location error. Available stock locations: #{StockLocation.pluck(:id, :name)}"
+          end
+
+          if invalid_record.errors.include?(:stock_category_id)
+            Rails.logger.error "Stock category error. Available categories: #{StockCategory.pluck(:id, :name)}"
+          end
+
+          if invalid_record.errors.include?(:measurement_unit)
+            Rails.logger.error "Measurement unit error. Available units: #{StockUnit.pluck(:id, :name)}"
+          end
+        end
+
+        raise "#{e.message} (Row: #{row.inspect})"
       end
     end
   end
