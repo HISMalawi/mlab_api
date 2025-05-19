@@ -54,7 +54,7 @@ module Reports
         'Trypanosome tests',
         'Positive tests',
         'Urine microscopy total',
-        'Schistosome Haematobium',
+        'Schistosoma Haematobium',
         'Other urine parasites',
         'Urine chemistry (count)',
         'Semen analysis (count)',
@@ -734,18 +734,10 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'Schistosome Haematobium' AS indicator,
+            COUNT(DISTINCT t.id) AS total, 'Schistosoma Haematobium' AS indicator,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
-              INNER JOIN
-            orders o ON o.id = t.order_id
-              INNER JOIN
-            encounters e ON e.id = o.encounter_id
-              INNER JOIN
-            clients c ON c.id = e.client_id
-              INNER JOIN
-            people p ON p.id = c.person_id
                 INNER JOIN
             test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
                 INNER  JOIN
@@ -755,12 +747,14 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids(['Schistosome Haematobiums', 'Schistosome Haematobium'])}
+            t.test_type_id IN #{report_utils.test_type_ids(['Schistosome Haematobiums', 'Schistosome Haematobium', 'Urine Microscopy'])}
+            AND ti.id IN #{report_utils.test_indicator_ids(['Schistosoma Haematobium', 'Parasites'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT IN ('', '0')
             AND tr.value IS NOT NULL
+            AND tr.value LIKE '%schistosom%'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
