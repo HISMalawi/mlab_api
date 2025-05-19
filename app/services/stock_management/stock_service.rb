@@ -17,6 +17,23 @@ module StockManagement
         { data: records, meta: PaginationService.pagination_metadata(records) }
       end
 
+      def stock_item(stock_item)
+        stock = Stock.find_by_stock_item_id(stock_item.id)
+        transactions = StockTransaction.where(stock_id: stock.id).select('DISTINCT batch, lot')
+        batches = transactions.pluck(:batch).compact.uniq
+        lots = transactions.pluck(:lot).compact.uniq
+        stock_item_json = stock_item.attributes.as_json
+        stock_item_json.merge!({
+          stock: stock,
+          stock_unit: StockUnit.find(stock_item.measurement_unit).name,
+          stock_category: StockCategory.find(stock_item.stock_category_id).name,
+          stock_location: stock ? StockLocation.find(stock.stock_location_id).name : nil,
+          batches: batches,
+          lots: lots
+        })
+        stock_item_json
+      end
+
       def stock_list
         Stock.joins(:stock_item, :stock_location)
              .select('
@@ -252,6 +269,46 @@ module StockManagement
         return if stock.nil?
 
         stock.update!(quantity: stock.quantity - quantity.to_i)
+      end
+
+      def dump_products(file_path)
+        spreadsheet = ::Roo::Spreadsheet.open(file_path.to_s)
+        header = spreadsheet.row(1)
+
+        (2..spreadsheet.last_row).each do |i|
+          row = Hash[[header, spreadsheet.row(i)].transpose]
+          create_or_skip_stock_item(row)
+        end
+      end
+
+      def create_or_skip_stock_item(row)
+        ActiveRecord::Base.transaction do
+          existing_stock_item = StockItem.find_by(name: row['name'])
+
+          if existing_stock_item
+            Rails.logger.info "Stock item '#{existing_stock_item.name}' already exists. Skipping..."
+            next
+          end
+
+          stock_item = StockItem.create!(
+            product_code: row['productCode'],
+            name: row['name'],
+            stock_category_id: StockCategory.find_or_create_by!(name: row['categoryDescription'], short_name: row['category']).id,
+            description: row['description'],
+            measurement_unit: StockUnit.find_or_create_by!(name: row['dispensable'].gsub('dispensingUnit:', '').strip).id,
+            quantity_unit: row['packSize'],
+            strength: row['Strength']
+          )
+
+          Stock.create!(
+            stock_item_id: stock_item.id,
+            stock_location_id: row['Stock Location ID'] || 1,
+            quantity: 0,
+            minimum_order_level: row['Minimum Order Level'] || 0
+          )
+
+          Rails.logger.info "Stock item '#{stock_item.name}' created successfully."
+        end
       end
     end
   end

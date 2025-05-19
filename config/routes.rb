@@ -182,7 +182,11 @@ Rails.application.routes.draw do
       resources :stock_categories
       resources :stock_suppliers
       resources :stock_locations
-      resources :stock_items
+      resources :stock_items do
+        collection do
+          post '/import' => 'stock_items#import'
+        end
+      end
       resources :stocks
       resources :stock_transaction_types
       resources :stock_orders do

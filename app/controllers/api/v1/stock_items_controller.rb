@@ -9,9 +9,37 @@ module Api
       before_action :set_stock_item, only: %i[show update destroy]
 
       def index
-        stock_items = Stock.joins(:stock_item).select(
-          'stock_items.*, stocks.stock_location_id, stocks.minimum_order_level, stocks.quantity'
-        )
+        metadata = params[:metadata] == 'true'
+        if metadata
+          stock_items = Stock.joins(:stock_item)
+            .joins(:stock_transactions)
+            .group(
+              'stock_items.id',
+              'stocks.stock_location_id',
+              'stocks.minimum_order_level',
+              'stocks.quantity'
+            )
+            .select(
+              'stock_items.*',
+              'stocks.stock_location_id',
+              'stocks.minimum_order_level',
+              'stocks.quantity',
+              "GROUP_CONCAT(DISTINCT stock_transactions.batch) as batches",
+              "GROUP_CONCAT(DISTINCT stock_transactions.lot) as lots"
+            )
+            stock_items.each do |item|
+              item.batches = item.batches.split(',') unless item.batches.nil?
+              item.lots = item.lots.split(',') unless item.lots.nil?
+            end
+        else
+          stock_items = Stock.joins(:stock_item)
+            .select(
+              'stock_items.*',
+              'stocks.stock_location_id',
+              'stocks.minimum_order_level',
+              'stocks.quantity'
+            )
+        end
         render json: stock_items
       end
 
@@ -28,11 +56,22 @@ module Api
         render json: @stock_item, status: :created
       end
 
+      def import
+        file = params[:file]
+        if file.nil?
+          return render json: { error: 'No file uploaded' }, status: :unprocessable_entity
+        end
+
+        begin
+          StockManagement::StockService.dump_products(file.path)
+          render json: { message: 'Import completed successfully!' }, status: :ok
+        rescue StandardError => e
+          render json: { error: e.message }, status: :unprocessable_entity
+        end
+      end
+
       def show
-        stock = Stock.find_by_stock_item_id(@stock_item.id)
-        stock_item = JSON.parse(@stock_item.attributes.to_json)
-        stock_item[:stock] = stock
-        render json: stock_item
+        render json: StockManagement::StockService.stock_item(@stock_item)
       end
 
       def update
@@ -56,6 +95,7 @@ module Api
       def stock_item_params
         params.require(:stock_item).permit(
           :name,
+          :product_code,
           :stock_category_id,
           :description,
           :measurement_unit,
