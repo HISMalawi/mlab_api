@@ -19,7 +19,7 @@ module Reports
 
         def check_if_file_exists(department, year)
           file_path = Rails.root.join('public', "#{department}_#{year}_moh_report_data.json")
-          File.exist?(file_path) ? true : false
+          File.exist?(file_path) || false
         end
 
         def get_file_path(department, year)
@@ -36,7 +36,7 @@ module Reports
         def test_type_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
-          ids = TestType.where("TRIM(name) IN (?)", manual_names).map(&:id)
+          ids = TestType.where('TRIM(name) IN (?)', manual_names.map(&:strip)).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
 
           "(#{ids.join(', ')})"
@@ -50,7 +50,7 @@ module Reports
         def test_indicator_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
-          ids = TestIndicator.where(name: manual_names).map(&:id)
+          ids = TestIndicator.where('TRIM(name) IN (?)', manual_names.map(&:strip)).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
 
           "(#{ids.join(', ')})"
@@ -59,7 +59,7 @@ module Reports
         def organism_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
-          ids = Organism.where(name: manual_names).map(&:id)
+          ids = Organism.where('TRIM(name) IN (?)', manual_names.map(&:strip)).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
 
           "(#{ids.join(', ')})"
@@ -68,7 +68,7 @@ module Reports
         def facility_section_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
-          ids = FacilitySection.where(name: manual_names).map(&:id)
+          ids = FacilitySection.where('TRIM(name) IN (?)', manual_names.map(&:strip)).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
 
           "(#{ids.join(', ')})"
@@ -77,7 +77,7 @@ module Reports
         def specimen_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
-          ids = Specimen.where(name: manual_names).map(&:id)
+          ids = Specimen.where('TRIM(name) IN (?)', manual_names.map(&:strip)).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
 
           "(#{ids.join(', ')})"
