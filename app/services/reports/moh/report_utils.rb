@@ -36,7 +36,7 @@ module Reports
         def test_type_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
-          ids = TestType.where(name: manual_names).map(&:id)
+          ids = TestType.where("TRIM(name) IN (?)", manual_names).map(&:id)
           return "('unknow_or_empty')" if ids.empty?
 
           "(#{ids.join(', ')})"
