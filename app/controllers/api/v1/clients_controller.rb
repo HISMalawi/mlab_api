@@ -34,12 +34,18 @@ module Api
       end
 
       def dde_search_client
-        clients = client_service.search_client_by_name_and_gender(params[:first_name], params[:last_name],
-                                                                  params[:gender])
+        clients = client_service.search_client_by_name_and_gender(
+          params[:first_name],
+          params[:last_name],
+          params[:gender]
+        )
         clients = client_service.serialize_clients(clients)
-        if @dde_service.check_dde_status
-          dde_clients = @dde_service.search_client_by_name_and_gender(params[:first_name], params[:last_name],
-                                                                      params[:gender])
+        if @dde_service.authenticate
+          dde_clients = @dde_service.search_client_by_name_and_gender(
+            params[:first_name],
+            params[:last_name],
+            params[:gender]
+          )
           clients = (clients + dde_clients).uniq { |key| [key[:uuid]] }
         end
         render json: clients

@@ -55,7 +55,8 @@ name_mappings = [
   },
   {
     actual_name: 'Maternity',
-    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward']
+    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward',
+                   'Antinatal', 'Postnatal Ward']
   },
   {
     actual_name: 'paeds',
@@ -63,7 +64,7 @@ name_mappings = [
                    'Nursery', 'Paediatric', 'Peads Special Care Ward', 'Paeds Medical', 'Peads Isolation Centre',
                    'Paediatric Surgical', 'Paediatric Medical', 'Paeds Orthopedic',
                    'Children\'s ward', 'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics',
-                   'Peads Surgical Ward', 'Mercy James Paediatric Centre']
+                   'Peads Surgical Ward', 'Mercy James Paediatric Centre', 'Peads']
   },
   {
     actual_name: 'Pack ABO Group',
@@ -139,15 +140,16 @@ name_mappings = [
   {
     actual_name: 'Antenatal',
     manual_names: ['EM THEATRE', 'Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW',
-                   'Maternity Ward', 'Antenatal', 'ANC']
+                   'Maternity Ward', 'Antenatal', 'ANC', 'Antinatal']
   },
   {
-    actual_name: 'Hepatitis',
-    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)']
+    actual_name: 'Hepatitis B',
+    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)', 'Hepatitis B']
   },
   {
     actual_name: 'Hepatitis C',
-    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)']
+    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)',
+                   'Hep C']
   },
   {
     actual_name: 'HIV',
@@ -357,20 +359,20 @@ female_tests.each do |name|
 end
 
 settings = [
-      {
-        name: 'use_elasticsearch',
-        value: 'true'
-      },
-      {
-        name: 'default_accession_number_length',
-        value: '10'
-      }
-    ]
-    settings.each do |setting|
-      puts "Creating setting #{setting[:name]}"
-      next if setting[:name].blank? || setting[:value].blank?
-      next if AppSetting.where(name: setting[:name]).exists?
+  {
+    name: 'use_elasticsearch',
+    value: 'true'
+  },
+  {
+    name: 'default_accession_number_length',
+    value: '10'
+  }
+]
+settings.each do |setting|
+  puts "Creating setting #{setting[:name]}"
+  next if setting[:name].blank? || setting[:value].blank?
+  next if AppSetting.where(name: setting[:name]).exists?
 
-      set = AppSetting.find_or_create_by(name: setting[:name])
-      set.update(value: setting[:value])
-    end
+  set = AppSetting.find_or_create_by(name: setting[:name])
+  set.update(value: setting[:value])
+end

@@ -194,7 +194,7 @@ module Reports
           FROM
               tests t
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis')}
+            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis B')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -220,7 +220,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis')}
+            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis B')}
               AND ti.id IN #{report_utils.test_indicator_ids(['Hepatitis B'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
@@ -242,7 +242,7 @@ module Reports
           FROM
               tests t
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis C Test')}
+            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis C')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
