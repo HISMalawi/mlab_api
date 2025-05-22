@@ -84,14 +84,14 @@ class ElasticSearchService
           {
             match: {
               first_name_soundex: {
-                query: q.soundex
+                query: q&.soundex
               }
             }
           },
           {
             match: {
               last_name_soundex: {
-                query: q.soundex
+                query: q&.soundex
               }
             }
           },
@@ -147,14 +147,14 @@ class ElasticSearchService
             {
               match: {
                 patient_name_soundex: {
-                  query: "#{q_soundex[:first_name].soundex}#{q_soundex[:last_name].soundex}"
+                  query: "#{q_soundex[:first_name]&.soundex}#{q_soundex[:last_name]&.soundex}"
                 }
               }
             },
             {
               match: {
                 patient_name_soundex: {
-                  query: "#{q_soundex[:last_name].soundex}#{q_soundex[:first_name].soundex}"
+                  query: "#{q_soundex[:last_name]&.soundex}#{q_soundex[:first_name]&.soundex}"
                 }
               }
             },
