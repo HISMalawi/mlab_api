@@ -59,6 +59,7 @@ module Api
 
       def import
         file = params[:file]
+
         if file.nil?
           return render json: { error: 'No file uploaded' }, status: :unprocessable_entity
         end
@@ -68,28 +69,22 @@ module Api
             return render json: { error: 'Invalid file format. Please upload a CSV or Excel file.' }, status: :unprocessable_entity
           end
 
-          if file.content_type == 'text/csv'
-            begin
-              temp_file = Tempfile.new(['utf8_converted', '.csv'], encoding: 'UTF-8')
-              content = File.read(file.path, encoding: 'binary')
-              utf8_content = content.encode('UTF-8', invalid: :replace, undef: :replace, replace: '')
+          if file.content_type.in?(['text/csv', 'application/vnd.ms-excel'])
+            temp_file = Tempfile.new(['utf8_converted', '.csv'], encoding: 'UTF-8')
+            content = File.read(file.path, encoding: 'Windows-1252').scrub('')
 
-              temp_file.write(utf8_content)
-              temp_file.close
+            File.open(temp_file.path, 'w:UTF-8') { |f| f.write(content) }
+            temp_file.close
 
-              StockManagement::StockService.dump_products(temp_file.path)
-            ensure
-              temp_file.unlink if temp_file
-            end
+            StockManagement::StockService.dump_products(temp_file.path)
           else
             StockManagement::StockService.dump_products(file.path)
           end
-
           render json: { message: 'Import completed successfully!' }, status: :ok
         rescue StandardError => e
-          Rails.logger.error("Import error: #{e.message}")
-          Rails.logger.error(e.backtrace.join("\n"))
           render json: { error: e.message }, status: :unprocessable_entity
+        ensure
+          temp_file.unlink if temp_file
         end
       end
 
