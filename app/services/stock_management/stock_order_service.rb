@@ -118,7 +118,7 @@ module StockManagement
         stock_requisition = StockRequisition.find(stock_requisition_id)
         StockManagement::StockService.positive_stock_adjustment(
           stock_requisition.stock_item_id,
-          stock_requisition.quantity_requested
+          stock_requisition.quantity_collected
         )
       end
 
@@ -134,7 +134,7 @@ module StockManagement
             stock_requisition = StockRequisition.find(requisition)
             StockManagement::StockService.positive_stock_adjustment(
               stock_requisition.stock_item_id,
-              stock_requisition.quantity_requested
+              stock_requisition.quantity_collected
             )
           end
         end
