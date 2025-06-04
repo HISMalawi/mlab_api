@@ -51,7 +51,7 @@ class Api::V1::PrintoutController < ApplicationController
   end
 
   def print_stock_order
-    grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_reports/stock_order?id=#{params[:id]}",
+    grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_reports/stock_order/#{params[:id]}",
                         display_header_footer: true,
                         footer_template: "<div class='text right' style='align: center; margin-left: 50%'>Page <span class='pageNumber'>
                         </span> of <span class='totalPages'></span></div>",
