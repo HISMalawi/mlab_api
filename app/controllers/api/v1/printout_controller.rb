@@ -40,13 +40,25 @@ class Api::V1::PrintoutController < ApplicationController
     order_ids = params.require(:order_ids)
     client_id = params.require(:client_id)
     directory_name = 'patient_reports'
-    grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_patient_reports?from=&to=&client_id=#{client_id}&order_ids=#{JSON.parse(order_ids)}",
+    grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_reports?from=&to=&client_id=#{client_id}&order_ids=#{JSON.parse(order_ids)}",
                         display_header_footer: true,
                         footer_template: "<div class='text right' style='align: center; margin-left: 50%'>Page <span class='pageNumber'>
                         </span> of <span class='totalPages'></span></div>",
                         margin: { top: '0in', bottom: '0.5in' }, format: 'A4', print_background: true).to_pdf
     order_ids = order_ids.is_a?(String) ? JSON.parse(order_ids) : order_ids
     printed = PrintoutService.print_patient_report(grover, printer_name, directory_name, order_ids)
+    render json: { printed: }
+  end
+
+  def print_stock_order
+    grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_reports/stock_order?id=#{params[:id]}",
+                        display_header_footer: true,
+                        footer_template: "<div class='text right' style='align: center; margin-left: 50%'>Page <span class='pageNumber'>
+                        </span> of <span class='totalPages'></span></div>",
+                        margin: { top: '0in', bottom: '0.5in' }, format: 'A4', print_background: true).to_pdf
+    printer_name = params.require(:printer_name)
+    directory_name = 'stock_orders'
+    printed = PrintoutService.print_general_report(grover, printer_name, directory_name)
     render json: { printed: }
   end
 
