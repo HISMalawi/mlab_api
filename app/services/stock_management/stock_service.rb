@@ -24,13 +24,13 @@ module StockManagement
         lots = transactions.pluck(:lot).compact.uniq
         stock_item_json = stock_item.attributes.as_json
         stock_item_json.merge!({
-          stock: stock,
-          stock_unit: StockUnit.find(stock_item.measurement_unit).name,
-          stock_category: StockCategory.find(stock_item.stock_category_id).name,
-          stock_location: stock ? StockLocation.find(stock.stock_location_id).name : nil,
-          batches: batches,
-          lots: lots
-        })
+                                 stock: stock,
+                                 stock_unit: StockUnit.find(stock_item.measurement_unit).name,
+                                 stock_category: StockCategory.find(stock_item.stock_category_id).name,
+                                 stock_location: stock ? StockLocation.find(stock.stock_location_id).name : nil,
+                                 batches: batches,
+                                 lots: lots
+                               })
         stock_item_json
       end
 
@@ -73,9 +73,11 @@ module StockManagement
         sending_to = params[:sending_to]
         optional_receiver = params[:optional_receiver]
         remarks = params[:remarks]
-        balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
+        balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity,
+                                                                transaction_type)
         last_stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
-        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(last_stock_transaction, quantity)
+        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(last_stock_transaction,
+                                                                                          quantity)
         overall_stock_balance_before_transaction = overall_stock_balance_before_transaction(last_stock_transaction)
         lot = last_stock_transaction&.lot.nil? ? lot : last_stock_transaction&.lot
         batch = last_stock_transaction&.batch.nil? ? batch : last_stock_transaction&.batch
@@ -128,7 +130,7 @@ module StockManagement
             return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
 
             stock_item[:sending_to] = sending_to
-            stock_transaction = stock_transaction(stock.id, transaction_type, -quantity_to_issue, params)
+            stock_transaction = stock_transaction(stock.id, transaction_type, -quantity_to_issue, stock_item)
             stock_movement_status(stock_transaction.id, 'Pending', stock_status_reason, stock_movement.id)
           end
         end
@@ -231,7 +233,7 @@ module StockManagement
         ['In'].include?(transaction_type)
       end
 
-      def stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
+      def stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, _transaction_type)
         stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
         remaining_balance = stock_transaction&.remaining_balance.nil? ? 0 : stock_transaction&.remaining_balance
         quantity = quantity.to_i
@@ -272,23 +274,19 @@ module StockManagement
       end
 
       def dump_products(file_path)
-        begin
-          spreadsheet = ::Roo::Spreadsheet.open(file_path.to_s, { encoding: 'utf-8' })
-          header = spreadsheet.row(1)
+        spreadsheet = ::Roo::Spreadsheet.open(file_path.to_s, { encoding: 'utf-8' })
+        header = spreadsheet.row(1)
 
-          (2..spreadsheet.last_row).each do |i|
-            begin
-              row = Hash[[header, spreadsheet.row(i)].transpose]
-              create_or_skip_stock_item(row)
-            rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
-              Rails.logger.error("Encoding error in line #{i}: #{e.message}")
-              raise "Invalid byte sequence in UTF-8 in line #{i}. Please check this line for special characters."
-            end
-          end
+        (2..spreadsheet.last_row).each do |i|
+          row = Hash[[header, spreadsheet.row(i)].transpose]
+          create_or_skip_stock_item(row)
         rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
-          Rails.logger.error("Encoding error when opening file: #{e.message}")
-          raise "Invalid byte sequence in UTF-8 when opening file. The file may not be properly encoded in UTF-8."
+          Rails.logger.error("Encoding error in line #{i}: #{e.message}")
+          raise "Invalid byte sequence in UTF-8 in line #{i}. Please check this line for special characters."
         end
+      rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+        Rails.logger.error("Encoding error when opening file: #{e.message}")
+        raise 'Invalid byte sequence in UTF-8 when opening file. The file may not be properly encoded in UTF-8.'
       end
 
       def create_or_skip_stock_item(row)
@@ -307,9 +305,11 @@ module StockManagement
           end
 
           dispensable = row['dispensable'].to_s
-          dispensable_unit = dispensable.include?('dispensingUnit:') ?
-                             dispensable.gsub('dispensingUnit:', '').strip :
-                             dispensable.strip
+          dispensable_unit = if dispensable.include?('dispensingUnit:')
+                               dispensable.gsub('dispensingUnit:', '').strip
+                             else
+                               dispensable.strip
+                             end
 
           stock_item = StockItem.create!(
             product_code: row['productCode'],
