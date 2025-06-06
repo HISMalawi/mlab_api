@@ -23,7 +23,7 @@ module Api
             params[:lot],
             params[:batch],
             params[:expiry_date]
-          )
+          )&.remaining_balance
         }
       end
 
