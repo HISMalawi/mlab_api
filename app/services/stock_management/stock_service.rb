@@ -17,6 +17,45 @@ module StockManagement
         { data: records, meta: PaginationService.pagination_metadata(records) }
       end
 
+      def stock_metadata(metadata)
+        if metadata
+          stock_items = Stock.joins(:stock_item)
+                             .joins(:stock_transactions)
+                             .group(
+                               'stock_items.id',
+                               'stocks.stock_location_id',
+                               'stocks.minimum_order_level',
+                               'stocks.quantity',
+                               'stock_transactions.batch',
+                               'stock_transactions.lot'
+                             )
+                             .select(
+                               'stock_items.*',
+                               'stocks.stock_location_id',
+                               'stocks.minimum_order_level',
+                               'stocks.quantity',
+                               'stock_transactions.batch as batches',
+                               'stock_transactions.lot as lots'
+                             )
+          stock_items.each do |item|
+            item.quantity = StockManagement::StockService.last_stock_transaction(
+              item.id,
+              item.lots,
+              item.batches,
+              nil
+            )&.remaining_balance
+          end
+        else
+          Stock.joins(:stock_item)
+               .select(
+                 'stock_items.*',
+                 'stocks.stock_location_id',
+                 'stocks.minimum_order_level',
+                 'stocks.quantity'
+               )
+        end
+      end
+
       def stock_item(stock_item)
         stock = Stock.find_by_stock_item_id(stock_item.id)
         transactions = StockTransaction.where(stock_id: stock.id).select('DISTINCT batch, lot')
