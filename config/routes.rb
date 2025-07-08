@@ -10,7 +10,11 @@ Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   namespace :api, defaults: { format: :html } do
     namespace :v1 do
-      resources :print_patient_reports
+      resources :print_reports, only: %i[index] do
+        collection do
+          get '/stock_order/:id' => 'print_reports#stock_order', as: :stock_order
+        end
+      end
     end
   end
 
@@ -70,6 +74,7 @@ Rails.application.routes.draw do
       post '/printout/patient_zebra_report' => 'printout#print_zebra_report'
       post '/printout/patient_report' => 'printout#print_patient_report'
       post '/printout/general_report' => 'printout#print_general_report'
+      post '/printout/stock_order/:id' => 'printout#print_stock_order'
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'
