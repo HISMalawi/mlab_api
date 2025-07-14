@@ -257,5 +257,15 @@ module Nlims
         )
       JSON.parse(response.body, symbolize_names: true)
     end
+
+    def self.get_test_catalog_versions()
+      nlims = nlims_token
+      response = RestClient::Request.execute(
+          method: :get,
+          url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog_versions",
+          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
+        )
+      JSON.parse(response.body, symbolize_names: true)
+    end
   end
 end

@@ -18,7 +18,9 @@ class TestIndicator < RetirableRecord
       'AutoComplete' => :auto_complete,
       'Free Text' => :free_text,
       'Numeric' => :numeric,
+      'Numeric Range' => :numeric,
       'AlphaNumeric' => :alpha_numeric,
+      'Alphanumeric Values' => :alpha_numeric,
       'Rich Text' => :rich_text
     }[value] || value
     super(normalized_value)
