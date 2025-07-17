@@ -8,15 +8,50 @@ module MachineService
   module ProcessGexResultsService
     class << self
       def process(accession_number:, machine_name:, measure_name:, result:)
-        test_indicators = TestIndicator.where(name: measure_name)
+        GENEXPERT_LOGGER.debug("Processing Data from CIHEB === Accession Number: #{accession_number}, Machine name: #{machine_name}, Measure Name: #{measure_name}, Result: #{result} ===")
+        GENEXPERT_LOGGER.debug('====== Mapping measure name via config/gx_mapping.json mapping file ======')
+        mapped_measure = map_measure_name(measure_name)
+        GENEXPERT_LOGGER.debug("Mapped measure outcome: #{mapped_measure}")
+        GENEXPERT_LOGGER.debug('====== Mapping to iblis measures ======')
+        test_indicators = TestIndicator.where(name: mapped_measure[:name])
+        test_indicators = TestIndicator.where(id: mapped_measure[:id]) if test_indicators.blank?
+        if test_indicators.empty?
+          GENEXPERT_LOGGER.error("No measures found for mapped measure: #{mapped_measure[:name]} (id: #{mapped_measure[:id]}) \n\n\n")
+          return
+        end
+        GENEXPERT_LOGGER.debug("Mapped to indicators: #{test_indicators.map do |ti|
+          "#{ti.name}(id: #{ti.id})"
+        end.join(', ')}")
+        GENEXPERT_LOGGER.debug('====== Writing results to disk ======')
         test_indicators.each do |test_indicator|
+          GENEXPERT_LOGGER.debug("Writing result for indicator: #{test_indicator.id} - #{test_indicator.name}")
           MachineService::WriteService.new(
-            accession_number:,
-            machine_name:,
-            measure_id: test_indicator&.id,
-            result:
+            accession_number: accession_number,
+            machine_name: machine_name,
+            measure_id: test_indicator.id,
+            result: result
           ).write
         end
+        GENEXPERT_LOGGER.debug("====== Writing results to disk complete ======\n\n\n")
+      rescue StandardError => e
+        GENEXPERT_LOGGER.error("Error processing #{accession_number}: #{e.message}")
+        raise
+      end
+
+      def map_measure_name(measure_name)
+        return { name: nil, id: nil } if measure_name.blank?
+
+        mapping = JSON.parse(File.read("#{Rails.root}/config/gx_mapping.json"))
+        alias_to_key = {}
+        mapping.each do |key, data|
+          data['aliases'].each do |alias_name|
+            alias_to_key[alias_name.downcase] = { name: key, id: data['id'] }
+          end
+          # Also allow direct matching with canonical name
+          alias_to_key[key.downcase] = { name: key, id: data['id'] }
+        end
+        normalized_name = measure_name.strip.downcase
+        alias_to_key.fetch(normalized_name, { name: measure_name, id: nil })
       end
 
       def subscribe_to_gx_service
@@ -33,11 +68,11 @@ module MachineService
           ip_address: ciheb_gex_subscription['iblis_ip_address']
         }
         response = RestClient::Request.execute(
-                method: :post,
-                url: ciheb_gex_subscription['ciheb_eid_vl_enpoint'],
-                payload: payload.to_json,
-                headers: { content_type: :json, accept: :json }
-              )
+          method: :get,
+          url: ciheb_gex_subscription['ciheb_eid_vl_enpoint'],
+          payload: payload.to_json,
+          headers: { content_type: :json, accept: :json }
+        )
         puts response
       rescue StandardError => e
         puts "Unexpected Error: #{e.message}"

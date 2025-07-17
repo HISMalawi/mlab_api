@@ -12,7 +12,9 @@ nlims_service:
   enable_real_time_sync: true
 
 default:
+  accession_number_length: true 
   pregenerate_report_moh_report: false
+  use_elasticsearch: true
 
 oerr_service:
   base_url: http://localhost:8080
@@ -21,7 +23,7 @@ oerr_service:
   push: true
 
 ciheb_gex_subscription:
-  ciheb_eid_vl_enpoint: "http://eid_vl_server_ip/api/v1/subscribe/genexprt"
+  ciheb_eid_vl_enpoint: "http://<eid_vl_server_ip>:<genexpert_port>/api/v1/subscribe/genexprt"
   app_name: "IBLIS"
   organization_name: "EGPAF"
   iblis_result_endpoint: "/api/v1/interfacer/genexpert"
