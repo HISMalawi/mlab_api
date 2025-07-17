@@ -223,7 +223,7 @@ Rails.application.routes.draw do
       end
       get '/check_for_new_test_catalog_version' => 'sync_test_catalog#check_new_test_catalog_version'
       post '/sync_test_catalog' => 'sync_test_catalog#sync_test_catalog'
-      get '/test_catalog_versions' => 'sync_test_catalog#get_test_catalog_versions'
+      get '/test_catalog_versions' => 'sync_test_catalog#test_catalog_versions'
     end
   end
 end

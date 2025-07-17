@@ -18,15 +18,27 @@ module Api
       #   - lab_test_sites: laboratory test sites
       # If no sections parameter is provided, all sections will be synced
       def sync_test_catalog
-        response = ProcessTestCatalogService.get_test_catalog(params[:version])
         sections = params[:sections]&.split(',')&.map(&:strip)
-        processed = ProcessTestCatalogService.process_test_catalog(response[:catalog], sections)
-        render json: { processed: }
+        service = ProcessTestCatalogService.new(params[:version])
+        response = service.test_catalog
+        return render json: response unless response.present?
+
+        processed = service.process_test_catalog(response[:catalog], sections)
+        sections_synced = processed ? TestCatalogSyncTrail.where(version: params[:version]) : {}
+        if processed
+          TestCatalogVersion.where(is_current: true).update_all(is_current: false)
+          TestCatalogVersion.find_or_create_by(version: params[:version]).update(
+            version_details: response[:version_details],
+            is_current: true
+          )
+        end
+        version = TestCatalogVersion.where(is_current: true).first&.version
+        render json: { processed:, sections_synced:, version: }
       end
 
-      def get_test_catalog_versions
-        response = ProcessTestCatalogService.get_test_catalog_versions
-        render json: response
+      def test_catalog_versions
+        service = ProcessTestCatalogService.new(nil)
+        render json: service.test_catalog_versions
       end
     end
   end
