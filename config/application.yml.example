@@ -23,7 +23,7 @@ oerr_service:
   push: true
 
 ciheb_gex_subscription:
-  ciheb_eid_vl_enpoint: "http://eid_vl_server_ip/api/v1/subscribe/genexprt"
+  ciheb_eid_vl_enpoint: "http://<eid_vl_server_ip>:<genexpert_port>/api/v1/subscribe/genexprt"
   app_name: "IBLIS"
   organization_name: "EGPAF"
   iblis_result_endpoint: "/api/v1/interfacer/genexpert"
