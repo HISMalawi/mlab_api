@@ -39,7 +39,7 @@ module Api
       end
     
       def organism_params
-        params.require(:organism).permit(:name, :description)
+        params.require(:organism).permit(:name, :description, :preferred_name)
       end
 
       def check_drug_params

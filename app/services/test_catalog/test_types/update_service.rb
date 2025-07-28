@@ -64,7 +64,7 @@ module TestCatalog
           test_indicator_params.each do |test_indicator_param|
             test_indicator_param[:test_indicator_type] = test_indicator_param[:test_indicator_type]['id']
             test_indicator_attributes = JSON.parse(test_indicator_param.to_json).slice('id', 'name', 'unit',
-                                                                                       'description', 'test_indicator_type')
+                                                                                       'description', 'test_indicator_type', 'preferred_name')
             test_indicator = TestIndicator.find_or_initialize_by(id: test_indicator_attributes['id'])
             test_indicator.update!(test_indicator_attributes)
             test_indicator.reload

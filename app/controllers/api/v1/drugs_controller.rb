@@ -34,7 +34,7 @@ module Api
       end
     
       def drug_params
-        params.require(:drug).permit(:short_name, :name)
+        params.require(:drug).permit(:short_name, :name, :preferred_name)
       end
     end
     

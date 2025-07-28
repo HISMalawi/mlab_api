@@ -29,7 +29,7 @@ module Api
       end
 
       def show
-        render json: @test_type.as_json(single_item: true)
+        render json: TestCatalog::TestTypes::ShowService.show_test_type(@test_type)
       end
 
       def create
@@ -54,7 +54,7 @@ module Api
       end
 
       def test_type_params
-        params.require(:test_type).permit(:name, :short_name, :department_id, :print_device, :sex)
+        params.require(:test_type).permit(:name, :short_name, :preferred_name, :department_id, :print_device, :sex)
       end
 
       def check_specimen_indicator_params
