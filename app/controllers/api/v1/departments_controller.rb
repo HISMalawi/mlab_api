@@ -38,7 +38,7 @@ module Api
       end
 
       def department_params
-        params.require(:department).permit(:name)
+        params.require(:department).permit(:name, :preferred_name)
       end
     end
   end
