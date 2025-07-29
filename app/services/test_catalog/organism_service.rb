@@ -13,7 +13,7 @@ module TestCatalog
       end
 
       def show_organism(organism)
-        drugs = DrugOrganismMapping.joins(:drug).where(organism_id: organism.id).select('drugs.id, drugs.name, drugs.short_name')
+        drugs = DrugOrganismMapping.joins(:drug).where(organism_id: organism.id).select('drugs.*')
         serialize_organism_drug(organism, drugs)
       end
 
@@ -51,6 +51,12 @@ module TestCatalog
           id: organism.id,
           name: organism.name,
           description: organism.description,
+          preferred_name: organism.preferred_name,
+          scientific_name: organism.scientific_name,
+          nlims_code: organism.nlims_code,
+          moh_code: organism.moh_code,
+          loinc_code: organism.loinc_code,
+          short_name: organism.short_name,
           drugs: drugs
         }
       end
