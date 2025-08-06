@@ -98,7 +98,11 @@ module Tests
           t.created_date,
           t.test_panel_id,
           tp.name AS test_panel_name,
+          tp.preferred_name as test_panel_preferred_name,
+          tp.nlims_code as test_panel_nlims_code,
           tt.name AS test_type,
+          tt.preferred_name AS test_type_preferred_name,
+          tt.nlims_code AS test_type_nlims_code,
           fs.name AS requesting_ward,
           ost.id AS o_status_id,
           ost.name AS o_status,
@@ -298,7 +302,7 @@ module Tests
       fbc_tests = ['fbc', 'full blood count']
       records = TestIndicator.find_by_sql("
                   SELECT
-                    ti.id, ti.name, ti.test_indicator_type,
+                    ti.id, ti.name, ti.test_indicator_type, ti.nlims_code, ti.preferred_name,
                     ti.unit, ti.description, tr.id AS result_id,
                     tr.value, tr.result_date, tr.machine_name
                   FROM test_indicators ti
@@ -322,6 +326,8 @@ module Tests
       {
         id: test_indicator['id'],
         name: test_indicator['name'],
+        preferred_name: test_indicator['preferred_name'],
+        nlims_code: test_indicator['nlims_code'],
         test_indicator_type: test_indicator['test_indicator_type'],
         unit: test_indicator['unit'],
         description: test_indicator['description'],
@@ -609,12 +615,16 @@ module Tests
         specimen_type: record['specimen'],
         test_panel_id: record['test_panel_id'],
         test_panel_name: record['test_panel_name'],
+        test_panel_preferred_name: record['test_panel_preferred_name'],
+        test_panel_nlims_code: record['test_panel_nlims_code'],
         created_date: record['created_date'],
         request_origin: record['request_origin'],
         requesting_ward: record['requesting_ward'],
         accession_number: record['accession_number'],
         test_type_id: record['test_type_id'],
         test_type_name: record['test_type'],
+        test_type_preferred_name: record['test_type_preferred_name'],
+        test_type_nlims_code: record['test_type_nlims_code'],
         tracking_number: record['tracking_number'],
         voided: record['voided'],
         requested_by: record['requested_by'],
