@@ -8,27 +8,27 @@ module TestCatalog
       def specimen(department_id: nil)
         specimen = Specimen.order(:preferred_name)
         return specimen if department_id.blank?
+
         department = Department.find_by(id: department_id)
-        return specimen if department.nil? || department.name == "Lab Reception"
-        specimen_ids = SpecimenTestTypeMapping
-          .joins(:test_type)
-          .where(test_types: { department_id: department.id })
-          .select(:specimen_id)
-          .distinct
+        return specimen if department.nil? || department.name == 'Lab Reception'
+
+        specimen_ids = SpecimenTestTypeMapping.joins(:test_type)
+                                              .where(test_types: { department_id: department.id })
+                                              .select(:specimen_id)
+                                              .distinct
         specimen.where(id: specimen_ids)
-      end      
+      end
 
       def specimen_test_type(specimen_id, department_id, sex)
         test_types = filter_test_types_by_specimen(specimen_id)
         test_types = filter_test_types_by_department(department_id, test_types) unless department_id.blank?
         test_types = filter_test_types_by_sex(sex, test_types)
-
+        test_type_ids = test_types.pluck('specimen_test_type_mappings.test_type_id')
         test_panel = TestTypePanelMapping.joins(:test_panel, :test_type)
-                                         .where(
-                                           test_type_id: test_types.pluck('specimen_test_type_mappings.test_type_id')
-                                         )
-                                         .pluck('test_panels.preferred_name')
-        (test_types.pluck('preferred_name') + test_panel).uniq.sort
+                                         .where(test_type_id: test_type_ids)
+                                         .pluck(Arel.sql('COALESCE(test_panels.preferred_name, test_panels.name)'))
+        test_names = test_types.pluck(Arel.sql('COALESCE(test_types.preferred_name, test_types.name)'))
+        (test_names + test_panel).uniq.sort
       end
 
       def filter_test_types_by_department(department_id, test_types)
