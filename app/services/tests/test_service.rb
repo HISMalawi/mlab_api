@@ -109,6 +109,7 @@ module Tests
           tst.id AS t_status_id,
           tst.name AS t_status,
           sp.name AS specimen,
+          sp.preferred_name AS sp_preferred_name,
           sp.id AS specimen_id,
           t.lab_location_id
         FROM
@@ -613,6 +614,7 @@ module Tests
         order_id: record['order_id'],
         specimen_id: record['specimen_id'],
         specimen_type: record['specimen'],
+        specimen_preferred_name: record['sp_preferred_name'],
         test_panel_id: record['test_panel_id'],
         test_panel_name: record['test_panel_name'],
         test_panel_preferred_name: record['test_panel_preferred_name'],
