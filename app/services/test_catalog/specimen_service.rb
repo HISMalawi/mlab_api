@@ -6,7 +6,7 @@ module TestCatalog
   module SpecimenService
     class << self
       def specimen(department_id: nil)
-        specimen = Specimen.order(:name)
+        specimen = Specimen.order(:preferred_name)
         return specimen if department_id.blank?
         department = Department.find_by(id: department_id)
         return specimen if department.nil? || department.name == "Lab Reception"
@@ -27,8 +27,8 @@ module TestCatalog
                                          .where(
                                            test_type_id: test_types.pluck('specimen_test_type_mappings.test_type_id')
                                          )
-                                         .pluck('test_panels.name')
-        (test_types.pluck('name') + test_panel).uniq.sort
+                                         .pluck('test_panels.preferred_name')
+        (test_types.pluck('preferred_name') + test_panel).uniq.sort
       end
 
       def filter_test_types_by_department(department_id, test_types)

@@ -3,6 +3,7 @@
 # Model for TestTypes table
 class TestType < TestTypeVoidableRecord
   validates :name, uniqueness: true, presence: true
+  validates :preferred_name, uniqueness: true, presence: true
   belongs_to :department
   has_many :instrument_test_type_mapping
   has_many :specimen_test_type_mappings
