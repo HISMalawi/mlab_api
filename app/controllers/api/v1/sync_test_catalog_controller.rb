@@ -5,7 +5,7 @@ module Api
     # SyncTestCatalogController
     class SyncTestCatalogController < ApplicationController
       def check_new_test_catalog_version
-        response = ProcessTestCatalogService.check_new_version(params[:version])
+        response = ProcessTestCatalogService.new(params[:version]).check_new_version
         render json: response
       end
 

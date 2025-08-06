@@ -3,7 +3,9 @@
 # Model for TestTypes table
 class TestType < TestTypeVoidableRecord
   validates :name, uniqueness: true, presence: true
-  validates :preferred_name, uniqueness: true, presence: true
+  # validates :preferred_name, uniqueness: { message: ->(object, data) {
+  # "‘#{data[:value]}’ is already taken for #{object.class.name}"
+  # }}, presence: { message: "can't be blank for #{self.name}" }
   belongs_to :department
   has_many :instrument_test_type_mapping
   has_many :specimen_test_type_mappings
@@ -34,6 +36,6 @@ class TestType < TestTypeVoidableRecord
   end
 
   def self.search(search_term)
-    where("name LIKE '%#{search_term}%' OR short_name LIKE '%#{search_term}%'")
+    where("name LIKE '%#{search_term}%' OR short_name LIKE '%#{search_term}%' OR preferred_name LIKE '%#{search_term}%'")
   end
 end
