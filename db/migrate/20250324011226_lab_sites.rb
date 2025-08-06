@@ -3,6 +3,8 @@
 # Lab Sites
 class LabSites < ActiveRecord::Migration[7.0]
   def up
+    return if table_exists?(:lab_test_sites)
+    
     create_table :lab_test_sites do |t|
       t.string :name
       t.text :description
