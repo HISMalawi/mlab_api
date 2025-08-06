@@ -226,7 +226,7 @@ class ProcessTestCatalogService
       else
         record = create_or_update_record(record, item)
       end
-      record.test_types = TestType.where(nlims_code: item[:test_types].map { |tt| tt[:nlims_code] })
+      record.test_types = TestType.where(name: item[:test_types].map { |tt| tt[:name] })
     end
     TestCatalogSyncTrail.find_or_create_by!(version: @version).update(section: 'test_panels', synced: true)
     test_panels
