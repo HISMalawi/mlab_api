@@ -14,7 +14,7 @@ module TestCatalog
 
       def show_panel(test_panel)
         test_types = TestTypePanelMapping.where(test_panel_id: test_panel.id).joins(:test_type)
-                    .select('test_types.id, test_types.name, test_types.short_name')
+                    .select('test_types.id, test_types.name, test_types.short_name', 'test_types.preferred_name')
         serialize(test_panel, test_types)
       end
 
@@ -47,6 +47,8 @@ module TestCatalog
           id: test_panel.id,
           name: test_panel.name,
           short_name: test_panel.short_name,
+          preferred_name: test_panel.preferred_name,
+          nlims_code: test_panel.nlims_code,
           description: test_panel.description,
           test_types: test_types
         }

@@ -9,7 +9,7 @@ module Api
 
       def index
         @test_panels = TestPanel.where.not("name LIKE '%(Paed%'").where.not("name LIKE '%(cancer%'")
-        render json: @test_panels
+        render json: @test_panels.order(:preferred_name, :name)
       end
 
       def show
