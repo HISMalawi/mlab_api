@@ -4,9 +4,8 @@ class TestIndicator < RetirableRecord
   belongs_to :test_type, optional: true
   has_many :test_indicator_ranges
   has_many :test_type_test_indicators, dependent: :destroy, foreign_key: 'test_indicators_id'
-  
   enum test_indicator_type: %i[auto_complete free_text numeric alpha_numeric rich_text]
-  
+
   def test_indicator_type=(value)
     normalized_value = {
       'AutoComplete' => :auto_complete,
