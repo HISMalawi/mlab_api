@@ -1,5 +1,7 @@
 class CreateAppSettings < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:app_settings)
+
     create_table :app_settings do |t|
       t.string :name
       t.string :value

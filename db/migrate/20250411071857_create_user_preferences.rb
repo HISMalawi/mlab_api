@@ -3,6 +3,8 @@
 # This migration is for creating the user_preferences table
 class CreateUserPreferences < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:user_preferences)
+    
     create_table :user_preferences do |t|
       t.string :name
       t.string :value
