@@ -22,10 +22,10 @@ module PrintoutService
       f_number = is_accession_number ? order.accession_number : order.tracking_number
       label = ZebraPrinter::Label.new(801, 329, 'T', nil, true)
       # left_align_from = 40
-      client_details = "#{person.fullname}"
+      client_details = "#{person.fullname} #{person.sex}"
       label.draw_text(client_details, 40, 3, 0, 2, 1, 1)
       label.draw_text(
-        "#{person.date_of_birth.strftime('%d-%b-%Y')} #{UtilsService.age(person.date_of_birth)} #{person.sex}", 40, 22, 0, 2, 1, 1
+        "DoB:#{person.date_of_birth.strftime('%d-%b-%Y')} Age:#{UtilsService.detailed_age(person.date_of_birth)}", 40, 22, 0, 2, 1, 1
       )
       label.draw_barcode(51, 41, 0, '1A', 2, 2, 50, false, data)
       label.draw_text("#{f_number} * #{data}", 51, 100, 0, 2, 1, 1)
@@ -46,44 +46,113 @@ module PrintoutService
       by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id),
                                            status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = ''
+      post_crossmatch_process = []
       test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
-                               .select('test_results.id, test_indicators.name, test_results.value,
-                               test_results.result_date')
+                               .select('test_results.id, test_indicators.name, test_results.value', 'test_indicators.unit')
+
       if is_cross_match
+        test_id = Test.where(order_id: order.id)
+        post_crossmatch_process = PostCrossmatchProcess.joins(:facility_section).where(test_id:).select(
+          'collected_by',
+          'facility_sections.name AS to_ward',
+          'collection_date',
+          'transfusion_outcome',
+          'returned',
+          'returned_by',
+          'returned_date',
+          'returned_reason'
+        )&.first || post_crossmatch_process
         pack_abo_group = TestResult.where(
-          test_id: Test.where(order_id: order.id),
+          test_id:,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
+      is_collected = post_crossmatch_process.present?
+      if is_collected
+        post_crossmatch_process = post_crossmatch_process.attributes.map do |key, value|
+          if key.include?('date')
+            {
+              name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '),
+              value: value.present? ? value.strftime('%Y-%m-%d %H:%M') : nil,
+              unit: nil
+            }
+          else
+            { name: key.to_s.gsub('_', ' ').split.map(&:capitalize).join(' '), value:, unit: nil }
+          end
+        end
+      end
+      test_result_records = test_results.map do |test_result|
+        { name: test_result.name, value: test_result.value, unit: test_result.unit }
+      end
+      test_results = (test_result_records + post_crossmatch_process).select do |test_result|
+        !test_result[:value].nil?
+      end
+
       z_label = ZebraPrinter::Label.new
       z_label.line_spacing = 1
-      left_align_from = 25
-      z_label.draw_text("Accession No: #{accession_number}", 25 + left_align_from, 19, 0, 1, 1, 2)
-      unless pack_abo_group.blank?
-        z_label.draw_text("ABO Group: #{pack_abo_group}", 320 + left_align_from, 19, 0, 1, 1, 2)
-      end
-      z_label.draw_text("Date: #{date}", 600 + left_align_from, 19, 0, 1, 1, 2)
-      line_y_position = 110
-      vertical_pos_reduct_by = 24
-      z_label.draw_text("Patient: #{patient}", 25 + left_align_from, 56, 0, 1, 1, 2)
-      z_label.draw_text("Ward: #{ward}", 310 + left_align_from, 56, 0, 1, 1, 2)
-      z_label.draw_text("By: #{by}", 520 + left_align_from, 56, 0, 1, 1, 2)
-      results_length = 1
-      multiplier = 0
-      test_results.each do |test_result|
-        next if test_result.value.blank?
+      left_align_from = 20
+      col_width = 200
+      padding = 15 # Define the padding value
 
-        results_length += 1
-        z_label.draw_text(test_result.name.to_s, 53, 116 + (multiplier * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
-        z_label.draw_text(test_result.value.to_s, 455, 116 + (multiplier * 30) - vertical_pos_reduct_by, 0, 1, 1, 2)
-        multiplier += 1
+      ## ─────────────────────────── HEADER ───────────────────────────
+      header_y = 2 # Y-position for header lines
+
+      z_label.draw_text("Accession No: #{accession_number}", left_align_from, header_y, 0, 1, 1, 2)
+      z_label.draw_text("Print Date: #{date}", left_align_from + 570, header_y, 0, 1, 1, 2)
+
+      z_label.draw_text("Patient: #{patient}", left_align_from, header_y + 28, 0, 1, 1, 2)
+      z_label.draw_text("Ward: #{ward}", left_align_from + 290, header_y + 28, 0, 1, 1, 2)
+      z_label.draw_text("By: #{by}", left_align_from + 540, header_y + 28, 0, 1, 1, 2)
+
+      unless pack_abo_group.blank?
+        z_label.draw_text("ABO Group: #{pack_abo_group}", left_align_from + 290, header_y, 0, 1, 1, 2)
       end
-      results_length.times do
-        z_label.draw_line(25, line_y_position - vertical_pos_reduct_by, 760, 2)
-        line_y_position += 30
+      z_label.draw_text("Date Registered: #{order.created_date.to_date}", left_align_from, header_y + 56, 0, 1, 1, 2)
+
+      # ─────────────────────────── SPACE AFTER HEADER ───────────────────────────
+      table_start_y = header_y + 120 # Ensure space before the table starts
+
+      ## ─────────────────────────── TABLE ───────────────────────────
+      vertical_pos_reduct_by = 30
+      results_per_row = 2 # Two result columns per row
+
+      test_results.each_slice(results_per_row).with_index do |test_group, row_index|
+        test_group.each_with_index do |test_result, col_index|
+          next if test_result[:value].blank?
+
+          # Apply padding to result names & values
+          name_x_pos = left_align_from + padding + (col_width * col_index * 2)
+          value_x_pos = name_x_pos + col_width
+          y_pos = table_start_y + (row_index * 25) - vertical_pos_reduct_by
+
+          value = "#{test_result[:value] || ''} #{test_result[:unit] || ''}"
+          result_value = value.present? ? value.to_s : 'N/A'
+          z_label.draw_text(test_result[:name].to_s[0, 18].strip, name_x_pos - 6, y_pos + 3, 0, 1, 1, 2)
+          z_label.draw_text(result_value.strip, value_x_pos - 6, y_pos + 3, 0, 1, 1, 2)
+        end
       end
-      z_label.draw_line(785, 110 - vertical_pos_reduct_by, 1, 26 * results_length)
-      z_label.draw_line(430, 110 - vertical_pos_reduct_by, 1, 26 * results_length)
+
+      ## ─────────────────────────── DRAW LINES ───────────────────────────
+      test_result_size = test_results.size.odd? ? test_results.size + 1 : test_results.size
+      last_y_post = table_start_y + ((test_result_size / results_per_row.to_f).ceil * 25) - vertical_pos_reduct_by
+      ((test_result_size / 2) + 1).times do |i|
+        y_pos = table_start_y + (i * 25) - vertical_pos_reduct_by
+        z_label.draw_line(left_align_from, y_pos, 760, 2)
+      end
+      unless is_collected
+        z_label.draw_barcode(
+          100, last_y_post + 10, 0, '1A', 2, 2, 50, false, order.accession_number.scan(/\d+/).first.to_i
+          )
+      end
+
+      # Vertical lines for columns
+      4.times do |i|
+        x_pos = (left_align_from + (col_width * i) + padding) - 15
+        z_label.draw_line(x_pos, table_start_y - vertical_pos_reduct_by, 1,
+                          (test_result_size / results_per_row.to_f).ceil * 27)
+      end
+
+      ## ─────────────────────────── PRINT LABEL ───────────────────────────
       z_label.print(1)
     end
 

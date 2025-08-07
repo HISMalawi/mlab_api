@@ -26,5 +26,7 @@ rails db:migrate && {
     rails r iblis_migration/update_user_location.rb &&
     rails r iblis_migration/update_test_lab_location.rb &&
     rails db:seed &&
-    rake db:reindex_tests
+    rails r iblis_migration/void_lab_tech_indicator.rb &&
+    rails r iblis_migration/load_preferences.rb &&
+    rails r iblis_migration/user_preferences_init.rb
 }

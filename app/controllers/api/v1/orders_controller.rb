@@ -50,6 +50,12 @@ module Api
         render json: @order, status: :created
       end
 
+      def add_order_to_encounter
+        add_order_dto = OrderService.add_order_dto(params[:encounter_id], params[:tests], params[:lab_location])
+        @order = OrderService.add_order(add_order_dto)
+        render json: @order, status: :created
+      end
+
       def update
         if @order.update(order_params)
           render json: @order

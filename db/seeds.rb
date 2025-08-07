@@ -22,10 +22,10 @@ stock_transaction_types.each do |type|
   )
 end
 
-stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other]
+stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other Misplace_stock Incorrect_entry Phased_out Banned Missing Transfer_to_another_facility For_trainings]
 stock_adjustment_reasons.each do |reason|
   puts "Creating stock adjustment reason: #{reason}"
-  StockAdjustmentReason.find_or_create_by!(name: reason)
+  StockAdjustmentReason.find_or_create_by!(name: reason.gsub('_', ' '))
 end
 
 name_mappings = [
@@ -55,7 +55,8 @@ name_mappings = [
   },
   {
     actual_name: 'Maternity',
-    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward']
+    manual_names: ['Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW', 'Maternity Ward',
+                   'Antinatal', 'Postnatal Ward']
   },
   {
     actual_name: 'paeds',
@@ -63,7 +64,7 @@ name_mappings = [
                    'Nursery', 'Paediatric', 'Peads Special Care Ward', 'Paeds Medical', 'Peads Isolation Centre',
                    'Paediatric Surgical', 'Paediatric Medical', 'Paeds Orthopedic',
                    'Children\'s ward', 'Peads Moyo', 'Peads Nursery', 'Peads Oncology', 'Peads Orthopeadics',
-                   'Peads Surgical Ward', 'Mercy James Paediatric Centre']
+                   'Peads Surgical Ward', 'Mercy James Paediatric Centre', 'Peads']
   },
   {
     actual_name: 'Pack ABO Group',
@@ -139,15 +140,16 @@ name_mappings = [
   {
     actual_name: 'Antenatal',
     manual_names: ['EM THEATRE', 'Labour', 'Labour Ward', 'EM LW', 'Maternity', 'PNW', '2A', '2B', '3A', '3B', 'LW',
-                   'Maternity Ward', 'Antenatal', 'ANC']
+                   'Maternity Ward', 'Antenatal', 'ANC', 'Antinatal']
   },
   {
-    actual_name: 'Hepatitis',
-    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)']
+    actual_name: 'Hepatitis B',
+    manual_names: ['Hepatitis B Test', 'Hepatitis B test (Paeds)', 'Hepatitis B test(CancerCenter)', 'Hepatitis B']
   },
   {
     actual_name: 'Hepatitis C',
-    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)']
+    manual_names: ['Hepatitis C Test', 'Hepatitis C test (Paeds)', 'Hepatitis C', 'Hepatitis C test(CancerCenter)',
+                   'Hep C']
   },
   {
     actual_name: 'HIV',
@@ -244,8 +246,21 @@ name_mappings = [
     manual_names: ['TB LAM', 'Urine Lam']
   },
   {
+    actual_name: 'GeneXpert Tests',
+    manual_names: ['GENE-XPERT TB Tests', 'TB Gene_Xpert']
+  },
+  {
+    actual_name: 'GeneXpert MTB',
+    manual_names: ['Gene Xpert MTB']
+  },
+  {
+    actual_name: 'GeneXpert RIF',
+    manual_names: ['Gene Xpert RIF Resistance']
+  },
+  {
     actual_name: 'Smear Microscopy',
-    manual_names: ['Smear microscopy result', 'Smear microscopy result 1']
+    manual_names: ['Smear microscopy result', 'Smear microscopy result 1', 'TB Microscopy Sample 1',
+                   'TB Microscopy Sample 2']
   },
   {
     actual_name: 'Malaria',
@@ -254,7 +269,7 @@ name_mappings = [
   },
   {
     actual_name: 'Malaria Indicators',
-    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite']
+    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite', 'Malaria Parasite Density']
   },
   {
     actual_name: 'Trypanosome',
@@ -341,4 +356,23 @@ female_tests = ['Pregnancy Test', 'Chronic Gonatropin', 'HVS analysis', 'Prolact
 female_tests.each do |name|
   puts "Updating sex for #{name}"
   TestType.where(name:).update_all(sex: 'Female')
+end
+
+settings = [
+  {
+    name: 'use_elasticsearch',
+    value: 'true'
+  },
+  {
+    name: 'default_accession_number_length',
+    value: '10'
+  }
+]
+settings.each do |setting|
+  puts "Creating setting #{setting[:name]}"
+  next if setting[:name].blank? || setting[:value].blank?
+  next if AppSetting.where(name: setting[:name]).exists?
+
+  set = AppSetting.find_or_create_by(name: setting[:name])
+  set.update(value: setting[:value])
 end

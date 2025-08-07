@@ -62,11 +62,12 @@ module MachineService
       value = value.strip
       match = value.match?(/\s?[+-]$/)
       value = value.gsub('*', '')
-      return value unless match
+      return value.strip unless match
 
-      sign = value[-1]
+      # sign = value[-1]
       number = value[0..-2].strip
-      "#{sign}#{number}"
+      # "#{sign}#{number}"
+      number.to_s
     end
 
     def check_indicator_exists?(hash:)

@@ -12,27 +12,28 @@ module ClientManagement
     end
 
     def check_dde_status
-        RestClient::Request.execute(
-          method: :get,
-          url: base_url,
-          timeout: 3
-        )
-        true
+      RestClient::Request.execute(
+        method: :get,
+        url: base_url,
+        timeout: 3
+      )
+      true
     rescue RestClient::Unauthorized
-        false
+      false
     rescue Errno::ECONNREFUSED
-        false
+      false
     rescue RestClient::Exceptions::OpenTimeout
-        false
+      false
     end
 
     def authenticate
       response = RestClient::Request.execute(
-                method: :post,
-                url: "#{base_url}/v1/login",
-                payload: { username:, password: }.to_json,
-                headers: { content_type: :json, accept: :json }
-              )
+        method: :post,
+        url: "#{base_url}/v1/login",
+        payload: { username:, password: }.to_json,
+        headers: { content_type: :json, accept: :json },
+        timeout: 3
+      )
       self.token = JSON.parse(response.body)['access_token']
       true
     rescue RestClient::Unauthorized
@@ -43,36 +44,34 @@ module ClientManagement
 
     def re_authenticate
       RestClient::Request.execute(
-          method: :post,
-          url: "#{base_url}/v1/verify_token",
-          headers: { 'Authorization': "#{token}" }
-        ) do |response|
-          return true if response.code == 200
+        method: :post,
+        url: "#{base_url}/v1/verify_token",
+        headers: { 'Authorization': "#{token}" },
+        timeout: 3
+      ) do |response|
+        return true if response.code == 200
 
-          authenticate
-        end
+        authenticate
+      end
     rescue StandardError
       false
     end
 
     def search_client_by_name_and_gender(first_name, last_name, gender)
-      if re_authenticate
-        begin
-          response = RestClient::Request.execute(
-            method: :post,
-            url: "#{base_url}/v1/search_by_name_and_gender",
-            headers: { 'Authorization': "#{token}" },
-            payload: { given_name: first_name, family_name: last_name, gender: }
-          )
-          serialize_dde_clients(JSON.parse(response.body))
-        rescue RestClient::NotFound
-          []
-        rescue RestClient::InternalServerError
-          []
-        end
-      else
-        []
-      end
+      response = RestClient::Request.execute(
+        method: :post,
+        url: "#{base_url}/v1/search_by_name_and_gender",
+        headers: { 'Authorization': "#{token}" },
+        payload: { given_name: first_name, family_name: last_name, gender: },
+        timeout: 5
+      )
+      serialize_dde_clients(JSON.parse(response.body))
+    rescue RestClient::NotFound
+      []
+    rescue RestClient::InternalServerError
+      []
+    rescue StandardError
+      []
     end
 
     def serialize_dde_clients(clients)
@@ -120,14 +119,14 @@ module ClientManagement
         end
       end
       {
-                given_name: params[:person][:first_name],
-                family_name: params[:person][:last_name],
-                middle_name: params[:person][:middle_name],
-                gender: params[:person][:gender],
-                birthdate: params[:person][:date_of_birth],
-                birthdate_estimated: params[:person][:date_of_birth_estimated],
-                attributes:,
-                identifiers:
+        given_name: params[:person][:first_name],
+        family_name: params[:person][:last_name],
+        middle_name: params[:person][:middle_name],
+        gender: params[:person][:gender],
+        birthdate: params[:person][:date_of_birth],
+        birthdate_estimated: params[:person][:date_of_birth_estimated],
+        attributes:,
+        identifiers:
       }
     end
   end

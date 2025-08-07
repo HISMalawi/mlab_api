@@ -10,7 +10,11 @@ Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   namespace :api, defaults: { format: :html } do
     namespace :v1 do
-      resources :print_patient_reports
+      resources :print_reports, only: %i[index] do
+        collection do
+          get '/stock_order/:id' => 'print_reports#stock_order', as: :stock_order
+        end
+      end
     end
   end
 
@@ -70,6 +74,7 @@ Rails.application.routes.draw do
       post '/printout/patient_zebra_report' => 'printout#print_zebra_report'
       post '/printout/patient_report' => 'printout#print_patient_report'
       post '/printout/general_report' => 'printout#print_general_report'
+      post '/printout/stock_order/:id' => 'printout#print_stock_order'
       resources :test_types do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'
@@ -101,6 +106,7 @@ Rails.application.routes.draw do
           post '/merge_order_from_nlims' => 'orders#merge_order_from_nlims'
           get '/search_order_from_nlims_by_tracking_number' => 'orders#search_order_from_nlims_by_tracking_number'
           get '/search_by_requesting_clinician' => 'orders#search_by_requesting_clinician'
+          post '/add_order_to_encounter' => 'orders#add_order_to_encounter'
         end
       end
 
@@ -121,6 +127,9 @@ Rails.application.routes.draw do
         collection do
           get 'current_api_tag' => 'global#current_git_tag'
           get 'nlims_status' => 'global#nlims_status'
+          get 'app_settings' => 'global#app_settings'
+          put 'app_settings' => 'global#update_app_settings'
+          get 'preferences' => 'global#preferences'
         end
       end
       resources :priorities
@@ -178,7 +187,11 @@ Rails.application.routes.draw do
       resources :stock_categories
       resources :stock_suppliers
       resources :stock_locations
-      resources :stock_items
+      resources :stock_items do
+        collection do
+          post '/import' => 'stock_items#import'
+        end
+      end
       resources :stocks
       resources :stock_transaction_types
       resources :stock_orders do
@@ -224,6 +237,18 @@ Rails.application.routes.draw do
       get '/check_for_new_test_catalog_version' => 'sync_test_catalog#check_new_test_catalog_version'
       post '/sync_test_catalog' => 'sync_test_catalog#sync_test_catalog'
       get '/test_catalog_versions' => 'sync_test_catalog#test_catalog_versions'
+      resources :whonet do
+        collection do
+          get 'report' => 'whonet#whonet_report'
+          get 'report/csv' => 'whonet#whonet_report_csv'
+        end
+      end
+      resources :post_crossmatch_processes do
+        collection do
+          get 'pack_number_exist' => 'post_crossmatch_processes#pack_number_exist'
+        end
+      end
+      resources :user_preferences
     end
   end
 end

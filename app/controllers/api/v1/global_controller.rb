@@ -44,6 +44,21 @@ module Api
         render json: { message: MessageService::RECORD_DELETED }
       end
 
+      def app_settings
+        render json: AppSetting.all
+      end
+
+      def update_app_settings
+        app_settings = params[:app_setting_id]
+        app_setting = AppSetting.find(app_settings)
+        app_setting.update!(value: params[:value])
+        render json: app_setting
+      end
+
+      def preferences
+        render json: Preference.all
+      end
+
       private
 
       def set_global

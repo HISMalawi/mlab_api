@@ -1,6 +1,6 @@
-require_relative "boot"
+require_relative 'boot'
 
-require "rails/all"
+require 'rails/all'
 
 # Require the gems listed in Gemfile, including any gems
 # you've limited to :test, :development, or :production.
@@ -26,6 +26,8 @@ module MlabApi
     # Middleware like session, flash, cookies can be added back manually.
     # This also configures session_options for use below
     config.session_store :cookie_store, key: '_interslice_session'
+
+    config.time_zone = 'Africa/Blantyre'
 
     # Required for all session management (regardless of session_store)
     config.middleware.use ActionDispatch::Cookies

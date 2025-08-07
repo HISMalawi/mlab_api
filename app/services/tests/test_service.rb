@@ -22,9 +22,7 @@ module Tests
       @per_page = (params[:per_page] || 25).to_i
       @page = (params[:page] || 1).to_i
       @lab_location = params[:lab_location] || 1
-      @use_elasticsearch = YAML.load_file(
-        Rails.root.join('config/application.yml')
-      )['default']&.fetch('use_elasticsearch', false)
+      @use_elasticsearch = AppSetting.find_by(name: 'use_elasticsearch')&.value == 'true'
     end
     # rubocop:enable Metrics/AbcSize
     # rubocop:enable Metrics/MethodLength
@@ -89,6 +87,7 @@ module Tests
           p.last_name,
           p.sex,
           o.requested_by,
+          o.encounter_id,
           p.date_of_birth,
           p.birth_date_estimated,
           o.id AS order_id,
@@ -611,6 +610,7 @@ module Tests
     def serialize_test(record, is_test_list: true, is_client_report: false)
       json = {
         id: record['id'],
+        encounter_id: record['encounter_id'],
         order_id: record['order_id'],
         specimen_id: record['specimen_id'],
         specimen_type: record['specimen'],
@@ -634,7 +634,8 @@ module Tests
         client: client_serializer(record),
         status: record['t_status'],
         order_status: record['o_status'],
-        lab_location: LabLocation.where(id: record['lab_location_id']).first
+        lab_location: LabLocation.where(id: record['lab_location_id']).first,
+        post_crossmatch_process: PostCrossmatchProcess.find_by(test_id: record['id'])
       }
       return json if is_test_list
 

@@ -17,6 +17,62 @@ module StockManagement
         { data: records, meta: PaginationService.pagination_metadata(records) }
       end
 
+      def stock_metadata(metadata)
+        if metadata
+          stock_items = Stock.joins(:stock_item)
+                             .joins(:stock_transactions)
+                             .group(
+                               'stock_items.id',
+                               'stocks.stock_location_id',
+                               'stocks.minimum_order_level',
+                               'stocks.quantity',
+                               'stock_transactions.batch',
+                               'stock_transactions.lot'
+                             )
+                             .select(
+                               'stock_items.*',
+                               'stocks.stock_location_id',
+                               'stocks.minimum_order_level',
+                               'stocks.quantity',
+                               'stock_transactions.batch as batches',
+                               'stock_transactions.lot as lots'
+                             )
+          stock_items.each do |item|
+            item.quantity = StockManagement::StockService.last_stock_transaction(
+              item.id,
+              item.lots,
+              item.batches,
+              nil
+            )&.remaining_balance
+          end
+        else
+          Stock.joins(:stock_item)
+               .select(
+                 'stock_items.*',
+                 'stocks.stock_location_id',
+                 'stocks.minimum_order_level',
+                 'stocks.quantity'
+               )
+        end
+      end
+
+      def stock_item(stock_item)
+        stock = Stock.find_by_stock_item_id(stock_item.id)
+        transactions = StockTransaction.where(stock_id: stock.id).select('DISTINCT batch, lot')
+        batches = transactions.pluck(:batch).compact.uniq
+        lots = transactions.pluck(:lot).compact.uniq
+        stock_item_json = stock_item.attributes.as_json
+        stock_item_json.merge!({
+                                 stock: stock,
+                                 stock_unit: StockUnit.find(stock_item.measurement_unit).name,
+                                 stock_category: StockCategory.find(stock_item.stock_category_id).name,
+                                 stock_location: stock ? StockLocation.find(stock.stock_location_id).name : nil,
+                                 batches: batches,
+                                 lots: lots
+                               })
+        stock_item_json
+      end
+
       def stock_list
         Stock.joins(:stock_item, :stock_location)
              .select('
@@ -56,9 +112,11 @@ module StockManagement
         sending_to = params[:sending_to]
         optional_receiver = params[:optional_receiver]
         remarks = params[:remarks]
-        balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
+        balance = stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity,
+                                                                transaction_type)
         last_stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
-        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(last_stock_transaction, quantity)
+        overall_stock_balance_after_transaction = overall_stock_balance_after_transaction(last_stock_transaction,
+                                                                                          quantity)
         overall_stock_balance_before_transaction = overall_stock_balance_before_transaction(last_stock_transaction)
         lot = last_stock_transaction&.lot.nil? ? lot : last_stock_transaction&.lot
         batch = last_stock_transaction&.batch.nil? ? batch : last_stock_transaction&.batch
@@ -111,7 +169,7 @@ module StockManagement
             return false unless stock_deduction_allowed?(stock.id, lot, batch, expiry_date, quantity_to_issue)
 
             stock_item[:sending_to] = sending_to
-            stock_transaction = stock_transaction(stock.id, transaction_type, -quantity_to_issue, params)
+            stock_transaction = stock_transaction(stock.id, transaction_type, -quantity_to_issue, stock_item)
             stock_movement_status(stock_transaction.id, 'Pending', stock_status_reason, stock_movement.id)
           end
         end
@@ -214,7 +272,7 @@ module StockManagement
         ['In'].include?(transaction_type)
       end
 
-      def stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, transaction_type)
+      def stock_transaction_calculate_remaining_balance(stock_id, lot, batch, expiry_date, quantity, _transaction_type)
         stock_transaction = last_stock_transaction(stock_id, lot, batch, expiry_date)
         remaining_balance = stock_transaction&.remaining_balance.nil? ? 0 : stock_transaction&.remaining_balance
         quantity = quantity.to_i
@@ -252,6 +310,105 @@ module StockManagement
         return if stock.nil?
 
         stock.update!(quantity: stock.quantity - quantity.to_i)
+      end
+
+      def dump_products(file_path)
+        spreadsheet = ::Roo::Spreadsheet.open(file_path.to_s, { encoding: 'utf-8' })
+        header = spreadsheet.row(1)
+
+        (2..spreadsheet.last_row).each do |i|
+          row = Hash[[header, spreadsheet.row(i)].transpose]
+          create_or_skip_stock_item(row)
+        rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+          Rails.logger.error("Encoding error in line #{i}: #{e.message}")
+          raise "Invalid byte sequence in UTF-8 in line #{i}. Please check this line for special characters."
+        end
+      rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError => e
+        Rails.logger.error("Encoding error when opening file: #{e.message}")
+        raise 'Invalid byte sequence in UTF-8 when opening file. The file may not be properly encoded in UTF-8.'
+      end
+
+      def create_or_skip_stock_item(row)
+        ActiveRecord::Base.transaction do
+          row.each do |key, value|
+            if value.is_a?(String)
+              row[key] = value.encode('UTF-8', 'UTF-8', invalid: :replace, undef: :replace, replace: '')
+            end
+          end
+
+          existing_stock_item = StockItem.find_by(name: row['name'])
+
+          if existing_stock_item
+            Rails.logger.info "Stock item '#{existing_stock_item.name}' already exists. Skipping..."
+            next
+          end
+
+          dispensable = row['dispensable'].to_s
+          dispensable_unit = if dispensable.include?('dispensingUnit:')
+                               dispensable.gsub('dispensingUnit:', '').strip
+                             else
+                               dispensable.strip
+                             end
+
+          stock_item = StockItem.create!(
+            product_code: row['productCode'],
+            name: row['name'],
+            stock_category_id: StockCategory.find_or_create_by!(
+              name: row['categoryDescription'] || row['category'],
+              short_name: row['category']
+            ).id,
+            description: row['description'],
+            measurement_unit: StockUnit.find_or_create_by!(name: dispensable_unit).id,
+            quantity_unit: row['packSize'],
+            strength: row['Strength']
+          )
+
+          stock_location_id = nil
+
+          if row['Stock Location ID'].present?
+            stock_location_id = row['Stock Location ID']
+          elsif row['stock_location_id'].present?
+            stock_location_id = row['stock_location_id']
+          end
+
+          if stock_location_id.nil? || !StockLocation.exists?(stock_location_id)
+            default_location = StockLocation.find_or_create_by!(name: 'Main Store') do |location|
+              location.description = 'Default stock location created during import'
+            end
+            stock_location_id = default_location.id
+          end
+
+          Stock.create!(
+            stock_item_id: stock_item.id,
+            stock_location_id: stock_location_id,
+            quantity: 0,
+            minimum_order_level: row['Minimum Order Level'] || 0
+          )
+
+          Rails.logger.info "Stock item '#{stock_item.name}' created successfully."
+        end
+      rescue StandardError => e
+        Rails.logger.error "Error creating stock item: #{e.message}"
+        Rails.logger.error "Problem row data: #{row.inspect}"
+
+        if e.is_a?(ActiveRecord::RecordInvalid)
+          invalid_record = e.record
+          Rails.logger.error "Validation errors: #{invalid_record.errors.full_messages.join(', ')}"
+
+          if invalid_record.errors.include?(:stock_location)
+            Rails.logger.error "Stock location error. Available stock locations: #{StockLocation.pluck(:id, :name)}"
+          end
+
+          if invalid_record.errors.include?(:stock_category_id)
+            Rails.logger.error "Stock category error. Available categories: #{StockCategory.pluck(:id, :name)}"
+          end
+
+          if invalid_record.errors.include?(:measurement_unit)
+            Rails.logger.error "Measurement unit error. Available units: #{StockUnit.pluck(:id, :name)}"
+          end
+        end
+
+        raise "#{e.message} (Row: #{row.inspect})"
       end
     end
   end

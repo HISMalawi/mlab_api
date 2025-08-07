@@ -9,8 +9,10 @@ class User < VoidableRecord
   has_many :user_department_mappings
   has_many :departments, through: :user_department_mappings
   has_many :user_role_mappings
+  has_many :user_preferences, dependent: :destroy, class_name: 'UserPreference', foreign_key: 'creator'
 
   validates :username, uniqueness: true, presence: true
+  after_create :set_default_preferences
 
   def active?
     is_active.zero?
@@ -52,5 +54,19 @@ class User < VoidableRecord
   def password_hash=(new_password)
     @password_hash = Password.create(new_password)
     self.password = @password_hash
+  end
+
+  def set_default_preferences
+    preferences = Preference.all
+    preferences.each do |preference|
+      next if user_preferences.where(name: preference.name).exists?
+
+      puts "Loading preference: #{preference.name} for user: #{id}"
+      user_preferences.create!(
+        name: preference.name,
+        value: JSON.parse(preference.value)['default'],
+        creator: id
+      )
+    end
   end
 end
