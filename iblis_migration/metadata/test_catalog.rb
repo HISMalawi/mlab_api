@@ -144,28 +144,123 @@ end
 
 # Update test_types
 test_types = test_catalog['catalog']['test_types']
+unwanted_tests = TestType.where(name: %w[
+  try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
+])
+tests = Test.where(test_type_id: unwanted_tests.pluck(:id))
+TestStatus.where(test_id: tests.pluck(:id)).destroy_all
+tests.destroy_all
+TestTypeTestIndicator.where(test_types_id: unwanted_tests.pluck(:id)).destroy_all
+SpecimenTestTypeMapping.where(test_type_id: unwanted_tests.pluck(:id)).destroy_all
+ExpectedTat.where(test_type_id: unwanted_tests.pluck(:id)).destroy_all
+unwanted_tests.destroy_all
+
 test_types.each do |test_type|
   puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
-  test_type_record = TestType.find_by(name: test_type['name'])
+  test_type_record = TestType.find_by(name: test_type['name'].strip)
+  test_type_record ||= TestType.find_by(name: test_type['name'])
+  test_type_record ||= TestType.find_by(name: test_type['short_name'])
   test_type_record ||= TestType.find_by(name: test_type['preferred_name'])
   test_type_record ||= TestType.find_by(name: test_type['iblis_mapping_name'])
+  department_id = Department.find_by(name: test_type['test_category']['name'])&.id
   if test_type_record
-    test_type_record.update(
-      name: test_type['name'],
-      nlims_code: test_type['nlims_code'],
-      preferred_name: test_type['preferred_name'],
-      short_name: test_type['short_name']
-    )
-  else
-    TestType.create!(
+    test_type_record.update!(
       name: test_type['name'],
       nlims_code: test_type['nlims_code'],
       preferred_name: test_type['preferred_name'],
       short_name: test_type['short_name'],
-      description: test_type['description'],
-      scientific_name: test_type['scientific_name'],
-      creator: User.first&.id
+      department_id: department_id,
     )
   end
-  puts "Processed Test Type: #{test_type['name']}"
+  test_type_record2 ||= TestType.find_by(name: "#{test_type['name']} (Paeds)")
+  test_type_record2 ||= TestType.find_by(name: "#{test_type['short_name']} (Paeds)")
+  test_type_record2 ||= TestType.find_by(name: "#{test_type['preferred_name']} (Paeds)")
+  test_type_record2 ||= TestType.find_by(name: "#{test_type['iblis_mapping_name']} (Paeds)")
+  if test_type_record2
+    test_type_record2.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
+  test_type_record3 ||= TestType.find_by(name: "#{test_type['name']}(CancerCenter)")
+  test_type_record3 ||= TestType.find_by(name: "#{test_type['short_name']}(CancerCenter)")
+  test_type_record3 ||= TestType.find_by(name: "#{test_type['preferred_name']}(CancerCenter)")
+  test_type_record3 ||= TestType.find_by(name: "#{test_type['iblis_mapping_name']}(CancerCenter)")
+  if test_type_record3
+    test_type_record3.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
+  if test_type['name'].downcase == 'Hepatitis C Virus Viral load'.downcase
+    puts "Special processing for: #{test_type['name']}"
+    TestType.find_by(name: 'Hepatitis C')&.update!(
+      name: 'Hepatitis C Virus Viral load',
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+    TestType.find_by(name: 'Hepatitis C(CancerCenter)')&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
+  if test_type['name'].downcase == 'Hepatitis Virus B Viral Load'.downcase
+    puts "Special processing for: #{test_type['name']}"
+    TestType.find_by(name: 'Hepatitis B')&.update!(
+      name: 'Hepatitis Virus B Viral Load',
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+    TestType.find_by(name: 'Hepatitis B(CancerCenter)')&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
+
+  if test_type['name'].downcase == 'COVID-19 Nucleic Acid Test'.downcase
+    puts "Special processing for: #{test_type['name']}"
+    TestType.find_by(name: 'SARS COV 2')&.update!(
+      name: 'COVID-19 Nucleic Acid Test',
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+    TestType.find_by(name: 'SARS COV 2(CancerCenter)')&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
+  if test_type['name'].strip.downcase == 'Erythrocyte Sedimentation Rate'.downcase
+    puts "Special processing for: #{test_type['name']}"
+    TestType.find_by(name: 'ESR Peads')&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+    TestType.find_by(name: 'ESR Peads(CancerCenter)')&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
+  if test_type['name'].strip.downcase == 'Prostate-Specific Antigen'.downcase
+    puts "Special processing for: #{test_type['name']}"
+    TestType.where(name: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)'])&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+    TestType.where(name: ['Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'])&.update!(
+      nlims_code: test_type['nlims_code'],
+      short_name: test_type['short_name'],
+      department_id: department_id
+    )
+  end
 end
