@@ -145,8 +145,8 @@ end
 # Update test_types
 test_types = test_catalog['catalog']['test_types']
 unwanted_tests = TestType.where(name: %w[
-  try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
-])
+                                  try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
+                                ])
 tests = Test.where(test_type_id: unwanted_tests.pluck(:id))
 TestStatus.where(test_id: tests.pluck(:id)).destroy_all
 tests.destroy_all
@@ -170,7 +170,46 @@ test_types.each do |test_type|
       preferred_name: test_type['preferred_name'],
       short_name: test_type['short_name'],
       department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
+    test_indicators = test_type_record.test_indicators
+    test_type['measures'].each do |measure|
+      test_indicators.each do |indicator|
+        puts "Processing Indicator: #{indicator['name']}"
+        if indicator['name'].strip.downcase == measure['name'].strip.downcase || indicator['name'].strip.downcase == measure['preferred_name'].strip.downcase
+          puts "Updating Indicator: #{indicator['name']}"
+          indicator.update(
+            name: measure['name'].strip,
+            nlims_code: measure['nlims_code'],
+            preferred_name: measure['preferred_name'],
+            short_name: measure['short_name'],
+            test_indicator_type: measure['measure_type']['name']
+          )
+          TestTypeTestIndicator.find_or_create_by!(
+            test_types_id: test_type_record.id,
+            test_indicators_id: indicator['id']
+          )
+        elsif (indicator['name'].strip.downcase == 'ca' && measure['name'].strip.downcase == 'calcium')
+          puts "Updating Indicator: #{indicator['name']}"
+          indicator.update(
+            name: measure['name'].strip,
+            nlims_code: measure['nlims_code'],
+            preferred_name: measure['preferred_name'],
+            short_name: measure['short_name'],
+            test_indicator_type: measure['measure_type']['name']
+          )
+          TestTypeTestIndicator.find_or_create_by!(
+            test_types_id: test_type_record.id,
+            test_indicators_id: indicator['id']
+          )
+        else
+          # Failed to match indicator, save to json file the test_type name and measures failed
+          File.open('failed_indicators.json', 'a') do |f|
+            f.puts({ test_type: test_type['name'], measure: measure['name'] }.to_json)
+          end
+        end
+      end
+    end
   end
   test_type_record2 ||= TestType.find_by(name: "#{test_type['name']} (Paeds)")
   test_type_record2 ||= TestType.find_by(name: "#{test_type['short_name']} (Paeds)")
@@ -180,7 +219,8 @@ test_types.each do |test_type|
     test_type_record2.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
   end
   test_type_record3 ||= TestType.find_by(name: "#{test_type['name']}(CancerCenter)")
@@ -191,7 +231,8 @@ test_types.each do |test_type|
     test_type_record3.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
   end
   if test_type['name'].downcase == 'Hepatitis C Virus Viral load'.downcase
@@ -200,12 +241,14 @@ test_types.each do |test_type|
       name: 'Hepatitis C Virus Viral load',
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
     TestType.find_by(name: 'Hepatitis C(CancerCenter)')&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
   end
   if test_type['name'].downcase == 'Hepatitis Virus B Viral Load'.downcase
@@ -214,12 +257,14 @@ test_types.each do |test_type|
       name: 'Hepatitis Virus B Viral Load',
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
     TestType.find_by(name: 'Hepatitis B(CancerCenter)')&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
   end
 
@@ -229,12 +274,14 @@ test_types.each do |test_type|
       name: 'COVID-19 Nucleic Acid Test',
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
     TestType.find_by(name: 'SARS COV 2(CancerCenter)')&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
   end
   if test_type['name'].strip.downcase == 'Erythrocyte Sedimentation Rate'.downcase
@@ -242,25 +289,47 @@ test_types.each do |test_type|
     TestType.find_by(name: 'ESR Peads')&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
     TestType.find_by(name: 'ESR Peads(CancerCenter)')&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
-      department_id: department_id
+      department_id: department_id,
+      sex: test_type['can_be_done_on_sex']
     )
   end
-  if test_type['name'].strip.downcase == 'Prostate-Specific Antigen'.downcase
-    puts "Special processing for: #{test_type['name']}"
-    TestType.where(name: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)'])&.update!(
-      nlims_code: test_type['nlims_code'],
-      short_name: test_type['short_name'],
-      department_id: department_id
-    )
-    TestType.where(name: ['Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'])&.update!(
-      nlims_code: test_type['nlims_code'],
-      short_name: test_type['short_name'],
-      department_id: department_id
-    )
-  end
+  next unless test_type['name'].strip.downcase == 'Prostate-Specific Antigen'.downcase
+
+  puts "Special processing for: #{test_type['name']}"
+  TestType.where(name: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)'])&.update!(
+    nlims_code: test_type['nlims_code'],
+    short_name: test_type['short_name'],
+    department_id: department_id,
+    sex: test_type['can_be_done_on_sex']
+  )
+  TestType.where(name: ['Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'])&.update!(
+    nlims_code: test_type['nlims_code'],
+    short_name: test_type['short_name'],
+    department_id: department_id,
+    sex: test_type['can_be_done_on_sex']
+  )
+end
+
+TestIndicator.where("nlims_code IS NOT NULL").each do |indicator|
+  TestIndicator.where(name: indicator.name)&.update!(
+    nlims_code: indicator.nlims_code,
+    preferred_name: indicator.preferred_name,
+    short_name: indicator.short_name
+  )
+  TestIndicator.where(name: indicator.preferred_name)&.update!(
+    nlims_code: indicator.nlims_code,
+    preferred_name: indicator.preferred_name,
+    short_name: indicator.short_name
+  )
+  TestIndicator.where(name: "#{indicator.name} (CA)")&.update!(
+    nlims_code: indicator.nlims_code,
+    preferred_name: indicator.preferred_name,
+    short_name: indicator.short_name
+  )
 end
