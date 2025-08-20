@@ -1,4 +1,5 @@
 class Order < VoidableRecord
+  validates_uniqueness_of :accession_number, allow_blank: false
   belongs_to :encounter
   belongs_to :priority
   has_many :tests
