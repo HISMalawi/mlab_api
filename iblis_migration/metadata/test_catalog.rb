@@ -147,14 +147,22 @@ test_types = test_catalog['catalog']['test_types']
 unwanted_tests = TestType.where(name: %w[
                                   try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
                                 ])
+tis = TestIndicator.where(name: %w[ss qqq he aaa nn lk zz ll])
 tests = Test.where(test_type_id: unwanted_tests.pluck(:id))
-TestStatus.where(test_id: tests.pluck(:id)).destroy_all
-tests.destroy_all
-TestTypeTestIndicator.where(test_types_id: unwanted_tests.pluck(:id)).destroy_all
-SpecimenTestTypeMapping.where(test_type_id: unwanted_tests.pluck(:id)).destroy_all
-ExpectedTat.where(test_type_id: unwanted_tests.pluck(:id)).destroy_all
-unwanted_tests.destroy_all
+TestStatus.where(test_id: tests.pluck(:id)).delete_all
+tests.delete_all
+TestTypeTestIndicator.where(test_types_id: unwanted_tests.pluck(:id)).delete_all
+TestTypeTestIndicator.where(test_indicators_id: tis.pluck(:id)).delete_all
+SpecimenTestTypeMapping.where(test_type_id: unwanted_tests.pluck(:id)).delete_all
+ExpectedTat.where(test_type_id: unwanted_tests.pluck(:id)).delete_all
+unwanted_tests.delete_all
+tis.delete_all
 
+maping = JSON.parse(File.read('map.json'))
+maping.each do |canonical, aliases|
+  puts "Updating #{aliases.join(', ')} to #{canonical}"
+  TestIndicator.where(name: aliases).update_all(name: canonical)
+end
 test_types.each do |test_type|
   puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
   test_type_record = TestType.find_by(name: test_type['name'].strip)
