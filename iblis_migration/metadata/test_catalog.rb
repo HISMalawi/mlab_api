@@ -163,6 +163,52 @@ maping.each do |canonical, aliases|
   puts "Updating #{aliases.join(', ')} to #{canonical}"
   TestIndicator.where(name: aliases).update_all(name: canonical)
 end
+
+def update_test_indicators(test_catalog_test_type, test_type_record)
+  return unless test_type_record.present?
+
+  test_indicators = test_type_record.test_indicators
+  test_type = test_catalog_test_type
+    test_type['measures'].each do |measure|
+      test_indicators.each do |indicator|
+        puts "Processing Indicator: #{indicator['name']}"
+        if indicator['name'].strip.downcase == measure['name'].strip.downcase || indicator['name'].strip.downcase == measure['preferred_name'].strip.downcase || indicator['name'].strip.downcase == measure['scientific_name'].strip.downcase
+          puts "Updating Indicator: #{indicator['name']}"
+          indicator.update(
+            name: measure['name'].strip,
+            nlims_code: measure['nlims_code'],
+            preferred_name: measure['preferred_name'],
+            short_name: measure['short_name'],
+            test_indicator_type: measure['measure_type']['name'],
+            unit: measure['unit']
+          )
+          TestTypeTestIndicator.find_or_create_by!(
+            test_types_id: test_type_record.id,
+            test_indicators_id: indicator['id']
+          )
+        elsif (indicator['name'].strip.downcase == 'ca' && measure['name'].strip.downcase == 'calcium')
+          puts "Updating Indicator: #{indicator['name']}"
+          indicator.update(
+            name: measure['name'].strip,
+            nlims_code: measure['nlims_code'],
+            preferred_name: measure['preferred_name'],
+            short_name: measure['short_name'],
+            test_indicator_type: measure['measure_type']['name'],
+            unit: measure['unit']
+          )
+          TestTypeTestIndicator.find_or_create_by!(
+            test_types_id: test_type_record.id,
+            test_indicators_id: indicator['id']
+          )
+        else
+          # Failed to match indicator, save to json file the test_type name and measures failed
+          File.open('failed_indicators.json', 'a') do |f|
+            f.puts({ test_type: test_type['name'], measure: measure['name'] }.to_json)
+          end
+        end
+      end
+    end
+end
 test_types.each do |test_type|
   puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
   test_type_record = TestType.find_by(name: test_type['name'].strip)
@@ -180,44 +226,7 @@ test_types.each do |test_type|
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
-    test_indicators = test_type_record.test_indicators
-    test_type['measures'].each do |measure|
-      test_indicators.each do |indicator|
-        puts "Processing Indicator: #{indicator['name']}"
-        if indicator['name'].strip.downcase == measure['name'].strip.downcase || indicator['name'].strip.downcase == measure['preferred_name'].strip.downcase
-          puts "Updating Indicator: #{indicator['name']}"
-          indicator.update(
-            name: measure['name'].strip,
-            nlims_code: measure['nlims_code'],
-            preferred_name: measure['preferred_name'],
-            short_name: measure['short_name'],
-            test_indicator_type: measure['measure_type']['name']
-          )
-          TestTypeTestIndicator.find_or_create_by!(
-            test_types_id: test_type_record.id,
-            test_indicators_id: indicator['id']
-          )
-        elsif (indicator['name'].strip.downcase == 'ca' && measure['name'].strip.downcase == 'calcium')
-          puts "Updating Indicator: #{indicator['name']}"
-          indicator.update(
-            name: measure['name'].strip,
-            nlims_code: measure['nlims_code'],
-            preferred_name: measure['preferred_name'],
-            short_name: measure['short_name'],
-            test_indicator_type: measure['measure_type']['name']
-          )
-          TestTypeTestIndicator.find_or_create_by!(
-            test_types_id: test_type_record.id,
-            test_indicators_id: indicator['id']
-          )
-        else
-          # Failed to match indicator, save to json file the test_type name and measures failed
-          File.open('failed_indicators.json', 'a') do |f|
-            f.puts({ test_type: test_type['name'], measure: measure['name'] }.to_json)
-          end
-        end
-      end
-    end
+    update_test_indicators(test_type, test_type_record)
   end
   test_type_record2 ||= TestType.find_by(name: "#{test_type['name']} (Paeds)")
   test_type_record2 ||= TestType.find_by(name: "#{test_type['short_name']} (Paeds)")
@@ -230,6 +239,7 @@ test_types.each do |test_type|
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
+    update_test_indicators(test_type, test_type_record2)
   end
   test_type_record3 ||= TestType.find_by(name: "#{test_type['name']}(CancerCenter)")
   test_type_record3 ||= TestType.find_by(name: "#{test_type['short_name']}(CancerCenter)")
@@ -242,86 +252,111 @@ test_types.each do |test_type|
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
+    update_test_indicators(test_type, test_type_record3)
   end
   if test_type['name'].downcase == 'Hepatitis C Virus Viral load'.downcase
     puts "Special processing for: #{test_type['name']}"
-    TestType.find_by(name: 'Hepatitis C')&.update!(
+    t = TestType.find_by(name: 'Hepatitis C')
+    t&.update!(
       name: 'Hepatitis C Virus Viral load',
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
-    TestType.find_by(name: 'Hepatitis C(CancerCenter)')&.update!(
+    update_test_indicators(test_type, t)
+    tt = TestType.find_by(name: 'Hepatitis C(CancerCenter)')
+    tt&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
+    update_test_indicators(test_type, tt)
   end
   if test_type['name'].downcase == 'Hepatitis Virus B Viral Load'.downcase
     puts "Special processing for: #{test_type['name']}"
-    TestType.find_by(name: 'Hepatitis B')&.update!(
+    t = TestType.find_by(name: 'Hepatitis B')
+    t&.update!(
       name: 'Hepatitis Virus B Viral Load',
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
-    TestType.find_by(name: 'Hepatitis B(CancerCenter)')&.update!(
+    update_test_indicators(test_type, t)
+    tt = TestType.find_by(name: 'Hepatitis B(CancerCenter)')
+    tt&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
+    update_test_indicators(test_type, tt)
   end
 
   if test_type['name'].downcase == 'COVID-19 Nucleic Acid Test'.downcase
     puts "Special processing for: #{test_type['name']}"
-    TestType.find_by(name: 'SARS COV 2')&.update!(
+    t= TestType.find_by(name: 'SARS COV 2')
+    t&.update!(
       name: 'COVID-19 Nucleic Acid Test',
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
-    TestType.find_by(name: 'SARS COV 2(CancerCenter)')&.update!(
+    update_test_indicators(test_type, t)
+    tt = TestType.find_by(name: 'SARS COV 2(CancerCenter)')
+    tt&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
+    update_test_indicators(test_type, tt)
   end
   if test_type['name'].strip.downcase == 'Erythrocyte Sedimentation Rate'.downcase
     puts "Special processing for: #{test_type['name']}"
-    TestType.find_by(name: 'ESR Peads')&.update!(
+    t = TestType.find_by(name: 'ESR Peads')
+    t&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
-    TestType.find_by(name: 'ESR Peads(CancerCenter)')&.update!(
+    update_test_indicators(test_type, t)
+    tt = TestType.find_by(name: 'ESR Peads(CancerCenter)')
+    tt&.update!(
       nlims_code: test_type['nlims_code'],
       short_name: test_type['short_name'],
       department_id: department_id,
       sex: test_type['can_be_done_on_sex']
     )
+    update_test_indicators(test_type, tt)
   end
   next unless test_type['name'].strip.downcase == 'Prostate-Specific Antigen'.downcase
 
   puts "Special processing for: #{test_type['name']}"
-  TestType.where(name: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)'])&.update!(
+  t = TestType.where(name: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)'])
+  t&.update!(
     nlims_code: test_type['nlims_code'],
     short_name: test_type['short_name'],
     department_id: department_id,
     sex: test_type['can_be_done_on_sex']
   )
-  TestType.where(name: ['Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'])&.update!(
+  t.each do |test_indicator|
+    update_test_indicators(test_type, test_indicator)
+  end
+  tt = TestType.where(name: ['Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'])
+  tt&.update!(
     nlims_code: test_type['nlims_code'],
     short_name: test_type['short_name'],
     department_id: department_id,
     sex: test_type['can_be_done_on_sex']
   )
+  tt.each do |test_indicator|
+    update_test_indicators(test_type, test_indicator)
+  end
 end
 
 TestIndicator.where("nlims_code IS NOT NULL").each do |indicator|
