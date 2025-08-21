@@ -167,8 +167,9 @@ module OrderService
             # Check if the number exists in either table
             if number_exists?(accession_number)
               max_acc_num += 1
-              max_acc_num += 100 if attempts == (max_loop_attempts - 20)
-              max_acc_num = get_next_sequence_number(code, year, order: true) if attempts == (max_loop_attempts - 10)
+              max_acc_num += 100 if attempts == (max_loop_attempts - 60)
+              max_acc_num = get_next_sequence_number(code, year, order: true) if attempts == (max_loop_attempts - 70)
+              max_acc_num += 2500 if attempts == (max_loop_attempts - 80)
               next
             else
               # Create the new tracker record
