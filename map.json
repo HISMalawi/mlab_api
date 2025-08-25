@@ -13,7 +13,7 @@
   "Urine Chemistries": ["Urine Chemistry"],
   "Albumin": ["Albumin(ALB)", "ALB", "ALB-H"],
   "Magnesium":  ["Magnesium(MG)", "MG", "Magnesium (MGXB)"],
-  "Phosphorus": ["Phosphorus (PHOS)", "PHOS", "Phosphorus (P)"],
+  "Phosphorus": ["Phosphorus (PHOS)", "PHOS", "Phosphorus (P)", "P"],
   "Total Prostate-Specific Antigen": ["TPSA"],
   "Free Prostate-Specific Antigen": ["FPSA", "freePSA"],
   "Urea/Blood Urea Nitrogen": ["Urea", "Blood Urea Nitrogen", "Urea/Bun"],
@@ -32,5 +32,18 @@
   "Carcinoembryonic Antigen": ["CEA"],
   "Antistreptolysin O Titre (ASOT)": ["Antistreptolysin O (ASO)", "ASO"],
   "Rheumatoid Factor": ["Rheumatoid Factor (RF)"],
-  "Microalbumin": ["MAL"]
+  "Microalbumin": ["MAL"],
+  "Smear microscopy result": ["TB Microscopy", "tb"],
+  "Microprotein": ["MPR"],
+  "PSA-Hybridization": ["PSA-Hyb"],
+  "Total Triiodothyronine": ["TT3"],
+  "Free Thyroxine": ["FT4"],
+  "Thrombin Time": ["TT"],
+  "Progesterone": ["PROGEST"],
+  "Testosterone": ["TESTO"],
+  "Hepatitis B": ["HepB"],
+  "Erythrocyte Sedimentation Rate": ["ESR Peads", "ESR"],
+  "Epithelial cells": ["Epithelial cell"],
+  "Casts": ["Cast"],
+  "Yeast cells": ["Yeast cell"]
 }
