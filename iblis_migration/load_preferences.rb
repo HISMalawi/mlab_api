@@ -16,6 +16,14 @@ preferences = [
       default: 'grid',
       description: 'Enter result view in grid or list format'
     }
+  },
+  {
+    name: 'test_name_display',
+    value: {
+      options: %w[full_name preferred_name],
+      default: 'full_name',
+      description: 'Display format of names (full name or preferred name)'
+    }
   }
 ]
 preferences.each do |preference|
