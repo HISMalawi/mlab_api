@@ -128,7 +128,7 @@ Rails.application.routes.draw do
           get 'current_api_tag' => 'global#current_git_tag'
           get 'nlims_status' => 'global#nlims_status'
           get 'app_settings' => 'global#app_settings'
-          put 'app_settings' => 'global#update_app_settings'
+          put 'app_settings/:app_setting_id' => 'global#update_app_settings'
           get 'preferences' => 'global#preferences'
         end
       end
