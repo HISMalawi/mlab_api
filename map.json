@@ -4,7 +4,7 @@
   "Aspartate Aminotransferase/Glutamate Oxaloacetate Transaminase": ["AST", "SGOT", "AST-H"],
   "Direct bilirubin": ["Bilirubin Direct(BID)", "Bilirubin Direct(DBIL-VOX)", "DBIL-DSA-H", "Direct bilirubin", "Direct bilirubin"],
   "Total Bilirubin": ["Bilirubin Total(BIT)", "Bilirubin Total(BIL-T)", "BIL-T", "Bilirubin Total(BIT))", "Bilirubin Total(TBIL-VOX)", "Total Bilirubin", "TBIL-DSA-H"],
-  "Total Protein": ["Total Protein(TP)", "TP", "Total Protein(PRO)", "Total Proteins"],
+  "Total Protein": ["Total Protein(TP)", "TP", "Total Protein(PRO)", "Total Proteins", "TP-H"],
   "Gram": ["Gram Stain", "Grams stain"],
   "Gene Xpert RIF Resistance": ["RIF Resistance"],
   "Gene Xpert MTB": ["MTB", "MTB GeneXpert"],
@@ -16,9 +16,9 @@
   "Phosphorus": ["Phosphorus (PHOS)", "PHOS", "Phosphorus (P)", "P"],
   "Total Prostate-Specific Antigen": ["TPSA"],
   "Free Prostate-Specific Antigen": ["FPSA", "freePSA"],
-  "Urea/Blood Urea Nitrogen": ["Urea", "Blood Urea Nitrogen", "Urea/Bun"],
+  "Urea/Blood Urea Nitrogen": ["Urea", "Blood Urea Nitrogen", "Urea/Bun", "UREA-H"],
   "Indirect Coombs Test": ["Indirect COOMBS test"],
-  "Total Cholesterol": ["Cholestero l(CHOL)"],
+  "Total Cholesterol": ["Cholestero l(CHOL)", "TC-H"],
   "Red Blood Cell": ["Red blood cells"],
   "Glucose": ["Glu", "Glu-O","GLU-O", "GLU-O-H"],
   "Creatine": ["CREA-S","CREA-J"],
@@ -45,5 +45,10 @@
   "Erythrocyte Sedimentation Rate": ["ESR Peads", "ESR"],
   "Epithelial cells": ["Epithelial cell"],
   "Casts": ["Cast"],
-  "Yeast cells": ["Yeast cell"]
+  "Yeast cells": ["Yeast cell"],
+  "Triglycerides": ["TG", "TG-H"],
+  "Amylase ": ["a-AMYLASE-H", "SERUM AMYLASE"],
+  "Uric Acid": ["UA-H"],
+  "Parathyroid Hormone": ["PTH"],
+  "Thyroid Peroxidase": ["TPO"]
 }

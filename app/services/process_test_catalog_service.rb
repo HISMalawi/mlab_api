@@ -143,7 +143,7 @@ class ProcessTestCatalogService
     end
   end
 
-  def create_or_update_test_indicators(test_indicators)
+  def create_or_update_test_indicators(test_type, test_indicators)
     test_indicators.map do |item|
       record = TestIndicator.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
       record ||= TestIndicator.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
@@ -152,11 +152,17 @@ class ProcessTestCatalogService
       record ||= TestIndicator.new
       if record.new_record?
         record.name = item[:name]
-        record.test_indicator_type = item[:measure_type][:name]
-        record.unit = item[:unit] if item[:unit].present?
+        # record.test_indicator_type = item[:measure_type][:name]
+        # record.unit = item[:unit] if item[:unit].present?
         record.save!
       end
       indicator = create_or_update_record(record, item)
+      duplicates = test_type.test_type_test_indicators.where(test_indicators_id: indicator.id)
+      duplicates.offset(1).destroy_all if duplicates.count > 1
+      join_record = test_type.test_type_test_indicators.find_or_create_by!(test_indicators_id: indicator.id)
+      join_record.unit = item[:unit]
+      join_record.test_indicator_type = item.dig(:measure_type, :name)
+      join_record.save! if join_record.changed?
       create_or_update_test_indicator_ranges(item[:measure_ranges_attributes], indicator.id)
       indicator
     end
@@ -166,7 +172,7 @@ class ProcessTestCatalogService
     test_types.each do |item|
       record = find_or_initialize_test_type(item)
       test_type = create_or_update_record(record, item)
-      test_type.test_indicators = create_or_update_test_indicators(item[:measures])
+      create_or_update_test_indicators(test_type, item[:measures])
       test_type.specimens = create_or_update_specimens(item[:specimen_types])
       test_type.organisms = create_or_update_organisms(item[:organisms])
       create_or_update_tat(test_type.id, item[:targetTAT])
@@ -175,24 +181,30 @@ class ProcessTestCatalogService
   end
 
   def create_or_update_tat(test_type_id, tat)
-    return if tat.nil?
+    tat = '24 Hours' if tat.nil?
 
     tat_value = tat.split(' ').first
     tat_unit = tat.split(' ').last
-    return unless tat_value.present? && tat_unit.present?
 
-    tat_unit == 'Hours' if tat_unit == 'hrs'
-    tat_unit == 'Days' if tat_unit == 'days'
-    tat_unit == 'Minutes' if tat_unit == 'mins'
+    tat_unit = case tat_unit.downcase
+               when /h/
+                 'Hours'
+               when /d/
+                 'Days'
+               when /m/
+                 'Minutes'
+               else
+                 'Hours'
+               end
     tat_record = ExpectedTat.find_by(test_type_id:)
     tat_record ||= ExpectedTat.new
     if tat_record.new_record?
-      tat_record.value = tat_value
-      tat_record.unit = tat_unit
+      tat_record.value = tat_value || 24
+      tat_record.unit = tat_unit || 'Hours'
       tat_record.test_type_id = test_type_id
       tat_record.save!
     else
-      ExpectedTat.update!(tat_record.id, value: tat_value, unit: tat_unit)
+      ExpectedTat.update!(tat_record.id, value: tat_value || 24, unit: tat_unit || 'Hours')
     end
   end
 
@@ -233,15 +245,16 @@ class ProcessTestCatalogService
   end
 
   def find_or_initialize_test_type(item)
-    record = TestType.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
-    record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
+    # record = TestType.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
+    # record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
     record ||= TestType.find_by(name: item[:name])
-    record ||= TestType.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
+    # record ||= TestType.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
     record ||= TestType.new
     if record.new_record?
       record.name = item[:name]
       record.department = create_or_update_department(item[:test_category])
       record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
+      record.can_be_ordered = true
       record.save!
     end
     record

@@ -302,18 +302,18 @@ module Tests
       fbc_tests = ['fbc', 'full blood count']
       records = TestIndicator.find_by_sql("
                   SELECT
-                    ti.id, ti.name, ti.test_indicator_type, ti.nlims_code, ti.preferred_name,
-                    ti.unit, ti.description, tr.id AS result_id,
+                    ti.id, ti.name, ttim.test_indicator_type, ti.nlims_code, ti.preferred_name,
+                    ttim.unit, ti.description, tr.id AS result_id,
                     tr.value, tr.result_date, tr.machine_name
                   FROM test_indicators ti
                   INNER JOIN
-                    test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id AND ttim.voided = 0
+                    test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id AND ttim.voided = 0 AND ti.retired = 0
                   LEFT JOIN test_results tr ON ti.id = tr.test_indicator_id
                     AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
                   WHERE ttim.test_types_id = #{test_type_id}")
       records.each do |record|
         if fbc_tests.include?(test_type.name.strip.downcase)
-          fbc_format[record['name'].upcase.to_sym] = test_indicator_seriliazer(record, sex, dob)
+          fbc_format[record['name'].upcase] = test_indicator_seriliazer(record, sex, dob)
         else
           json_response << test_indicator_seriliazer(record, sex, dob)
         end
