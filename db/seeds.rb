@@ -22,7 +22,8 @@ stock_transaction_types.each do |type|
   )
 end
 
-stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other Misplace_stock Incorrect_entry Phased_out Banned Missing Transfer_to_another_facility For_trainings]
+stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other Misplace_stock Incorrect_entry Phased_out Banned Missing
+                              Transfer_to_another_facility For_trainings]
 stock_adjustment_reasons.each do |reason|
   puts "Creating stock adjustment reason: #{reason}"
   StockAdjustmentReason.find_or_create_by!(name: reason.gsub('_', ' '))
@@ -375,4 +376,25 @@ settings.each do |setting|
 
   set = AppSetting.find_or_create_by(name: setting[:name])
   set.update(value: setting[:value])
+end
+
+privilegs = [
+  {
+    name: 'view_ward_results',
+    display_name: 'Can View Ward Results'
+  },
+  {
+    name: 'can_manage_site_preferences',
+    display_name: 'Can Manage Site Preferences'
+  }
+]
+
+privilegs.each do |privileg|
+  puts "Creating privileg #{privileg[:name]}"
+  ActiveRecord::Base.transaction do
+    privileg_record = Privilege.find_or_create_by!(name: privileg[:name])
+    privileg_record.update!(display_name: privileg[:display_name])
+    admin_role = Role.find_by_name('superadmin')
+    admin_role&.role_privilege_mappings&.find_or_create_by!(privilege: privileg_record)
+  end
 end
