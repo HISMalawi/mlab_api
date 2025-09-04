@@ -396,5 +396,7 @@ privilegs.each do |privileg|
     privileg_record.update!(display_name: privileg[:display_name])
     admin_role = Role.find_by_name('superadmin')
     admin_role&.role_privilege_mappings&.find_or_create_by!(privilege: privileg_record)
+    admin_role = Role.find_by_name('superuser')
+    admin_role&.role_privilege_mappings&.find_or_create_by!(privilege: privileg_record)
   end
 end
