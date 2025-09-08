@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# Model for Instruments table
 class Instrument < RetirableRecord
   validates :name, presence: true, uniqueness: true
   has_many :instrument_test_type_mapping
@@ -7,12 +10,7 @@ class Instrument < RetirableRecord
     super(options.merge({ only: %i[id name description ip_address hostname can_perform created_date], methods: %i[supported_tests] }))
   end
 
-
-
   def supported_tests
-    test_types.select(
-      'test_types.id',
-      'test_types.name'
-    )
+    test_types
   end
 end

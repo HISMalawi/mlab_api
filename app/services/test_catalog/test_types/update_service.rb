@@ -72,8 +72,8 @@ module TestCatalog
               test_types_id: test_type_id,
               test_indicators_id: test_indicator.id
             )
-            testtype_indicator.update!(test_indicator_type: test_indicator_param[:test_indicator_type],
-                                       unit: test_indicator_param[:unit])
+            # testtype_indicator.update!(test_indicator_type: test_indicator_param[:test_indicator_type],
+            #                            unit: test_indicator_param[:unit])
             update_test_indicator_range(test_indicator_param[:indicator_ranges], test_indicator.id,
                                         test_indicator.test_indicator_type)
           end

@@ -8,7 +8,9 @@ module Tests
       def fbc_format
         {
           'White Blood Cell' => '',
+          'White Blood Cells' => '',
           'Red Blood Cell' => '',
+          'Red Blood Cells' => '',
           'Haemoglobin' => '',
           'Hematocrit' => '',
           'Mean Corpuscular Volume' => '',
