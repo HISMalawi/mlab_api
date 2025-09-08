@@ -255,8 +255,12 @@ class ProcessTestCatalogService
       record.department = create_or_update_department(item[:test_category])
       record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
       record.can_be_ordered = true
-      record.save!
+    else
+      record.department = create_or_update_department(item[:test_category])
+      record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
+      record.can_be_ordered = true
     end
+    record.save!
     record
   end
 end

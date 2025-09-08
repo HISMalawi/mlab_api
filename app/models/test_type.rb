@@ -2,11 +2,11 @@
 
 # Model for TestTypes table
 class TestType < TestTypeVoidableRecord
-  validates :name, uniqueness: true, presence: true
+  # validates :name, uniqueness: true, presence: true
   # validates :preferred_name, uniqueness: true, presence: true
-  validates :preferred_name, uniqueness: { message: lambda { |object, data|
-    "‘#{data[:value]}’ is already taken for #{object.class.name}"
-  } }, presence: { message: "can't be blank for #{name}" }
+  # validates :preferred_name, uniqueness: { message: lambda { |object, data|
+  #   "‘#{data[:value]}’ is already taken for #{object.class.name}"
+  # } }, presence: { message: "can't be blank for #{name}" }
   belongs_to :department
   has_many :instrument_test_type_mapping
   has_many :specimen_test_type_mappings
