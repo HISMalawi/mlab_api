@@ -3,8 +3,8 @@
 # Load lab locations if they do not exist
 
 lab_locations = [{
-  name: 'Wards',
-  description: 'Wards'
+  name: 'Ward',
+  description: 'Ward'
 }]
 
 lab_locations.each do |location|
