@@ -80,6 +80,121 @@ module Nlims
       end
     end
 
+    def self.create_order_v2(id: nil)
+      nlims = nlims_token
+      return if nlims[:token].blank?
+
+      orders = Order.find_by_sql(
+        "SELECT o.id, o.encounter_id, o.tracking_number, o.sample_collected_time,
+            o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id,
+            o.creator
+          FROM orders o
+          INNER JOIN unsync_orders uo ON
+            uo.test_or_order_id = o.id
+          WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
+          #{id_condition(id)}
+          ORDER BY uo.id DESC LIMIT 500"
+      )
+
+      facility_details = GlobalService.current_location
+
+      orders.each do |order|
+        Rails.logger.info("=======Creating order #{order&.tracking_number} in nlims =============")
+        tests = Test.where(order_id: order[:id])
+        next if tests.empty?
+
+        specimen_type = tests.first&.specimen
+        next if specimen_type.nil?
+
+        person_creator = Person.find_by(id: User.find_by(id: order[:creator])&.person_id)
+        priority = Priority.find(order[:priority_id]).name
+        encounter = Encounter.find(order[:encounter_id])
+        client = encounter.client.person
+
+        payload = {
+          tracking_number: order[:tracking_number],
+          sample_type: {
+            name: specimen_type.try(:name),
+            nlims_code: specimen_type.try(:nlims_code)
+          },
+          sample_status: OrderStatus.where(order_id: order[:id]).order(created_date: :desc).first.status.name.gsub('-',
+                                                                                                                   '_'),
+          order_location: encounter.facility_section.name,
+          sample_priority: priority,
+          who_order_test_id: person_creator&.id,
+          who_order_test_first_name: person_creator&.first_name || '',
+          who_order_test_last_name: person_creator&.last_name || '',
+          who_order_test_phone_number: '',
+          target_lab: facility_details[:name],
+          art_start_date: client.try(:art_start_date),
+          health_facility_name: facility_details[:name],
+          requesting_clinician: order[:requested_by],
+          district: facility_details[:district],
+          date_sample_drawn: order[:sample_collected_time].presence || order[:created_date],
+          arv_number: client.try(:arv_number),
+          art_regimen: client.try(:art_regimen),
+          national_patient_id: client.try(:national_id),
+          first_name: client[:first_name],
+          last_name: client[:last_name],
+          date_of_birth: client[:date_of_birth],
+          gender: client[:sex],
+          phone_number: client[:phone_number],
+          tests: tests.map do |t|
+            {
+              tracking_number: order[:tracking_number],
+              arv_number: client.try(:arv_number),
+              test_status: t.status,
+              time_updated: t.updated_date,
+              test_type: {
+                name: t.test_type.name,
+                nlims_code: t.test_type.try(:nlims_code)
+              },
+              test_results: TestResult.where(test_id: t.id).map do |res|
+                {
+                  name: TestIndicator.find_by(id: res.test_indicator_id)&.name,
+                  nlims_code: TestIndicator.find_by(id: res.test_indicator_id)&.nlims_code,
+                  unit: TestTypeTestIndicator.find_by(test_indicators_id: res.test_indicator_id, test_types_id: t.test_type_id)&.unit,
+                  value: res.value,
+                  result_date: res.created_date,
+                  platform: res.machine_name,
+                  platformserial: ''
+                }
+              end,
+              status_trail: TestStatus.where(test_id: t.id).map do |st|
+                {
+                  status: st.status.name,
+                  timestamp: st.created_date,
+                  updated_by: {
+                    first_name: st.user&.person&.first_name,
+                    last_name: st.user&.person&.last_name,
+                    id_number: st.user&.id,
+                    phone_number: nil
+                  }
+                }
+              end
+            }
+          end
+        }
+        response = RestClient::Request.execute(
+          method: :post,
+          url: "#{nlims[:base_url]}/api/v2/create_order/",
+          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
+          payload: payload.to_json
+        )
+
+        response = JSON.parse(response.body)
+        if response['error'] == false && ['order created successfuly',
+                                          'order already available'].include?(response['message'])
+          unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
+                                           test_or_order_id: order[:id]).first
+          update_unsync_order(unsync_order)
+          Rails.logger.info("=======Successfully created orders in nlims:#{payload[:tracking_number]}=============")
+        else
+          Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
+        end
+      end
+    end
+
     def self.update_order(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
@@ -168,7 +283,7 @@ module Nlims
             id: updater[:id]
           }
         }
-        if test_res[:test_status] == 'result' || test_res[:test_status] == 'verified'
+        if %w[result verified].include?(test_res[:test_status])
           test_results = TestResult.joins(:test_indicator).where(test_id: test_res[:test_id])
                                    .select('test_indicators.name AS test_indicator, test_results.value AS result_value, test_results.id')
           results = {}
@@ -243,10 +358,10 @@ module Nlims
     def self.get_test_catalog(version)
       nlims = nlims_token
       response = RestClient::Request.execute(
-          method: :get,
-          url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog?version=#{version}",
-          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
-        )
+        method: :get,
+        url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog?version=#{version}",
+        headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
+      )
       if response.code == 200
         JSON.parse(response.body, symbolize_names: true)
       else
@@ -257,20 +372,20 @@ module Nlims
     def self.check_new_test_catalog_version(version)
       nlims = nlims_token
       response = RestClient::Request.execute(
-          method: :get,
-          url: "#{nlims[:base_url]}/api/v1/check_new_test_catalog_version_available?version=#{version}",
-          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
-        )
+        method: :get,
+        url: "#{nlims[:base_url]}/api/v1/check_new_test_catalog_version_available?version=#{version}",
+        headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
+      )
       JSON.parse(response.body, symbolize_names: true)
     end
 
-    def self.get_test_catalog_versions()
+    def self.get_test_catalog_versions
       nlims = nlims_token
       response = RestClient::Request.execute(
-          method: :get,
-          url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog_versions",
-          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
-        )
+        method: :get,
+        url: "#{nlims[:base_url]}/api/v1/retrieve_test_catalog_versions",
+        headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s }
+      )
       JSON.parse(response.body, symbolize_names: true)
     end
   end

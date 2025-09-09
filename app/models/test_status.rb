@@ -7,6 +7,7 @@ class TestStatus < VoidableRecord
   belongs_to :test
   belongs_to :status
   belongs_to :status_reason, optional: true
+  belongs_to :user, foreign_key: 'creator', class_name: 'User', optional: true
 
   # after_commit :insert_into_report_data_raw, on: :create
   after_commit :create_unsync_order
