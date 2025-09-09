@@ -10,7 +10,11 @@ module Api
         order_id = JSON.parse(order_ids)[0]
         test_service = Tests::TestService.new
         @test_service = test_service.client_report(params[:client_id], from, to, order_id)
-        @test_service = { data: @test_service, facility: GlobalService.current_location }
+        @test_service = {
+          data: @test_service,
+          facility: GlobalService.current_location,
+          use_full_name: GlobalService.full_name_display?
+        }
       end
 
       def stock_order

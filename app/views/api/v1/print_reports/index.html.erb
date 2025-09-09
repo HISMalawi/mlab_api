@@ -115,7 +115,7 @@
                   Specimen Type
                 </td>
                 <td class="border px-1 py-1">
-                  {{ report.specimen_preferred_name || report.specimen}}
+                  {{ use_full_name ? report.specimen : report.specimen_preferred_name || report.specimen }}
                 </td>
                 <td class="border px-1 py-1 font-bold">
                   Date Registered
@@ -178,7 +178,7 @@
               >
                 <tr>
                   <td class="border px-5 py-1 text-left">
-                    {{ test.test_type_preferred_name || test.test_type_name }}
+                    {{ use_full_name ? test.test_type_name : test.test_type_preferred_name || test.test_type_name }}
                   </td>
                   <td class="p-0 border-b" style="padding: 0 !important">
                     <table
@@ -210,7 +210,7 @@
                         >
                           <tr class="border-b">
                             <td class="border-r px-1 py-1">
-                              {{ indicater.preferred_name || indicator.name }}
+                              {{ use_full_name ? indicator.name : indicator.preferred_name || indicator.name }}
                             </td>
                             <td class="px-1 py-1 flex items-center border-r">
                               <p
@@ -384,7 +384,7 @@
             <template v-if="hasAnyRemarks(report.tests)">
               <div v-for="test in showPendingTests ? report.tests : getAuthorizedTests(report.tests)" :key="test.id">
                 <div v-if="getRemarks(test) !== 'N/A'" class="mb-3 px-4 border-b border-l border-r pb-2 py-2">
-                  <p class="font-medium">{{ test.test_type_name }}:</p>
+                  <p class="font-medium">{{use_full_name ? test.test_type_name : test.test_type_preferred_name || test.test_type_name }}:</p>
                   <p class="ml-4" v-html="getRemarks(test)"></p>
                 </div>
               </div>
@@ -415,6 +415,7 @@ const app = createApp({
       physicalAddress: "",
       person: {},
       facility: {},
+      use_full_name: true,
       hasSusceptivibility: false,
       authorizedTestCount: 0,
       showPendingTests: false,
@@ -447,7 +448,10 @@ const app = createApp({
           };
     },
     getTestTypes(data) {
-      return data.map((item) => item.name).join(", ");
+      if(this.use_full_name) {
+        return data.map((item) => item.name).join(", ");
+      }
+      return data.map((item) => item.preferred_name || item.name).join(", ");
     },
     getDepartments(data) {
       const uniqueDepartments = [
@@ -587,6 +591,7 @@ const app = createApp({
   mounted() {
     let data = <%= raw @test_service.to_json %>
     this.facility = data.facility
+    this.use_full_name = data.use_full_name
     data = data.data
     this.person = data.client.person;
     this.person_identifiers = data.client.client_identifiers;

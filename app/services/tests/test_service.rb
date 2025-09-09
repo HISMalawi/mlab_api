@@ -566,12 +566,14 @@ module Tests
     end
 
     def test_types(id)
-      test_types = TestType.joins(:department).where(id:).select('test_types.name, departments.name AS department, print_device')
+      test_types = TestType.joins(:department).where(id:)
+                            .select('test_types.name, test_types.preferred_name, departments.name AS department, print_device')
       test_types.map do |type|
         {
           name: type['name'],
           department: type['department'],
-          print_device: type['print_device']
+          print_device: type['print_device'],
+          preferred_name: type['preferred_name']
         }
       end
     end
@@ -591,6 +593,7 @@ module Tests
         requesting_ward: record['requesting_ward'],
         order_status: record['o_status'],
         specimen: specimen(tests.first.specimen_id),
+        specimen_preferred_name: Specimen.find_by(id: tests.first.specimen_id)&.preferred_name,
         order_status_trail: order_status_trail(record['id']),
         test_types: test_types(tests.pluck('test_type_id')),
         tests: serialize_tests(
