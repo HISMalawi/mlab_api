@@ -46,7 +46,7 @@ module Api
             params[:last_name],
             params[:gender]
           )
-          clients = (clients + dde_clients).uniq { |key| [key[:uuid]] }
+          clients = (clients + dde_clients).uniq { |key| [key[:date_of_birth]] }
         end
         render json: clients
       end
