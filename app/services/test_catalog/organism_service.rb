@@ -26,11 +26,13 @@ module TestCatalog
       def update_organism(organism, organism_params, params)
         ActiveRecord::Base.transaction do 
           organism.update!(organism_params)
-          DrugOrganismMapping.where(organism_id: organism.id).where.not(drug_id: params[:drugs]).each do |drug_organism|
-            drug_organism.void("Removed from #{organism.name} organism")
-          end
-          params[:drugs].each do |drug_id|
-            DrugOrganismMapping.find_or_create_by!(drug_id: drug_id, organism_id: organism.id)
+          if params[:drugs].present?
+            DrugOrganismMapping.where(organism_id: organism.id).where.not(drug_id: params[:drugs]).each do |drug_organism|
+              drug_organism.void("Removed from #{organism.name} organism")
+            end
+            params[:drugs].each do |drug_id|
+              DrugOrganismMapping.find_or_create_by!(drug_id: drug_id, organism_id: organism.id)
+            end
           end
         end
       end
