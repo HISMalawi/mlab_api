@@ -10,5 +10,15 @@ module GlobalService
     def full_name_display?
       AppSetting.find_by(name: 'test_name_display')&.value == 'full_name'
     end
+
+    def display_name(full_name, preferred_name)
+      if full_name_display?
+        full_name
+      elsif preferred_name.present?
+        preferred_name
+      else
+        full_name
+      end
+    end
   end
 end
