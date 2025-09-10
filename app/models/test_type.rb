@@ -36,6 +36,8 @@ class TestType < TestTypeVoidableRecord
   end
 
   def self.search(search_term)
-    where("name LIKE '%#{search_term}%' OR short_name LIKE '%#{search_term}%' OR preferred_name LIKE '%#{search_term}%'")
+    where("name LIKE '%#{search_term}%' OR short_name LIKE '%#{search_term}%' OR preferred_name LIKE '%#{search_term}%'
+      OR nlims_code LIKE '%#{search_term}%' OR moh_code LIKE '%#{search_term}%' OR loinc_code LIKE '%#{search_term}%'
+    ")
   end
 end
