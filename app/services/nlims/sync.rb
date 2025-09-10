@@ -149,11 +149,12 @@ module Nlims
                 name: t.test_type.name,
                 nlims_code: t.test_type.try(:nlims_code)
               },
-              test_results: TestResult.where(test_id: t.id).map do |res|
+              test_results: TestResult.where(test_id: t.id).where.not(value: '').where.not(value: nil).map do |res|
                 {
                   name: TestIndicator.find_by(id: res.test_indicator_id)&.name,
                   nlims_code: TestIndicator.find_by(id: res.test_indicator_id)&.nlims_code,
-                  unit: TestTypeTestIndicator.find_by(test_indicators_id: res.test_indicator_id, test_types_id: t.test_type_id)&.unit,
+                  unit: TestTypeTestIndicator.find_by(test_indicators_id: res.test_indicator_id,
+                                                      test_types_id: t.test_type_id)&.unit,
                   value: res.value,
                   result_date: res.created_date,
                   platform: res.machine_name,
@@ -285,6 +286,7 @@ module Nlims
         }
         if %w[result verified].include?(test_res[:test_status])
           test_results = TestResult.joins(:test_indicator).where(test_id: test_res[:test_id])
+                                    .where.not(value: '').where.not(value: nil)
                                    .select('test_indicators.name AS test_indicator, test_results.value AS result_value, test_results.id')
           results = {}
           unless test_results.empty?
@@ -311,6 +313,104 @@ module Nlims
                                            test_or_order_id: test_res[:test_id]).first
           update_unsync_order(unsync_order)
           Rails.logger.info("=======Successfully updated tests in nlims:#{payload[:tracking_number]}=============")
+        else
+          Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
+        end
+      end
+    end
+
+    def self.update_test_v2(id: nil)
+      nlims = nlims_token
+      return if nlims[:token].blank?
+
+      tests = Test.find_by_sql("
+          SELECT
+            o.id AS order_id, t.id AS test_id, o.tracking_number, uo.data_not_synced AS test_status,
+            uo.creator AS creator, uo.updated_date, uo.id
+          FROM
+            unsync_orders uo
+          INNER JOIN tests t ON t.id = uo.test_or_order_id
+          INNER JOIN orders o ON t.order_id = o.id
+          WHERE
+            uo.data_level = 'test' AND uo.sync_status = 0 #{id_condition(id)}
+          ORDER BY uo.id DESC LIMIT 100
+      ")
+
+      GlobalService.current_location
+
+      tests.each do |test_res|
+        Rails.logger.info("=======Updating test #{test_res[:test_id]} in nlims =============")
+
+        test_ = Test.find_by(id: test_res[:test_id])
+        next if test_.nil?
+
+        client = begin
+          test_.order.encounter.client.person
+        rescue StandardError
+          nil
+        end
+        next if client.nil?
+
+        # Build test results
+        test_results = TestResult.where(test_id: test_res[:test_id])
+                                 .where.not(value: '').where.not(value: nil).map do |res|
+          indicator = TestIndicator.find_by(id: res.test_indicator_id)
+          {
+            name: indicator&.name,
+            nlims_code: indicator&.nlims_code,
+            unit: TestTypeTestIndicator.find_by(
+              test_indicators_id: res.test_indicator_id,
+              test_types_id: test_.test_type_id
+            )&.unit,
+            value: res.value,
+            result_date: res.created_date,
+            platform: res.machine_name,
+            platformserial: ''
+          }
+        end
+
+        # Build status trail
+        status_trail = TestStatus.where(test_id: test_.id).map do |st|
+          {
+            status: st.status.name.gsub('-', '_'),
+            timestamp: st.created_date,
+            updated_by: {
+              first_name: st.user&.person&.first_name,
+              last_name: st.user&.person&.last_name,
+              id_number: st.user&.id,
+              phone_number: nil
+            }
+          }
+        end
+
+        payload = {
+          tracking_number: test_res[:tracking_number],
+          arv_number: client.try(:arv_number),
+          test_status: test_res[:test_status].gsub('-', '_'),
+          time_updated: test_res[:updated_date],
+          test_type: {
+            name: test_.test_type&.name,
+            nlims_code: test_.test_type&.nlims_code
+          },
+          test_results: test_results,
+          status_trail: status_trail
+        }
+        response = RestClient::Request.execute(
+          method: :post,
+          url: "#{nlims[:base_url]}/api/v2/update_tests/",
+          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
+          payload: payload.to_json
+        )
+
+        response = JSON.parse(response.body)
+        if response['error'] == false && response['message'] == 'test updated successfuly'
+          unsync_order = UnsyncOrder.where(
+            sync_status: 0,
+            data_not_synced: test_res[:test_status],
+            test_or_order_id: test_res[:test_id]
+          ).first
+          update_unsync_order(unsync_order)
+          Rails.logger.info("=======Successfully updated test in nlims:#{payload[:tracking_number]}=============")
         else
           Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
         end
