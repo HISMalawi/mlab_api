@@ -7,7 +7,8 @@ module TestCatalog
     class << self
       def specimen(department_id: nil)
         specimen = Specimen.order(:preferred_name)
-        return specimen if department_id.blank?
+        not_specified = Specimen.find_by(name: 'not_Specified')
+        return specimen.where.not(id: not_specified&.id) if department_id.blank?
 
         department = Department.find_by(id: department_id)
         return specimen if department.nil? || department.name == 'Lab Reception'
@@ -16,7 +17,7 @@ module TestCatalog
                                               .where(test_types: { department_id: department.id })
                                               .select(:specimen_id)
                                               .distinct
-        specimen.where(id: specimen_ids)
+        specimen.where(id: specimen_ids).where.not(id: not_specified&.id)
       end
 
       def specimen_test_type(specimen_id, department_id, sex)
