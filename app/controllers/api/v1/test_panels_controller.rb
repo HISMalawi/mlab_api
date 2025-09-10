@@ -9,7 +9,7 @@ module Api
 
       def index
         @test_panels = TestPanel.where.not("name LIKE '%(Paed%'").where.not("name LIKE '%(cancer%'")
-        render json: @test_panels.order(:preferred_name, :name)
+        render json: @test_panels.order(:name, :preferred_name)
       end
 
       def show
@@ -38,7 +38,7 @@ module Api
       end
 
       def test_panel_params
-        params.require(:test_panel).permit(:name, :description, :short_name)
+        params.require(:test_panel).permit(:name, :description, :short_name, :preferred_name)
       end
 
       def check_test_type_params

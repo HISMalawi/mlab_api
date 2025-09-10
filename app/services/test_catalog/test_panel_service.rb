@@ -19,7 +19,7 @@ module TestCatalog
       end
 
       def update_panel(test_panel, test_panel_params, test_types)
-        ActiveRecord::Base.transaction do 
+        ActiveRecord::Base.transaction do
           test_panel.update!(test_panel_params)
           TestTypePanelMapping.where(test_panel_id: test_panel.id).where.not(test_type_id: test_types).each do |test_type_panel_mapping|
             test_type_panel_mapping.void('Remove from TestTypePanel')
