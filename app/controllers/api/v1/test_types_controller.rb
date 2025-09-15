@@ -25,7 +25,8 @@ module Api
 
       def department_test_types
         department_id = params.require(:department_id)
-        render json: TestType.active_without_paediatric_cancer.where(department_id:)
+        test_display_pref = GlobalService.full_name_display? ? 'name' : 'COALESCE(preferred_name, name)'
+        render json: TestType.active_without_paediatric_cancer.where(department_id:).select("test_types.*, #{test_display_pref} AS name")
       end
 
       def show

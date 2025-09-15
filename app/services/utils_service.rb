@@ -10,6 +10,13 @@ module UtilsService
     years_difference
   end
 
+  def self.dob(age)
+    return nil unless age.present?
+
+    today = Date.today
+    today - age.to_i.years
+  end
+
   def self.full_sex(sex)
     return if sex.nil? || !sex.downcase.in?(%w[m f])
 
