@@ -5,7 +5,7 @@ module WhonetService
       @start_date = start_date.to_date.beginning_of_day
       @end_date = end_date.to_date.end_of_day
       @site_origin = GlobalService.current_location.name
-      test_types_ids = Reports::Moh::ReportUtils.fetch_ids(TestType, ['Gram Stain', 'Culture and Sensitivity'], %w[NLIMS_TT_0003_MWI NLIMS_TT_0004_MWI])
+      test_types_ids = GlobalService.fetch_ids(TestType, ['Gram Stain', 'Culture and Sensitivity'], %w[NLIMS_TT_0003_MWI NLIMS_TT_0004_MWI])
       @data = Report.find_by_sql("
           SELECT
             '#{@site_origin}' AS laboratory,
