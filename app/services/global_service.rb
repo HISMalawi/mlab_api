@@ -20,5 +20,13 @@ module GlobalService
         full_name
       end
     end
+
+    def column_display_name(full_name, preferred_name)
+      if full_name_display?
+        full_name
+      else
+        "COALESCE(#{preferred_name}, #{full_name})"
+      end
+    end
   end
 end

@@ -17,9 +17,9 @@ module WhonetService
             et.name AS ward_type,
             dt.name AS department,
             o.accession_number,
-            #{GlobalService.full_name_display? ? 's.name' : 'COALESCE(s.preferred_name, s.name)'} AS specimen_type,
+            #{GlobalService.column_display_name('s.name', 's.preferred_name')} AS specimen_type,
             o.requested_by, t.id AS test_id,
-            #{GlobalService.full_name_display? ? 'tt.name' : 'COALESCE(tt.preferred_name, tt.name)'} as test_type,
+            #{GlobalService.column_display_name('tt.name', 'tt.preferred_name')} as test_type,
             t.created_date AS date_registered,
             MAX(CASE WHEN ts.status_id = 3 THEN ts.created_date ELSE '' END) AS time_started,
             MAX(
