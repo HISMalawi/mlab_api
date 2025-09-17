@@ -33,6 +33,20 @@ module Reports
           end
         end
 
+        def fetch_ids(model, actual_name, nlims_code = [])
+          manual_names = NameMapping.where(actual_name:).map(&:manual_name)
+          manual_names = Array(actual_name) + manual_names
+          ids = model.where('TRIM(name) IN (?)', manual_names.map(&:strip)).map(&:id)
+          if nlims_code.present?
+            ids_by_code = model.where(nlims_code:).map(&:id)
+            ids.concat(ids_by_code)
+          end
+          ids.uniq!
+          return "('unknow_or_empty')" if ids.empty?
+
+          "(#{ids.join(', ')})"
+        end
+
         def test_type_ids(actual_name)
           manual_names = NameMapping.where(actual_name:).map(&:manual_name)
           manual_names = Array(actual_name) + manual_names
