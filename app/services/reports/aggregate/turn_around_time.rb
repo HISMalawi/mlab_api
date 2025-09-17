@@ -8,7 +8,7 @@ module Reports
         tests = fetch_tests(from, to, department)
         test_types.each do |test_type|
           test_type_tests = tests.where(test_type_id: test_type.id)
-          tat = system_tat(test_type.expected_turn_around_time.value, test_type.expected_turn_around_time.unit, unit)
+          tat = system_tat(test_type.expected_tats.value, test_type.expected_tats.unit, unit)
 
           test_type_data = initialize_test_type_data(test_type.name, tat)
           diff_sum, count, within_tat_count = calculate_differences(test_type_tests, unit, tat)
