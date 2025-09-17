@@ -11,7 +11,7 @@ module TestCatalog
         return specimen.where.not(id: not_specified&.id) if department_id.blank?
 
         department = Department.find_by(id: department_id)
-        return specimen if department.nil? || department.name == 'Lab Reception'
+        return specimen.where.not(id: not_specified&.id) if department.nil? || department.name == 'Lab Reception'
 
         specimen_ids = SpecimenTestTypeMapping.joins(:test_type)
                                               .where(test_types: { department_id: department.id })
