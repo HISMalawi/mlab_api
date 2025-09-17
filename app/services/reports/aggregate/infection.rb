@@ -55,19 +55,19 @@ module Reports
           END AS age_group,
           CASE
               WHEN
-                  ti.test_indicator_type = 2
+                  ttim.test_indicator_type = 2
                       AND tr.value BETWEEN tir.lower_range AND tir.upper_range
                       AND (CAST(Replace(tr.value, '^', '') AS DECIMAL(10,2)) != 0)
               THEN
                   'Normal'
               WHEN
-                  ti.test_indicator_type = 2
+                  ttim.test_indicator_type = 2
                       AND tr.value < tir.lower_range
                       AND (CAST(Replace(tr.value, '^', '') AS DECIMAL(10,2)) != 0)
               THEN
                   'Low'
               WHEN
-                  ti.test_indicator_type = 2
+                  ttim.test_indicator_type = 2
                       AND tr.value > tir.upper_range
                       AND (CAST(Replace(tr.value, '^', '') AS DECIMAL(10,2)) != 0)
               THEN
