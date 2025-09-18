@@ -269,6 +269,10 @@ name_mappings = [
                    'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
   },
   {
+    actual_name: 'MRDT',
+    manual_names: ['MRDT', 'MRDT ..', 'Malaria Rapid Diagnostic Test']
+  },
+  {
     actual_name: 'Malaria Indicators',
     manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite', 'Malaria Parasite Density']
   },

@@ -36,7 +36,7 @@ module Reports
                   LEFT JOIN
               facility_sections fs ON fs.id = e.facility_section_id
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+              t.test_type_id IN #{malaria_test_type_ids}
                   AND DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -74,13 +74,13 @@ module Reports
                   LEFT JOIN
               facility_sections fs ON fs.id = e.facility_section_id
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+              t.test_type_id IN #{malaria_test_type_ids}
                   AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
                   AND tr.value NOT IN ('' , '0')
                   AND tr.value IS NOT NULL
-                  AND fs.id IN #{report_utils.facility_section_ids('Maternity')}
+                  AND fs.id IN #{Reports::Moh::ReportUtils.facility_section_ids('Maternity')}
                   AND p.sex = 'F'
                   AND TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) > 10")
         end
@@ -114,7 +114,7 @@ module Reports
                     LEFT JOIN
                 facility_sections fs ON fs.id = e.facility_section_id
             WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                t.test_type_id IN #{malaria_test_type_ids}
                     AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
                     AND t.status_id IN (4 , 5)
                     AND t.voided = 0
@@ -154,7 +154,7 @@ module Reports
                     LEFT JOIN
                 facility_sections fs ON fs.id = e.facility_section_id
             WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                t.test_type_id IN #{malaria_test_type_ids}
                     AND t.created_date BETWEEN '#{from.to_date.beginning_of_day}' AND '#{to.to_date.end_of_day}'
                     AND t.status_id IN (4 , 5)
                     AND t.voided = 0
@@ -168,7 +168,7 @@ module Reports
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                 DATE(p.date_of_birth),
                 DATE(t.created_date)) > 5
-                AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                AND ti.id IN #{malaria_microscopy_indicators_ids}
                 AND tr.value NOT IN ('NMPS' , 'Negative',
                 'no malaria palasite seen',
                 'No malaria parasites seen',
@@ -182,7 +182,7 @@ module Reports
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                 DATE(p.date_of_birth),
                 DATE(t.created_date)) > 5
-                AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                AND ti.id IN #{malaria_microscopy_indicators_ids}
                 AND tr.value NOT IN ('NMPS' , 'Negative',
                 'no malaria palasite seen',
                 'No malaria parasites seen',
@@ -196,7 +196,7 @@ module Reports
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND tr.value NOT IN ('NMPS' , 'Negative',
                       'no malaria palasite seen',
                       'No malaria parasites seen',
@@ -210,7 +210,7 @@ module Reports
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND tr.value NOT IN ('NMPS' , 'Negative',
                       'no malaria palasite seen',
                       'No malaria parasites seen',
@@ -224,7 +224,7 @@ module Reports
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) > 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND (tr.value IN ('NMPS' , 'Negative',
                       'no malaria palasite seen',
                       'No malaria parasites seen',
@@ -238,7 +238,7 @@ module Reports
           GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) > 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND (tr.value IN ('NMPS' , 'Negative',
                       'no malaria palasite seen',
                       'No malaria parasites seen',
@@ -252,7 +252,7 @@ module Reports
           COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND (tr.value IN ('NMPS' , 'Negative',
                       'no malaria palasite seen',
                       'No malaria parasites seen',
@@ -266,7 +266,7 @@ module Reports
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND (tr.value IN ('NMPS' , 'Negative',
                       'no malaria palasite seen',
                       'No malaria parasites seen',
@@ -280,112 +280,112 @@ module Reports
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) > 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND tr.value = 'Invalid',
                   t.id,
                   NULL)) AS micro_inv_over5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) > 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND tr.value = 'Invalid',
                   t.id,
                   NULL)) AS micro_inv_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND tr.value = 'Invalid',
                   t.id,
                   NULL)) AS micro_inv_under5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                       DATE(p.date_of_birth),
                       DATE(t.created_date)) <= 5
-                      AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
+                      AND ti.id IN #{malaria_microscopy_indicators_ids}
                       AND tr.value = 'Invalid',
                   t.id,
                   NULL)) AS micro_inv_under5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                   DATE(p.date_of_birth),
                   DATE(t.created_date)) > 5
-                  AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                  AND ti.id IN #{mrdt_indicators_ids}
                   AND tr.value IN ('Positive', 'postive'),
               t.id,
               NULL)) AS mrdt_pos_over5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                   DATE(p.date_of_birth),
                   DATE(t.created_date)) > 5
-                  AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                  AND ti.id IN #{mrdt_indicators_ids}
                   AND tr.value IN ('Positive', 'postive'),
               t.id,
               NULL)) AS mrdt_pos_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value IN ('Positive', 'postive'),
                     t.id,
                     NULL)) AS mrdt_pos_under5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value IN ('Positive', 'postive'),
                     t.id,
                     NULL)) AS mrdt_pos_under5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) > 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value ='Negative',
                     t.id,
                     NULL)) AS mrdt_neg_over5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) > 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value ='Negative',
                     t.id,
                     NULL)) AS mrdt_neg_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value ='Negative',
                     t.id,
                     NULL)) AS mrdt_neg_under5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value ='Negative',
                     t.id,
                     NULL)) AS mrdt_neg_under5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) > 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value = 'Invalid',
                     t.id,
                     NULL)) AS mrdt_inv_over5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) > 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value = 'Invalid',
                     t.id,
                     NULL)) AS mrdt_inv_over5_associated_ids,
             COUNT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value = 'Invalid',
                     t.id,
                     NULL)) AS mrdt_inv_under5,
             GROUP_CONCAT(DISTINCT IF(TIMESTAMPDIFF(YEAR,
                         DATE(p.date_of_birth),
                         DATE(t.created_date)) <= 5
-                        AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                        AND ti.id IN #{mrdt_indicators_ids}
                         AND tr.value = 'Invalid',
                     t.id,
                     NULL)) AS mrdt_inv_under5_associated_ids
@@ -778,8 +778,16 @@ module Reports
           }
         end
 
-        def report_utils
-          Reports::Moh::ReportUtils
+        def malaria_test_type_ids
+          GlobalService.fetch_ids(TestType, 'Malaria', 'NLIMS_TT_0015_MWI')
+        end
+
+        def malaria_microscopy_indicators_ids
+          GlobalService.fetch_ids(TestIndicator, 'Malaria Indicators', ['NLIMS_TI_0096_MWI', 'NLIMS_TI_0097_MWI', 'NLIMS_TI_0425_MWI'])
+        end
+
+        def mrdt_indicators_ids
+          GlobalService.fetch_ids(TestIndicator, 'MRDT', 'NLIMS_TT_0590_MWI')
         end
 
         def transform_data(data, key)
