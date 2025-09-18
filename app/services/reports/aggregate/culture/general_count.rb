@@ -37,7 +37,7 @@ module Reports
               test_results tr ON tr.test_indicator_id = ti.id
                   AND tr.test_id = t.id
                   AND tr.voided = 0
-                  where tt.id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+                  where tt.id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
                   AND t.status_id IN (4,5)
                   AND tr.value NOT IN ('0', '')
                   AND YEAR(t.created_date) =  #{year} AND month(t.created_date) = #{month}

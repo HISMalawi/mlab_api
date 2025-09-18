@@ -6,7 +6,6 @@ module Reports
           organisms = Organism.includes(:drugs)
           drug_susceptibility_results = fetch_drug_susceptibility_results(month, year)
           interpretations_by_organism = group_interpretations(drug_susceptibility_results)
-
           data = organisms.map do |organism|
             organism_data = build_organism_data(organism, interpretations_by_organism)
             organism_data if organism_data[:drugs].any?
@@ -26,8 +25,8 @@ module Reports
         end
 
         def group_interpretations(results)
-          results.to_h do |(org_id, drug_id, interpretation, associated_ids, count)|
-            [[org_id, drug_id, interpretation], { count:, associated_ids: }]
+          results.to_h do |(organism_id, drug_id, interpretation, associated_ids, count)|
+            [[organism_id, drug_id, interpretation], { count:, associated_ids: }]
           end
         end
 
@@ -48,7 +47,7 @@ module Reports
         def build_drug_data(organism_id, drug, interpretations_by_organism)
           {
             drug_name: drug.name,
-            interpretations: %w[S R I].to_h do |interpretation|
+            interpretations: ['S - Sensitive', 'R - Resistant', 'I - Intermediate'].to_h do |interpretation|
               [interpretation,
                build_interpretation_data(organism_id, drug.id, interpretation, interpretations_by_organism)]
             end
