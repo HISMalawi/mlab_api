@@ -274,7 +274,7 @@ name_mappings = [
   },
   {
     actual_name: 'Malaria Indicators',
-    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite', 'Malaria Parasite Density']
+    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite', 'Malaria Parasite Density', 'Parasite Density']
   },
   {
     actual_name: 'Trypanosome',
