@@ -88,7 +88,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Syphilis Test'], ['NLIMS_TT_0019_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -114,8 +114,12 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
-                  AND ti.id IN #{report_utils.test_indicator_ids(%w[RPR VDRL TPHA])}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Syphilis Test'], ['NLIMS_TT_0019_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(
+                    TestIndicator,
+                    ['RPR', 'VDRL', 'TPHA', 'Rapid Plasma Reagin', 'Venereal Disease Research Laboratory', 'Treponema Pallidum Haemagglutination'],
+                    %w[NLIMS_TT_0251_MWI NLIMS_TT_0127_MWI NLIMS_TI_0593_MWI]
+                  )}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -141,7 +145,7 @@ module Reports
               encounters e ON e.id = o.encounter_id AND e.voided = 0 AND e.facility_section_id
                   IN #{report_utils.facility_section_ids('Antenatal')}
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Syphilis Test'], ['NLIMS_TT_0019_MWI'])}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -172,8 +176,12 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Syphilis Test')}
-                AND ti.id IN #{report_utils.test_indicator_ids(%w[RPR VDRL TPHA])}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Syphilis Test'], ['NLIMS_TT_0019_MWI'])}
+                AND ti.id IN #{GlobalService.fetch_ids(
+                  TestIndicator,
+                  ['RPR', 'VDRL', 'TPHA', 'Rapid Plasma Reagin', 'Venereal Disease Research Laboratory', 'Treponema Pallidum Haemagglutination'],
+                  %w[NLIMS_TT_0251_MWI NLIMS_TT_0127_MWI NLIMS_TI_0593_MWI]
+                )}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -194,7 +202,7 @@ module Reports
           FROM
               tests t
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis B')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Hepatitis B', 'Hepatitis B Test'], %w[NLIMS_TT_0020_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -220,8 +228,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis B')}
-              AND ti.id IN #{report_utils.test_indicator_ids(['Hepatitis B'])}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Hepatitis B', 'Hepatitis B Test'], %w[NLIMS_TT_0020_MWI])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Hepatitis B'], ['NLIMS_TI_0115_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -242,7 +250,7 @@ module Reports
           FROM
               tests t
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis C')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Hepatitis C', 'Hepatitis C Test'], %w[NLIMS_TT_0021_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -268,8 +276,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Hepatitis C')}
-              AND ti.id IN #{report_utils.test_indicator_ids('Hepatitis C')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Hepatitis C', 'Hepatitis C Test'], %w[NLIMS_TT_0021_MWI])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Hepatitis C'], ['NLIMS_TI_0116_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -290,7 +298,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Pregnancy Test')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Pregnancy Test'], ['NLIMS_TT_0044_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -316,8 +324,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Pregnancy Test')}
-              AND ti.id IN #{report_utils.test_indicator_ids('Pregnancy Test')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Pregnancy Test'], ['NLIMS_TT_0044_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Pregnancy Test'], ['NLIMS_TT_0044_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -338,7 +346,7 @@ module Reports
           FROM
               tests t
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('HIV')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['HIV', 'HIV Nucleic Acid Test', 'Rapid HIV Test'], %w[NLIMS_TT_0116_MWI NLIMS_TT_0306_MWI])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -364,7 +372,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('HIV')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['HIV', 'HIV Nucleic Acid Test', 'Rapid HIV Test'], %w[NLIMS_TT_0116_MWI NLIMS_TT_0306_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -385,7 +393,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Prostate Ag Test')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Prostate Ag Test', 'Prostate-Specific Antigen'], ['NLIMS_TT_0087_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -411,7 +419,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Prostate Ag Test')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Prostate Ag Test', 'Prostate-Specific Antigen'], ['NLIMS_TT_0087_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -432,7 +440,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('SARS COV-2 Rapid Antigen')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['SARS COV-2 Rapid Antigen'], ['NLIMS_TT_0102_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -458,7 +466,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('SARS COV-2 Rapid Antigen')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['SARS COV-2 Rapid Antigen'], ['NLIMS_TT_0102_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -487,8 +495,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            (t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')})
-            AND (t.specimen_id IN #{report_utils.specimen_ids('Blood')} OR t.specimen_id IN #{report_utils.specimen_ids('Serum')})
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Serum CrAg', 'Cryptococcus Antigen', 'Cryptococcus Antigen Test'], %w[NLIMS_TT_0023_MWI])}
+            AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood', 'Serum'], %w[NLIMS_SP_0020_MWI NLIMS_SP_0003_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -516,8 +524,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            (t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')})
-            AND (t.specimen_id IN #{report_utils.specimen_ids('Blood')} OR t.specimen_id IN #{report_utils.specimen_ids('Serum')})
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Serum CrAg', 'Cryptococcus Antigen', 'Cryptococcus Antigen Test'], %w[NLIMS_TT_0023_MWI])}
+            AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood', 'Serum'], %w[NLIMS_SP_0020_MWI NLIMS_SP_0003_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
