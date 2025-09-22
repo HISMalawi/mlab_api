@@ -77,7 +77,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('FBC')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['FBC', 'Full Blood Count'], ['NLIMS_TT_0035_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -99,8 +99,8 @@ module Reports
                   INNER  JOIN
               test_indicators ti ON ti.id = ttim.test_indicators_id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -122,8 +122,8 @@ module Reports
                   INNER  JOIN
               test_indicators ti ON ti.id = ttim.test_indicators_id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Haemoglobin')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -147,8 +147,8 @@ module Reports
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id AND tr.test_id = t.id AND tr.voided = 0
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -175,8 +175,8 @@ module Reports
                   INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id AND tr.test_id = t.id AND tr.voided = 0
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -223,8 +223,8 @@ module Reports
                           AND tr.test_id = t.id
                           AND tr.voided = 0
                   WHERE
-                      t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                          AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                      t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                          AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                           AND YEAR(ot.created_date) = #{year}
                           AND t.status_id IN (4 , 5)
                           AND t.voided = 0
@@ -232,8 +232,8 @@ module Reports
                           AND tr.value <> ''
                           AND tr.value IS NOT NULL)
                   AND ot.voided = 0
-                  AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
-                  AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
+                  AND ot.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
+                  AND oti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Pack ABO Group'], %w[NLIMS_TI_0127_MWI])}
                   AND ot.status_id IN (4 , 5)
           GROUP BY MONTHNAME(ot.created_date)
         SQL
@@ -275,8 +275,8 @@ module Reports
                           AND tr.test_id = t.id
                           AND tr.voided = 0
                   WHERE
-                      t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                          AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                      t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                          AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                           AND YEAR(ot.created_date) = #{year}
                           AND t.status_id IN (4 , 5)
                           AND t.voided = 0
@@ -284,8 +284,8 @@ module Reports
                           AND tr.value <> ''
                           AND tr.value IS NOT NULL)
                   AND ot.voided = 0
-                  AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
-                  AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
+                  AND ot.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
+                  AND oti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Pack ABO Group'], %w[NLIMS_TI_0127_MWI])}
                   AND ot.status_id IN (4 , 5)
           GROUP BY MONTHNAME(ot.created_date)
         SQL
@@ -301,7 +301,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Manual Differential & Cell Morphology'], %w[NLIMS_TT_0045_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -319,7 +319,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Manual Differential & Cell Morphology'], %w[NLIMS_TT_0045_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -337,7 +337,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('ESR')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Erythrocyte Sedimentation Rate', 'ESR'], %w[NLIMS_TT_0042_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -355,7 +355,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Sickling Test')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Sickling Test'], ['NLIMS_TT_0043_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -381,8 +381,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(%w[FBC])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('RET#')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['FBC', 'Full Blood Count'], ['NLIMS_TT_0035_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['RET#', 'Absolute Reticulocyte Count'], ['NLIMS_TI_0635_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -402,7 +402,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Prothrombin Time')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType,'Prothrombin Time', ['NLIMS_TT_0039_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -420,7 +420,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('APTT')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType,['APTT', 'Activated partial Thromboplastin Time'], ['NLIMS_TT_0040_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -438,7 +438,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('INR')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['INR', 'International Normalized Ratio'], %w[NLIMS_TT_0041_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -456,7 +456,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Bleeding Time')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Bleeding Time', ['NLIMS_TT_0142_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -482,8 +482,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(%w[CD4])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('CD4 Count')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['CD4', 'CD 4 Cell Enumeration'], ['NLIMS_TT_0028_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Absolute CD4 Count', 'CD4 Count'], ['NLIMS_TI_0124_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -511,8 +511,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(%w[CD4])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('CD4 %#')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['CD4', 'CD 4 Cell Enumeration'], ['NLIMS_TT_0028_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['CD4 %', 'CD4% (Percentage of total lymphocytes)'], ['NLIMS_TI_0177_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -532,7 +532,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Manual Differential & Cell Morphology')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Manual Differential & Cell Morphology'], %w[NLIMS_TT_0045_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
