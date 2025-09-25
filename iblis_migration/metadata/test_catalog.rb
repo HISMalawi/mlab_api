@@ -395,6 +395,14 @@ retired_test_indicators.each do |indicator|
   TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
 end
 
+TestPanel.find_each do |panel|
+  puts "Fixing Panel: #{panel.name}"
+  next if panel.test_types.present?
+
+  panel.delete
+  puts "Fixed Panel: #{panel.name}"
+end
+
 p = ProcessTestCatalogService.new(nil)
 puts 'Final processing of test catalog...'
 p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
