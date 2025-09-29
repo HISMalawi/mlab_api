@@ -36,7 +36,7 @@ module Reports
           test_status_condition = test_status.present? && test_status.downcase == "'all'" ? ' ' : "AND ts.status_id IN #{test_status_ids}"
           depart_condition = department.present? ? " AND d.name = '#{department}' " : ' '
           test_type_condition = test_type.present? ? " AND tt.id = '#{test_type}' " : ' '
-          age_condition = max_age.present? ? " AND p.date_of_birth >= '#{min_age}' AND p.date_of_birth <= '#{max_age}'" : ' '
+          age_condition = max_age.present? ? " AND p.date_of_birth >= '#{max_age}' AND p.date_of_birth <= '#{min_age}'" : ' '
           facility_condition = wards.present? ? " AND e.facility_section_id IN #{wards}" : ' '
           Report.find_by_sql("
             SELECT
