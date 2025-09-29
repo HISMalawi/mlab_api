@@ -26,25 +26,32 @@ class ProcessTestCatalogService
     return false if test_catalog.nil?
 
     ActiveRecord::Base.transaction do
-      # if sections.nil?
-      create_or_update_test_types(test_catalog[:test_types])
-      # else
-      #   test_types = test_catalog[:test_types] || []
-      #   test_types.each do |item|
-      #     record = find_or_initialize_test_type(item)
-      #     test_type = create_or_update_record(record, item)
-      #     if sections.include?('test_types')
-      #       test_type.test_indicators = create_or_update_test_indicators(item[:measures])
-      #       create_or_update_tat(test_type.id, item[:targetTAT])
-      #     end
-      #     test_type.specimens = create_or_update_specimens(item[:specimen_types]) if sections.include?('specimens')
-      #     test_type.organisms = create_or_update_organisms(item[:organisms]) if sections.include?('organisms')
-      #     if sections.include?('lab_test_sites')
-      #       test_type.lab_test_sites = create_or_update_lab_test_sites(item[:lab_test_sites])
-      #     end
-      #   end
-      # end
-      create_or_update_test_panels(test_catalog[:test_panels])
+      create_or_update_specimens(test_catalog[:specimen_types] || [])
+      create_or_update_drugs(test_catalog[:drugs] || [])
+      create_or_update_organisms(test_catalog[:organisms] || [])
+      departments = test_catalog[:departments] || []
+      departments.each do |item|
+        create_or_update_department(item)
+      end
+      if sections.present?
+        test_types = test_catalog[:test_types] || []
+        test_types.each do |item|
+          record = find_or_initialize_test_type(item)
+          test_type = create_or_update_record(record, item)
+          if sections.include?('test_types')
+            create_or_update_test_indicators(test_type, item[:measures])
+            create_or_update_tat(test_type.id, item[:targetTAT])
+          end
+          test_type.specimens = create_or_update_specimens(item[:specimen_types]) if sections.include?('specimens')
+          test_type.organisms = create_or_update_organisms(item[:organisms]) if sections.include?('organisms')
+          if sections.include?('lab_test_sites')
+            test_type.lab_test_sites = create_or_update_lab_test_sites(item[:lab_test_sites])
+          end
+        end
+      else
+        create_or_update_test_types(test_catalog[:test_types] || [])
+      end
+      create_or_update_test_panels(test_catalog[:test_panels] || [])
     end
     TestCatalogSyncTrail.find_or_create_by!(version: @version).update(section: 'test_types', synced: true)
     true
@@ -114,6 +121,7 @@ class ProcessTestCatalogService
   end
 
   def create_or_update_department(item)
+    puts item.inspect
     record = Department.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
     record ||= Department.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
     record ||= Department.find_by(name: item[:name])
