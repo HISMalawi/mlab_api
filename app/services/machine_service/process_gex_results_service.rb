@@ -15,6 +15,7 @@ module MachineService
         GENEXPERT_LOGGER.debug('====== Mapping to iblis measures ======')
         test_indicators = TestIndicator.where(name: mapped_measure[:name])
         test_indicators = TestIndicator.where(id: mapped_measure[:id]) if test_indicators.blank?
+        test_indicators = TestIndicator.where(nlims_code: mapped_measure[:id]) if test_indicators.blank?
         if test_indicators.empty?
           GENEXPERT_LOGGER.error("No measures found for mapped measure: #{mapped_measure[:name]} (id: #{mapped_measure[:id]}) \n\n\n")
           return

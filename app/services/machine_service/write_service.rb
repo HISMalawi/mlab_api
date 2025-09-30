@@ -10,7 +10,10 @@ module MachineService
       @order ||= Order.find_by(accession_number:)
       @order ||= Order.find_by(tracking_number: accession_number)
       @machine_name = machine_name
-      @measure_id = measure_id
+      measure_unscoped = TestIndicator.unscoped.find_by(id: measure_id) || TestIndicator.unscoped.find_by(nlims_code: measure_id)
+      measure = TestIndicator.find_by(nlims_code: measure_unscoped&.nlims_code) if measure_unscoped&.nlims_code.present?
+      measure ||= TestIndicator.find_by(name: measure_unscoped&.name)
+      @measure_id = measure&.id || measure_unscoped&.id || measure_id
       @result = result
     end
 
