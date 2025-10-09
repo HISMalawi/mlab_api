@@ -80,14 +80,14 @@ module Nlims
       end
     end
 
-    def self.create_order_v2(id: nil)
+    def self.create_order_v2(id: nil, once_off: false)
       nlims = nlims_token
       return if nlims[:token].blank?
 
       orders = Order.find_by_sql(
         "SELECT o.id, o.encounter_id, o.tracking_number, o.sample_collected_time,
             o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id,
-            o.creator
+            o.creator, o.status_id
           FROM orders o
           INNER JOIN unsync_orders uo ON
             uo.test_or_order_id = o.id
@@ -110,6 +110,11 @@ module Nlims
         priority = Priority.find(order[:priority_id]).name
         encounter = Encounter.find(order[:encounter_id])
         client = encounter.client.person
+        sample_status = Status.find_by(id: order[:status_id])&.name
+        sample_status ||= OrderStatus.where(order_id: order[:id])
+                                     .order(created_date: :desc).first.status.name
+        sample_status ||= 'specimen-collected'
+        sample_status = sample_status.gsub('-', '_')
 
         payload = {
           tracking_number: order[:tracking_number],
@@ -117,8 +122,7 @@ module Nlims
             name: specimen_type.try(:name),
             nlims_code: specimen_type.try(:nlims_code)
           },
-          sample_status: OrderStatus.where(order_id: order[:id]).order(created_date: :desc).first.status.name.gsub('-',
-                                                                                                                   '_'),
+          sample_status: sample_status,
           order_location: encounter.facility_section.name,
           sample_priority: priority,
           who_order_test_id: person_creator&.id,
@@ -130,7 +134,7 @@ module Nlims
           health_facility_name: facility_details[:name],
           requesting_clinician: order[:requested_by],
           district: facility_details[:district],
-          date_sample_drawn: order[:sample_collected_time].presence || order[:created_date],
+          date_sample_drawn: order[:created_date],
           arv_number: client.try(:arv_number),
           art_regimen: client.try(:art_regimen),
           national_patient_id: client.try(:national_id),
@@ -176,9 +180,10 @@ module Nlims
             }
           end
         }
+        url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/create_order/"
         response = RestClient::Request.execute(
           method: :post,
-          url: "#{nlims[:base_url]}/api/v2/create_order/",
+          url:,
           headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
           payload: payload.to_json
         )
@@ -201,7 +206,7 @@ module Nlims
       return if nlims[:token].blank?
 
       orders = Order.find_by_sql("
-        SELECT o.tracking_number , cos.name AS status, cos.creator AS updater, uo.test_or_order_id AS id
+        SELECT o.tracking_number , cos.name AS status, cos.creator AS updater, uo.test_or_order_id AS id, o.updated_date AS updated_date
         FROM unsync_orders uo
         INNER JOIN current_order_status cos ON cos.order_id = uo.test_or_order_id
         INNER JOIN orders o ON uo.test_or_order_id = o.id
@@ -219,7 +224,9 @@ module Nlims
             first_name:,
             last_name:,
             id: nil
-          }
+          },
+          time_updated: OrderStatus.find_by(order_id: order[:id], status_id: Status.find_by(name: order[:status]).id)
+                                   &.created_date || order[:updated_date]
         }
         response = RestClient::Request.execute(
           method: :post,
@@ -392,7 +399,7 @@ module Nlims
             name: test_.test_type&.name,
             nlims_code: test_.test_type&.nlims_code
           },
-          test_results: test_results,
+          test_results: test_res[:test_status] == 'verified' ? test_results : [],
           status_trail: status_trail
         }
         response = RestClient::Request.execute(

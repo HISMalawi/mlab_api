@@ -386,17 +386,20 @@ retired_test_indicators.each do |indicator|
   active_indicator_id = TestIndicator.find_by(name: indicator.name)&.id
   next unless active_indicator_id
 
-  puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id}"
+  puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id} for test type test indicators"
   TestTypeTestIndicator.where(test_indicators_id: indicator.id).update_all(test_indicators_id: active_indicator_id)
 end
 
 retired_test_indicators = TestIndicator.unscoped.where(retired: 1)
-retired_test_indicators.each do |indicator|
-  active_indicator_id = TestIndicator.find_by(name: indicator.name)&.id
-  next unless active_indicator_id
+Parallel.each(retired_test_indicators, in_threads: 4) do |indicator|
+  ActiveRecord::Base.connection_pool.with_connection do
+    active_indicator_id = TestIndicator.find_by(name: indicator.name, retired: 0)&.id
+    next unless active_indicator_id
 
-  puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id}"
-  TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
+    puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id} for test results"
+
+    TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
+  end
 end
 
 TestPanel.find_each do |panel|
