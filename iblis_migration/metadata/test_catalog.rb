@@ -246,7 +246,7 @@ SPECIAL_MAPPINGS = {
     update_name_for: nil
   },
   'tb tests' => {
-    targets: ['TB Microscopic Exam', 'MTB Test', 'MTB Test(CancerCenter)', 'GeneXpert'],
+    targets: ['TB Microscopic Exam', 'MTB Test', 'MTB Test(CancerCenter)', 'GeneXpert', 'Mycobacteria Tuberculosis test'],
     update_name_for: nil
   },
   'hiv viral load quantitative hiv nucleic acid test' => {
@@ -262,6 +262,10 @@ SPECIAL_MAPPINGS = {
   },
   'amylase' => {
     targets: ['SERUM AMYLASE'],
+    update_name_for: nil
+  },
+  'haemoglobin' => {
+    targets: ['haemoglobine Test'],
     update_name_for: nil
   }
 }
