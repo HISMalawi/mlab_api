@@ -1,6 +1,7 @@
 Rails.logger = Logger.new(STDOUT)
 module Nlims
   module Sync
+    @nlims_cache = { token: nil, expires_at: nil, base_url: nil, enable_real_time_sync: nil }
     def self.create_order(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
@@ -123,7 +124,7 @@ module Nlims
             nlims_code: specimen_type.try(:nlims_code)
           },
           sample_status: sample_status,
-          order_location: encounter.facility_section.name,
+          order_location: encounter.facility_section&.name || 'OPD',
           sample_priority: priority,
           who_order_test_id: person_creator&.id,
           who_order_test_first_name: person_creator&.first_name || '',
@@ -143,6 +144,9 @@ module Nlims
           date_of_birth: client[:date_of_birth],
           gender: client[:sex],
           phone_number: client[:phone_number],
+          lab_location: LabLocation.find_by(id: tests.first&.lab_location_id)&.name,
+          clinical_history: encounter.client_history,
+          source_system: 'IBLIS',
           tests: tests.map do |t|
             {
               tracking_number: order[:tracking_number],
@@ -433,6 +437,9 @@ module Nlims
     end
 
     def self.nlims_token
+      if @nlims_cache[:token].present? && @nlims_cache[:expires_at] > Time.now
+        return @nlims_cache
+      end
       token = ''
       base_url = ''
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
@@ -451,8 +458,13 @@ module Nlims
         Rails.logger.error('=========Unable to authenticate to nlims service==========') unless auth
         token = @nlims_service.token
         base_url = @nlims_service.base_url
+        @nlims_cache[:token] = @nlims_service.token
+        @nlims_cache[:base_url] = @nlims_service.base_url
+        @nlims_cache[:enable_real_time_sync] = @nlims_service.enable_real_time_sync
+        @nlims_cache[:expires_at] = Time.now + 10.hours
       else
         Rails.logger.error('=======Nlims service is not available=============')
+        @nlims_cache[:token] = nil
       end
       {
         token:,
@@ -460,6 +472,7 @@ module Nlims
         enable_real_time_sync: @nlims_service.enable_real_time_sync,
         ping:
       }
+      @nlims_cache
     end
 
     def self.get_test_catalog(version)

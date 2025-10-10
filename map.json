@@ -50,5 +50,6 @@
   "Amylase ": ["a-AMYLASE-H", "SERUM AMYLASE"],
   "Uric Acid": ["UA-H"],
   "Parathyroid Hormone": ["PTH"],
-  "Thyroid Peroxidase": ["TPO"]
+  "Thyroid Peroxidase": ["TPO"],
+  "Creatinine": ["creatine", "crea-s"]
 }

@@ -16,7 +16,12 @@ else
 fi
 
 # Define the cron job to add
-cron_job2="*/2 * * * * /bin/bash -l -c 'cd /var/www/mlab_api && ./bin/nlims_sync.sh --silent >> log/nlims_sync.log 2>&1'"
+cron_job2="*/5 * * * * /bin/bash -l -c 'cd /var/www/mlab_api && ./bin/nlims_sync.sh --silent >> log/nlims_sync.log 2>&1'"
+
+# remove the cronjob for cronjob list
+cron_job_to_remove="*/2 * * * * /bin/bash -l -c 'cd /var/www/mlab_api && ./bin/nlims_sync.sh --silent >> log/nlims_sync.log 2>&1'"
+(crontab -l | grep -vF "$cron_job_to_remove") | crontab -
+
 
 # Get the current list of cron jobs
 current_cron_jobs2=$(crontab -l 2>/dev/null)
