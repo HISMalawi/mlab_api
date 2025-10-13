@@ -18,7 +18,9 @@ module Reports
       end
 
       def serialize(report)
-        report.data.merge(report_id: report.id)
+        return report.data.merge(report_id: report.id) unless report.data.is_a?(Array)
+
+        report
       end
     end
   end

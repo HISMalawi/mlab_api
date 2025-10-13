@@ -58,7 +58,11 @@ module Api
       def turn_around_time
         from, to, department, unit = params.values_at(:from, :to, :department, :unit)
         service = Reports::Aggregate::TurnAroundTime.new
-        render json: { data: service.generate_report(from:, to:, unit:, department:) }
+        data = Reports::ReportCacheService.find(params[:report_id])
+        data ||= Reports::ReportCacheService.create(
+          service.generate_report(from:, to:, unit:, department:)
+        )
+        render json: data
       end
 
       def rejected
