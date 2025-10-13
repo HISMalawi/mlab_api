@@ -249,6 +249,7 @@ Rails.application.routes.draw do
         end
       end
       resources :user_preferences
+      resources :encounters
     end
   end
 end
