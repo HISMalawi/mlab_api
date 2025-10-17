@@ -96,111 +96,34 @@ module Nlims
           #{id_condition(id)}
           ORDER BY uo.id DESC LIMIT 500"
       )
+      Parallel.each(orders, in_threads: 4) do |order_record|
+        Rails.logger.info("=======Creating order #{order_record&.tracking_number} in nlims =============")
+        order = Order.find_by(id: order_record&.id)
+        next if order.nil?
 
-      facility_details = GlobalService.current_location
-
-      orders.each do |order|
-        Rails.logger.info("=======Creating order #{order&.tracking_number} in nlims =============")
-        tests = Test.where(order_id: order[:id])
-        next if tests.empty?
-
-        specimen_type = tests.first&.specimen
-        next if specimen_type.nil?
-
-        person_creator = Person.find_by(id: User.find_by(id: order[:creator])&.person_id)
-        priority = Priority.find(order[:priority_id]).name
-        encounter = Encounter.find(order[:encounter_id])
-        client = encounter.client.person
-        sample_status = Status.find_by(id: order[:status_id])&.name
-        sample_status ||= OrderStatus.where(order_id: order[:id])
-                                     .order(created_date: :desc).first.status.name
-        sample_status ||= 'specimen-collected'
-        sample_status = sample_status.gsub('-', '_')
-
-        payload = {
-          tracking_number: order[:tracking_number],
-          sample_type: {
-            name: specimen_type.try(:name),
-            nlims_code: specimen_type.try(:nlims_code)
-          },
-          sample_status: sample_status,
-          order_location: encounter.facility_section&.name || 'OPD',
-          sample_priority: priority,
-          who_order_test_id: person_creator&.id,
-          who_order_test_first_name: person_creator&.first_name || '',
-          who_order_test_last_name: person_creator&.last_name || '',
-          who_order_test_phone_number: '',
-          target_lab: facility_details[:name],
-          art_start_date: client.try(:art_start_date),
-          health_facility_name: facility_details[:name],
-          requesting_clinician: order[:requested_by],
-          district: facility_details[:district],
-          date_sample_drawn: order[:created_date],
-          arv_number: client.try(:arv_number),
-          art_regimen: client.try(:art_regimen),
-          national_patient_id: client.try(:national_id),
-          first_name: client[:first_name],
-          last_name: client[:last_name],
-          date_of_birth: client[:date_of_birth],
-          gender: client[:sex],
-          phone_number: client[:phone_number],
-          lab_location: LabLocation.find_by(id: tests.first&.lab_location_id)&.name,
-          clinical_history: encounter.client_history,
-          source_system: 'IBLIS',
-          tests: tests.map do |t|
-            {
-              tracking_number: order[:tracking_number],
-              arv_number: client.try(:arv_number),
-              test_status: t.status,
-              time_updated: t.updated_date,
-              test_type: {
-                name: t.test_type.name,
-                nlims_code: t.test_type.try(:nlims_code)
-              },
-              test_results: TestResult.where(test_id: t.id).where.not(value: '').where.not(value: nil).map do |res|
-                {
-                  name: TestIndicator.find_by(id: res.test_indicator_id)&.name,
-                  nlims_code: TestIndicator.find_by(id: res.test_indicator_id)&.nlims_code,
-                  unit: TestTypeTestIndicator.find_by(test_indicators_id: res.test_indicator_id,
-                                                      test_types_id: t.test_type_id)&.unit,
-                  value: res.value,
-                  result_date: res.created_date,
-                  platform: res.machine_name,
-                  platformserial: ''
-                }
-              end,
-              status_trail: TestStatus.where(test_id: t.id).map do |st|
-                {
-                  status: st.status.name,
-                  timestamp: st.created_date,
-                  updated_by: {
-                    first_name: st.user&.person&.first_name,
-                    last_name: st.user&.person&.last_name,
-                    id_number: st.user&.id,
-                    phone_number: nil
-                  }
-                }
-              end
-            }
-          end
-        }
+        payload = order_payload(order)
         url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/create_order/"
-        response = RestClient::Request.execute(
-          method: :post,
-          url:,
-          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
-          payload: payload.to_json
-        )
-
-        response = JSON.parse(response.body)
-        if response['error'] == false && ['order created successfuly',
-                                          'order already available'].include?(response['message'])
-          unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
-                                           test_or_order_id: order[:id]).first
-          update_unsync_order(unsync_order)
-          Rails.logger.info("=======Successfully created orders in nlims:#{payload[:tracking_number]}=============")
-        else
-          Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
+        begin
+          response = RestClient::Request.execute(
+            method: :post,
+            url:,
+            headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
+            payload: payload.to_json
+          )
+          response = JSON.parse(response.body)
+          if response['error'] == false && ['order created successfuly',
+                                            'order already available'].include?(response['message'])
+            unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
+                                             test_or_order_id: order_record&.id).first
+            update_unsync_order(unsync_order)
+            Rails.logger.info("=======Successfully created orders in nlims:#{payload[:order][:tracking_number]}=============")
+          else
+            Rails.logger.error("=============#{response}:#{payload[:order][:tracking_number]}===================")
+            raise StandardError, "Failed to create order in nlims: #{response['message']}"
+          end
+        rescue StandardError => e
+          Rails.logger.error("=======#{e.message}:#{payload[:order][:tracking_number]}=============")
+          next
         end
       end
     end
@@ -232,20 +155,26 @@ module Nlims
           time_updated: OrderStatus.find_by(order_id: order[:id], status_id: Status.find_by(name: order[:status]).id)
                                    &.created_date || order[:updated_date]
         }
-        response = RestClient::Request.execute(
-          method: :post,
-          url: "#{nlims[:base_url]}/api/v1/update_order/",
-          headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
-          payload: payload.to_json
-        )
-        response = JSON.parse(response.body)
-        if response['error'] == false && response['message'] == 'order updated successfuly'
-          unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
-                                           test_or_order_id: order[:id]).first
-          update_unsync_order(unsync_order)
-          Rails.logger.info("=======Successfully updated orders in nlims: #{payload[:tracking_number]}=============")
-        else
-          Rails.logger.info("=======#{response['message']}:#{payload[:tracking_number]}=============")
+        begin
+          response = RestClient::Request.execute(
+            method: :post,
+            url: "#{nlims[:base_url]}/api/v1/update_order/",
+            headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
+            payload: payload.to_json
+          )
+          response = JSON.parse(response.body)
+          if response['error'] == false && response['message'] == 'order updated successfuly'
+            unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
+                                             test_or_order_id: order[:id]).first
+            update_unsync_order(unsync_order)
+            Rails.logger.info("=======Successfully updated orders in nlims: #{payload[:tracking_number]}=============")
+          else
+            Rails.logger.info("=======#{response['message']}:#{payload[:tracking_number]}=============")
+            raise StandardError, response['message']
+          end
+        rescue StandardError => e
+          Rails.logger.error("=======#{e.message}:#{payload[:tracking_number]}=============")
+          next
         end
       end
     end
@@ -297,7 +226,7 @@ module Nlims
         }
         if %w[result verified].include?(test_res[:test_status])
           test_results = TestResult.joins(:test_indicator).where(test_id: test_res[:test_id])
-                                    .where.not(value: '').where.not(value: nil)
+                                   .where.not(value: '').where.not(value: nil)
                                    .select('test_indicators.name AS test_indicator, test_results.value AS result_value, test_results.id')
           results = {}
           unless test_results.empty?
@@ -352,69 +281,17 @@ module Nlims
       tests.each do |test_res|
         Rails.logger.info("=======Updating test #{test_res[:test_id]} in nlims =============")
 
-        test_ = Test.find_by(id: test_res[:test_id])
-        next if test_.nil?
+        payload = test_payload(Test.find_by(id: test_res[:test_id]))
+        begin
+          response = RestClient::Request.execute(
+            method: :post,
+            url: "#{nlims[:base_url]}/api/v2/update_tests/",
+            headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
+            payload: payload.to_json
+          )
 
-        client = begin
-          test_.order.encounter.client.person
-        rescue StandardError
-          nil
-        end
-        next if client.nil?
-
-        # Build test results
-        test_results = TestResult.where(test_id: test_res[:test_id])
-                                 .where.not(value: '').where.not(value: nil).map do |res|
-          indicator = TestIndicator.find_by(id: res.test_indicator_id)
-          {
-            name: indicator&.name,
-            nlims_code: indicator&.nlims_code,
-            unit: TestTypeTestIndicator.find_by(
-              test_indicators_id: res.test_indicator_id,
-              test_types_id: test_.test_type_id
-            )&.unit,
-            value: res.value,
-            result_date: res.created_date,
-            platform: res.machine_name,
-            platformserial: ''
-          }
-        end
-
-        # Build status trail
-        status_trail = TestStatus.where(test_id: test_.id).map do |st|
-          {
-            status: st.status.name.gsub('-', '_'),
-            timestamp: st.created_date,
-            updated_by: {
-              first_name: st.user&.person&.first_name,
-              last_name: st.user&.person&.last_name,
-              id_number: st.user&.id,
-              phone_number: nil
-            }
-          }
-        end
-
-        payload = {
-          tracking_number: test_res[:tracking_number],
-          arv_number: client.try(:arv_number),
-          test_status: test_res[:test_status].gsub('-', '_'),
-          time_updated: test_res[:updated_date],
-          test_type: {
-            name: test_.test_type&.name,
-            nlims_code: test_.test_type&.nlims_code
-          },
-          test_results: test_res[:test_status] == 'verified' ? test_results : [],
-          status_trail: status_trail
-        }
-        response = RestClient::Request.execute(
-          method: :post,
-          url: "#{nlims[:base_url]}/api/v2/update_tests/",
-          headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
-          payload: payload.to_json
-        )
-
-        response = JSON.parse(response.body)
-        if response['error'] == false && response['message'] == 'test updated successfuly'
+          response = JSON.parse(response.body)
+          if response['error'] == false && response['message'] == 'test updated successfuly'
           unsync_order = UnsyncOrder.where(
             sync_status: 0,
             data_not_synced: test_res[:test_status],
@@ -422,10 +299,126 @@ module Nlims
           ).first
           update_unsync_order(unsync_order)
           Rails.logger.info("=======Successfully updated test in nlims:#{payload[:tracking_number]}=============")
-        else
-          Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
+          else
+            Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
+            raise StandardError, "Failed to create order in nlims: #{response['message']}"
+          end
+        rescue StandardError => e
+          Rails.logger.error("=======#{e.message}:#{payload[:tracking_number]}=============")
+          next
         end
       end
+    end
+
+    def self.test_payload(test_record)
+      client = test_record.order&.encounter&.client&.person
+      test_results = TestResult.where(test_id: test_record.id)
+                               .where.not(value: '').where.not(value: nil)
+      status_trail = TestStatus.where(test_id: test_record.id).map do |st|
+        {
+          status: st&.status&.name&.gsub('-', '_'),
+          timestamp: st&.created_date,
+          updated_by: {
+            first_name: st.user&.person&.first_name,
+            last_name: st.user&.person&.last_name,
+            id: st.user&.id,
+            phone_number: nil
+          }
+        }
+      end
+      test_results = test_results.map do |results|
+        test_indicator_test_type = TestTypeTestIndicator.find_by(
+          test_indicators_id: results&.test_indicator_id,
+          test_types_id: test_record.test_type_id
+        )
+        {
+          measure: {
+            name: results&.test_indicator&.name,
+            nlims_code: results&.test_indicator&.nlims_code,
+            preferred_name: results&.test_indicator&.preferred_name,
+            measure_type: test_indicator_test_type&.test_indicator_type
+          },
+          result: {
+            value: results&.value,
+            unit: test_indicator_test_type&.unit,
+            result_date: results&.created_date,
+            platform: results&.machine_name,
+            platformserial: ''
+          }
+        }
+      end
+      {
+        tracking_number: test_record.order&.tracking_number,
+        arv_number: client.try(:arv_number),
+        test_status: test_record.status&.gsub('-', '_'),
+        time_updated: test_record&.updated_date,
+        test_type: {
+          name: test_record&.test_type&.name,
+          nlims_code: test_record&.test_type&.nlims_code
+        },
+        test_results: test_results,
+        status_trail: status_trail
+      }
+    end
+
+    def self.order_payload(order)
+      person_creator = Person.find_by(id: User.find_by(id: order&.creator)&.person_id)
+      client = order&.encounter&.client
+      {
+        order: {
+          tracking_number: order&.tracking_number,
+          sample_type: order&.tests&.first&.specimen,
+          sample_status: { name: Status.find_by(id: order&.status_id)&.name&.gsub('-', '_') || 'specimen_collected' },
+          order_location: order&.encounter&.facility_section&.name || 'OPD',
+          date_created: order&.created_date,
+          priority: order&.priority&.name || 'Routine',
+          reason_for_test: order&.priority&.name || 'Routine',
+          drawn_by: {
+            id: person_creator&.id,
+            name: person_creator&.fullname,
+            phone_number: ''
+          },
+          target_lab: GlobalService.current_location.name,
+          sending_facility: GlobalService.current_location.name,
+          district: GlobalService.current_location.district,
+          requested_by: order&.requested_by,
+          art_start_date: client.try(:art_start_date),
+          arv_number: ClientIdentifier.find_by(
+            client_identifier_type_id: ClientIdentifierType.find_by(name: 'art_number')&.id,
+            client_id: client.id
+          )&.value,
+          art_regimen: client.try(:art_regimen),
+          client_history: order&.encounter&.client_history,
+          lab_location: LabLocation.find_by(id: order&.tests&.first&.lab_location_id)&.name,
+          source_system: 'IBLIS',
+          status_trail: OrderStatus.where(order_id: order.id).map do |trail|
+            person_creator = Person.find_by(id: User.find_by(id: trail&.creator)&.person_id)
+            {
+              status: trail&.status&.name,
+              timestamp: trail&.created_date,
+              update_by: {
+                first_name: person_creator&.first_name,
+                last_name: person_creator&.last_name,
+                phone_number: nil,
+                id: person_creator&.id
+              }
+            }
+          end
+        },
+        tests: order&.tests&.map do |t|
+          test_payload(t)
+        end,
+        patient: {
+          national_patient_id: ClientIdentifier.find_by(
+            client_identifier_type_id: ClientIdentifierType.find_by(name: 'npid')&.id,
+            client_id: client.id
+          )&.value,
+          first_name: client&.person&.first_name,
+          last_name: client&.person&.last_name,
+          date_of_birth: client&.person&.date_of_birth,
+          gender: client&.person&.sex
+        }
+      }
     end
 
     def self.update_unsync_order(unsync_order)
@@ -437,9 +430,8 @@ module Nlims
     end
 
     def self.nlims_token
-      if @nlims_cache[:token].present? && @nlims_cache[:expires_at] > Time.now
-        return @nlims_cache
-      end
+      return @nlims_cache if @nlims_cache[:token].present? && @nlims_cache[:expires_at] > Time.now
+
       token = ''
       base_url = ''
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
