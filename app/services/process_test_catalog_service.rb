@@ -141,6 +141,7 @@ class ProcessTestCatalogService
     test_indicator_ranges.map do |test_indicator_range|
       TestIndicatorRange.create!(
         test_indicator_id:,
+        sex: test_indicator_range[:sex] || 'Both',
         min_age: test_indicator_range[:age_min],
         max_age: test_indicator_range[:age_max],
         lower_range: test_indicator_range[:range_lower],
