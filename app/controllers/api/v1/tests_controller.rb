@@ -19,8 +19,8 @@ module Api
       end
 
       def report
-        from, to, order_id = params.values_at(:from, :to, :order_id)
-        render json: test_service.client_report(params[:client_id], from, to, order_id), status: :ok
+        from, to, order_id, encounter_id = params.values_at(:from, :to, :order_id, :encounter_id)
+        render json: test_service.client_report(params[:client_id], from, to, order_id, encounter_id), status: :ok
       end
 
       def update

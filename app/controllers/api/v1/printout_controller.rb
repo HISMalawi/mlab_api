@@ -39,13 +39,16 @@ class Api::V1::PrintoutController < ApplicationController
     printer_name = params.require(:printer_name)
     order_ids = params.require(:order_ids)
     client_id = params.require(:client_id)
+    encounter_id = params[:encounter_id]
     directory_name = 'patient_reports'
-    grover = Grover.new("http://#{request.host}:#{request.port}/api/v1/print_reports?from=&to=&client_id=#{client_id}&order_ids=#{JSON.parse(order_ids)}",
+    preview_page_url = "http://#{request.host}:#{request.port}/api/v1/print_reports?from=&to=&client_id=#{client_id}&order_ids=#{JSON.parse(order_ids)}&encounter_id=#{encounter_id}"
+    grover = Grover.new(preview_page_url,
                         display_header_footer: true,
                         footer_template: "<div class='text right' style='align: center; margin-left: 50%'>Page <span class='pageNumber'>
                         </span> of <span class='totalPages'></span></div>",
                         margin: { top: '0in', bottom: '0.5in' }, format: 'A4', print_background: true).to_pdf
-    order_ids = order_ids.is_a?(String) ? JSON.parse(order_ids) : order_ids
+    order_ids = Order.where(encounter_id:).pluck(:id) if encounter_id.present?
+    order_ids = order_ids.is_a?(String) ? JSON.parse(order_ids) : order_ids unless encounter_id.present?
     printed = PrintoutService.print_patient_report(grover, printer_name, directory_name, order_ids)
     render json: { printed: }
   end

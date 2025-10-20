@@ -502,10 +502,18 @@ const app = createApp({
         : result;
     },
     getPrintCount(reportData) {
-      return reportData.reduce(
-        (count, report) => count + report.print_count + 1,
-        0
-      );
+      if (reportData.length > 1 ){
+        let report_count = 1;
+        reportData.forEach((report) => {
+          report_count += (report.print_count == 0 ? 1 : report.print_count);
+        });
+        return (report_count - reportData.length) + 1
+      } else {
+        return reportData.reduce(
+          (count, report) => count + report.print_count + 1,
+          0
+        )
+      };
     },
     calculateAge(date) {
       return moment().diff(date, "years");

@@ -168,16 +168,21 @@ module Tests
       (roles.map!(&:downcase) & %w[superuser superadmin]).any?
     end
 
-    def client_report(client, from = Date.today, to = Date.today, order_id = nil)
-      where_c = "o.id = #{order_id}"
-      c_join = ' INNER JOIN clients c ON c.id = e.client_id AND c.voided = 0'
-      if order_id.present?
+    def client_report(client, from = Date.today, to = Date.today, order_id = nil, encounter_id = nil)
+      if encounter_id.present?
         c_join = ''
-      elsif order_id.blank? && from.blank?
-        where_c = "c.id = #{client}"
-      elsif order_id.blank? && !from.blank?
-        where_c = "o.created_date BETWEEN '#{Date.parse(from).beginning_of_day}'
-          AND '#{Date.parse(to).end_of_day}' AND c.id = #{client}"
+        where_c = "e.id = #{encounter_id}"
+      else
+        where_c = "o.id = #{order_id}"
+        c_join = ' INNER JOIN clients c ON c.id = e.client_id AND c.voided = 0'
+        if order_id.present?
+          c_join = ''
+        elsif order_id.blank? && from.blank?
+          where_c = "c.id = #{client}"
+        elsif order_id.blank? && !from.blank?
+          where_c = "o.created_date BETWEEN '#{Date.parse(from).beginning_of_day}'
+            AND '#{Date.parse(to).end_of_day}' AND c.id = #{client}"
+        end
       end
       orders = Order.find_by_sql("
       SELECT
@@ -547,7 +552,7 @@ module Tests
           person: client_serializer(client_record),
           client_identifiers: []
         },
-        orders:
+        orders: orders.sort_by { |order| order[:id] }
       }
     end
 
