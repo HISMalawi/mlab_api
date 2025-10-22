@@ -13,9 +13,11 @@ module MachineService
         mapped_measure = map_measure_name(measure_name)
         GENEXPERT_LOGGER.debug("Mapped measure outcome: #{mapped_measure}")
         GENEXPERT_LOGGER.debug('====== Mapping to iblis measures ======')
-        test_indicators = TestIndicator.where(name: mapped_measure[:name])
-        test_indicators = TestIndicator.where(id: mapped_measure[:id]) if test_indicators.blank?
-        test_indicators = TestIndicator.where(nlims_code: mapped_measure[:id]) if test_indicators.blank?
+        measure_unscoped = TestIndicator.unscoped.find_by(id: mapped_measure[:id]) || TestIndicator.unscoped.find_by(nlims_code: mapped_measure[:id])
+        test_indicators = TestIndicator.where(nlims_code: measure_unscoped&.nlims_code) if measure_unscoped&.nlims_code.present?
+        test_indicators ||= TestIndicator.where(name: mapped_measure[:name])
+        test_indicators ||= TestIndicator.where(id: mapped_measure[:id]) if test_indicators.blank?
+        test_indicators ||= TestIndicator.where(nlims_code: mapped_measure[:id]) if test_indicators.blank?
         if test_indicators.empty?
           GENEXPERT_LOGGER.error("No measures found for mapped measure: #{mapped_measure[:name]} (id: #{mapped_measure[:id]}) \n\n\n")
           return
@@ -23,9 +25,9 @@ module MachineService
         GENEXPERT_LOGGER.debug("Mapped to indicators: #{test_indicators.map do |ti|
           "#{ti.name}(id: #{ti.id})"
         end.join(', ')}")
-        GENEXPERT_LOGGER.debug('====== Writing results to disk ======')
+        GENEXPERT_LOGGER.debug('====== Saving results to IBLIS ======')
         test_indicators.each do |test_indicator|
-          GENEXPERT_LOGGER.debug("Writing result for indicator: #{test_indicator.id} - #{test_indicator.name}")
+          GENEXPERT_LOGGER.debug("Saving result for indicator: #{test_indicator.id} - #{test_indicator.name}")
           MachineService::WriteService.new(
             accession_number: accession_number,
             machine_name: machine_name,
@@ -33,7 +35,7 @@ module MachineService
             result: result
           ).write
         end
-        GENEXPERT_LOGGER.debug("====== Writing results to disk complete ======\n\n\n")
+        GENEXPERT_LOGGER.debug("====== Saving results to IBLIS complete ======\n\n\n")
       rescue StandardError => e
         GENEXPERT_LOGGER.error("Error processing #{accession_number}: #{e.message}")
         raise
