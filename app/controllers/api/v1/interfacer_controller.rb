@@ -13,8 +13,9 @@ module Api
       end
 
       def result_available
-        result = read_service.new(accession_number: params[:accession_number]).read
-        render json: { result_available: result.present? }, status: :ok
+        indicator_ids = TestTypeTestIndicator.where(test_types_id: params[:test_type_id]).pluck(:test_indicators_id)
+        result = MachineResult.exists_for_any_indicator?(indicator_ids, params[:accession_number])
+        render json: { result_available: result }, status: :ok
       end
 
       def index

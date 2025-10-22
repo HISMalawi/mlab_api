@@ -14,6 +14,7 @@ module MachineService
       measure = TestIndicator.find_by(nlims_code: measure_unscoped&.nlims_code) if measure_unscoped&.nlims_code.present?
       measure ||= TestIndicator.find_by(name: measure_unscoped&.name)
       @measure_id = measure&.id || measure_unscoped&.id || measure_id
+      @measure = measure
       @result = result
     end
 
@@ -30,10 +31,17 @@ module MachineService
     end
 
     def write_to_disk
-      process_file
-      to_write = read_json_file
-      process_hash(hash: to_write)
-      File.write("./tmp/machine_results/#{order.accession_number}.json", JSON.dump(to_write))
+      return unless @measure_id.present?
+
+      value = rearrange_sign(@result)
+      return if value.blank?
+
+      MachineResult.find_or_create_by!(indicator_id: @measure_id, tracking_number: @order.accession_number)
+                   .update(value: value, machine_name: @machine_name, indicator_name: @measure&.name)
+      # process_file
+      # to_write = read_json_file
+      # process_hash(hash: to_write)
+      # File.write("./tmp/machine_results/#{order.accession_number}.json", JSON.dump(to_write))
     end
 
     def process_hash(hash:)
