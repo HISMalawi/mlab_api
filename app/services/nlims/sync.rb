@@ -1,7 +1,7 @@
 Rails.logger = Logger.new(STDOUT)
 module Nlims
   module Sync
-    @nlims_cache = { token: nil, expires_at: nil, base_url: nil, enable_real_time_sync: nil }
+    @nlims_cache = { token: nil, expires_at: nil, base_url: nil, enable_real_time_sync: nil, ping: false }
     def self.create_order(id: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
@@ -448,8 +448,9 @@ module Nlims
       if ping
         auth = @nlims_service.authenticate
         Rails.logger.error('=========Unable to authenticate to nlims service==========') unless auth
-        token = @nlims_service.token
-        base_url = @nlims_service.base_url
+        # token = @nlims_service.token
+        # base_url = @nlims_service.base_url
+        @nlims_cache[:ping] = ping
         @nlims_cache[:token] = @nlims_service.token
         @nlims_cache[:base_url] = @nlims_service.base_url
         @nlims_cache[:enable_real_time_sync] = @nlims_service.enable_real_time_sync
@@ -458,12 +459,12 @@ module Nlims
         Rails.logger.error('=======Nlims service is not available=============')
         @nlims_cache[:token] = nil
       end
-      {
-        token:,
-        base_url:,
-        enable_real_time_sync: @nlims_service.enable_real_time_sync,
-        ping:
-      }
+      # {
+      #   token:,
+      #   base_url:,
+      #   enable_real_time_sync: @nlims_service.enable_real_time_sync,
+      #   ping:
+      # }
       @nlims_cache
     end
 
