@@ -2,6 +2,7 @@
 
 unsynced_ids = UnsyncOrder.where(data_not_synced: 'new order').select(:test_or_order_id)
 scope = Order.where.not(id: unsynced_ids)
+User.current = User.first
 
 thread_count = 4
 scope.in_batches(of: 500) do |batch|
