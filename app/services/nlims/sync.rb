@@ -432,8 +432,6 @@ module Nlims
     def self.nlims_token
       return @nlims_cache if @nlims_cache[:token].present? && @nlims_cache[:expires_at] > Time.now
 
-      token = ''
-      base_url = ''
       config_data = YAML.load_file("#{Rails.root}/config/application.yml")
       nlims_config = config_data['nlims_service']
       Rails.logger.error('=========nlims_service configuration not found=========') if nlims_config.nil?
@@ -448,8 +446,6 @@ module Nlims
       if ping
         auth = @nlims_service.authenticate
         Rails.logger.error('=========Unable to authenticate to nlims service==========') unless auth
-        # token = @nlims_service.token
-        # base_url = @nlims_service.base_url
         @nlims_cache[:ping] = ping
         @nlims_cache[:token] = @nlims_service.token
         @nlims_cache[:base_url] = @nlims_service.base_url
@@ -459,12 +455,6 @@ module Nlims
         Rails.logger.error('=======Nlims service is not available=============')
         @nlims_cache[:token] = nil
       end
-      # {
-      #   token:,
-      #   base_url:,
-      #   enable_real_time_sync: @nlims_service.enable_real_time_sync,
-      #   ping:
-      # }
       @nlims_cache
     end
 
