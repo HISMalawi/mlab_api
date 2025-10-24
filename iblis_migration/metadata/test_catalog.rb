@@ -249,10 +249,10 @@ SPECIAL_MAPPINGS = {
     targets: ['TB Microscopic Exam', 'MTB Test', 'MTB Test(CancerCenter)', 'GeneXpert', 'Mycobacteria Tuberculosis test'],
     update_name_for: nil
   },
-  'hiv viral load quantitative hiv nucleic acid test' => {
-    targets: ['HIV Viral Load', 'HIV Viral Load(CancerCenter)', 'Viral Load'],
-    update_name_for: nil
-  },
+  # 'hiv viral load quantitative hiv nucleic acid test' => {
+  #   targets: ['HIV Viral Load', 'HIV Viral Load(CancerCenter)', 'Viral Load'],
+  #   update_name_for: nil
+  # },
   'cryptococcus antigen' => {
     targets: ['CSF CrAg LFA'],
     update_name_for: nil
@@ -296,7 +296,6 @@ def update_record(record, test_type, department_id, update_name = false)
     department_id: department_id,
     sex: test_type['can_be_done_on_sex']
   }
-
   # Only update name if specified
   update_attributes[:name] = test_type['name'] if update_name
 
@@ -323,26 +322,41 @@ def handle_special_mapping(test_type, department_id)
   true # Indicates special processing was done
 end
 
+puts 'Fixing Paeds and CancerCenter tests...'
+paeds_tests = TestType.where("name LIKE '%(Paeds)'")
+cancer_tests = TestType.where("name LIKE '%(Cancer)'")
+paeds_tests.update_all(disabled: true)
+cancer_tests.update_all(disabled: true)
+dp = Department.unscoped.where(retired: 1).pluck(:id)
+TestType.where(department_id: dp).update_all(department_id: Department.first.id)
+TestType.all.each do |test_type|
+  test_type.update!(preferred_name: test_type.name)
+end
+puts 'Fixed Paeds and CancerCenter tests.'
+
 # Main processing loop
 test_types.each do |test_type|
   puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
 
   department_id = Department.find_by(name: test_type['test_category']['name'])&.id
 
-  # Step 1: Handle main test type record
+  # Step 1: Handle Paeds variant
+  paeds_record = find_variant_record(test_type, ' (Paeds)')
+  paeds_record&.update!(disabled: true, preferred_name: paeds_record&.name, can_be_ordered: false)
+  update_record(paeds_record, test_type, department_id)
+
+  # Step 2: Handle CancerCenter variant
+  cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
+  cancer_center_record&.update!(disabled: true, preferred_name: cancer_center_record&.name, can_be_ordered: false)
+  update_record(cancer_center_record, test_type, department_id)
+
+  # Step 3: Handle main test type record
   main_record = find_test_type_record(test_type)
   if main_record
     update_record(main_record, test_type, department_id, true)
     main_record.update!(preferred_name: test_type['preferred_name'])
+    main_record.update!(can_be_ordered: true, disabled: false)
   end
-
-  # Step 2: Handle Paeds variant
-  paeds_record = find_variant_record(test_type, ' (Paeds)')
-  update_record(paeds_record, test_type, department_id)
-
-  # Step 3: Handle CancerCenter variant
-  cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
-  update_record(cancer_center_record, test_type, department_id)
 
   # Step 4: Handle special mappings
   handle_special_mapping(test_type, department_id)
@@ -414,3 +428,7 @@ p = ProcessTestCatalogService.new(nil)
 puts 'Final processing of test catalog...'
 p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
 puts 'Finished processing test catalog.'
+
+TestType.unscoped.where(can_be_ordered: false).each do |test_type|
+  test_type.update!(disabled: true)
+end

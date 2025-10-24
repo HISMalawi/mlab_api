@@ -121,7 +121,6 @@ class ProcessTestCatalogService
   end
 
   def create_or_update_department(item)
-    puts item.inspect
     record = Department.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
     record ||= Department.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
     record ||= Department.find_by(name: item[:name])
@@ -254,20 +253,24 @@ class ProcessTestCatalogService
   end
 
   def find_or_initialize_test_type(item)
-    # record = TestType.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
+    puts "Processing test type: #{item[:name]}"
+    record = TestType.find_by(nlims_code: item[:nlims_code], disabled: false) if item[:nlims_code].present?
     # record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
-    record ||= TestType.find_by(name: item[:name])
+    record ||= TestType.find_by(name: item[:name], disabled: false)
     # record ||= TestType.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
     record ||= TestType.new
     if record.new_record?
       record.name = item[:name]
+      record.preferred_name = item[:preferred_name]
       record.department = create_or_update_department(item[:test_category])
       record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
       record.can_be_ordered = true
+      record.disabled = false
     else
       record.department = create_or_update_department(item[:test_category])
       record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
       record.can_be_ordered = true
+      record.disabled = false
     end
     record.save!
     record

@@ -79,6 +79,7 @@ Rails.application.routes.draw do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'
           get '/by_department' => 'test_types#department_test_types'
+          post '/:id/can_be_ordered' => 'test_types#can_be_ordered'
         end
       end
       resources :users do

@@ -16,7 +16,7 @@ module Api
           @test_types = TestType.active_without_paediatric_cancer.search(params[:search]).order(:name).page.per(params[:per_page])
           meta = PaginationService.pagination_metadata(@test_types)
         end
-        render json: { test_types: @test_types, meta: }
+        render json: { test_types: @test_types.where(disabled: false), meta: }
       end
 
       def test_indicator_types
@@ -46,6 +46,12 @@ module Api
       def destroy
         TestCatalog::TestTypes::DeleteService.void_test_type(@test_type, params[:retired_reason])
         render json: { message: MessageService::RECORD_DELETED }
+      end
+
+      def can_be_ordered
+        test_type = TestType.find(params[:id])
+        test_type.update!(can_be_ordered: params[:can_be_ordered])
+        render json: test_type
       end
 
       private
