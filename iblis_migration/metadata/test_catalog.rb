@@ -316,6 +316,7 @@ def handle_special_mapping(test_type, department_id)
 
     # Update name only for the specified target
     should_update_name = (target_name == mapping[:update_name_for])
+    target_record.update!(disabled: true) unless should_update_name
     update_record(target_record, test_type, department_id, should_update_name)
   end
 
