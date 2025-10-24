@@ -25,7 +25,7 @@ module TestCatalog
         test_types = filter_test_types_by_department(department_id, test_types) unless department_id.blank?
         test_types = filter_test_types_by_sex(sex, test_types)
         test_types = TestType.where(id: test_types.pluck('specimen_test_type_mappings.test_type_id'))
-        test_types = test_types.where(can_be_ordered: true)
+        test_types = test_types.where(can_be_ordered: true, disabled: false)
         test_types_display_column = GlobalService.full_name_display? ? 'test_types.name' : 'test_types.preferred_name'
         test_panel_display_column = GlobalService.full_name_display? ? 'test_panels.name' : 'COALESCE(test_panels.preferred_name, test_panels.name)'
         test_type_ids = test_types.pluck(:id)
