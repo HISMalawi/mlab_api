@@ -410,4 +410,5 @@ end
   role = Role.find_or_create_by!(name: role_name)
   privileg_record = Privilege.find_by(name: 'view_ward_results')
   role.role_privilege_mappings.find_or_create_by!(privilege: privileg_record)
+  role.role_privilege_mappings.find_or_create_by!(privilege: Privilege.find_by(name: 'manage_patients'))
 end

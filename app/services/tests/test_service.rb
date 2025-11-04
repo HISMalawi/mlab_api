@@ -252,7 +252,15 @@ module Tests
     end
 
     def filter_by_lab_location(tests, lab_location_id)
+      return tests if validate_lab_location(lab_location_id)
+
       tests.where(lab_location_id:)
+    end
+
+    def validate_lab_location(lab_location_id)
+      lab_location_id == '0' ||
+        lab_location_id.blank? ||
+        LabLocation.find_by(id: lab_location_id)&.name == 'Wards'
     end
 
     # rubocop:disable Metrics/MethodLength
@@ -572,7 +580,7 @@ module Tests
 
     def test_types(id)
       test_types = TestType.joins(:department).where(id:)
-                            .select('test_types.name, test_types.preferred_name, departments.name AS department, print_device')
+                           .select('test_types.name, test_types.preferred_name, departments.name AS department, print_device')
       test_types.map do |type|
         {
           name: type['name'],
