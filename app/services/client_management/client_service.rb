@@ -63,7 +63,7 @@ module ClientManagement
 
       def search_client_by_name_and_gender(first_name, last_name, gender)
         people = Person.search_by_name_and_gender(first_name, last_name, gender)
-        Client.joins(:person).where(person_id: people).limit(10)
+        Client.joins(:person).where(person_id: people)
       end
 
       # rubocop:disable Metrics/MethodLength
