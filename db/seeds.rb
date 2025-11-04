@@ -404,3 +404,10 @@ privilegs.each do |privileg|
     admin_role&.role_privilege_mappings&.find_or_create_by!(privilege: privileg_record)
   end
 end
+
+%w[Nurse Clinician Doctor].each do |role_name|
+  puts "Creating role #{role_name}"
+  role = Role.find_or_create_by!(name: role_name)
+  privileg_record = Privilege.find_by(name: 'view_ward_results')
+  role.role_privilege_mappings.find_or_create_by!(privilege: privileg_record)
+end
