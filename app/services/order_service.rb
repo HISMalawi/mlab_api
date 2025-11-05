@@ -142,33 +142,112 @@ module OrderService
     end
 
     def generate_accession_number
-      default_accession_number_length = AppSetting.find_by(name: 'default_accession_number_length')&.value
-      default_accession_number_length ||= 10
-      zero_padding = default_accession_number_length.to_i - 2
-      mutex = Mutex.new if mutex.blank?
-      mutex.lock
-      max_acc_num = 0
+      default_length = AppSetting.find_by(name: 'default_accession_number_length')&.value || 10
+      zero_padding = default_length.to_i - 2
       code = GlobalService.current_location['code']
       year = Time.current.year.to_s.last(2)
-      record = begin
-        AccessionNumberTracker.last&.accession_number
-      rescue StandardError
-        nil
+      accession_number = nil
+      retries = 0
+      max_attempts = 3
+      begin
+        AccessionNumberTracker.transaction do
+          # Get the maximum sequence number for current year and location
+          max_acc_num = get_next_sequence_number(code, year)
+          # Safety counter to prevent infinite loops
+          attempts = 0
+          max_loop_attempts = 100
+          loop do
+            attempts += 1
+            if attempts > max_loop_attempts
+              raise "Unable to generate unique accession number after #{max_loop_attempts} attempts"
+            end
+
+            padded = max_acc_num.to_s.rjust(zero_padding, '0')
+            accession_number = "#{code}#{year}#{padded}"
+            # Check if the number exists in either table
+            if number_exists?(accession_number)
+              max_acc_num += 1
+              max_acc_num += 100 if attempts == (max_loop_attempts - 60)
+              max_acc_num = get_next_sequence_number(code, year, order: true) if attempts == (max_loop_attempts - 70)
+              max_acc_num += 2500 if attempts == (max_loop_attempts - 80)
+              next
+            else
+              # Create the new tracker record
+              AccessionNumberTracker.create!(accession_number: accession_number)
+              # Clean up old records (optional: keep last N records instead of just 1)
+              cleanup_old_records
+              break
+            end
+          end
+        end
+      rescue ActiveRecord::RecordNotUnique => e
+        retries += 1
+        unless retries < max_attempts
+          raise "Failed to generate unique accession number after #{max_attempts} attempts: #{e.message}"
+        end
+
+        # Add small random delay to reduce contention
+        sleep(rand(0.01..0.05))
+        retry
+      rescue StandardError => e
+        raise "Error generating accession number: #{e.message}"
       end
-      if record.blank?
-        max_acc_num = 1
-      else
-        max_acc_num = record.to_s.gsub(code, '').to_i
-        max_acc_num += 1
-        max_yr = max_acc_num.to_s.slice!(0, 2).to_i
-        max_acc_num = year.to_i > max_yr ? 1 : max_acc_num.to_s[2..].to_i
-      end
-      max_acc_num = max_acc_num.to_i.to_s.rjust(zero_padding, '0')
-      accession_number = "#{code}#{year}#{max_acc_num}"
-      AccessionNumberTracker.create!(accession_number:)
-      AccessionNumberTracker.find_by(accession_number: record)&.delete
-      mutex.unlock
       accession_number
+    end
+
+    def get_next_sequence_number(code, year, order: false)
+      # Try to get the last record for this year/location combination first
+      current_year_record = AccessionNumberTracker
+                            .lock
+                            .where('accession_number LIKE ?', "#{code}#{year}%")
+                            .order(:id)
+                            .last
+      if order
+        current_year_record = Order
+                            .lock
+                            .where('accession_number LIKE ?', "#{code}#{year}%")
+                            .last
+      end
+      if current_year_record
+        # Extract sequence number from current year record
+        sequence_part = current_year_record.accession_number.gsub(/^#{Regexp.escape(code)}#{year}/, '')
+        return sequence_part.to_i + 1
+      end
+      # Fallback: check the very last record for year rollover logic
+      last_record = AccessionNumberTracker.lock.order(:id).last
+      return 1 if last_record.blank?
+
+      # Parse the last record to determine if we're in a new year
+      record_number = last_record.accession_number
+      # Remove location code to get year + sequence
+      year_and_seq = record_number.gsub(/^#{Regexp.escape(code)}/, '')
+      if year_and_seq.length >= 2
+        record_year = year_and_seq[0, 2].to_i
+        # If current year is greater, start from 1, otherwise continue sequence
+        return 1 if year.to_i > record_year
+
+        # Extract sequence number (everything after the 2-digit year)
+        sequence_part = year_and_seq[2..-1] || '0'
+        return sequence_part.to_i + 1
+
+      end
+
+      # Fallback if parsing fails
+      1
+    end
+
+    def number_exists?(accession_number)
+      # Check both Order and AccessionNumberTracker tables
+      Order.exists?(accession_number: accession_number) ||
+        AccessionNumberTracker.exists?(accession_number: accession_number)
+    end
+
+    def cleanup_old_records
+      # Keep only the last record, destroy older ones
+      # Alternative: keep last N records for audit purposes
+      # If you want to keep the last N records, adjust the limit accordingly
+      old_records = AccessionNumberTracker.order(:id).offset(2)
+      old_records.delete_all if old_records.exists?
     end
 
     def add_order_dto(encounter_id, test_params, lab_location)
