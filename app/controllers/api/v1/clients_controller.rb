@@ -46,28 +46,24 @@ module Api
             params[:last_name],
             params[:gender]
           )
-          clients = merge_local_dde_clients(clients, dde_clients) #.uniq { |key| [key[:date_of_birth], key[:last_name], key[:first_name], key[:sex]] }
+          clients = merge_local_dde_clients(clients, dde_clients)
         end
         render json: clients
       end
-     
 
       def merge_local_dde_clients(clients, dde_clients)
         dde_clients.each do |dde_client|
-          
           existing_client = clients.find do |client|
             # Match by UUID (primary identifier) or by combination of name and DOB
             client[:uuid] == dde_client[:uuid] ||
-            (
-              client[:first_name]&.downcase == dde_client[:first_name]&.downcase &&
-              client[:last_name]&.downcase == dde_client[:last_name]&.downcase &&
-              client[:date_of_birth] == dde_client[:date_of_birth]
-            )
+              (
+                client[:first_name]&.downcase == dde_client[:first_name]&.downcase &&
+                client[:last_name]&.downcase == dde_client[:last_name]&.downcase &&
+                client[:date_of_birth] == dde_client[:date_of_birth]
+              )
           end
-      
           clients << dde_client if existing_client.nil?
         end
-      
         clients
       end
 

@@ -36,7 +36,7 @@ module Reports
                 facility_sections fs ON fs.id = e.facility_section_id
                     INNER JOIN
                 encounter_types et ON et.id = e.encounter_type_id
-                WHERE tt.id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+                WHERE tt.id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
                   AND t.status_id IN (4,5)
                   AND tr.value NOT IN ('0', '')
                   AND YEAR(t.created_date) =  #{year} AND month(t.created_date) = #{month}
@@ -55,10 +55,6 @@ module Reports
             }
           end
           data
-        end
-
-        def report_utils
-          Reports::Moh::ReportUtils
         end
       end
     end

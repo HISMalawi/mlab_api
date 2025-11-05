@@ -50,7 +50,7 @@ module Api
 
       def update_app_settings
         app_settings = params[:app_setting_id]
-        app_setting = AppSetting.find(app_settings)
+        app_setting = AppSetting.find_by(name: app_settings)
         app_setting.update!(value: params[:value])
         render json: app_setting
       end

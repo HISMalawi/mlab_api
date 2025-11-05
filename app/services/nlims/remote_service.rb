@@ -12,19 +12,20 @@ module Nlims
     end
 
     def ping_nlims
-        RestClient::Request.execute(
+      response = RestClient::Request.execute(
           method: :get,
-          url: "#{base_url}/api/v1/query_results_by_tracking_number/xxxx",
+          url: "#{base_url}/api/v1/ping",
           headers: { content_type: :json, accept: :json },
           timeout: 3
         )
-        true
+      res = JSON.parse(response.body)
+      res['ping']
     rescue Errno::ECONNREFUSED
-        false
+      false
     rescue RestClient::InternalServerError
-        false
+      false
     rescue StandardError
-        false
+      false
     end
 
     def authenticate

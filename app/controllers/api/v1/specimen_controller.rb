@@ -46,7 +46,7 @@ module Api
       end
 
       def specimen_params
-        params.require(:speciman).permit(:name, :description)
+        params.require(:speciman).permit(:name, :description, :preferred_name)
       end
     end
   end

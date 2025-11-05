@@ -3,21 +3,26 @@ module TestCatalog
     module ShowService
       class << self
         def show_test_type(test_type)
-          specimens = SpecimenTestTypeMapping.joins(:specimen).where(test_type_id: test_type.id).select('specimen.id, specimen.name')
           {
             id: test_type.id,
             name: test_type.name,
             short_name: test_type.short_name,
+            preferred_name: test_type.preferred_name,
+            description: test_type.description,
+            nlims_code: test_type.nlims_code,
+            moh_code: test_type.moh_code,
+            loinc_code: test_type.loinc_code,
+            scientific_name: test_type.scientific_name,
             sex: test_type&.sex,
-            expected_turn_around_time: ExpectedTat.where(test_type_id: test_type.id).first,
+            expected_turn_around_time: test_type.expected_tats,
             print_device: test_type.print_device,
             created_date: test_type.created_date,
             retired: test_type.retired,
             retired_reason: test_type.retired_reason,
-            department: Department.select(:id, :name).find(test_type.department_id),
-            specimens:,
-            organisms: serialize_test_type_organism(test_type.id),
-            indicators: serialize_test_indicators(test_type.id)
+            department: Department.select(:id, :name, :preferred_name, :nlims_code).find(test_type.department_id),
+            specimens: test_type.specimens,
+            organisms: test_type.organisms,
+            indicators: test_type.test_indicators
           }
         end
 

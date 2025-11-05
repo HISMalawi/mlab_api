@@ -82,3 +82,4 @@ config/cable.yml
 config/application.yml
 db/schema.rb
 public/*report_data.json
+config/gx_mapping.json

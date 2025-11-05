@@ -126,7 +126,7 @@ class Test < VoidableRecord
   end
 
   def expected_turn_around_time
-    test_type&.expected_turn_around_time
+    test_type&.expected_tats
   end
 
   def client

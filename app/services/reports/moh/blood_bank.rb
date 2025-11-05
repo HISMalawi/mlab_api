@@ -83,7 +83,7 @@ module Reports
                   INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('ABO Blood Grouping')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['ABO Blood Grouping', 'ABO And RhD Blood Grouping'], ['NLIMS_TT_0029_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -103,7 +103,7 @@ module Reports
                   INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -128,7 +128,7 @@ module Reports
                   INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -153,7 +153,7 @@ module Reports
                   INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -178,7 +178,7 @@ module Reports
                   INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                         WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND ts.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -222,8 +222,8 @@ module Reports
                           AND tr.test_id = t.id
                           AND tr.voided = 0
                   WHERE
-                      t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                          AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                      t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                          AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                           AND YEAR(t.created_date) = #{year}
                           AND t.status_id IN (4 , 5)
                           AND t.voided = 0
@@ -231,8 +231,8 @@ module Reports
                           AND tr.value <> ''
                           AND tr.value IS NOT NULL)
                   AND ot.voided = 0
-                  AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
-                  AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
+                  AND ot.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
+                  AND oti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Pack ABO Group'], %w[NLIMS_TI_0127_MWI])}
                   AND ot.status_id IN (4 , 5)
                   AND YEAR(ot.created_date) = #{year}
           GROUP BY MONTHNAME(ot.created_date)
@@ -275,8 +275,8 @@ module Reports
                           AND tr.test_id = t.id
                           AND tr.voided = 0
                   WHERE
-                      t.test_type_id IN #{report_utils.test_type_ids(%w[Haemoglobin FBC])}
-                          AND ti.id IN #{report_utils.test_indicator_ids('Haemoglobin')}
+                      t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Haemoglobin', 'FBC', 'Full Blood Count'], %w[NLIMS_TT_0035_MWI NLIMS_TT_0105_MWI])}
+                          AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Haemoglobin'], %w[NLIMS_TT_0105_MWI])}
                           AND YEAR(t.created_date) = #{year}
                           AND t.status_id IN (4 , 5)
                           AND t.voided = 0
@@ -284,8 +284,8 @@ module Reports
                           AND tr.value <> ''
                           AND tr.value IS NOT NULL)
                   AND ot.voided = 0
-                  AND ot.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
-                  AND oti.id IN #{report_utils.test_indicator_ids('Pack ABO Group')}
+                  AND ot.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
+                  AND oti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Pack ABO Group'], %w[NLIMS_TI_0127_MWI])}
                   AND ot.status_id IN (4 , 5)
                   AND YEAR(ot.created_date) = #{year}
           GROUP BY MONTHNAME(ot.created_date)
@@ -318,8 +318,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Cross-match')}
-              AND ti.id IN #{report_utils.test_indicator_ids('Product Type')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cross-match'], %w[NLIMS_TT_0030_MWI])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Product Type'], %w[NLIMS_TI_0128_MWI])}
               AND YEAR(t.created_date) =  #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0

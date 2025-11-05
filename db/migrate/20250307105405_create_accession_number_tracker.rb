@@ -1,5 +1,7 @@
 class CreateAccessionNumberTracker < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:accession_number_trackers)
+
     create_table :accession_number_trackers do |t|
       t.string :accession_number
       t.integer :voided

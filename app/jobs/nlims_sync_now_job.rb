@@ -6,10 +6,10 @@ class NlimsSyncNowJob
 
   def perform(id)
     nlims = Nlims::Sync.nlims_token
-    return unless nlims[:token].present? && nlims[:base_url].present? && nlims[:enable_real_time_sync].present?
+    return unless nlims[:token].present? && nlims[:base_url].present?
 
-      Nlims::Sync.create_order(id:)
-      Nlims::Sync.update_order(id:)
-      Nlims::Sync.update_test(id:)
+    Nlims::Sync.create_order_v2(id:)
+    Nlims::Sync.update_order(id:)
+    Nlims::Sync.update_test_v2(id:)
   end
 end

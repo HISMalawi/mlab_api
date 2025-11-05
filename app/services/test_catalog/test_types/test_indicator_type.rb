@@ -10,6 +10,7 @@ module TestCatalog
       FREE_TEXT = 1
       NUMERIC = 2
       ALPANUMERIC = 3
+      ALPHA_NUMERIC = 3
       RICH_TEXT = 4
 
       class << self

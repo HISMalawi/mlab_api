@@ -8,15 +8,31 @@ module Reports
         tests = fetch_tests(from, to, department)
         test_types.each do |test_type|
           test_type_tests = tests.where(test_type_id: test_type.id)
-          tat = system_tat(test_type.expected_turn_around_time.value, test_type.expected_turn_around_time.unit, unit)
+          tat = system_tat(test_type&.expected_tats&.value, test_type&.expected_tats&.unit, unit)
 
           test_type_data = initialize_test_type_data(test_type.name, tat)
           diff_sum, count, within_tat_count = calculate_differences(test_type_tests, unit, tat)
 
           test_type_data['average'] = count.positive? ? (diff_sum / count).round(4) : 0
-          test_type_data['total_tests'] = count
-          test_type_data['tests_within_normal_tat'] = within_tat_count
-          test_type_data['percentage_within_normal_tat'] = count.positive? ? (within_tat_count.to_f / count * 100).round(2) : 0
+          test_type_data['total_tests'] = {
+            count: count,
+            associated_ids: UtilsService.insert_drilldown(
+              {
+                associated_ids: test_type_tests.pluck(:id).join(',')
+              },
+              department
+            )
+          }
+          test_type_data['tests_within_normal_tat'] = {
+            count: within_tat_count[:count],
+            associated_ids: UtilsService.insert_drilldown(
+              {
+                associated_ids: within_tat_count[:associated_ids]
+              },
+              department
+            )
+          }
+          test_type_data['percentage_within_normal_tat'] = count.positive? ? (within_tat_count[:count].to_f / count * 100).round(2) : 0
 
           data << test_type_data
         end
@@ -58,6 +74,7 @@ module Reports
         diff_sum = 0
         count = 0
         within_tat_count = 0
+        associated_ids = []
 
         test_type_tests.each do |test|
           created_date, completed_date = extract_dates(test)
@@ -72,8 +89,10 @@ module Reports
 
           # Check if the test is within normal TAT
           within_tat_count += 1 if diff_in_unit <= tat
+          # Add associated ids to array
+          associated_ids << test.id if diff_in_unit <= tat
         end
-
+        within_tat_count = { count: within_tat_count, associated_ids: associated_ids.join(',') }
         [diff_sum, count, within_tat_count]
       end
 

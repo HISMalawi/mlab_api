@@ -3,6 +3,8 @@
 # Migration for cross match process
 class CreatePostCrossmatchProcess < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:post_crossmatch_processes)
+
     create_table :post_crossmatch_processes do |t|
       t.bigint :facility_section_id
       t.bigint :test_id

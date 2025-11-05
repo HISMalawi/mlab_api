@@ -97,13 +97,18 @@ module Tests
           t.created_date,
           t.test_panel_id,
           tp.name AS test_panel_name,
+          tp.preferred_name as test_panel_preferred_name,
+          tp.nlims_code as test_panel_nlims_code,
           tt.name AS test_type,
+          tt.preferred_name AS test_type_preferred_name,
+          tt.nlims_code AS test_type_nlims_code,
           fs.name AS requesting_ward,
           ost.id AS o_status_id,
           ost.name AS o_status,
           tst.id AS t_status_id,
           tst.name AS t_status,
           sp.name AS specimen,
+          sp.preferred_name AS sp_preferred_name,
           sp.id AS specimen_id,
           t.lab_location_id
         FROM
@@ -163,16 +168,21 @@ module Tests
       (roles.map!(&:downcase) & %w[superuser superadmin]).any?
     end
 
-    def client_report(client, from = Date.today, to = Date.today, order_id = nil)
-      where_c = "o.id = #{order_id}"
-      c_join = ' INNER JOIN clients c ON c.id = e.client_id AND c.voided = 0'
-      if order_id.present?
+    def client_report(client, from = Date.today, to = Date.today, order_id = nil, encounter_id = nil)
+      if encounter_id.present?
         c_join = ''
-      elsif order_id.blank? && from.blank?
-        where_c = "c.id = #{client}"
-      elsif order_id.blank? && !from.blank?
-        where_c = "o.created_date BETWEEN '#{Date.parse(from).beginning_of_day}'
-          AND '#{Date.parse(to).end_of_day}' AND c.id = #{client}"
+        where_c = "e.id = #{encounter_id}"
+      else
+        where_c = "o.id = #{order_id}"
+        c_join = ' INNER JOIN clients c ON c.id = e.client_id AND c.voided = 0'
+        if order_id.present?
+          c_join = ''
+        elsif order_id.blank? && from.blank?
+          where_c = "c.id = #{client}"
+        elsif order_id.blank? && !from.blank?
+          where_c = "o.created_date BETWEEN '#{Date.parse(from).beginning_of_day}'
+            AND '#{Date.parse(to).end_of_day}' AND c.id = #{client}"
+        end
       end
       orders = Order.find_by_sql("
       SELECT
@@ -242,7 +252,15 @@ module Tests
     end
 
     def filter_by_lab_location(tests, lab_location_id)
+      return tests if validate_lab_location(lab_location_id)
+
       tests.where(lab_location_id:)
+    end
+
+    def validate_lab_location(lab_location_id)
+      lab_location_id == '0' ||
+        lab_location_id.blank? ||
+        LabLocation.find_by(id: lab_location_id)&.name == 'Wards'
     end
 
     # rubocop:disable Metrics/MethodLength
@@ -297,18 +315,18 @@ module Tests
       fbc_tests = ['fbc', 'full blood count']
       records = TestIndicator.find_by_sql("
                   SELECT
-                    ti.id, ti.name, ti.test_indicator_type,
-                    ti.unit, ti.description, tr.id AS result_id,
+                    ti.id, ti.name, ttim.test_indicator_type, ti.nlims_code, ti.preferred_name,
+                    ttim.unit, ti.description, tr.id AS result_id,
                     tr.value, tr.result_date, tr.machine_name
                   FROM test_indicators ti
                   INNER JOIN
-                    test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id AND ttim.voided = 0
+                    test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id AND ttim.voided = 0 AND ti.retired = 0
                   LEFT JOIN test_results tr ON ti.id = tr.test_indicator_id
                     AND ti.retired = 0 AND tr.voided = 0 AND tr.test_id = #{test_id}
                   WHERE ttim.test_types_id = #{test_type_id}")
       records.each do |record|
         if fbc_tests.include?(test_type.name.strip.downcase)
-          fbc_format[record['name'].upcase.to_sym] = test_indicator_seriliazer(record, sex, dob)
+          fbc_format[record['name'].upcase] = test_indicator_seriliazer(record, sex, dob)
         else
           json_response << test_indicator_seriliazer(record, sex, dob)
         end
@@ -321,6 +339,8 @@ module Tests
       {
         id: test_indicator['id'],
         name: test_indicator['name'],
+        preferred_name: test_indicator['preferred_name'],
+        nlims_code: test_indicator['nlims_code'],
         test_indicator_type: test_indicator['test_indicator_type'],
         unit: test_indicator['unit'],
         description: test_indicator['description'],
@@ -540,7 +560,7 @@ module Tests
           person: client_serializer(client_record),
           client_identifiers: []
         },
-        orders:
+        orders: orders.sort_by { |order| order[:id] }
       }
     end
 
@@ -559,12 +579,14 @@ module Tests
     end
 
     def test_types(id)
-      test_types = TestType.joins(:department).where(id:).select('test_types.name, departments.name AS department, print_device')
+      test_types = TestType.joins(:department).where(id:)
+                           .select('test_types.name, test_types.preferred_name, departments.name AS department, print_device')
       test_types.map do |type|
         {
           name: type['name'],
           department: type['department'],
-          print_device: type['print_device']
+          print_device: type['print_device'],
+          preferred_name: type['preferred_name']
         }
       end
     end
@@ -584,6 +606,7 @@ module Tests
         requesting_ward: record['requesting_ward'],
         order_status: record['o_status'],
         specimen: specimen(tests.first.specimen_id),
+        specimen_preferred_name: Specimen.find_by(id: tests.first.specimen_id)&.preferred_name,
         order_status_trail: order_status_trail(record['id']),
         test_types: test_types(tests.pluck('test_type_id')),
         tests: serialize_tests(
@@ -607,14 +630,19 @@ module Tests
         order_id: record['order_id'],
         specimen_id: record['specimen_id'],
         specimen_type: record['specimen'],
+        specimen_preferred_name: record['sp_preferred_name'],
         test_panel_id: record['test_panel_id'],
         test_panel_name: record['test_panel_name'],
+        test_panel_preferred_name: record['test_panel_preferred_name'],
+        test_panel_nlims_code: record['test_panel_nlims_code'],
         created_date: record['created_date'],
         request_origin: record['request_origin'],
         requesting_ward: record['requesting_ward'],
         accession_number: record['accession_number'],
         test_type_id: record['test_type_id'],
         test_type_name: record['test_type'],
+        test_type_preferred_name: record['test_type_preferred_name'],
+        test_type_nlims_code: record['test_type_nlims_code'],
         tracking_number: record['tracking_number'],
         voided: record['voided'],
         requested_by: record['requested_by'],

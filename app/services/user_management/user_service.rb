@@ -165,7 +165,14 @@ module UserManagement
         user_odt[:departments] = departments
         user_odt[:permissions] = user_privileges(user)
         user_odt[:lab_locations] = lab_locations(user.id)
-        user_odt[:preferences] = user&.user_preferences&.select(:id, :name, :value)
+        user_odt[:preferences] = (
+          (user&.user_preferences&.select(:id, :name, :value)&.map do |pref|
+            pref.attributes.merge(target: 'user')
+          end || []) +
+          (AppSetting.select(:id, :name, :value).map do |setting|
+            setting.attributes.merge(target: 'site')
+          end)
+        )
         user_odt
       end
       # rubocop:enable Metrics/AbcSize

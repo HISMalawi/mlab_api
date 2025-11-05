@@ -56,7 +56,7 @@ module Reports
               LEFT JOIN statuses as s ON s.id = o.status_id
               LEFT JOIN status_reasons sr ON sr.id = order_statuses.status_reason_id
             WHERE
-              (statuses.name = 'test-rejected' OR s.name = 'specimen-rejected')
+              (statuses.name = 'test-rejected' OR s.name = 'specimen-rejected' OR statuses.name = 'rejected')
               #{department_condition}
               AND (DATE(o.created_date) BETWEEN '#{from}' AND '#{to}')
             GROUP BY test_types.name, fs.name;

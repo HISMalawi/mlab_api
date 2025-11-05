@@ -11,7 +11,7 @@ module PrintoutService
     def barcode_label(person, order, is_accession_number = true)
       tests = order.tests.map do |test_|
         if test_.short_name.blank?
-          test_.test_type.name
+          GlobalService.display_name(test_.test_type.name, test_.test_type.preferred_name)
         else
           test_.short_name
         end
@@ -48,7 +48,7 @@ module PrintoutService
       pack_abo_group = ''
       post_crossmatch_process = []
       test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
-                               .select('test_results.id, test_indicators.name, test_results.value', 'test_indicators.unit')
+                               .select('test_results.id, test_indicators.name, test_indicators.preferred_name, test_results.value', 'test_indicators.unit')
 
       if is_cross_match
         test_id = Test.where(order_id: order.id)
@@ -82,7 +82,11 @@ module PrintoutService
         end
       end
       test_result_records = test_results.map do |test_result|
-        { name: test_result.name, value: test_result.value, unit: test_result.unit }
+        {
+          name: GlobalService.display_name(test_result.name, test_result.preferred_name),
+          value: test_result.value,
+          unit: test_result.unit
+        }
       end
       test_results = (test_result_records + post_crossmatch_process).select do |test_result|
         !test_result[:value].nil?
@@ -205,7 +209,7 @@ module PrintoutService
         s += "A30,700,0,4,1,1,N,\"Collected at : #{order.sample_collected_time.strftime('%d %b, %Y %H:%M')}\"\n"
         s += "A30,750,0,1,1,1,N,\"--------------------------------------------------------\"\n"
         s += "A30,800,0,1,2,2,N,\"SPECIMEN DETAILS\"\n"
-        s += "A30,850,0,4,1,1,N,\"Specimen Type : #{order.tests.first.specimen.name}\"\n"
+        s += "A30,850,0,4,1,1,N,\"Specimen Type : #{GlobalService.display_name(order.tests.first.specimen.name, order.tests.first.specimen.preferred_name)}\"\n"
         s += "A30,900,0,4,1,1,N,\"Priority : #{order.priority.name}\"\n"
         s += "A30,950,0,1,1,1,N,\"--------------------------------------------------------\"\n"
         s += "A30,1000,0,1,2,2,N,\"CLINICAL HISTORY\"\n"
@@ -214,7 +218,7 @@ module PrintoutService
         s += "A30,1150,0,1,2,2,N,\"Tests\"\n"
         line = 1200
         order.tests.each do |test|
-          s += "A80,#{line},0,4,1,1,N,\"-#{test.test_type.name}\"\n"
+          s += "A80,#{line},0,4,1,1,N,\"-#{GlobalService.display_name(test.test_type.name, test.test_type.preferred_name)}\"\n"
           line += 50
         end
         s += "B100,#{line + 50},0,1A,2,2,120,N,\"#{order.accession_number.scan(/\d+/).first.to_i}\"\n"

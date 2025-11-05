@@ -1,10 +1,10 @@
 module Api
-  module V1 
+  module V1
     class DiseasesController < ApplicationController
-      before_action :set_disease, only: %i[ show update destroy ]
+      before_action :set_disease, only: %i[show update destroy]
 
       # GET /api/v1/diseases
-      def index 
+      def index
         render json: Disease.all
       end
 
@@ -16,7 +16,16 @@ module Api
       # POST /api/v1/diseases
       def create
         diseases = params.require(:disease).permit(data: [:name]).to_h
-        render json: diseases[:data].map { |ds| Disease.find_or_create_by!(**ds) }
+        diseases = diseases[:data].map do |ds|
+          name = ds[:name].to_s.strip
+          disease = Disease.unscoped.find_by(name:)
+          if disease
+            disease.update!(voided: 0, voided_reason: nil, name:)
+          else
+            Disease.create!(name:)
+          end
+        end
+        render json: diseases
       end
 
       # PATCH/PUT /api/v1/diseases/1
@@ -31,21 +40,22 @@ module Api
       end
 
       private
-        # Only allow a list of trusted parameters through.
-        def disease_params 
-          params.require(:disease).permit(:name, :id, :voided_reason)
-        end
 
-        #pagination 
-        def pagination
-          params.require([:page, :page_size])
-          {page: params[:page], page_size: params[:page_size]}
-        end
+      # Only allow a list of trusted parameters through.
+      def disease_params
+        params.require(:disease).permit(:name, :id, :voided_reason)
+      end
 
-        # Use callbacks to share common setup or constraints between actions.
-        def set_disease
-          @disease = Disease.find(params[:id])
-        end
+      # pagination
+      def pagination
+        params.require(%i[page page_size])
+        { page: params[:page], page_size: params[:page_size] }
+      end
+
+      # Use callbacks to share common setup or constraints between actions.
+      def set_disease
+        @disease = Disease.find(params[:id])
+      end
     end
   end
 end

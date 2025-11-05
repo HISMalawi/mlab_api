@@ -22,7 +22,7 @@ module Reports
                 AND ti.id = tr.test_indicator_id AND tr.voided = 0
         WHERE
             DATE(t.created_date) BETWEEN '#{from}' AND '#{to}'
-                AND tt.id IN #{report_utils.test_type_ids('TB tests')}
+                AND tt.id IN #{GlobalService.fetch_ids(TestType, 'TB Tests', 'NLIMS_TT_0010_MWI')}
                 AND tr.value NOT IN ('' , '0', 'N/A')
         GROUP BY MONTHNAME(t.created_date) , result , test_indicator_name
         SQL

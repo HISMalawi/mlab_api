@@ -6,11 +6,15 @@ module Api
     # Controller that handles all requests pertaining to printing Reports
     class PrintReportsController < ActionController::Base
       def index
-        from, to, order_ids = params.values_at(:from, :to, :order_ids)
+        from, to, order_ids, encounter_id = params.values_at(:from, :to, :order_ids, :encounter_id)
         order_id = JSON.parse(order_ids)[0]
         test_service = Tests::TestService.new
-        @test_service = test_service.client_report(params[:client_id], from, to, order_id)
-        @test_service = { data: @test_service, facility: GlobalService.current_location }
+        @test_service = test_service.client_report(params[:client_id], from, to, order_id, encounter_id)
+        @test_service = {
+          data: @test_service,
+          facility: GlobalService.current_location,
+          use_full_name: GlobalService.full_name_display?
+        }
       end
 
       def stock_order

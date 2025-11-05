@@ -3,16 +3,18 @@
 module MachineService
   # Reading Results from Machine
   class ReadingService
-    attr_accessor :order
+    attr_accessor :order, :accession_number
 
     def initialize(accession_number:)
-      @order = Order.find_by(accession_number:)
-      @order ||= Order.find_by(accession_number: "#{GlobalService.current_location.code}#{accession_number}")
-      @order ||= Order.find_by(tracking_number: accession_number)
+      # @order = Order.find_by(accession_number:)
+      # @order ||= Order.find_by(accession_number: "#{GlobalService.current_location.code}#{accession_number}")
+      # @order ||= Order.find_by(tracking_number: accession_number)
+      @accession_number = accession_number
     end
 
     def read
-      read_json
+      # read_json
+      MachineResult.where(tracking_number: @accession_number)
     end
 
     private

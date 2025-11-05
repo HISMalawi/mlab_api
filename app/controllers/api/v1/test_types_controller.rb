@@ -16,7 +16,7 @@ module Api
           @test_types = TestType.active_without_paediatric_cancer.search(params[:search]).order(:name).page.per(params[:per_page])
           meta = PaginationService.pagination_metadata(@test_types)
         end
-        render json: { test_types: @test_types, meta: }
+        render json: { test_types: @test_types.where(disabled: false), meta: }
       end
 
       def test_indicator_types
@@ -25,7 +25,8 @@ module Api
 
       def department_test_types
         department_id = params.require(:department_id)
-        render json: TestType.active_without_paediatric_cancer.where(department_id:)
+        test_display_pref = GlobalService.full_name_display? ? 'name' : 'COALESCE(preferred_name, name)'
+        render json: TestType.active_without_paediatric_cancer.where(department_id:, disabled: false).select("test_types.*, #{test_display_pref} AS name")
       end
 
       def show
@@ -47,6 +48,12 @@ module Api
         render json: { message: MessageService::RECORD_DELETED }
       end
 
+      def can_be_ordered
+        test_type = TestType.find(params[:id])
+        test_type.update!(can_be_ordered: params[:can_be_ordered])
+        render json: test_type
+      end
+
       private
 
       def set_test_type
@@ -54,7 +61,7 @@ module Api
       end
 
       def test_type_params
-        params.require(:test_type).permit(:name, :short_name, :department_id, :print_device, :sex)
+        params.require(:test_type).permit(:name, :short_name, :preferred_name, :department_id, :print_device, :sex)
       end
 
       def check_specimen_indicator_params

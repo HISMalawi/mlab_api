@@ -140,8 +140,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Smear Microscopy')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Smear Microscopy', 'Smear microscopy result'], ['NLIMS_TI_0201_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -169,7 +169,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -197,8 +197,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
-                  AND ti.id IN #{report_utils.test_indicator_ids('Smear Microscopy')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Smear Microscopy'], ['NLIMS_TI_0201_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -227,7 +227,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB LAM')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB LAM', 'Tuberculosis Lipoarabinomannan'], ['NLIMS_TT_0121_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -255,7 +255,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('TB LAM')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB LAM', 'Tuberculosis Lipoarabinomannan'], ['NLIMS_TT_0121_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -284,8 +284,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert MTB', 'Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -314,8 +314,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert MTB', 'Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -344,8 +344,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert RIF')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert RIF', 'Gene Xpert RIF Resistance'], ['NLIMS_TI_0203_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -374,8 +374,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert RIF')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert RIF', 'Gene Xpert RIF Resistance'], ['NLIMS_TI_0203_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -404,8 +404,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert RIF')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert RIF', 'Gene Xpert RIF Resistance'], ['NLIMS_TI_0203_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -434,8 +434,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert MTB', 'Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -464,8 +464,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids(['TB Tests', 'GeneXpert Tests'])}
-                  AND ti.id IN #{report_utils.test_indicator_ids('GeneXpert MTB')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests', 'GeneXpert Tests'], ['NLIMS_TT_0010_MWI'])}
+                  AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['GeneXpert MTB', 'Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -494,7 +494,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('COVID')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['COVID', 'COVID-19 Nucleic Acid Test', 'SARS COV-2 Rapid Antigen'], %w[NLIMS_TT_0120_MWI NLIMS_TT_0102_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -522,7 +522,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('COVID')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['COVID', 'COVID-19 Nucleic Acid Test', 'SARS COV-2 Rapid Antigen'], %w[NLIMS_TT_0120_MWI NLIMS_TT_0102_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -551,7 +551,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('COVID')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['COVID', 'COVID-19 Nucleic Acid Test', 'SARS COV-2 Rapid Antigen'], %w[NLIMS_TT_0120_MWI NLIMS_TT_0102_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -580,7 +580,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('COVID')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['COVID', 'COVID-19 Nucleic Acid Test', 'SARS COV-2 Rapid Antigen'], %w[NLIMS_TT_0120_MWI NLIMS_TT_0102_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -609,7 +609,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('COVID')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['COVID', 'COVID-19 Nucleic Acid Test', 'SARS COV-2 Rapid Antigen'], %w[NLIMS_TT_0120_MWI NLIMS_TT_0102_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -625,9 +625,9 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             CASE
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Urine')} THEN 'Urine culture Positive'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Stool')} THEN 'Stool samples with organisms isolated on culture'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Blood')} THEN 'Positive blood Cultures'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Urine'], %w[NLIMS_SP_0012_MWI])} THEN 'Urine culture Positive'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Stool'], %w[NLIMS_SP_0011_MWI])} THEN 'Stool samples with organisms isolated on culture'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood'], %w[NLIMS_SP_0003_MWI])} THEN 'Positive blood Cultures'
               WHEN t.specimen_id IN #{report_utils.specimen_ids_like('Fluid')} THEN 'Fluids with organisms'
               ELSE 'Unknown'
             END AS indicator,
@@ -645,7 +645,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cuture & Sensitivity', 'Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -661,9 +661,9 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             CASE
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Swabs')} THEN 'Other swabs culture Positive'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('HVS')} THEN 'HVS Culture Positive'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('CSF')} THEN 'Positive CSF cultures'
+              WHEN t.specimen_id IN #{report_utils.specimen_ids_like('Swab')} THEN 'Other swabs culture Positive'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['HVS'], ['NLIMS_SP_0008_MWI'])} THEN 'HVS Culture Positive'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])} THEN 'Positive CSF cultures'
               ELSE 'Unknown'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
@@ -680,7 +680,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cuture & Sensitivity', 'Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -696,12 +696,12 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             CASE
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Urine')} THEN 'Urine culture'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Blood')} THEN 'Number of Blood Cultures done'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Stool')} THEN 'Other stool cultures'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('Swabs')} THEN 'Other swabs culture'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('HVS')} THEN 'HVS Culture'
-              WHEN t.specimen_id IN #{report_utils.specimen_ids('CSF')} THEN 'Number of CSF cultures done'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Urine'], %w[NLIMS_SP_0012_MWI])} THEN 'Urine culture'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood'], %w[NLIMS_SP_0003_MWI])} THEN 'Number of Blood Cultures done'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Stool'], %w[NLIMS_SP_0011_MWI])} THEN 'Other stool cultures'
+              WHEN t.specimen_id IN #{report_utils.specimen_ids_like('Swab')} THEN 'Other swabs culture'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['HVS'], ['NLIMS_SP_0008_MWI'])} THEN 'HVS Culture'
+              WHEN t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])} THEN 'Number of CSF cultures done'
               ELSE 'Unknown'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
@@ -717,7 +717,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cuture & Sensitivity')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cuture & Sensitivity', 'Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -743,8 +743,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
-              AND ti.id IN #{report_utils.test_indicator_ids('Cholera')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cholera', 'Cholera Rapid Diagnostic Test'], %w[NLIMS_TT_0229_MWI])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Cholera', 'Cholera RDT'], %w[NLIMS_TI_0586_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -771,8 +771,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Cholera')}
-                AND ti.id IN #{report_utils.test_indicator_ids('Cholera')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cholera', 'Cholera Rapid Diagnostic Test'], %w[NLIMS_TT_0229_MWI])}
+                AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Cholera', 'Cholera RDT'], %w[NLIMS_TI_0586_MWI])}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -799,8 +799,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.specimen_id IN #{report_utils.specimen_ids('Stool')}
-              AND ti.id IN #{report_utils.test_indicator_ids('Culture')}
+              t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Stool'], %w[NLIMS_SP_0011_MWI])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Culture'], %w[NLIMS_TI_0784_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -829,8 +829,8 @@ module Reports
               INNER JOIN drug_susceptibilities ds ON ds.test_id = t.id
               INNER JOIN organisms o ON o.id = ds.organism_id
           WHERE
-                  ti.id IN #{report_utils.test_indicator_ids('Culture')}
-                  AND o.id IN #{report_utils.organism_ids('Cholera')}
+                  ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Culture'], %w[NLIMS_TI_0784_MWI])}
+                  AND o.id IN #{GlobalService.fetch_ids(Organism, ['Cholera'], %w[NLIMS_ORG_0174_MWI NLIMS_ORG_0176_MWI NLIMS_ORG_0178_MWI NLIMS_ORG_0180_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -858,7 +858,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Early Infant Diagnosis', 'HIV Early Infant Diagnosis Qualitative HIV Nucleic Acid Test'], %w[NLIMS_TT_0108_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id <> 1
                   AND t.voided = 0
@@ -886,7 +886,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Early Infant Diagnosis', 'HIV Early Infant Diagnosis Qualitative HIV Nucleic Acid Test'], %w[NLIMS_TT_0108_MWI])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -909,13 +909,15 @@ module Reports
                 INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                 INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                 INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Early Infant Diagnosis', 'HIV Early Infant Diagnosis Qualitative HIV Nucleic Acid Test'], %w[NLIMS_TT_0108_MWI])}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -931,7 +933,7 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT t.id) AS total, 'VL tests done' AS indicator,
+            COUNT(DISTINCT t.id) AS total, 'VL samples received' AS indicator,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
@@ -944,7 +946,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Viral Load')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Viral Load', 'HIV Viral Load Quantitative HIV Nucleic Acid Test'], %w[NLIMS_TT_0071_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id <> 1
               AND t.voided = 0
@@ -964,19 +966,19 @@ module Reports
                 INNER JOIN
               test_statuses ts ON ts.test_id = t.id
                 INNER JOIN
-              test_indicators ti ON ti.test_type_id = t.test_type_id
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
                 INNER JOIN
               test_results tr ON tr.test_indicator_id = ti.id
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-              t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Viral Load', 'HIV Viral Load Quantitative HIV Nucleic Acid Test'], %w[NLIMS_TT_0071_MWI])}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
                 AND tr.value IS NOT NULL
-                AND tr.value NOT IN ('NO value', 'ERROR', 'INVALID', 'NEGATIVE', '', '0', 'h')
-                AND tr.value NOT LIKE '%NOT%'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
@@ -1000,7 +1002,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Early Infant Diagnosis')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Viral Load', 'HIV Viral Load Quantitative HIV Nucleic Acid Test'], %w[NLIMS_TT_0071_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1033,7 +1035,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1062,8 +1064,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('CSF')}
-              AND t.test_type_id IN #{report_utils.test_type_ids('TB Tests')}
+            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])}
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], %w[NLIMS_TT_0010_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1092,7 +1094,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('CSF')}
+            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1121,7 +1123,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['India Ink'], %w[NLIMS_TT_0006_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1149,7 +1151,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('India Ink')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['India Ink'], %w[NLIMS_TT_0006_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1178,7 +1180,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Gram Stain'], %w[NLIMS_TT_0003_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1206,7 +1208,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Gram Stain')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Gram Stain'], %w[NLIMS_TT_0003_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1235,7 +1237,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('HVS')}
+            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['HVS'], ['NLIMS_SP_0008_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1263,7 +1265,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('HVS')}
+            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['HVS'], ['NLIMS_SP_0008_MWI'])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1292,7 +1294,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cryptococcus Antigen Test'], %w[NLIMS_TT_0023_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1320,7 +1322,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cryptococcus Antigen Test'], %w[NLIMS_TT_0023_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1349,8 +1351,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            (t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')})
-            AND (t.specimen_id IN #{report_utils.specimen_ids('Blood')} OR t.specimen_id IN #{report_utils.specimen_ids('Serum')})
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Serum CrAg', 'Cryptococcus Antigen', 'Cryptococcus Antigen Test'], %w[NLIMS_TT_0023_MWI])}
+              AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood', 'Serum'], %w[NLIMS_SP_0020_MWI NLIMS_SP_0003_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1378,8 +1380,8 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            (t.test_type_id IN #{report_utils.test_type_ids('Serum CrAg')} OR t.test_type_id IN #{report_utils.test_type_ids('Cryptococcus Antigen Test')})
-            AND (t.specimen_id IN #{report_utils.specimen_ids('Blood')} OR t.specimen_id IN #{report_utils.specimen_ids('Serum')})
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Serum CrAg', 'Cryptococcus Antigen', 'Cryptococcus Antigen Test'], %w[NLIMS_TT_0023_MWI])}
+              AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood', 'Serum'], %w[NLIMS_SP_0020_MWI NLIMS_SP_0003_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1436,7 +1438,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
+            t.specimen_id IN #{report_utils.specimen_ids_like('Swab')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1464,7 +1466,7 @@ module Reports
                 AND tr.test_id = t.id
                 AND tr.voided = 0
           WHERE
-            t.specimen_id IN #{report_utils.specimen_ids('Swabs')}
+            t.specimen_id IN #{report_utils.specimen_ids_like('Swab')}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0

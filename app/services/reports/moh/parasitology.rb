@@ -115,7 +115,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
             AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
@@ -144,7 +144,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
             AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
@@ -183,7 +183,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
             AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
             AND YEAR(t.created_date) = #{year}
             AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) <= 5)
@@ -221,7 +221,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
               WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
                 AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
                 AND YEAR(t.created_date) = #{year}
                 AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) <= 5)
@@ -261,7 +261,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
             AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
@@ -299,7 +299,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
               WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
                 AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
@@ -339,7 +339,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
             AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
@@ -377,7 +377,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
               WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
+                t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
                 AND ti.id IN #{report_utils.test_indicator_ids('Malaria Indicators')}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
@@ -417,8 +417,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
-            AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'MRDT', ['NLIMS_TI_0590_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -454,8 +454,8 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
               WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
-                AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+                t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
+                AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'MRDT', ['NLIMS_TI_0590_MWI'])}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -492,8 +492,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
-            AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'MRDT', ['NLIMS_TI_0590_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) <= 5)
@@ -530,8 +530,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
-            AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'MRDT', ['NLIMS_TI_0590_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) <= 5)
@@ -569,8 +569,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
-            AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'MRDT', ['NLIMS_TI_0590_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) > 5)
@@ -607,8 +607,8 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Malaria')}
-            AND ti.id IN #{report_utils.test_indicator_ids('MRDT')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Malaria', ['NLIMS_TT_0015_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'MRDT', ['NLIMS_TI_0590_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND (TIMESTAMPDIFF(YEAR, DATE(p.date_of_birth), DATE(t.created_date)) > 5)
@@ -646,7 +646,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Trypanosome')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, %w[Trypanosome Trypanosomiasis], ['NLIMS_TT_0123_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -682,7 +682,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Trypanosome')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, %w[Trypanosome Trypanosomiasis], ['NLIMS_TT_0123_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -719,7 +719,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids(['Urine Microscopy', 'Urine Microscopy (Paeds)'])}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, %w[Urine Microscopy Urine Microscopy (Paeds)], ['NLIMS_TT_0012_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -813,7 +813,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Urine Chemistry')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Urine Chemistry', 'Urine Chemistries'], ['NLIMS_TT_0013_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -849,7 +849,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Semen Analysis')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Semen Analysis', ['NLIMS_TT_0017_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -885,7 +885,7 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids('Blood Parasites Screen')}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Blood Parasites Screen', ['NLIMS_TT_0322_MWI'])}
             AND YEAR(t.created_date) = #{year}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
@@ -921,7 +921,7 @@ module Reports
                   AND tr.test_id = t.id
                   AND tr.voided = 0
               WHERE
-                t.test_type_id IN #{report_utils.test_type_ids('Blood Parasites Screen')}
+                t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Blood Parasites Screen', ['NLIMS_TT_0322_MWI'])}
                 AND YEAR(t.created_date) = #{year}
                 AND t.status_id IN (4 , 5)
                 AND t.voided = 0
@@ -959,9 +959,9 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids(['Stool Analysis', 'Stool Analysis (Paeds)'])}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Stool Analysis', 'Stool Analysis (Paeds)'], ['NLIMS_TT_0014_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'Microscopy', ['NLIMS_TI_0820_MWI'])}
             AND YEAR(t.created_date) = #{year}
-            AND ti.id IN #{report_utils.test_indicator_ids('Microscopy')}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT IN ('', '0')
@@ -996,9 +996,9 @@ module Reports
               AND tr.test_id = t.id
               AND tr.voided = 0
           WHERE
-            t.test_type_id IN #{report_utils.test_type_ids(['Stool Analysis', 'Stool Analysis (Paeds)'])}
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Stool Analysis', 'Stool Analysis (Paeds)'], ['NLIMS_TT_0014_MWI'])}
+            AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, 'Microscopy', ['NLIMS_TI_0820_MWI'])}
             AND YEAR(t.created_date) = #{year}
-            AND ti.id IN #{report_utils.test_indicator_ids('Microscopy')}
             AND t.status_id IN (4 , 5)
             AND t.voided = 0
             AND tr.value NOT IN ('', '0')

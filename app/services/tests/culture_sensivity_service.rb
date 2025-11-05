@@ -21,9 +21,8 @@ module Tests
       end
 
       def drug_susceptibility_test_results(params)
-        test_id =  params.require(:test_id)
+        test_id = params.require(:test_id)
         organism_id = params.require(:organism_id)
-        response = DrugSusceptibility.find_or_create_by(test_id:, organism_id:) unless params[:drugs].present?
         response = params[:drugs].collect do |drug|
           d = DrugSusceptibility.find_or_create_by(test_id:, organism_id:, drug_id: drug[:drug_id])
           d.update!(zone: drug[:zone], interpretation: drug[:interpretation])

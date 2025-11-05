@@ -12,9 +12,18 @@ module Api
         department = params[:department]
         test_status = params[:test_status]
         report_type = params[:report_type]
-        test_type = params[:test_type]
+        wards = params[:wards].present? ? Reports::Moh::ReportUtils.facility_section_ids(params[:wards]) : nil
+        test_type = TestType.where(nlims_code: params[:nlims_code]).where("name = '#{params[:test_type]}' OR preferred_name = '#{params[:test_type]}'").first
+        max_age = params[:max_age].present? ? params[:max_age] : nil
+        min_age = params[:min_age].present? ? params[:min_age] : max_age
+        if min_age.present?
+          min_age = min_age.to_i.zero? ? Date.today : Date.new(UtilsService.dob(min_age).year, 1, 1)
+        end
         records = Reports::DailyReport::DailyLog
-            .generate_report(report_type,{from:, to:, test_status:, department:, test_type:})
+                  .generate_report(report_type, {
+                                     from:, to:, test_status:, department:, test_type: test_type&.id,
+                                     min_age:, max_age: UtilsService.dob(max_age), wards:
+                                   })
         render json: records
       end
     end

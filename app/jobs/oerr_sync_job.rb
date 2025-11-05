@@ -5,6 +5,8 @@ class OerrSyncJob
   include Sidekiq::Job
 
   def perform
+    return unless OerrService.set_to_push?
+
     OerrSyncTrail.where(synced: false).each do |oerr_sync_trail|
       OerrService.push_to_oerr(oerr_sync_trail)
     end

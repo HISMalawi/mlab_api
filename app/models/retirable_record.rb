@@ -15,7 +15,7 @@ class RetirableRecord < ApplicationRecord
   include Voidable
 
   default_scope { where(retired: 0) }
-  scope :retired, -> { unscoped.where.not(retired: 0) }
+  scope :voided, -> { unscoped.where.not(retired: 0) }
 
   belongs_to :creator_user, foreign_key: 'creator', class_name: 'User', optional: true
 
@@ -29,5 +29,29 @@ class RetirableRecord < ApplicationRecord
     )
 
     super(*args, **kwargs)
+  end
+
+  # Override destroy → void instead of delete
+  def destroy(by: nil)
+    run_callbacks(:destroy) do
+      update_columns(
+        retired: 1,
+        retired_date: Time.current,
+        retired_by: by || begin
+          User.current&.id
+        rescue StandardError
+          nil
+        end
+      )
+    end
+  end
+
+  # Restore a retired record
+  def restore
+    update_columns(
+      retired: 0,
+      retired_date: nil,
+      retired_by: nil
+    )
   end
 end

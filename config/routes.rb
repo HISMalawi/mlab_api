@@ -79,6 +79,7 @@ Rails.application.routes.draw do
         collection do
           get '/test_indicator_types/' => 'test_types#test_indicator_types'
           get '/by_department' => 'test_types#department_test_types'
+          post '/:id/can_be_ordered' => 'test_types#can_be_ordered'
         end
       end
       resources :users do
@@ -128,7 +129,7 @@ Rails.application.routes.draw do
           get 'current_api_tag' => 'global#current_git_tag'
           get 'nlims_status' => 'global#nlims_status'
           get 'app_settings' => 'global#app_settings'
-          put 'app_settings' => 'global#update_app_settings'
+          put 'app_settings/:app_setting_id' => 'global#update_app_settings'
           get 'preferences' => 'global#preferences'
         end
       end
@@ -234,6 +235,9 @@ Rails.application.routes.draw do
           get '/stock_movement' => 'stock_reports#stock_movement_report'
         end
       end
+      get '/check_for_new_test_catalog_version' => 'sync_test_catalog#check_new_test_catalog_version'
+      post '/sync_test_catalog' => 'sync_test_catalog#sync_test_catalog'
+      get '/test_catalog_versions' => 'sync_test_catalog#test_catalog_versions'
       resources :whonet do
         collection do
           get 'report' => 'whonet#whonet_report'
@@ -246,6 +250,7 @@ Rails.application.routes.draw do
         end
       end
       resources :user_preferences
+      resources :encounters
     end
   end
 end

@@ -11,19 +11,19 @@ module Reports
           case report_type
           when 'test_record'
             collection = query(options[:from], options[:to], options[:test_status], options[:department],
-                               options[:test_type])
+                               options[:test_type], options[:min_age], options[:max_age], options[:wards])
             test_record(options[:from], options[:to], options[:test_status], options[:department], options[:test_type],
                         collection)
           when 'patient_record'
             collection = query(options[:from], options[:to], options[:test_status], options[:department],
-                               options[:test_type])
+                               options[:test_type], options[:min_age], options[:max_age], options[:wards])
             patient_record(options[:from], options[:to], collection)
           else
             []
           end
         end
 
-        def query(from, to, test_status, department, test_type)
+        def query(from, to, test_status, department, test_type, min_age=nil, max_age=nil, wards=nil)
           from = from.present? ? from : Date.today
           to = to.present? ? to : Date.today
           test_status_ids = if test_status.present?
@@ -35,7 +35,9 @@ module Reports
                             end
           test_status_condition = test_status.present? && test_status.downcase == "'all'" ? ' ' : "AND ts.status_id IN #{test_status_ids}"
           depart_condition = department.present? ? " AND d.name = '#{department}' " : ' '
-          test_type_condition = test_type.present? ? " AND tt.name = '#{test_type}' " : ' '
+          test_type_condition = test_type.present? ? " AND tt.id = '#{test_type}' " : ' '
+          age_condition = max_age.present? ? " AND p.date_of_birth >= '#{max_age}' AND p.date_of_birth <= '#{min_age}'" : ' '
+          facility_condition = wards.present? ? " AND e.facility_section_id IN #{wards}" : ' '
           Report.find_by_sql("
             SELECT
                 t.id AS test_id,
@@ -44,6 +46,8 @@ module Reports
                 tr.result_date,
                 e.id AS visit_no,
                 CONCAT(p.first_name, ' ', p.last_name) AS patient_name,
+                p.date_of_birth AS dob,
+                fs.name AS ward,
                 o.accession_number,
                 s.name AS specimen,
                 tt.name AS test_type,
@@ -64,6 +68,8 @@ module Reports
                 orders o ON o.id = t.order_id
                     JOIN
                 encounters e ON e.id = o.encounter_id
+                    JOIN
+                facility_sections fs ON fs.id = e.facility_section_id
                     JOIN
                 clients c ON c.id = e.client_id
                     JOIN
@@ -91,6 +97,8 @@ module Reports
                 #{test_status_condition}
                 #{depart_condition}
                 #{test_type_condition}
+                #{age_condition}
+                #{facility_condition}
           ")
         end
 
@@ -101,7 +109,7 @@ module Reports
             to:,
             completed_tests: data.length,
             department:,
-            test_type:,
+            test_type: TestType.find_by(id: test_type)&.name,
             data:
           }
         end
@@ -131,6 +139,8 @@ module Reports
                 patient_id: hash[:patient_no],
                 visit_no: hash[:visit_no],
                 patient_name: hash[:patient_name],
+                dob: hash[:dob],
+                ward: hash[:ward],
                 accession_number: hash[:accession_number],
                 specimen: hash[:specimen],
                 receipt_date: hash[:order_status_created_date],

@@ -22,7 +22,8 @@ stock_transaction_types.each do |type|
   )
 end
 
-stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other Misplace_stock Incorrect_entry Phased_out Banned Missing Transfer_to_another_facility For_trainings]
+stock_adjustment_reasons = %w[Damaged Expired Lost Theft Other Misplace_stock Incorrect_entry Phased_out Banned Missing
+                              Transfer_to_another_facility For_trainings]
 stock_adjustment_reasons.each do |reason|
   puts "Creating stock adjustment reason: #{reason}"
   StockAdjustmentReason.find_or_create_by!(name: reason.gsub('_', ' '))
@@ -84,29 +85,29 @@ name_mappings = [
   },
   {
     actual_name: 'ALP',
-    manual_names: ['ALPU', 'ALP', 'Alkaline Phosphate(ALP)']
+    manual_names: ['ALPU', 'ALP', 'Alkaline Phosphate(ALP)', 'Alkaline Phosphatase']
   },
   {
     actual_name: 'ALT',
-    manual_names: ['ALT/GPT', 'ALT', 'GPT/ALT']
+    manual_names: ['ALT/GPT', 'ALT', 'GPT/ALT', 'Alanine-Aminotransferase']
   },
   {
     actual_name: 'AST',
-    manual_names: ['AST/GOT', 'AST', 'GOT/AST']
+    manual_names: ['AST/GOT', 'AST', 'GOT/AST', 'Aspartate-Aminotransferase']
   },
   {
     actual_name: 'GGT',
-    manual_names: ['GGT/r-GT', 'GGT', 'GGT/a-GT']
+    manual_names: ['GGT/r-GT', 'GGT', 'GGT/a-GT', 'Gamma-Glutamyltransferase']
   },
   {
     actual_name: 'BIT',
     manual_names: ['Bilirubin Total(BIT))', 'Bilirubin Total(BIT)', 'TBIL-DSA', 'TBIL-DSA-H',
-                   'Bilirubin Total(TBIL-DSA))', 'Total Bilirubin (T-BIL-V)']
+                   'Bilirubin Total(TBIL-DSA))', 'Total Bilirubin (T-BIL-V)', 'Total Bilirubin']
   },
   {
     actual_name: 'BID',
     manual_names: ['Bilirubin Direct(BID)', 'DBIL-DSA', 'DBIL-DSA-H', 'Bilirubin Direct(DBIL-DSA)',
-                   'Direct Bilirubin (D-BIL-V)']
+                   'Direct Bilirubin (D-BIL-V)', 'Direct Bilirubin']
   },
   {
     actual_name: 'LFT',
@@ -268,8 +269,12 @@ name_mappings = [
                    'Malaria Rapid Diagnostic Test', 'Malaria Microscopy']
   },
   {
+    actual_name: 'MRDT',
+    manual_names: ['MRDT', 'MRDT ..', 'Malaria Rapid Diagnostic Test']
+  },
+  {
     actual_name: 'Malaria Indicators',
-    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite', 'Malaria Parasite Density']
+    manual_names: ['Blood film', 'Results', 'Malaria Species', 'Parasite', 'Malaria Parasite Density', 'Parasite Density']
   },
   {
     actual_name: 'Trypanosome',
@@ -375,4 +380,35 @@ settings.each do |setting|
 
   set = AppSetting.find_or_create_by(name: setting[:name])
   set.update(value: setting[:value])
+end
+
+privilegs = [
+  {
+    name: 'view_ward_results',
+    display_name: 'Can View Ward Results'
+  },
+  {
+    name: 'can_manage_site_preferences',
+    display_name: 'Can Manage Site Preferences'
+  }
+]
+
+privilegs.each do |privileg|
+  puts "Creating privileg #{privileg[:name]}"
+  ActiveRecord::Base.transaction do
+    privileg_record = Privilege.find_or_create_by!(name: privileg[:name])
+    privileg_record.update!(display_name: privileg[:display_name])
+    admin_role = Role.find_by_name('superadmin')
+    admin_role&.role_privilege_mappings&.find_or_create_by!(privilege: privileg_record)
+    admin_role = Role.find_by_name('superuser')
+    admin_role&.role_privilege_mappings&.find_or_create_by!(privilege: privileg_record)
+  end
+end
+
+%w[Nurse Clinician Doctor].each do |role_name|
+  puts "Creating role #{role_name}"
+  role = Role.find_or_create_by!(name: role_name)
+  privileg_record = Privilege.find_by(name: 'view_ward_results')
+  role.role_privilege_mappings.find_or_create_by!(privilege: privileg_record)
+  role.role_privilege_mappings.find_or_create_by!(privilege: Privilege.find_by(name: 'manage_patients'))
 end

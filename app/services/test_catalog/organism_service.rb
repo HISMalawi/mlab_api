@@ -13,7 +13,7 @@ module TestCatalog
       end
 
       def show_organism(organism)
-        drugs = DrugOrganismMapping.joins(:drug).where(organism_id: organism.id).select('drugs.id, drugs.name, drugs.short_name')
+        drugs = DrugOrganismMapping.joins(:drug).where(organism_id: organism.id).select('drugs.*')
         serialize_organism_drug(organism, drugs)
       end
 
@@ -26,11 +26,13 @@ module TestCatalog
       def update_organism(organism, organism_params, params)
         ActiveRecord::Base.transaction do 
           organism.update!(organism_params)
-          DrugOrganismMapping.where(organism_id: organism.id).where.not(drug_id: params[:drugs]).each do |drug_organism|
-            drug_organism.void("Removed from #{organism.name} organism")
-          end
-          params[:drugs].each do |drug_id|
-            DrugOrganismMapping.find_or_create_by!(drug_id: drug_id, organism_id: organism.id)
+          if params[:drugs].present?
+            DrugOrganismMapping.where(organism_id: organism.id).where.not(drug_id: params[:drugs]).each do |drug_organism|
+              drug_organism.void("Removed from #{organism.name} organism")
+            end
+            params[:drugs].each do |drug_id|
+              DrugOrganismMapping.find_or_create_by!(drug_id: drug_id, organism_id: organism.id)
+            end
           end
         end
       end
@@ -51,6 +53,12 @@ module TestCatalog
           id: organism.id,
           name: organism.name,
           description: organism.description,
+          preferred_name: organism.preferred_name,
+          scientific_name: organism.scientific_name,
+          nlims_code: organism.nlims_code,
+          moh_code: organism.moh_code,
+          loinc_code: organism.loinc_code,
+          short_name: organism.short_name,
           drugs: drugs
         }
       end

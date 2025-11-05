@@ -35,7 +35,7 @@ module Reports
                 COUNT(DISTINCT t.id) AS total,
                 GROUP_CONCAT(DISTINCT t.id) AS associated_ids,
                 MONTHNAME(t.created_date) AS month,
-                tt.name AS test_type,
+                #{GlobalService.column_display_name('tt.name', 'tt.preferred_name')} AS test_type,
                 d.name AS department
             FROM
                 tests t

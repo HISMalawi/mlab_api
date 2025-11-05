@@ -3,6 +3,8 @@
 # Migration for pack number log
 class CreatePackNumberLog < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:pack_number_logs)
+
     create_table :pack_number_logs do |t|
           t.bigint :test_id
           t.string :pack_number
