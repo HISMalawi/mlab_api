@@ -184,10 +184,10 @@ def update_test_indicators(test_catalog_test_type, test_type_record)
   test_type['measures'].each do |measure|
     test_indicators.each do |indicator|
       puts "Processing Indicator: #{indicator['name']}"
-      if indicator['name'].strip.downcase == measure['name'].strip.downcase || indicator['name'].strip.downcase == measure['preferred_name'].strip.downcase || indicator['name'].strip.downcase == measure['scientific_name'].strip.downcase
+      if indicator['name']&.strip&.downcase == measure['name']&.strip&.downcase || indicator['name']&.strip&.downcase == measure['preferred_name']&.strip&.downcase || indicator['name']&.strip&.downcase == measure['scientific_name']&.strip&.downcase
         puts "Updating Indicator: #{indicator['name']}"
         indicator.update(
-          name: measure['name'].strip,
+          name: measure['name']&.strip,
           nlims_code: measure['nlims_code'],
           preferred_name: measure['preferred_name'],
           short_name: measure['short_name']
@@ -200,19 +200,21 @@ def update_test_indicators(test_catalog_test_type, test_type_record)
           test_indicator_type: measure['measure_type']['name'],
           unit: measure['unit']
         )
-      elsif indicator['name'].strip.downcase == 'ca' && measure['name'].strip.downcase == 'calcium'
+      elsif indicator['name']&.strip&.downcase == 'ca' && measure['name']&.strip&.downcase == 'calcium'
         puts "Updating Indicator: #{indicator['name']}"
         indicator.update(
-          name: measure['name'].strip,
+          name: measure['name']&.strip,
           nlims_code: measure['nlims_code'],
           preferred_name: measure['preferred_name'],
-          short_name: measure['short_name'],
-          test_indicator_type: measure['measure_type']['name'],
-          unit: measure['unit']
+          short_name: measure['short_name']
         )
-        TestTypeTestIndicator.find_or_create_by!(
+        tt = TestTypeTestIndicator.find_or_create_by!(
           test_types_id: test_type_record.id,
           test_indicators_id: indicator['id']
+        )
+        tt.update(
+          test_indicator_type: measure['measure_type']['name'],
+          unit: measure['unit']
         )
       else
         puts 'go to next'
