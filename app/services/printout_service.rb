@@ -48,7 +48,13 @@ module PrintoutService
       pack_abo_group = ''
       post_crossmatch_process = []
       test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
-                               .select('test_results.id, test_indicators.name, test_indicators.preferred_name, test_results.value', 'test_indicators.unit')
+                               .select(
+                                 'test_results.id,
+                                test_indicators.id AS test_indicator_id,
+                                test_indicators.name,
+                                test_indicators.preferred_name,
+                                test_results.value'
+                               )
 
       if is_cross_match
         test_id = Test.where(order_id: order.id)
@@ -85,7 +91,7 @@ module PrintoutService
         {
           name: GlobalService.display_name(test_result.name, test_result.preferred_name),
           value: test_result.value,
-          unit: test_result.unit
+          unit: TestTypeTestIndicator.find_by(test_indicators_id: test_result.test_indicator_id)&.unit
         }
       end
       test_results = (test_result_records + post_crossmatch_process).select do |test_result|
@@ -146,7 +152,7 @@ module PrintoutService
       unless is_collected
         z_label.draw_barcode(
           100, last_y_post + 10, 0, '1A', 2, 2, 50, false, order.accession_number.scan(/\d+/).first.to_i
-          )
+        )
       end
 
       # Vertical lines for columns
@@ -193,37 +199,39 @@ module PrintoutService
     end
 
     def oerr_printout(s, person, order)
-        s += "\n##########BEGIN FORM##########\n\n"
-        s += "\nN\nq616\nQ090,0\nZT\n"
-        s += "A140,100,0,4,1,1,N,\"#{GlobalService.current_location.name}\"\n"
-        s += "A50,150,0,4,1,1,N,\"Laboratory Test Order Form V2.0.0\"\n"
-        s += "A30,250,0,1,1,1,N,\"--------------------------------------------------------\"\n"
-        s += "A30,300,0,1,2,2,N,\"PATIENT DETAILS\"\n"
-        s += "A30,350,0,4,1,1,N,\"Patient : #{person.fullname} (#{person.sex})\"\n"
-        s += "A30,400,0,4,1,1,N,\"Patient ID : #{order.encounter.client.uuid}\"\n"
-        s += "A30,450,0,4,1,1,N,\"Patient DOB: #{person.date_of_birth.strftime('%d-%b-%Y')}\"\n"
-        s += "A30,500,0,1,1,1,N,\"--------------------------------------------------------\"\n"
-        s += "A30,550,0,1,2,2,N,\"ORDER DETAILS\"\n"
-        s += "A30,600,0,4,1,1,N,\"Ordered By : #{order.requested_by}\"\n"
-        s += "A30,650,0,4,1,1,N,\"Ordered From : #{order.encounter.facility_section.name}\"\n"
-        s += "A30,700,0,4,1,1,N,\"Collected at : #{order.sample_collected_time.strftime('%d %b, %Y %H:%M')}\"\n"
-        s += "A30,750,0,1,1,1,N,\"--------------------------------------------------------\"\n"
-        s += "A30,800,0,1,2,2,N,\"SPECIMEN DETAILS\"\n"
-        s += "A30,850,0,4,1,1,N,\"Specimen Type : #{GlobalService.display_name(order.tests.first.specimen.name, order.tests.first.specimen.preferred_name)}\"\n"
-        s += "A30,900,0,4,1,1,N,\"Priority : #{order.priority.name}\"\n"
-        s += "A30,950,0,1,1,1,N,\"--------------------------------------------------------\"\n"
-        s += "A30,1000,0,1,2,2,N,\"CLINICAL HISTORY\"\n"
-        s += "A30,1050,0,4,1,1,N,\"#{order.encounter.client_history}\"\n"
-        s += "A30,1100,0,1,1,1,N,\"--------------------------------------------------------\"\n"
-        s += "A30,1150,0,1,2,2,N,\"Tests\"\n"
-        line = 1200
-        order.tests.each do |test|
-          s += "A80,#{line},0,4,1,1,N,\"-#{GlobalService.display_name(test.test_type.name, test.test_type.preferred_name)}\"\n"
-          line += 50
-        end
-        s += "B100,#{line + 50},0,1A,2,2,120,N,\"#{order.accession_number.scan(/\d+/).first.to_i}\"\n"
-        s += "P1\n\n"
-        s
+      s += "\n##########BEGIN FORM##########\n\n"
+      s += "\nN\nq616\nQ090,0\nZT\n"
+      s += "A140,100,0,4,1,1,N,\"#{GlobalService.current_location.name}\"\n"
+      s += "A50,150,0,4,1,1,N,\"Laboratory Test Order Form V2.0.0\"\n"
+      s += "A30,250,0,1,1,1,N,\"--------------------------------------------------------\"\n"
+      s += "A30,300,0,1,2,2,N,\"PATIENT DETAILS\"\n"
+      s += "A30,350,0,4,1,1,N,\"Patient : #{person.fullname} (#{person.sex})\"\n"
+      s += "A30,400,0,4,1,1,N,\"Patient ID : #{order.encounter.client.uuid}\"\n"
+      s += "A30,450,0,4,1,1,N,\"Patient DOB: #{person.date_of_birth.strftime('%d-%b-%Y')}\"\n"
+      s += "A30,500,0,1,1,1,N,\"--------------------------------------------------------\"\n"
+      s += "A30,550,0,1,2,2,N,\"ORDER DETAILS\"\n"
+      s += "A30,600,0,4,1,1,N,\"Ordered By : #{order.requested_by}\"\n"
+      s += "A30,650,0,4,1,1,N,\"Ordered From : #{order.encounter.facility_section.name}\"\n"
+      s += "A30,700,0,4,1,1,N,\"Collected at : #{order.sample_collected_time.strftime('%d %b, %Y %H:%M')}\"\n"
+      s += "A30,750,0,1,1,1,N,\"--------------------------------------------------------\"\n"
+      s += "A30,800,0,1,2,2,N,\"SPECIMEN DETAILS\"\n"
+      s += "A30,850,0,4,1,1,N,\"Specimen Type : #{GlobalService.display_name(order.tests.first.specimen.name,
+                                                                             order.tests.first.specimen.preferred_name)}\"\n"
+      s += "A30,900,0,4,1,1,N,\"Priority : #{order.priority.name}\"\n"
+      s += "A30,950,0,1,1,1,N,\"--------------------------------------------------------\"\n"
+      s += "A30,1000,0,1,2,2,N,\"CLINICAL HISTORY\"\n"
+      s += "A30,1050,0,4,1,1,N,\"#{order.encounter.client_history}\"\n"
+      s += "A30,1100,0,1,1,1,N,\"--------------------------------------------------------\"\n"
+      s += "A30,1150,0,1,2,2,N,\"Tests\"\n"
+      line = 1200
+      order.tests.each do |test|
+        s += "A80,#{line},0,4,1,1,N,\"-#{GlobalService.display_name(test.test_type.name,
+                                                                    test.test_type.preferred_name)}\"\n"
+        line += 50
+      end
+      s += "B100,#{line + 50},0,1A,2,2,120,N,\"#{order.accession_number.scan(/\d+/).first.to_i}\"\n"
+      s += "P1\n\n"
+      s
     end
   end
 end
