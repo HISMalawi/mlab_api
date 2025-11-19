@@ -412,3 +412,8 @@ end
   role.role_privilege_mappings.find_or_create_by!(privilege: privileg_record)
   role.role_privilege_mappings.find_or_create_by!(privilege: Privilege.find_by(name: 'manage_patients'))
 end
+
+FacilitySection.all.each do |facility_section|
+  puts "Fixing facility section #{facility_section.name}"
+  facility_section.update!(name: facility_section.name.strip)
+end
