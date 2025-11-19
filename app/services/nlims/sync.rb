@@ -102,7 +102,7 @@ module Nlims
         next if order.nil?
 
         payload = order_payload(order)
-        url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/create_order/"
+        url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/orders/"
         begin
           response = RestClient::Request.execute(
             method: :post,
@@ -111,7 +111,7 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['order created successfuly',
+          if response['error'] == false && ['order created successfully',
                                             'order already available'].include?(response['message'])
             unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
                                              test_or_order_id: order_record&.id).first
@@ -142,23 +142,29 @@ module Nlims
         ")
       orders.each do |order|
         Rails.logger.info('=======Updating orders in nlims=============')
-        first_name = order[:updater].split(' ')[0]
-        last_name = order[:updater].split(' ')[1]
         payload = {
           tracking_number: order[:tracking_number],
           status: order.status.gsub('-', '_'),
-          who_updated: {
-            first_name:,
-            last_name:,
-            id: nil
-          },
           time_updated: OrderStatus.find_by(order_id: order[:id], status_id: Status.find_by(name: order[:status]).id)
-                                   &.created_date || order[:updated_date]
+                                   &.created_date || order[:updated_date],
+          status_trail: OrderStatus.where(order_id: order[:id]).map do |trail|
+            person_creator = Person.find_by(id: User.find_by(id: trail&.creator)&.person_id)
+            {
+              status: trail&.status&.name&.gsub('-', '_'),
+              timestamp: trail&.created_date,
+              updated_by: {
+                first_name: person_creator&.first_name,
+                last_name: person_creator&.last_name,
+                id: person_creator&.id,
+                phone_number: nil
+              }
+            }
+          end
         }
         begin
           response = RestClient::Request.execute(
-            method: :post,
-            url: "#{nlims[:base_url]}/api/v1/update_order/",
+            metho: :put,
+            url: "#{nlims[:base_url]}/api/v2/orders/#{order[:tracking_number]}",
             headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
             payload: payload.to_json
           )
@@ -284,8 +290,8 @@ module Nlims
         payload = test_payload(Test.find_by(id: test_res[:test_id]))
         begin
           response = RestClient::Request.execute(
-            method: :post,
-            url: "#{nlims[:base_url]}/api/v2/update_tests/",
+            method: :put,
+            url: "#{nlims[:base_url]}/api/v2/tests/#{payload[:tracking_number]}",
             headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
             payload: payload.to_json
           )
