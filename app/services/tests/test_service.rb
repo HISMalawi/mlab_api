@@ -317,7 +317,7 @@ module Tests
                   SELECT
                     ti.id, ti.name, ttim.test_indicator_type, ti.nlims_code, ti.preferred_name,
                     ttim.unit, ti.description, tr.id AS result_id,
-                    tr.value, tr.result_date, tr.machine_name
+                    tr.value, tr.result_date, tr.machine_name, ttim.test_types_id
                   FROM test_indicators ti
                   INNER JOIN
                     test_type_indicator_mappings ttim ON ttim.test_indicators_id = ti.id AND ttim.voided = 0 AND ti.retired = 0
@@ -350,7 +350,7 @@ module Tests
           test_indicator['result_date'],
           test_indicator['machine_name']
         ),
-        indicator_ranges: indicator_ranges(test_indicator['id'], test_indicator['test_indicator_type'], sex, dob)
+        indicator_ranges: indicator_ranges(test_indicator, sex, dob)
       }
     end
 
@@ -379,10 +379,12 @@ module Tests
       { id:, value:, result_date:, machine_name: }
     end
 
-    def indicator_ranges(test_indicator_id, test_indicator_type, sex, dob)
+    def indicator_ranges(test_indicator, sex, dob)
+      test_indicator_id = test_indicator['id']
+      test_indicator_type = test_indicator['test_indicator_type']
       age = calculate_age(dob)
       sex = full_sex(sex)
-      ranges = TestIndicatorRange.where(test_indicator_id:)
+      ranges = TestIndicatorRange.where(test_indicator_id:, test_type_id: test_indicator['test_types_id'])
       if test_indicator_type&.downcase == 'numeric'
         ranges = ranges.where("#{age} BETWEEN min_age AND max_age AND (sex = '#{sex}' OR sex = 'both')")
       end

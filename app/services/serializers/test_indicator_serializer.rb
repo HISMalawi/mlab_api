@@ -59,7 +59,7 @@ module Serializers
     def test_indicator_ranges(test_indicator)
       sex = UtilsService.full_sex(@sex)
       age = UtilsService.age(@dob)
-      ranges = TestIndicatorRange.where(test_indicator_id: test_indicator['id'])
+      ranges = TestIndicatorRange.where(test_indicator_id: test_indicator['id'], test_type_id: @test_type_id)
       if test_indicator['test_indicator_type'].downcase == 'numeric'
         ranges = ranges.where(age_condition(age)).where(sex_condition(sex))
       end

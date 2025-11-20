@@ -59,7 +59,7 @@ class ProcessTestCatalogService
 
   def create_or_update_record(record, data)
     if record.new_record?
-      record.name = data[:name]
+      record.name = data[:name]&.strip
       record.nlims_code = data[:nlims_code]
       record.preferred_name = data[:preferred_name]
       record.moh_code = data[:moh_code]
@@ -69,7 +69,7 @@ class ProcessTestCatalogService
       record.save!
     else
       record.update!(
-        name: data[:name],
+        name: data[:name]&.strip,
         nlims_code: data[:nlims_code],
         preferred_name: record.preferred_name.present? ? record.preferred_name : data[:preferred_name],
         moh_code: data[:moh_code],
@@ -131,15 +131,16 @@ class ProcessTestCatalogService
     department
   end
 
-  def create_or_update_test_indicator_ranges(test_indicator_ranges, test_indicator_id)
+  def create_or_update_test_indicator_ranges(test_indicator_ranges, test_indicator_id, test_type)
     unless test_indicator_ranges.empty?
-      TestIndicatorRange.where(test_indicator_id:).each do |test_indicator_range|
+      TestIndicatorRange.where(test_indicator_id:, test_type_id: test_type.id).each do |test_indicator_range|
         test_indicator_range.void('Removed from test indicator')
       end
     end
     test_indicator_ranges.map do |test_indicator_range|
-      TestIndicatorRange.create!(
+      TestIndicatorRange.find_or_create_by!(
         test_indicator_id:,
+        test_type_id: test_type.id,
         sex: test_indicator_range[:sex] || 'Both',
         min_age: test_indicator_range[:age_min],
         max_age: test_indicator_range[:age_max],
@@ -155,11 +156,11 @@ class ProcessTestCatalogService
     test_indicators.map do |item|
       record = TestIndicator.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
       record ||= TestIndicator.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
-      record ||= TestIndicator.find_by(name: item[:name])
+      record ||= TestIndicator.find_by(name: item[:name]&.strip)
       record ||= TestIndicator.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
       record ||= TestIndicator.new
       if record.new_record?
-        record.name = item[:name]
+        record.name = item[:name]&.strip
         # record.test_indicator_type = item[:measure_type][:name]
         # record.unit = item[:unit] if item[:unit].present?
         record.save!
@@ -171,7 +172,7 @@ class ProcessTestCatalogService
       join_record.unit = item[:unit]
       join_record.test_indicator_type = item.dig(:measure_type, :name)
       join_record.save! if join_record.changed?
-      create_or_update_test_indicator_ranges(item[:measure_ranges_attributes], indicator.id)
+      create_or_update_test_indicator_ranges(item[:measure_ranges_attributes], indicator.id, test_type)
       indicator
     end
   end
@@ -256,11 +257,11 @@ class ProcessTestCatalogService
     puts "Processing test type: #{item[:name]}"
     record = TestType.find_by(nlims_code: item[:nlims_code], disabled: false) if item[:nlims_code].present?
     # record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
-    record ||= TestType.find_by(name: item[:name], disabled: false)
+    record ||= TestType.find_by(name: item[:name]&.strip, disabled: false)
     # record ||= TestType.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
     record ||= TestType.new
     if record.new_record?
-      record.name = item[:name]
+      record.name = item[:name]&.strip
       record.preferred_name = item[:preferred_name]
       record.department = create_or_update_department(item[:test_category])
       record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?

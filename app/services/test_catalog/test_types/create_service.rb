@@ -26,31 +26,33 @@ module TestCatalog
                                                  ))
           TestTypeTestIndicator.find_or_create_by!(test_types_id: test_type_id, test_indicators_id: test_indicator.id)
           create_test_indicator_range(indicator_param[:indicator_ranges], test_indicator.id,
-                                      indicator_param[:test_indicator_type])
+                                      indicator_param[:test_indicator_type], test_type_id)
         end
 
-        def create_test_indicator_range(test_indicator_ranges, test_indicator_id, test_indicator_type)
+        def create_test_indicator_range(test_indicator_ranges, test_indicator_id, test_indicator_type, test_type_id)
           if [TestCatalog::TestTypes::TestIndicatorType::AUTO_COMPLETE,
               TestCatalog::TestTypes::TestIndicatorType::ALPANUMERIC].include? test_indicator_type
             check_indicator_range_params(test_indicator_ranges)
             test_indicator_ranges.each do |test_indicator_range|
-              create_test_indicator_range_for_autocomplete(test_indicator_range, test_indicator_id)
+              create_test_indicator_range_for_autocomplete(test_indicator_range, test_indicator_id, test_type_id)
             end
           elsif test_indicator_type == TestCatalog::TestTypes::TestIndicatorType::NUMERIC
             check_indicator_range_params(test_indicator_ranges)
             test_indicator_ranges.each do |test_indicator_range|
-              create_test_indicator_range_for_numeric(test_indicator_range, test_indicator_id)
+              create_test_indicator_range_for_numeric(test_indicator_range, test_indicator_id, test_type_id)
             end
           end
         end
 
-        def create_test_indicator_range_for_autocomplete(test_indicator_range, test_indicator_id)
+        def create_test_indicator_range_for_autocomplete(test_indicator_range, test_indicator_id, test_type_id)
           test_indicator_range[:test_indicator_id] = test_indicator_id
+          test_indicator_range[:test_type_id] = test_type_id
           TestIndicatorRange.create!(JSON.parse(test_indicator_range.to_json))
         end
 
-        def create_test_indicator_range_for_numeric(test_indicator_range, test_indicator_id)
+        def create_test_indicator_range_for_numeric(test_indicator_range, test_indicator_id, test_type_id)
           test_indicator_range[:test_indicator_id] = test_indicator_id
+          test_indicator_range[:test_type_id] = test_type_id
           TestIndicatorRange.create!(JSON.parse(test_indicator_range.to_json))
         end
 

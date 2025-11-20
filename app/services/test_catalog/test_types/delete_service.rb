@@ -17,7 +17,7 @@ module TestCatalog
           end
           TestIndicator.where(test_type_id: test_type.id).each do |test_indicator|
             test_indicator.void(reason)
-            TestIndicatorRange.where(test_indicator_id: test_indicator.id).each do |indicator_range|
+            TestIndicatorRange.where(test_indicator_id: test_indicator.id, test_type_id: test_type.id).each do |indicator_range|
               indicator_range.void(reason)
             end
           end

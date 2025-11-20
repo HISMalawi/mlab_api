@@ -31,7 +31,7 @@ module TestCatalog
           tt_ti = TestTypeTestIndicator.where(test_types_id: test_type_id).pluck(:test_indicators_id)
           test_indicators = TestIndicator.where(id: tt_ti)
           test_indicators.each do |test_indicator|
-            test_indicator_ranges = TestIndicatorRange.where(test_indicator_id: test_indicator.id)
+            test_indicator_ranges = TestIndicatorRange.where(test_indicator_id: test_indicator.id, test_type_id:)
             serialized_test_indicators.push({
                                               id: test_indicator.id,
                                               name: test_indicator.name,
