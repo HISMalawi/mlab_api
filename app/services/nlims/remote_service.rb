@@ -201,6 +201,7 @@ module Nlims
     end
 
     def check_test_type(test_type)
+      test_type = 'HIV Viral Load' if test_type == 'Viral Load'
       test_type = TestType.find_by_name(test_type)
       test_type.nil? ? false : true
     end
@@ -256,6 +257,7 @@ module Nlims
 
     def create_test_from_nlims(order_id, tests, specimen_id, results, lab_location)
       tests.each do |test_|
+        test_[:test_type] = 'HIV Viral Load' if test_[:test_type] == 'Viral Load'
         test_type = TestType.find_by_name(test_[:test_type])
         test_panel = TestPanel.find_by_name(test_[:test_type])
         lab_location_id = lab_location || LabLocation.first&.id
