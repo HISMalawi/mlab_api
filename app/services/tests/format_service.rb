@@ -9,6 +9,7 @@ module Tests
         {
           'White Blood Cell' => '',
           'White Blood Cells' => '',
+          'White Blood Cell ' => '',
           'Red Blood Cell' => '',
           'Red Blood Cells' => '',
           'Haemoglobin' => '',
