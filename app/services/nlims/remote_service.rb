@@ -129,7 +129,8 @@ module Nlims
         encounter = create_encounter_from_nlims(client.id, facility_details, nlims_order[:priority])
         order = create_order_from_nlims(encounter.id, nlims_order)
         set_order_status_to_accepted(order.id)
-        specimen = Specimen.find_by_name(nlims_order[:specimen])
+        specimen = Specimen.find_by(name: nlims_order[:specimen])
+        specimen ||= Specimen.find_by(preferred_name:nlims_order[:specimen])
         create_test_from_nlims(
           order.id,
           nlims_order[:tests],
@@ -195,7 +196,7 @@ module Nlims
     end
 
     def check_specimen(specimen)
-      sp = Specimen.find_by_name(specimen)
+      sp = Specimen.find_by(name: specimen) || Specimen.find_by(preferred_name:specimen)
       sp.nil? ? false : true
     end
 
