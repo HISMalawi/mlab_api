@@ -242,6 +242,10 @@ SPECIAL_MAPPINGS = {
     targets: ['ESR Peads', 'ESR Peads(CancerCenter)'],
     update_name_for: nil
   },
+  'rapid hiv test' => {
+    targets: ['HIV', 'HIV(CancerCenter)'],
+    update_name_for: nil
+  },
   'prostate-specific antigen' => {
     targets: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)',
               'Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'],

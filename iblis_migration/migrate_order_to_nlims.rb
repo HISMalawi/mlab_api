@@ -37,3 +37,18 @@ scope.in_batches(of: 500) do |batch|
 
   puts "Completed batch up to order ID #{batch.last.id}"
 end
+
+# orders = Order.where("created_date > '2025-05-30 00:00:00'")
+# orders.each do |order|
+#   next if UnsyncOrder.where(test_or_order_id: order.id, data_not_synced: 'new order').present?
+
+#   unsync_order = UnsyncOrder.create!(
+#     test_or_order_id: order.id,
+#     data_not_synced: 'new order',
+#     data_level: 'order',
+#     sync_status: 0
+#   )
+#   Nlims::Sync.create_order_v2(id: unsync_order.id, once_off: true)
+# rescue StandardError => e
+#   puts "Error pushing order #{order.tracking_number} to nlims: #{e.message}"
+# end
