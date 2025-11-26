@@ -12,6 +12,7 @@ Updated the NLIMS remote service to handle the new payload structure from the fr
 - Uses `lab_location` directly as an ID instead of searching by name
 - Prioritizes `nlims_code` for record lookups over name-based searches
 - Removed old implementation completely
+- Extracts and saves client history from `clinical_history` field in order data
 
 ### 2. Enhanced Record Lookup Methods
 
@@ -30,6 +31,7 @@ Updated the NLIMS remote service to handle the new payload structure from the fr
 - `process_test_status_trail`: Processes status trail from test data
 - `process_test_results`: Processes test results with nlims_code lookup
 - `extract_drawn_by_name`: Safely extracts drawn_by name from nested structure
+- `generate_client_history`: Extracts and formats client history information from payload
 
 ### 4. Controller and Route Updates
 

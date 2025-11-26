@@ -62,66 +62,6 @@ module Nlims
       nil
     end
 
-    def query_results_by_tracking_number(tracking_number)
-      response = RestClient::Request.execute(
-        method: :get,
-        url: "#{base_url}/api/v1/query_results_by_tracking_number/#{tracking_number}",
-        headers: { content_type: :json, accept: :json, 'token': "#{token}" }
-      )
-      response = JSON.parse(response.body)
-      response['message'] == 'results not available' ? [] : response['data']['results']
-    end
-
-    def build_query_order_by_tracking_number_response(response, tracking_number)
-      tests = response['tests']
-      tests_ = []
-      tests.each do |key, value|
-        tests_ << {
-          test_type: key,
-          test_status: value
-        }
-      end
-      details = response['other']
-      name = details['patient']['name']
-      name = name.split(' ')
-      if name.length > 2
-        first_name = name[0]
-        middle_name = [1]
-        last_name = [2]
-      else
-        first_name = name[0]
-        middle_name = ''
-        last_name = name[1]
-      end
-      {
-        tests: tests_,
-        tracking_number:,
-        specimen: details['sample_type'],
-        order_status: details['specimen_status'],
-        facility_section: details['order_location'],
-        sending_facility: details['sending_lab'],
-        receiving_facility: details['receiving_lab'],
-        order_created_date: details['date_created'],
-        priority: details['priority'],
-        requested_by: details['requested_by'],
-        collected_by: details['sample_created_by']['name'],
-        patient_identifiers: {
-          art_regimen: details['art_regimen'],
-          arv_number: details['arv_number'],
-          art_start_date: details['art_start_date'],
-          npid: details['patient']['id']
-        },
-        patient: {
-          first_name:,
-          middle_name:,
-          last_name:,
-          sex: details['patient']['gender'],
-          date_of_birth: details['patient']['dob']
-        },
-        results: query_results_by_tracking_number(tracking_number)
-      }
-    end
-
     # Main method to handle NLIMS payload structure
     def merge_or_create_order(nlims_payload)
       order_data = nlims_payload[:order] || nlims_payload['order']
@@ -132,11 +72,12 @@ module Nlims
       raise_nlims_exception(order_data, tests_data)
       client = find_or_create_client(patient_data)
       facility_details = load_facility_details_from_nlims(order_data)
-
+      client_history = order_data[:clinical_history] || order_data['clinical_history']
       order = Order.where(tracking_number: order_data[:tracking_number] || order_data['tracking_number']).first
       if order.nil?
         encounter = create_encounter_from_nlims(client.id, facility_details,
-                                                order_data[:priority] || order_data['priority'])
+                                                order_data[:priority] || order_data['priority'],
+                                                client_history)
         order = create_order_from_nlims(encounter.id, order_data)
         set_order_status_to_accepted(order.id)
 
@@ -166,35 +107,6 @@ module Nlims
 
     def set_test_status(test_id, status_id)
       TestStatus.find_or_create_by!(test_id:, status_id:)
-    end
-
-    def check_specimen(specimen)
-      # Handle both string and object formats
-      specimen_name = if specimen.is_a?(String)
-                        specimen
-                      elsif specimen.respond_to?(:[])
-                        specimen[:name] || specimen['name']
-                      else
-                        specimen.to_s
-                      end
-
-      sp = Specimen.find_by(name: specimen_name) || Specimen.find_by(preferred_name: specimen_name)
-      sp.nil? ? false : true
-    end
-
-    def check_test_type(test_type)
-      # Handle both string and object formats
-      test_type_name = if test_type.is_a?(String)
-                         test_type
-                       elsif test_type.respond_to?(:[])
-                         test_type[:name] || test_type['name']
-                       else
-                         test_type.to_s
-                       end
-
-      test_type_name = 'HIV Viral Load' if test_type_name == 'Viral Load'
-      found_test_type = TestType.find_by_name(test_type_name)
-      found_test_type.nil? ? false : true
     end
 
     # Helper methods for v2 implementation
@@ -289,7 +201,7 @@ module Nlims
       }
     end
 
-    def create_encounter_from_nlims(client_id, facility_details, _priority)
+    def create_encounter_from_nlims(client_id, facility_details, _priority, client_history = nil)
       encounter_type_id = EncounterType.find_or_create_by(name: 'Referral').id
       Encounter.create!(
         client_id:,
@@ -297,7 +209,8 @@ module Nlims
         destination_id: facility_details[:destination_facility],
         facility_section_id: facility_details[:facility_section],
         start_date: Time.now,
-        encounter_type_id:
+        encounter_type_id:,
+        client_history:
       )
     end
 
