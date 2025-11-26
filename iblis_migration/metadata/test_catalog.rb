@@ -242,13 +242,18 @@ SPECIAL_MAPPINGS = {
     targets: ['ESR Peads', 'ESR Peads(CancerCenter)'],
     update_name_for: nil
   },
+  'rapid hiv test' => {
+    targets: ['HIV', 'HIV(CancerCenter)'],
+    update_name_for: nil
+  },
   'prostate-specific antigen' => {
     targets: ['Free Prostrate Specific Antigen', 'Free Prostrate Specific Antigen(CancerCenter)',
               'Total Prostrate Specific Antigen', 'Total Prostrate Specific Antigen(CancerCenter)'],
     update_name_for: nil
   },
   'tb tests' => {
-    targets: ['TB Microscopic Exam', 'MTB Test', 'MTB Test(CancerCenter)', 'GeneXpert', 'Mycobacteria Tuberculosis test'],
+    targets: ['TB Microscopic Exam', 'MTB Test', 'MTB Test(CancerCenter)', 'GeneXpert',
+              'Mycobacteria Tuberculosis test'],
     update_name_for: nil
   },
   # 'hiv viral load quantitative hiv nucleic acid test' => {
@@ -407,17 +412,31 @@ retired_test_indicators.each do |indicator|
   TestTypeTestIndicator.where(test_indicators_id: indicator.id).update_all(test_indicators_id: active_indicator_id)
 end
 
-retired_test_indicators = TestIndicator.unscoped.where(retired: 1)
-Parallel.each(retired_test_indicators, in_threads: 4) do |indicator|
-  ActiveRecord::Base.connection_pool.with_connection do
-    active_indicator_id = TestIndicator.find_by(name: indicator.name, retired: 0)&.id
-    next unless active_indicator_id
+# retired_test_indicators = TestIndicator.unscoped.where(retired: 1)
+# Parallel.each(retired_test_indicators, in_threads: 4) do |indicator|
+#   ActiveRecord::Base.connection_pool.with_connection do
+#     active_indicator_id = TestIndicator.find_by(name: indicator.name, retired: 0)&.id
+#     next unless active_indicator_id
 
-    puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id} for test results"
+#     puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id} for test results"
 
-    TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
-  end
-end
+#     TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
+#   end
+# end
+
+sql = <<-SQL.squish
+  UPDATE test_results tr
+  JOIN test_indicators r#{' '}
+    ON tr.test_indicator_id = r.id#{' '}
+   AND r.retired = 1
+  JOIN test_indicators a#{' '}
+    ON a.name = r.name#{' '}
+   AND a.retired = 0
+  SET tr.test_indicator_id = a.id;
+SQL
+
+puts 'Updating references from retired indicators to active indicators for test results'
+ActiveRecord::Base.connection.execute(sql)
 
 TestPanel.find_each do |panel|
   puts "Fixing Panel: #{panel.name}"

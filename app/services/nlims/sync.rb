@@ -100,6 +100,7 @@ module Nlims
         Rails.logger.info("=======Creating order #{order_record&.tracking_number} in nlims =============")
         order = Order.find_by(id: order_record&.id)
         next if order.nil?
+        next unless order.tests&.present?
 
         payload = order_payload(order)
         url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/orders/"
@@ -163,13 +164,13 @@ module Nlims
         }
         begin
           response = RestClient::Request.execute(
-            metho: :put,
+            method: :put,
             url: "#{nlims[:base_url]}/api/v2/orders/#{order[:tracking_number]}",
             headers: { content_type: :json, accept: :json, 'token': "#{nlims[:token]}" },
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && response['message'] == 'order updated successfuly'
+          if response['error'] == false && ['order updated successfully', 'order updated successfully'].include?(response['message'])
             unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                              test_or_order_id: order[:id]).first
             update_unsync_order(unsync_order)
@@ -419,8 +420,8 @@ module Nlims
             client_identifier_type_id: ClientIdentifierType.find_by(name: 'npid')&.id,
             client_id: client.id
           )&.value,
-          first_name: client&.person&.first_name,
-          last_name: client&.person&.last_name,
+          first_name: client&.person&.first_name&.blank? ? client&.person&.last_name : client&.person&.first_name,
+          last_name: client&.person&.last_name&.blank? ? client&.person&.first_name : client&.person&.last_name,
           date_of_birth: client&.person&.date_of_birth,
           gender: client&.person&.sex
         }

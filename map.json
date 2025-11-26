@@ -19,7 +19,7 @@
   "Urea/Blood Urea Nitrogen": ["Urea", "Blood Urea Nitrogen", "Urea/Bun", "UREA-H"],
   "Indirect Coombs Test": ["Indirect COOMBS test"],
   "Total Cholesterol": ["Cholestero l(CHOL)", "TC-H"],
-  "Red Blood Cell": ["Red blood cells"],
+  "Red Blood Cell": ["Red blood cells", "RBC"],
   "Glucose": ["Glu", "Glu-O","GLU-O", "GLU-O-H"],
   "Creatine": ["CREA-S","CREA-J"],
   "C-reactive protein": ["CRP", "C-reactive Protein (CRP)"],
