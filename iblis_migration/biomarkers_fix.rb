@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 biomarker = TestType.where(name: 'Biomarkers').first
+biomarker_panel = TestPanel.where(name: 'BioMarkers').first
 User.current = User.first
 
 exit if biomarker.blank?
@@ -21,6 +22,7 @@ ActiveRecord::Base.transaction do
 
       new_test = lab_test.dup
       new_test.test_type_id = test_type.id
+      new_test.test_panel_id = biomarker_panel.id
 
       if new_test.save
         puts "Created new test #{new_test.id} (from old test #{lab_test.id}) with new test_type_id #{test_type.id}"
