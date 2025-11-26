@@ -2,7 +2,8 @@ module Api
   module V1
     class OrdersController < ApplicationController
       before_action :set_order, only: %i[show update destroy]
-      before_action :nlims, only: %i[search_order_from_nlims_by_tracking_number merge_order_from_nlims]
+      before_action :nlims,
+                    only: %i[search_order_from_nlims_by_tracking_number merge_order_from_nlims]
 
       def index
         @orders = Order.all
@@ -32,6 +33,8 @@ module Api
       def merge_order_from_nlims
         order = @nlims_service.merge_or_create_order(params)
         render json: order, status: :created
+      rescue NlimsError => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       def add_test_to_order
@@ -83,8 +86,8 @@ module Api
         )
         raise Errno::ECONNREFUSED, 'Nlims service is not available' unless @nlims_service.ping_nlims
 
-          auth = @nlims_service.authenticate
-          raise NlimsError, 'Unable to authenticate to nlims service' unless auth
+        auth = @nlims_service.authenticate
+        raise NlimsError, 'Unable to authenticate to nlims service' unless auth
       end
 
       def set_order
