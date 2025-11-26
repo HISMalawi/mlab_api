@@ -17,7 +17,7 @@ ActiveRecord::Base.transaction do
       test_type = TestType.find_by(nlims_code: indicator.nlims_code)
       next if test_type.blank?
 
-      lab_test = Test.unscoped.find_by(id: test_result.test_id)
+      lab_test = Test.find_by(id: test_result.test_id)
       next if lab_test.blank?
 
       new_test = lab_test.dup
