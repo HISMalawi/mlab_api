@@ -34,14 +34,13 @@ module Nlims
 
     def re_authenticate
       response = RestClient::Request.execute(
-        method: :get,
-        url: "#{base_url}/api/v1/re_authenticate/#{username}/#{password}",
+        method: :post,
+        url: "#{base_url}/api/v1/login/",
+        payload: { username:, password: }.to_json,
         headers: { content_type: :json, accept: :json },
         timeout: 3
       )
       response = JSON.parse(response.body)
-      return false if response['status'] != 200
-
       self.token = response['data']['token']
       true
     rescue StandardError
@@ -81,9 +80,9 @@ module Nlims
         order = create_order_from_nlims(encounter.id, order_data)
         set_order_status_to_accepted(order.id)
 
-        # Find specimen using nlims_code first, then fallback to name/preferred_name
+        # Find specimen using nlims_code only
         sample_type = order_data[:sample_type] || order_data['sample_type']
-        specimen = find_specimen_by_nlims_code_or_name(sample_type)
+        specimen = find_specimen_by_nlims_code(sample_type)
 
         create_tests_from_nlims(order.id, tests_data, specimen.id, lab_location_id)
       end
@@ -110,58 +109,44 @@ module Nlims
     end
 
     # Helper methods for v2 implementation
-    def find_specimen_by_nlims_code_or_name(sample_type)
+    def find_specimen_by_nlims_code(sample_type)
       nlims_code = sample_type[:nlims_code] || sample_type['nlims_code']
-      name = sample_type[:name] || sample_type['name']
-      preferred_name = sample_type[:preferred_name] || sample_type['preferred_name']
 
-      specimen = nil
-      specimen = Specimen.find_by(nlims_code: nlims_code) if nlims_code.present?
-      specimen ||= Specimen.find_by(name: name) if name.present?
-      specimen ||= Specimen.find_by(preferred_name: preferred_name) if preferred_name.present?
+      raise NlimsError, "NLIMS code is required for specimen lookup: #{sample_type}" if nlims_code.blank?
 
-      raise NlimsError, "Specimen not found for: #{sample_type}" if specimen.nil?
+      specimen = Specimen.find_by(nlims_code: nlims_code)
+      raise NlimsError, "Specimen not found for NLIMS code: #{nlims_code}" if specimen.nil?
 
       specimen
     end
 
-    def find_test_type_by_nlims_code_or_name(test_type_data)
+    def find_test_type_by_nlims_code(test_type_data)
       nlims_code = test_type_data[:nlims_code] || test_type_data['nlims_code']
-      name = test_type_data[:name] || test_type_data['name']
-      preferred_name = test_type_data[:preferred_name] || test_type_data['preferred_name']
 
-      test_type = nil
-      test_type = TestType.find_by(nlims_code: nlims_code) if nlims_code.present?
-      test_type ||= TestType.find_by(name: name) if name.present?
-      test_type ||= TestType.find_by(preferred_name: preferred_name) if preferred_name.present?
+      return nil if nlims_code.blank?
 
-      test_type
+      TestType.find_by(nlims_code: nlims_code)
     end
 
-    def find_test_indicator_by_nlims_code_or_name(measure_data)
+    def find_test_indicator_by_nlims_code(measure_data)
       nlims_code = measure_data[:nlims_code] || measure_data['nlims_code']
-      name = measure_data[:name] || measure_data['name']
-      preferred_name = measure_data[:preferred_name] || measure_data['preferred_name']
 
-      indicator = nil
-      indicator = TestIndicator.find_by(nlims_code: nlims_code) if nlims_code.present?
-      indicator ||= TestIndicator.find_by(name: name) if name.present?
-      indicator ||= TestIndicator.find_by(preferred_name: preferred_name) if preferred_name.present?
+      return nil if nlims_code.blank?
 
-      indicator
+      TestIndicator.find_by(nlims_code: nlims_code)
     end
 
     def raise_nlims_exception(order_data, tests_data)
       sample_type = order_data[:sample_type] || order_data['sample_type']
-      find_specimen_by_nlims_code_or_name(sample_type) # This will raise an error if specimen not found
+      find_specimen_by_nlims_code(sample_type) # This will raise an error if specimen not found
 
       tests_data.each do |test_data|
         test_type_data = test_data[:test_type] || test_data['test_type']
-        test_type = find_test_type_by_nlims_code_or_name(test_type_data)
+        test_type = find_test_type_by_nlims_code(test_type_data)
 
         if test_type.nil?
-          test_name = test_type_data[:name] || test_type_data['name'] || 'Unknown'
-          raise NlimsError, "Test type: #{test_name} from nlims not available in mlab"
+          nlims_code = test_type_data[:nlims_code] || test_type_data['nlims_code'] || 'Unknown'
+          raise NlimsError, "Test type with NLIMS code: #{nlims_code} from nlims not available in mlab"
         end
       end
     end
@@ -241,7 +226,7 @@ module Nlims
     def create_tests_from_nlims(order_id, tests_data, specimen_id, lab_location_id)
       tests_data.each do |test_data|
         test_type_data = test_data[:test_type] || test_data['test_type']
-        test_type = find_test_type_by_nlims_code_or_name(test_type_data)
+        test_type = find_test_type_by_nlims_code(test_type_data)
         test_panel = TestPanel.find_by(name: test_type.name) if test_type
 
         # Use lab_location_id directly as it's already an ID
@@ -307,7 +292,7 @@ module Nlims
         measure_data = result_data[:measure] || result_data['measure']
         result_info = result_data[:result] || result_data['result']
 
-        test_indicator = find_test_indicator_by_nlims_code_or_name(measure_data)
+        test_indicator = find_test_indicator_by_nlims_code(measure_data)
         next if test_indicator.nil?
 
         TestResult.create!(

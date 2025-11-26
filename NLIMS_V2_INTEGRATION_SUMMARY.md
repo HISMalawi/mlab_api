@@ -16,9 +16,9 @@ Updated the NLIMS remote service to handle the new payload structure from the fr
 
 ### 2. Enhanced Record Lookup Methods
 
-- `find_specimen_by_nlims_code_or_name`: Searches by nlims_code first, then name/preferred_name
-- `find_test_type_by_nlims_code_or_name`: Searches by nlims_code first, then name/preferred_name
-- `find_test_indicator_by_nlims_code_or_name`: Searches by nlims_code first, then name/preferred_name
+- `find_specimen_by_nlims_code`: Searches by nlims_code only (required)
+- `find_test_type_by_nlims_code`: Searches by nlims_code only (returns nil if not found)
+- `find_test_indicator_by_nlims_code`: Searches by nlims_code only (returns nil if not found)
 
 ### 3. Supporting Methods
 
@@ -92,11 +92,12 @@ The new method handles payloads with this structure:
 
 ## Key Improvements
 
-1. **NLIMS Code Priority**: All record lookups now prioritize `nlims_code` over name-based searches
+1. **NLIMS Code Only**: All record lookups now use `nlims_code` exclusively (no fallback to name-based searches)
 2. **Lab Location as ID**: `lab_location` is used directly as an ID (not searched by name)
 3. **Status Trail Processing**: Properly processes the status trail from test data
 4. **Test Results Processing**: Handles test results with proper indicator lookup
 5. **Robust Error Handling**: Validates all required records exist before processing
+6. **Method Renaming**: Methods renamed to reflect their nlims_code-only behavior
 
 ## Testing
 
