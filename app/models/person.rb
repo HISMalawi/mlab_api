@@ -4,6 +4,8 @@ require 'bantu_soundex'
 
 # person model
 class Person < VoidableRecord
+  after_create :set_soundex
+
   def self.search(search_term)
     search_term = search_term.gsub(/\s+/, '')
     where("CONCAT(first_name, middle_name, last_name) LIKE '%#{search_term}%'
@@ -28,5 +30,14 @@ class Person < VoidableRecord
 
   def self.sanitize_name_like(name)
     "#{ActiveRecord::Base.sanitize_sql_like(name)}%"
+  end
+
+  private
+
+  def set_soundex
+    update!(
+      first_name_soundex: first_name.soundex,
+      last_name_soundex: last_name.soundex
+    )
   end
 end
