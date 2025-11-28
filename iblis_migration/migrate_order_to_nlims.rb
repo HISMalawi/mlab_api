@@ -38,7 +38,7 @@ scope.in_batches(of: 500) do |batch|
   puts "Completed batch up to order ID #{batch.last.id}"
 end
 
-# orders = Order.where("created_date > '2025-05-30 00:00:00'")
+# orders = Order.where(id: Test.where("created_date > '2025-01-01'").pluck(:order_id).uniq)
 # orders.each do |order|
 #   next if UnsyncOrder.where(test_or_order_id: order.id, data_not_synced: 'new order').present?
 
