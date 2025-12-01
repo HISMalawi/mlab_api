@@ -452,5 +452,7 @@ p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
 puts 'Finished processing test catalog.'
 
 TestType.unscoped.where(can_be_ordered: false).each do |test_type|
+  preferred_name = test_type.preferred_name || test_type.name
+  test_type.update!(preferred_name:)
   test_type.update!(disabled: true)
 end

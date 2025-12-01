@@ -112,7 +112,7 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['order created successfully',
+          if response['error'] == false && ['order created successfully', 'order created successfuly',
                                             'order already available'].include?(response['message'])
             unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: 'new order',
                                              test_or_order_id: order_record&.id).first
@@ -170,7 +170,7 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['order updated successfully', 'order updated successfully'].include?(response['message'])
+          if response['error'] == false && ['order updated successfuly', 'order updated successfully'].include?(response['message'])
             unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                              test_or_order_id: order[:id]).first
             update_unsync_order(unsync_order)
