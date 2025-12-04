@@ -30,7 +30,9 @@ module Reports
                       hvs_analysed + hvs_organism + cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests +
                       serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism + fluids_analysed +
                       culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive +
-                      cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive
+                      cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive + total_cultures_done +
+                      total_cultures_with_growth + total_cultures_with_no_growth + total_cultures_with_mixed_growth +
+                      total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants + total_ast_done
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -94,7 +96,14 @@ module Reports
         'Other stool cultures',
         'Stool samples with organisms isolated on culture',
         'Urine culture',
-        'Urine culture Positive'
+        'Urine culture Positive',
+        'Total number of Cultures done',
+        'Total number of Cultures with growth',
+        'Total number of Cultures with no growth',
+        'Total number of Cultures with mixed growth (no predominant organism)',
+        'Total number of Cultures with growth of normal flora',
+        'Total number of Cultures with growth of contaminants',
+        'Total number of AST done'
       ].freeze
 
       def initialize_report_counts
@@ -115,7 +124,8 @@ module Reports
           REPORT_INDICATORS.each do |_indicator|
             @report[month_name][count.indicator.to_sym] = {
               count: count.total,
-              associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Microbiology')
+              # associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Microbiology')
+              associated_ids: SecureRandom.uuid
             }
           end
         end
@@ -1479,6 +1489,214 @@ module Reports
 
       def report_utils
         Reports::Moh::ReportUtils
+      end
+
+      def total_cultures_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_growth
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with growth' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('growth', 'Growth')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_no_growth
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with no growth' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('No growth', 'no growth')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_mixed_growth
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with mixed growth (no predominant organism)' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('Mixed growth; no predominant organism')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_growth_of_normal_flora
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with growth of normal flora' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('Growth of normal flora; no pathogens isolated')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_growth_of_contaminants
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with growth of contaminants' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('Growth of contaminants')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_ast_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of AST done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+              INNER JOIN
+            drug_susceptibilities ds ON ds.test_id = t.id AND ds.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('Growth', 'growth')
+              AND ds.zone IS NOT NULL
+              AND ds.zone NOT IN ('', '0')
+              AND ds.interpretation IS NOT NULL
+              AND ds.interpretation NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
       end
     end
   end
