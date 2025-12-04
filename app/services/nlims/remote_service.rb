@@ -237,7 +237,8 @@ module Nlims
             specimen_id:,
             order_id:,
             test_type_id: test_type.id,
-            lab_location_id: location_id
+            lab_location_id: location_id,
+            method_of_testing: test_type_data[:method_of_testing] || test_type_data['method_of_testing']
           )
 
           # Process status trail and results
