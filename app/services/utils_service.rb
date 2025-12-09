@@ -29,6 +29,37 @@ module UtilsService
     )&.id
   end
 
+  # Batch version of insert_drilldown for better performance
+  def self.insert_drilldown_batch(entries_with_departments)
+    return [] if entries_with_departments.empty?
+
+    timestamp = Time.current
+    user_id = User.current&.id || 1
+
+    # Pre-generate UUIDs so we can return them
+    uuids = entries_with_departments.map { SecureRandom.uuid }
+
+    records_to_insert = entries_with_departments.map.with_index do |entry, index|
+      {
+        id: uuids[index],
+        data: {
+          associated_ids: entry[:entry_ids][:associated_ids],
+          department: entry[:department]
+        }.to_json,
+        voided: 0,
+        creator: user_id,
+        created_date: timestamp,
+        updated_date: timestamp
+      }
+    end
+
+    # Bulk insert without returning (MySQL compatible)
+    DrilldownIdentifier.insert_all(records_to_insert)
+
+    # Return the pre-generated UUIDs
+    uuids
+  end
+
   def self.detailed_age(dob)
     today = Date.today
     return '0y 0m 0w 0d' if dob.nil? || dob > today
