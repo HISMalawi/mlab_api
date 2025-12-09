@@ -105,7 +105,11 @@ module Reports
         'Total number of Cultures with growth of normal flora',
         'Total number of Cultures with growth of contaminants',
         'Total number of Cultures with growth of Yeast Cells',
-        'Total number of AST done'
+        'Total number of AST done',
+        'E.Coli Isolated from CSF',
+        'Klebsiella Spp Isolated from CSF',
+        'Acinetobacter Spp Isolated from CSF',
+        'Proteus Spp Isolated from CSF'
       ].freeze
 
       def initialize_report_counts
@@ -1637,7 +1641,6 @@ module Reports
       end
 
       def total_cultures_with_growth_of_contaminants
-        
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
@@ -1716,6 +1719,51 @@ module Reports
             drug_susceptibilities ds ON ds.test_id = t.id AND ds.voided = 0
           WHERE
             t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('Growth', 'growth')
+              AND ds.zone IS NOT NULL
+              AND ds.zone NOT IN ('', '0')
+              AND ds.interpretation IS NOT NULL
+              AND ds.interpretation NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def csf_ast_organisms
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Escherichia coli', 'E.coli'], %w[NLIMS_ORG_0033_MWI])} THEN 'E.Coli Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Klebsiella oxytoca', 'Klebsiella ozaenae', 'Klebsiella pneumoniae', 'Klebsiella species'],
+                                                                 %w[NLIMS_ORG_0084_MWI NLIMS_ORG_0086_MWI NLIMS_ORG_0087_MWI NLIMS_ORG_0089_MWI])} THEN 'Klebsiella Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Acinetobacter baumanni / haemolyticus', 'Acinetobacter lwoffii', 'Acinetobacter species', 'Acinetobacter baumannii / haemolytlcus'],
+                                                                 %w[NLIMS_ORG_0019_MWI NLIMS_ORG_0020_MWI NLIMS_ORG_0021_MWI NLIMS_ORG_0031_MWI])} THEN 'Acinetobacter Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Proteus mirabilis', '	Proteus species', 'Proteus vulgaris'], %w[NLIMS_ORG_0162_MWI NLIMS_ORG_0164_MWI NLIMS_ORG_0166_MWI])} THEN 'Proteus Spp Isolated from CSF'
+                ELSE 'N/A'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT ds.id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+              INNER JOIN
+            drug_susceptibilities ds ON ds.test_id = t.id AND ds.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
