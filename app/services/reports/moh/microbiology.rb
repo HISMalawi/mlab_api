@@ -109,7 +109,8 @@ module Reports
         'E.Coli Isolated from CSF',
         'Klebsiella Spp Isolated from CSF',
         'Acinetobacter Spp Isolated from CSF',
-        'Proteus Spp Isolated from CSF'
+        'Proteus Spp Isolated from CSF',
+        'Salmonella Spp Isolated from CSF'
       ].freeze
 
       def initialize_report_counts
