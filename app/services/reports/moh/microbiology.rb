@@ -104,7 +104,7 @@ module Reports
         'Total number of Cultures with mixed growth (no predominant organism)',
         'Total number of Cultures with growth of normal flora',
         'Total number of Cultures with growth of contaminants',
-        'Total number of Cultures with growth of yeast cells',
+        'Total number of Cultures with growth of Yeast Cells',
         'Total number of AST done'
       ].freeze
 
