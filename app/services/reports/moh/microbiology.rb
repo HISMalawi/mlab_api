@@ -32,7 +32,8 @@ module Reports
                       culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive +
                       cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive + total_cultures_done +
                       total_cultures_with_growth + total_cultures_with_no_growth + total_cultures_with_mixed_growth +
-                      total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants + total_ast_done
+                      total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants +
+                      total_cultures_with_growth_of_yeast_cells + total_ast_done
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -103,6 +104,7 @@ module Reports
         'Total number of Cultures with mixed growth (no predominant organism)',
         'Total number of Cultures with growth of normal flora',
         'Total number of Cultures with growth of contaminants',
+        'Total number of Cultures with growth of yeast cells',
         'Total number of AST done'
       ].freeze
 
@@ -124,8 +126,7 @@ module Reports
           REPORT_INDICATORS.each do |_indicator|
             @report[month_name][count.indicator.to_sym] = {
               count: count.total,
-              # associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Microbiology')
-              associated_ids: SecureRandom.uuid
+              associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Microbiology')
             }
           end
         end
@@ -1636,6 +1637,7 @@ module Reports
       end
 
       def total_cultures_with_growth_of_contaminants
+        
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
@@ -1660,6 +1662,35 @@ module Reports
               AND tr.value IS NOT NULL
               AND tr.value NOT IN ('', '0')
               AND tr.value IN ('Growth of contaminants')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_growth_of_yeast_cells
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with growth of Yeast Cells' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value IN ('Growth of Yeast Cells')
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
