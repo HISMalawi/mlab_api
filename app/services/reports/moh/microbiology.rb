@@ -115,7 +115,9 @@ module Reports
         'Pseudomonas Spp Isolated from CSF',
         'Strept pneumoniae Isolated from CSF',
         'Enterococcus spp Isolated from CSF',
-        'Strep spp (A,B) Isolated from CSF'
+        'Strep spp (A,B) Isolated from CSF',
+        'Staphylcoccus Aureus Isolated from CSF',
+        'Neisseria spp Isolated from CSF'
       ].freeze
 
       def initialize_report_counts
@@ -1749,6 +1751,11 @@ module Reports
                 WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['ß-hemolytic streptococci', 'Streptococcus agalactiae', 'Streptococcus pyogenes'], %w[NLIMS_ORG_0153_MWI NLIMS_ORG_0007_MWI NLIMS_ORG_0140_MWI])} THEN 'Strep spp (A,B) Isolated from CSF'
                 WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Enterococcus casseliflavus', '	Enterococcus durans', 'Enterococcus faecalis', '	Enterococcus faecium', 'Enterococcus gallinarum', 'Enterococcus species'],
                                                                  %w[NLIMS_ORG_0120_MWI NLIMS_ORG_0122_MWI NLIMS_ORG_0124_MWI NLIMS_ORG_0126_MWI NLIMS_ORG_0127_MWI NLIMS_ORG_0129_MWI])} THEN 'Enterococcus spp Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Staphylcoccus aureus'], %w[NLIMS_ORG_0134_MWI])} THEN 'Staphylcoccus Aureus Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Neisseria meningitides', 'Neisseria gonorrhoeae', 'Neisseria lactamica', 'Neisseria meningitidis', 'Neisseria species'],
+                                                                 %w[NLIMS_ORG_0005_MWI NLIMS_ORG_0121_MWI NLIMS_ORG_0123_MWI NLIMS_ORG_0125_MWI NLIMS_ORG_0128_MWI])} THEN 'Neisseria spp Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Shigella species', 'Shigella boydii', 'Shigella dysenteriae', 'Shigella flexneri', 'Shigella sonnei'], %w[NLIMS_ORG_0133_MWI NLIMS_ORG_0212_MWI NLIMS_ORG_0213_MWI NLIMS_ORG_0214_MWI NLIMS_ORG_0215_MWI])} THEN 'Shigella spp Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Cryptococcus neoformans', 'Cryptococcus species'], %w[NLIMS_ORG_0106_MWI NLIMS_ORG_0108_MWI])} THEN 'Cryptococcal Spp Isolated from CSF'
                 ELSE 'N/A'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
