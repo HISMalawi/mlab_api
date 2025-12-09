@@ -1744,6 +1744,9 @@ module Reports
                 WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Acinetobacter baumanni / haemolyticus', 'Acinetobacter lwoffii', 'Acinetobacter species', 'Acinetobacter baumannii / haemolytlcus'],
                                                                  %w[NLIMS_ORG_0019_MWI NLIMS_ORG_0020_MWI NLIMS_ORG_0021_MWI NLIMS_ORG_0031_MWI])} THEN 'Acinetobacter Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Proteus mirabilis', '	Proteus species', 'Proteus vulgaris'], %w[NLIMS_ORG_0162_MWI NLIMS_ORG_0164_MWI NLIMS_ORG_0166_MWI])} THEN 'Proteus Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Salmonellae', 'Salmonella Arizonae', 'Salmonella Enteritidis', 'Salmonella Gallinarum', 'Salmonella paratyphi A', 'Salmonella paratyphi B', 'Salmonella paratyphi C',
+                                                                            'Salmonella pullorum', 'Salmonella species', 'Salmonella Typhi', 'Salmonella Typhimurium'],
+                                                                 %w[NLIMS_ORG_0010_MWI NLIMS_ORG_0188_MWI NLIMS_ORG_0190_MWI NLIMS_ORG_0192_MWI NLIMS_ORG_0196_MWI NLIMS_ORG_0199_MWI NLIMS_ORG_0201_MWI NLIMS_ORG_0203_MWI NLIMS_ORG_0205_MWI NLIMS_ORG_0206_MWI NLIMS_ORG_0207_MWI])} THEN 'Salmonella Spp Isolated from CSF'
                 ELSE 'N/A'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
