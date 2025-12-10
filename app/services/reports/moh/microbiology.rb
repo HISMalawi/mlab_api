@@ -34,7 +34,7 @@ module Reports
                       cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive + total_cultures_done +
                       total_cultures_with_growth + total_cultures_with_no_growth + total_cultures_with_mixed_growth +
                       total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants +
-                      total_cultures_with_growth_of_yeast_cells + total_ast_done
+                      total_cultures_with_growth_of_yeast_cells + total_ast_done + csf_ast_organisms
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -117,7 +117,9 @@ module Reports
         'Enterococcus spp Isolated from CSF',
         'Strep spp (A,B) Isolated from CSF',
         'Staphylcoccus Aureus Isolated from CSF',
-        'Neisseria spp Isolated from CSF'
+        'Neisseria spp Isolated from CSF',
+        'Cryptococcal Spp Isolated from CSF',
+        'Other Spp Isolated from CSF'
       ].freeze
 
       def initialize_report_counts
@@ -1737,29 +1739,23 @@ module Reports
         Report.find_by_sql <<~SQL
           SELECT
             CASE
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Escherichia coli', 'E.coli'], %w[NLIMS_ORG_0033_MWI])} THEN 'E.Coli Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Klebsiella oxytoca', 'Klebsiella ozaenae', 'Klebsiella pneumoniae', 'Klebsiella species'],
-                                                                 %w[NLIMS_ORG_0084_MWI NLIMS_ORG_0086_MWI NLIMS_ORG_0087_MWI NLIMS_ORG_0089_MWI])} THEN 'Klebsiella Spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Acinetobacter baumanni / haemolyticus', 'Acinetobacter lwoffii', 'Acinetobacter species', 'Acinetobacter baumannii / haemolytlcus'],
-                                                                 %w[NLIMS_ORG_0019_MWI NLIMS_ORG_0020_MWI NLIMS_ORG_0021_MWI NLIMS_ORG_0031_MWI])} THEN 'Acinetobacter Spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Proteus mirabilis', '	Proteus species', 'Proteus vulgaris'], %w[NLIMS_ORG_0162_MWI NLIMS_ORG_0164_MWI NLIMS_ORG_0166_MWI])} THEN 'Proteus Spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Salmonellae', 'Salmonella Arizonae', 'Salmonella Enteritidis', 'Salmonella Gallinarum', 'Salmonella paratyphi A', 'Salmonella paratyphi B', 'Salmonella paratyphi C',
-                                                                            'Salmonella pullorum', 'Salmonella species', 'Salmonella Typhi', 'Salmonella Typhimurium'],
-                                                                 %w[NLIMS_ORG_0010_MWI NLIMS_ORG_0188_MWI NLIMS_ORG_0190_MWI NLIMS_ORG_0192_MWI NLIMS_ORG_0196_MWI NLIMS_ORG_0199_MWI NLIMS_ORG_0201_MWI NLIMS_ORG_0203_MWI NLIMS_ORG_0205_MWI NLIMS_ORG_0206_MWI NLIMS_ORG_0207_MWI])} THEN 'Salmonella Spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Pseudomonas', 'Pseudomonas aeruginosa', 'Pseudomonas psudomallei', 'Pseudomonas species'], %w[NLIMS_ORG_0011_MWI NLIMS_ORG_0004_MWI NLIMS_ORG_0175_MWI NLIMS_ORG_0177_MWI])} THEN 'Pseudomonas Spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['	Streptococcus pneumoniae', 'S.pneumoniae'], %w[NLIMS_ORG_0003_MWI NLIMS_ORG_0008_MWI])} THEN 'Strept pneumoniae Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['ß-hemolytic streptococci', 'Streptococcus agalactiae', 'Streptococcus pyogenes'], %w[NLIMS_ORG_0153_MWI NLIMS_ORG_0007_MWI NLIMS_ORG_0140_MWI])} THEN 'Strep spp (A,B) Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Enterococcus casseliflavus', '	Enterococcus durans', 'Enterococcus faecalis', '	Enterococcus faecium', 'Enterococcus gallinarum', 'Enterococcus species'],
-                                                                 %w[NLIMS_ORG_0120_MWI NLIMS_ORG_0122_MWI NLIMS_ORG_0124_MWI NLIMS_ORG_0126_MWI NLIMS_ORG_0127_MWI NLIMS_ORG_0129_MWI])} THEN 'Enterococcus spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Staphylcoccus aureus'], %w[NLIMS_ORG_0134_MWI])} THEN 'Staphylcoccus Aureus Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Neisseria meningitides', 'Neisseria gonorrhoeae', 'Neisseria lactamica', 'Neisseria meningitidis', 'Neisseria species'],
-                                                                 %w[NLIMS_ORG_0005_MWI NLIMS_ORG_0121_MWI NLIMS_ORG_0123_MWI NLIMS_ORG_0125_MWI NLIMS_ORG_0128_MWI])} THEN 'Neisseria spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Shigella species', 'Shigella boydii', 'Shigella dysenteriae', 'Shigella flexneri', 'Shigella sonnei'], %w[NLIMS_ORG_0133_MWI NLIMS_ORG_0212_MWI NLIMS_ORG_0213_MWI NLIMS_ORG_0214_MWI NLIMS_ORG_0215_MWI])} THEN 'Shigella spp Isolated from CSF'
-                WHEN ds.organism_id IN #{GlobalService.fetch_ids(Organism, ['Cryptococcus neoformans', 'Cryptococcus species'], %w[NLIMS_ORG_0106_MWI NLIMS_ORG_0108_MWI])} THEN 'Cryptococcal Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{csf} THEN 'E.Coli Isolated from CSF'
+                WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{csf} THEN 'Klebsiella Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{csf} THEN 'Acinetobacter Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{csf} THEN 'Proteus Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{csf} THEN 'Salmonella Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{csf} THEN 'Pseudomonas Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{csf} THEN 'Strept pneumoniae Isolated from CSF'
+                WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{csf} THEN 'Strep spp (A,B) Isolated from CSF'
+                WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{csf} THEN 'Enterococcus spp Isolated from CSF'
+                WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{csf} THEN 'Staphylcoccus Aureus Isolated from CSF'
+                WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{csf} THEN 'Neisseria spp Isolated from CSF'
+                WHEN ds.organism_id IN #{cryptococcus_spp} AND t.specimen_id IN #{csf} THEN 'Cryptococcal Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{csf} THEN 'Other Spp Isolated from CSF'
                 ELSE 'N/A'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
-            COUNT(DISTINCT ds.id) AS total,
+            COUNT(DISTINCT t.id) AS total,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
             tests t
@@ -1775,7 +1771,6 @@ module Reports
             drug_susceptibilities ds ON ds.test_id = t.id AND ds.voided = 0
           WHERE
             t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
-            t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
@@ -1786,8 +1781,84 @@ module Reports
               AND ds.zone NOT IN ('', '0')
               AND ds.interpretation IS NOT NULL
               AND ds.interpretation NOT IN ('', '0')
-          GROUP BY MONTHNAME(t.created_date)
+          GROUP BY MONTHNAME(t.created_date), indicator
         SQL
+      end
+
+      def csf
+        GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])
+      end
+
+      def e_coli
+        GlobalService.fetch_ids(Organism, ['Escherichia coli', 'E.coli'], %w[NLIMS_ORG_0033_MWI])
+      end
+
+      def klebsiella_spp
+        GlobalService.fetch_ids(Organism, ['Klebsiella oxytoca', 'Klebsiella ozaenae', 'Klebsiella pneumoniae', 'Klebsiella species'],
+                                %w[NLIMS_ORG_0084_MWI NLIMS_ORG_0086_MWI NLIMS_ORG_0087_MWI NLIMS_ORG_0089_MWI])
+      end
+
+      def acinetobacter_spp
+        GlobalService.fetch_ids(Organism, ['Acinetobacter baumanni / haemolyticus', 'Acinetobacter lwoffii', 'Acinetobacter species', 'Acinetobacter baumannii / haemolytlcus'],
+                                %w[NLIMS_ORG_0019_MWI NLIMS_ORG_0020_MWI NLIMS_ORG_0021_MWI NLIMS_ORG_0031_MWI])
+      end
+
+      def proteus_spp
+        GlobalService.fetch_ids(Organism, ['Proteus mirabilis', '	Proteus species', 'Proteus vulgaris'],
+                                %w[NLIMS_ORG_0162_MWI NLIMS_ORG_0164_MWI NLIMS_ORG_0166_MWI])
+      end
+
+      def salmonella_spp
+        GlobalService.fetch_ids(Organism, ['Salmonellae', 'Salmonella Arizonae', 'Salmonella Enteritidis', 'Salmonella Gallinarum', 'Salmonella paratyphi A', 'Salmonella paratyphi B', 'Salmonella paratyphi C',
+                                           'Salmonella pullorum', 'Salmonella species', 'Salmonella Typhi', 'Salmonella Typhimurium'],
+                                %w[NLIMS_ORG_0010_MWI NLIMS_ORG_0188_MWI NLIMS_ORG_0190_MWI NLIMS_ORG_0192_MWI NLIMS_ORG_0196_MWI NLIMS_ORG_0199_MWI NLIMS_ORG_0201_MWI NLIMS_ORG_0203_MWI NLIMS_ORG_0205_MWI NLIMS_ORG_0206_MWI NLIMS_ORG_0207_MWI])
+      end
+
+      def pseudomonas_spp
+        GlobalService.fetch_ids(Organism,
+                                ['Pseudomonas', 'Pseudomonas aeruginosa', 'Pseudomonas psudomallei', 'Pseudomonas species'], %w[NLIMS_ORG_0011_MWI NLIMS_ORG_0004_MWI NLIMS_ORG_0175_MWI NLIMS_ORG_0177_MWI])
+      end
+
+      def strept_pneumoniae
+        GlobalService.fetch_ids(Organism, ['Streptococcus pneumoniae', 'S.pneumoniae'],
+                                %w[NLIMS_ORG_0003_MWI NLIMS_ORG_0008_MWI])
+      end
+
+      def strept_a_b
+        GlobalService.fetch_ids(Organism,
+                                ['ß-hemolytic streptococci', 'Streptococcus agalactiae', 'Streptococcus pyogenes'], %w[NLIMS_ORG_0153_MWI NLIMS_ORG_0007_MWI NLIMS_ORG_0140_MWI])
+      end
+
+      def enterococcus_spp
+        GlobalService.fetch_ids(Organism, ['Enterococcus casseliflavus', '	Enterococcus durans', 'Enterococcus faecalis', '	Enterococcus faecium', 'Enterococcus gallinarum', 'Enterococcus species'],
+                                %w[NLIMS_ORG_0120_MWI NLIMS_ORG_0122_MWI NLIMS_ORG_0124_MWI NLIMS_ORG_0126_MWI NLIMS_ORG_0127_MWI NLIMS_ORG_0129_MWI])
+      end
+
+      def staphylococcus_aureus
+        GlobalService.fetch_ids(Organism, ['Staphylcoccus aureus'], %w[NLIMS_ORG_0134_MWI])
+      end
+
+      def neisseria_spp
+        GlobalService.fetch_ids(Organism, ['Neisseria meningitides', 'Neisseria gonorrhoeae', 'Neisseria lactamica', 'Neisseria meningitidis', 'Neisseria species'],
+                                %w[NLIMS_ORG_0005_MWI NLIMS_ORG_0121_MWI NLIMS_ORG_0123_MWI NLIMS_ORG_0125_MWI NLIMS_ORG_0128_MWI])
+      end
+
+      def shigella_spp
+        GlobalService.fetch_ids(Organism,
+                                ['Shigella species', 'Shigella boydii', 'Shigella dysenteriae', 'Shigella flexneri', 'Shigella sonnei'], %w[NLIMS_ORG_0133_MWI NLIMS_ORG_0212_MWI NLIMS_ORG_0213_MWI NLIMS_ORG_0214_MWI NLIMS_ORG_0215_MWI])
+      end
+
+      def cryptococcus_spp
+        GlobalService.fetch_ids(Organism, ['Cryptococcus neoformans', 'Cryptococcus species'],
+                                %w[NLIMS_ORG_0106_MWI NLIMS_ORG_0108_MWI])
+      end
+
+      def other_spp
+        spp = e_coli + klebsiella_spp + acinetobacter_spp + proteus_spp + salmonella_spp + pseudomonas_spp + strept_pneumoniae +
+              strept_a_b + enterococcus_spp + staphylococcus_aureus + neisseria_spp + shigella_spp + cryptococcus_spp
+        spp_ids = spp.gsub(/[()]/, '').split(',').map { |n| n.strip.to_i }
+        other_orgs = Organism.where.not(id: spp_ids)
+        GlobalService.fetch_ids(Organism, other_orgs.pluck(:name), other_orgs.pluck(:nlims_code))
       end
     end
   end
