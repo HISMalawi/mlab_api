@@ -34,7 +34,7 @@ module Reports
                       cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive + total_cultures_done +
                       total_cultures_with_growth + total_cultures_with_no_growth + total_cultures_with_mixed_growth +
                       total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants +
-                      total_cultures_with_growth_of_yeast_cells + total_ast_done + csf_ast_organisms
+                      total_cultures_with_growth_of_yeast_cells + total_ast_done + csf_ast_organisms + tb_tests_done
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
@@ -214,7 +214,15 @@ module Reports
         'Other Spp Isolated from Pus',
         'Other Spp Isolated from HVS',
         'Other Spp Isolated from Stool',
-        'Other Spp Isolated from Other Samples'
+        'Other Spp Isolated from Other Samples',
+
+        'TB Tests done on CSF',
+        'TB Tests done on other sterile fluids except CSF',
+        'TB Tests done on Urine',
+        'TB Tests done on Pus',
+        'TB Tests done on Stool',
+        'TB Tests done on Sputum',
+        'TB Tests done on Other TB Samples'
       ].freeze
 
       def initialize_report_counts
@@ -1976,6 +1984,44 @@ module Reports
         SQL
       end
 
+      def tb_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            CASE
+                WHEN t.specimen_id IN #{csf} THEN 'TB Tests done on CSF'
+                WHEN t.specimen_id IN #{non_csf_fluids} THEN 'TB Tests done on other sterile fluids except CSF'
+                WHEN t.specimen_id IN #{urine} THEN 'TB Tests done on Urine'
+                WHEN t.specimen_id IN #{pus} THEN 'TB Tests done on Pus'
+                WHEN t.specimen_id IN #{stool} THEN 'TB Tests done on Stool'
+                WHEN t.specimen_id IN #{sputum} THEN 'TB Tests done on Sputum'
+                WHEN t.specimen_id IN #{other_tb_samples} THEN 'TB Tests done on Other TB Samples'
+                ELSE 'N/A'
+            END AS indicator,
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], %w[NLIMS_TT_0010_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+          GROUP BY MONTHNAME(t.created_date), indicator
+        SQL
+      end
+
       def non_csf_fluids
         GlobalService.fetch_ids(Specimen, ['Ascitic Fluid', 'Fluid Aspirate', 'Oral Fluid', 'Pericardial Fluid', 'Peritoneal Fluid', 'Pleural Fluid', 'Synovial Fluid'],
                                 %w[NLIMS_SP_0005_MWI NLIMS_SP_0025_MWI NLIMS_SP_0047_MWI NLIMS_SP_0006_MWI NLIMS_SP_0007_MWI NLIMS_SP_0004_MWI NLIMS_SP_0016_MWI])
@@ -2003,6 +2049,17 @@ module Reports
 
       def stool
         GlobalService.fetch_ids(Specimen, ['Stool'], %w[NLIMS_SP_0011_MWI])
+      end
+
+      def sputum
+        GlobalService.fetch_ids(Specimen, ['Sputum'], %w[NLIMS_SP_0001_MWI])
+      end
+
+      def other_tb_samples
+        other_sp = csf + non_csf_fluids + urine + blood + pus + hvs + stool + sputum
+        other_sp_ids = other_sp.gsub(/[()]/, '').split(',').map { |n| n.strip.to_i }
+        other_specimens = Specimen.where.not(id: other_sp_ids)
+        GlobalService.fetch_ids(Specimen, other_specimens.pluck(:name), other_specimens.pluck(:nlims_code))
       end
 
       def other_samples
