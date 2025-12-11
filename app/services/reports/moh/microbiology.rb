@@ -108,18 +108,55 @@ module Reports
         'Total number of Cultures with growth of Yeast Cells',
         'Total number of AST done',
         'E.Coli Isolated from CSF',
+        'E.Coli Isolated from other sterile fluids except CSF',
+        'E.Coli Isolated from Urine',
+
         'Klebsiella Spp Isolated from CSF',
+        'Klebsiella Spp Isolated from other sterile fluids except CSF',
+        'Klebsiella Spp Isolated from Urine',
+
         'Acinetobacter Spp Isolated from CSF',
+        'Acinetobacter Spp Isolated from other sterile fluids except CSF',
+        'Acinetobacter Spp Isolated from Urine',
+
         'Proteus Spp Isolated from CSF',
+        'Proteus Spp Isolated from other sterile fluids except CSF',
+        'Proteus Spp Isolated from Urine',
+
         'Salmonella Spp Isolated from CSF',
+        'Salmonella Spp Isolated from other sterile fluids except CSF',
+        'Salmonella Spp Isolated from Urine',
+
         'Pseudomonas Spp Isolated from CSF',
+        'Pseudomonas Spp Isolated from other sterile fluids except CSF',
+        'Pseudomonas Spp Isolated from Urine',
+
         'Strept pneumoniae Isolated from CSF',
+        'Strept pneumoniae Isolated from other sterile fluids except CSF',
+        'Strept pneumoniae Isolated from Urine',
+
         'Enterococcus spp Isolated from CSF',
+        'Enterococcus spp Isolated from other sterile fluids except CSF',
+        'Enterococcus spp Isolated from Urine',
+
         'Strep spp (A,B) Isolated from CSF',
+        'Strep spp (A,B) Isolated from other sterile fluids except CSF',
+        'Strep spp (A,B) Isolated from Urine',
+
         'Staphylcoccus Aureus Isolated from CSF',
+        'Staphylcoccus Aureus Isolated from other sterile fluids except CSF',
+        'Staphylcoccus Aureus Isolated from Urine',
+
         'Neisseria spp Isolated from CSF',
+        'Neisseria spp Isolated from other sterile fluids except CSF',
+        'Neisseria spp Isolated from Urine',
+
         'Cryptococcal Spp Isolated from CSF',
-        'Other Spp Isolated from CSF'
+        'Cryptococcal Spp Isolated from other sterile fluids except CSF',
+
+        'Other Spp Isolated from CSF',
+        'Other Spp Isolated from other sterile fluids except CSF',
+        'Other Spp Isolated from Urine'
       ].freeze
 
       def initialize_report_counts
@@ -1740,18 +1777,56 @@ module Reports
           SELECT
             CASE
                 WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{csf} THEN 'E.Coli Isolated from CSF'
+                WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{non_csf_fluids} THEN 'E.Coli Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{urine} THEN 'E.Coli Isolated from Urine'
+
                 WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{csf} THEN 'Klebsiella Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Klebsiella Spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{urine} THEN 'Klebsiella Spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{csf} THEN 'Acinetobacter Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Acinetobacter Spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{urine} THEN 'Acinetobacter Spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{csf} THEN 'Proteus Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Proteus Spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{urine} THEN 'Proteus Spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{csf} THEN 'Salmonella Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Salmonella Spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{urine} THEN 'Salmonella Spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{csf} THEN 'Pseudomonas Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Pseudomonas Spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{urine} THEN 'Pseudomonas Spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{csf} THEN 'Strept pneumoniae Isolated from CSF'
+                WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{non_csf_fluids} THEN 'Strept pneumoniae Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{urine} THEN 'Strept pneumoniae Isolated from Urine'
+
                 WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{csf} THEN 'Strep spp (A,B) Isolated from CSF'
+                WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{non_csf_fluids} THEN 'Strep spp (A,B) Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{urine} THEN 'Strep spp (A,B) Isolated from Urine'
+
                 WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{csf} THEN 'Enterococcus spp Isolated from CSF'
+                WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Enterococcus spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{urine} THEN 'Enterococcus spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{csf} THEN 'Staphylcoccus Aureus Isolated from CSF'
+                WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{non_csf_fluids} THEN 'Staphylcoccus Aureus Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{urine} THEN 'Staphylcoccus Aureus Isolated from Urine'
+
                 WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{csf} THEN 'Neisseria spp Isolated from CSF'
+                WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Neisseria spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{urine} THEN 'Neisseria spp Isolated from Urine'
+
                 WHEN ds.organism_id IN #{cryptococcus_spp} AND t.specimen_id IN #{csf} THEN 'Cryptococcal Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{cryptococcus_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Cryptococcal Spp Isolated from other sterile fluids except CSF'
+
                 WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{csf} THEN 'Other Spp Isolated from CSF'
+                WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Other Spp Isolated from other sterile fluids except CSF'
+                WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{urine} THEN 'Other Spp Isolated from Urine'
+
                 ELSE 'N/A'
             END AS indicator,
             MONTHNAME(t.created_date) AS month,
@@ -1785,8 +1860,21 @@ module Reports
         SQL
       end
 
+      def non_csf_fluids
+        GlobalService.fetch_ids(Specimen, ['Ascitic Fluid', 'Fluid Aspirate', 'Oral Fluid', 'Pericardial Fluid', 'Peritoneal Fluid', 'Pleural Fluid', 'Synovial Fluid'],
+                                %w[NLIMS_SP_0005_MWI NLIMS_SP_0025_MWI NLIMS_SP_0047_MWI NLIMS_SP_0006_MWI NLIMS_SP_0007_MWI NLIMS_SP_0004_MWI NLIMS_SP_0016_MWI])
+      end
+
       def csf
         GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])
+      end
+
+      def urine
+        GlobalService.fetch_ids(Specimen, ['Urine'], %w[NLIMS_SP_0012_MWI])
+      end
+
+      def blood
+        GlobalService.fetch_ids(Specimen, ['Blood', 'Venous Whole Blood'], %w[NLIMS_SP_0003_MWI])
       end
 
       def e_coli
