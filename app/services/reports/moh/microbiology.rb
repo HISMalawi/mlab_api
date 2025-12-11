@@ -114,6 +114,7 @@ module Reports
         'E.Coli Isolated from Pus',
         'E.Coli Isolated from HVS',
         'E.Coli Isolated from Stool',
+        'E.Coli Isolated from Other Samples',
 
         'Klebsiella Spp Isolated from CSF',
         'Klebsiella Spp Isolated from other sterile fluids except CSF',
@@ -121,6 +122,8 @@ module Reports
         'Klebsiella Spp Isolated from Blood',
         'Klebsiella Spp Isolated from Pus',
         'Klebsiella Spp Isolated from HVS',
+        'Klebsiella Spp Isolated from Stool',
+        'Klebsiella Spp Isolated from Other Samples',
 
         'Acinetobacter Spp Isolated from CSF',
         'Acinetobacter Spp Isolated from other sterile fluids except CSF',
@@ -129,6 +132,7 @@ module Reports
         'Acinetobacter Spp Isolated from Pus',
         'Acinetobacter Spp Isolated from HVS',
         'Acinetobacter Spp Isolated from Stool',
+        'Acinetobacter Spp Isolated from Other Samples',
 
         'Proteus Spp Isolated from CSF',
         'Proteus Spp Isolated from other sterile fluids except CSF',
@@ -136,6 +140,7 @@ module Reports
         'Proteus Spp Isolated from Blood',
         'Proteus Spp Isolated from Pus',
         'Proteus Spp Isolated from HVS',
+        'Proteus Spp Isolated from Other Samples',
 
         'Salmonella Spp Isolated from CSF',
         'Salmonella Spp Isolated from other sterile fluids except CSF',
@@ -144,6 +149,7 @@ module Reports
         'Salmonella Spp Isolated from Pus',
         'Salmonella Spp Isolated from HVS',
         'Salmonella Spp Isolated from Stool',
+        'Salmonella Spp Isolated from Other Samples',
 
         'Pseudomonas Spp Isolated from CSF',
         'Pseudomonas Spp Isolated from other sterile fluids except CSF',
@@ -159,6 +165,7 @@ module Reports
         'Strept pneumoniae Isolated from Blood',
         'Strept pneumoniae Isolated from Pus',
         'Strept pneumoniae Isolated from HVS',
+        'Strept pneumoniae Isolated from Other Samples',
 
         'Enterococcus spp Isolated from CSF',
         'Enterococcus spp Isolated from other sterile fluids except CSF',
@@ -166,6 +173,7 @@ module Reports
         'Enterococcus spp Isolated from Blood',
         'Enterococcus spp Isolated from Pus',
         'Enterococcus spp Isolated from HVS',
+        'Enterococcus spp Isolated from Other Samples',
 
         'Strep spp (A,B) Isolated from CSF',
         'Strep spp (A,B) Isolated from other sterile fluids except CSF',
@@ -174,6 +182,7 @@ module Reports
         'Strep spp (A,B) Isolated from Pus',
         'Strep spp (A,B) Isolated from HVS',
         'Strep spp (A,B) Isolated from Stool',
+        'Strep spp (A,B) Isolated from Other Samples',
 
         'Staphylcoccus Aureus Isolated from CSF',
         'Staphylcoccus Aureus Isolated from other sterile fluids except CSF',
@@ -181,6 +190,7 @@ module Reports
         'Staphylcoccus Aureus Isolated from Blood',
         'Staphylcoccus Aureus Isolated from Pus',
         'Staphylcoccus Aureus Isolated from HVS',
+        'Staphylcoccus Aureus Isolated from Other Samples',
 
         'Neisseria spp Isolated from CSF',
         'Neisseria spp Isolated from other sterile fluids except CSF',
@@ -188,12 +198,14 @@ module Reports
         'Neisseria spp Isolated from Blood',
         'Neisseria spp Isolated from Pus',
         'Neisseria spp Isolated from HVS',
+        'Staphylcoccus Aureus Isolated from Other Samples',
 
         'Cryptococcal Spp Isolated from CSF',
         'Cryptococcal Spp Isolated from other sterile fluids except CSF',
 
         'Shigella Spp Isolated from Blood',
         'Shigella Spp Isolated from Stool',
+        'Shigella Spp Isolated from Other Samples',
 
         'Other Spp Isolated from CSF',
         'Other Spp Isolated from other sterile fluids except CSF',
@@ -201,7 +213,8 @@ module Reports
         'Other Spp Isolated from Blood',
         'Other Spp Isolated from Pus',
         'Other Spp Isolated from HVS',
-        'Other Spp Isolated from Stool'
+        'Other Spp Isolated from Stool',
+        'Other Spp Isolated from Other Samples'
       ].freeze
 
       def initialize_report_counts
@@ -1828,6 +1841,7 @@ module Reports
                 WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{pus} THEN 'E.Coli Isolated from Pus'
                 WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{hvs} THEN 'E.Coli Isolated from HVS'
                 WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{stool} THEN 'E.Coli Isolated from Stool'
+                WHEN ds.organism_id IN #{e_coli} AND t.specimen_id IN #{other_samples} THEN 'E.Coli Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{csf} THEN 'Klebsiella Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Klebsiella Spp Isolated from other sterile fluids except CSF'
@@ -1835,6 +1849,7 @@ module Reports
                 WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{blood} THEN 'Klebsiella Spp Isolated from Blood'
                 WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{pus} THEN 'Klebsiella Spp Isolated from Pus'
                 WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{hvs} THEN 'Klebsiella Spp Isolated from HVS'
+                WHEN ds.organism_id IN #{klebsiella_spp} AND t.specimen_id IN #{other_samples} THEN 'Klebsiella Spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{csf} THEN 'Acinetobacter Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Acinetobacter Spp Isolated from other sterile fluids except CSF'
@@ -1843,6 +1858,7 @@ module Reports
                 WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{pus} THEN 'Acinetobacter Spp Isolated from Pus'
                 WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{hvs} THEN 'Acinetobacter Spp Isolated from HVS'
                 WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{stool} THEN 'Acinetobacter Spp Isolated from Stool'
+                WHEN ds.organism_id IN #{acinetobacter_spp} AND t.specimen_id IN #{other_samples} THEN 'Acinetobacter Spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{csf} THEN 'Proteus Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Proteus Spp Isolated from other sterile fluids except CSF'
@@ -1850,6 +1866,7 @@ module Reports
                 WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{blood} THEN 'Proteus Spp Isolated from Blood'
                 WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{pus} THEN 'Proteus Spp Isolated from Pus'
                 WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{hvs} THEN 'Proteus Spp Isolated from HVS'
+                WHEN ds.organism_id IN #{proteus_spp} AND t.specimen_id IN #{other_samples} THEN 'Proteus Spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{csf} THEN 'Salmonella Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Salmonella Spp Isolated from other sterile fluids except CSF'
@@ -1858,6 +1875,7 @@ module Reports
                 WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{pus} THEN 'Salmonella Spp Isolated from Pus'
                 WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{hvs} THEN 'Salmonella Spp Isolated from HVS'
                 WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{stool} THEN 'Salmonella Spp Isolated from Stool'
+                WHEN ds.organism_id IN #{salmonella_spp} AND t.specimen_id IN #{other_samples} THEN 'Salmonella Spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{csf} THEN 'Pseudomonas Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Pseudomonas Spp Isolated from other sterile fluids except CSF'
@@ -1866,6 +1884,7 @@ module Reports
                 WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{pus} THEN 'Pseudomonas Spp Isolated from Pus'
                 WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{hvs} THEN 'Pseudomonas Spp Isolated from HVS'
                 WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{stool} THEN 'Pseudomonas Spp Isolated from Stool'
+                WHEN ds.organism_id IN #{pseudomonas_spp} AND t.specimen_id IN #{other_samples} THEN 'Pseudomonas Spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{csf} THEN 'Strept pneumoniae Isolated from CSF'
                 WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{non_csf_fluids} THEN 'Strept pneumoniae Isolated from other sterile fluids except CSF'
@@ -1873,6 +1892,7 @@ module Reports
                 WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{blood} THEN 'Strept pneumoniae Isolated from Blood'
                 WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{pus} THEN 'Strept pneumoniae Isolated from Pus'
                 WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{hvs} THEN 'Strept pneumoniae Isolated from HVS'
+                WHEN ds.organism_id IN #{strept_pneumoniae} AND t.specimen_id IN #{other_samples} THEN 'Strept pneumoniae Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{csf} THEN 'Strep spp (A,B) Isolated from CSF'
                 WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{non_csf_fluids} THEN 'Strep spp (A,B) Isolated from other sterile fluids except CSF'
@@ -1881,6 +1901,7 @@ module Reports
                 WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{pus} THEN 'Strep spp (A,B) Isolated from Pus'
                 WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{hvs} THEN 'Strep spp (A,B) Isolated from HVS'
                 WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{stool} THEN 'Strep spp (A,B) Isolated from Stool'
+                WHEN ds.organism_id IN #{strept_a_b} AND t.specimen_id IN #{other_samples} THEN 'Strep spp (A,B) Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{csf} THEN 'Enterococcus spp Isolated from CSF'
                 WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Enterococcus spp Isolated from other sterile fluids except CSF'
@@ -1888,6 +1909,7 @@ module Reports
                 WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{blood} THEN 'Enterococcus spp Isolated from Blood'
                 WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{pus} THEN 'Enterococcus spp Isolated from Pus'
                 WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{hvs} THEN 'Enterococcus spp Isolated from HVS'
+                WHEN ds.organism_id IN #{enterococcus_spp} AND t.specimen_id IN #{other_samples} THEN 'Enterococcus spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{csf} THEN 'Staphylcoccus Aureus Isolated from CSF'
                 WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{non_csf_fluids} THEN 'Staphylcoccus Aureus Isolated from other sterile fluids except CSF'
@@ -1895,6 +1917,7 @@ module Reports
                 WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{blood} THEN 'Staphylcoccus Aureus Isolated from Blood'
                 WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{pus} THEN 'Staphylcoccus Aureus Isolated from Pus'
                 WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{hvs} THEN 'Staphylcoccus Aureus Isolated from HVS'
+                WHEN ds.organism_id IN #{staphylococcus_aureus} AND t.specimen_id IN #{other_samples} THEN 'Staphylcoccus Aureus Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{csf} THEN 'Neisseria spp Isolated from CSF'
                 WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Neisseria spp Isolated from other sterile fluids except CSF'
@@ -1902,12 +1925,14 @@ module Reports
                 WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{blood} THEN 'Neisseria spp Isolated from Blood'
                 WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{pus} THEN 'Neisseria spp Isolated from Pus'
                 WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{hvs} THEN 'Neisseria spp Isolated from HVS'
+                WHEN ds.organism_id IN #{neisseria_spp} AND t.specimen_id IN #{other_samples} THEN 'Neisseria spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{cryptococcus_spp} AND t.specimen_id IN #{csf} THEN 'Cryptococcal Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{cryptococcus_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Cryptococcal Spp Isolated from other sterile fluids except CSF'
 
                 WHEN ds.organism_id IN #{shigella_spp} AND t.specimen_id IN #{blood} THEN 'Shigella Spp Isolated from Blood'
                 WHEN ds.organism_id IN #{shigella_spp} AND t.specimen_id IN #{stool} THEN 'Shigella Spp Isolated from Stool'
+                WHEN ds.organism_id IN #{shigella_spp} AND t.specimen_id IN #{other_samples} THEN 'Shigella Spp Isolated from Other Samples'
 
                 WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{csf} THEN 'Other Spp Isolated from CSF'
                 WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{non_csf_fluids} THEN 'Other Spp Isolated from other sterile fluids except CSF'
@@ -1916,6 +1941,7 @@ module Reports
                 WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{pus} THEN 'Other Spp Isolated from Pus'
                 WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{hvs} THEN 'Other Spp Isolated from HVS'
                 WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{stool} THEN 'Other Spp Isolated from Stool'
+                WHEN ds.organism_id IN #{other_spp} AND t.specimen_id IN #{other_samples} THEN 'Other Spp Isolated from Other Samples'
 
                 ELSE 'N/A'
             END AS indicator,
@@ -1977,6 +2003,13 @@ module Reports
 
       def stool
         GlobalService.fetch_ids(Specimen, ['Stool'], %w[NLIMS_SP_0011_MWI])
+      end
+
+      def other_samples
+        other_sp = csf + non_csf_fluids + urine + blood + pus + hvs + stool
+        other_sp_ids = other_sp.gsub(/[()]/, '').split(',').map { |n| n.strip.to_i }
+        other_specimens = Specimen.where.not(id: other_sp_ids)
+        GlobalService.fetch_ids(Specimen, other_specimens.pluck(:name), other_specimens.pluck(:nlims_code))
       end
 
       def e_coli
