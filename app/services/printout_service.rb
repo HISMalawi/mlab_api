@@ -10,11 +10,12 @@ module PrintoutService
 
     def barcode_label(person, order, is_accession_number = true)
       tests = order.tests.map do |test_|
-        if test_.short_name.blank?
-          GlobalService.display_name(test_.test_type.name, test_.test_type.preferred_name)
-        else
-          test_.short_name
-        end
+        test_name = if test_.short_name.blank?
+                      GlobalService.display_name(test_.test_type.name, test_.test_type.preferred_name)
+                    else
+                      test_.short_name
+                    end
+        test_.method_of_testing.nil? ? test_name : "#{test_name}(#{test_.method_of_testing})"
       end
       priority = order&.priority&.name
       priority = priority.downcase == 'stat' ? " #{priority}  " : priority
