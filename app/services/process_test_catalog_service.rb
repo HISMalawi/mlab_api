@@ -175,6 +175,19 @@ class ProcessTestCatalogService
       create_or_update_test_indicator_ranges(item[:measure_ranges_attributes], indicator.id, test_type)
       indicator
     end
+     # voids removed indicators
+    existing_indicator_ids = test_indicators.map do |ti|
+      record = TestIndicator.find_by(nlims_code: ti[:nlims_code]) if ti[:nlims_code].present?
+      record ||= TestIndicator.find_by(scientific_name: ti[:scientific_name]) if ti[:scientific_name].present?
+      record ||= TestIndicator.find_by(name: ti[:name]&.strip)
+      record ||= TestIndicator.find_by(name: ti[:iblis_mapping_name]) if ti[:iblis_mapping_name].present?
+      record&.id
+    end.compact
+    test_type.test_type_test_indicators.each do |ttti|
+      next if existing_indicator_ids.include?(ttti.test_indicators_id)
+
+      ttti.void('Removed from test type')
+    end
   end
 
   def create_or_update_test_types(test_types)
