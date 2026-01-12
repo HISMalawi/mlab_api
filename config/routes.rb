@@ -159,6 +159,7 @@ Rails.application.routes.draw do
           get '/parasitology' => 'moh_reports#parasitology'
           get '/microbiology' => 'moh_reports#microbiology'
           get '/serology' => 'moh_reports#serology'
+          get '/tb-report' => 'moh_reports#tb_report'
         end
       end
       resources :reports do

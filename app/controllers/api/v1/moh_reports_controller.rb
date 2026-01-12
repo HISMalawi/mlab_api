@@ -61,6 +61,14 @@ module Api
         render json: data
       end
 
+      def tb_report
+        data = Reports::ReportCacheService.find(@report_id)
+        data ||= Reports::ReportCacheService.create(
+          Reports::MohService.generate_tb_report(@year)
+        )
+        render json: data
+      end
+
       private
 
       def report_params
