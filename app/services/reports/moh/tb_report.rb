@@ -33,20 +33,20 @@ module Reports
 
       REPORT_INDICATORS = [
         'Total Number of cases',
-        'Total Number of Tests done',
-        '1+',
-        '2+',
-        '3+',
+        'Total Number of Microscopy Tests done',
+        'Microscopy 1+',
+        'Microscopy 2+',
+        'Microscopy 3+',
         'Pick-up rate',
         'Total Follow ups 2/3 months',
-        'Total Negative 2/3 months',
-        'Total Positive 2/3 months',
+        'Total Negative Microscopy 2/3 months',
+        'Total Positive Microscopy 2/3 months',
         'Total Follow ups 5 months',
-        'Total Negative 5 months',
-        'Total Positive 5 months',
+        'Total Negative Microscopy 5 months',
+        'Total Positive Microscopy 5 months',
         'Total Follow ups 6/7 months',
-        'Total Negative 6/7 months',
-        'Total Positive 6/7 months'
+        'Total Negative Microscopy 6/7 months',
+        'Total Positive Microscopy 6/7 months'
       ].freeze
 
       def initialize_report_counts
@@ -91,7 +91,7 @@ module Reports
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total,
-            'Total Number of Tests done' AS indicator,
+            'Total Number of Microscopy Tests done' AS indicator,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
@@ -122,7 +122,7 @@ module Reports
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total,
-            '1+' AS indicator,
+            'Microscopy 1+' AS indicator,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
@@ -152,7 +152,7 @@ module Reports
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total,
-            '2+' AS indicator,
+            'Microscopy 2+' AS indicator,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
@@ -182,7 +182,7 @@ module Reports
           SELECT
             MONTHNAME(t.created_date) AS month,
             COUNT(DISTINCT t.id) AS total,
-            '3+' AS indicator,
+            'Microscopy 3+' AS indicator,
             GROUP_CONCAT(DISTINCT t.id) AS associated_ids
           FROM
               tests t
@@ -241,7 +241,7 @@ module Reports
           SELECT
             MONTHNAME(t2.created_date) AS month,
             COUNT(DISTINCT t2.id) AS total,
-            'Total Negative 2/3 months' AS indicator,
+            'Total Negative Microscopy 2/3 months' AS indicator,
             GROUP_CONCAT(DISTINCT t2.id) AS associated_ids
           FROM
               tests t1
@@ -277,7 +277,7 @@ module Reports
           SELECT
             MONTHNAME(t2.created_date) AS month,
             COUNT(DISTINCT t2.id) AS total,
-            'Total Positive 2/3 months' AS indicator,
+            'Total Positive Microscopy 2/3 months' AS indicator,
             GROUP_CONCAT(DISTINCT t2.id) AS associated_ids
           FROM
               tests t1
@@ -342,7 +342,7 @@ module Reports
           SELECT
             MONTHNAME(t2.created_date) AS month,
             COUNT(DISTINCT t2.id) AS total,
-            'Total Negative 5 months' AS indicator,
+            'Total Negative Microscopy 5 months' AS indicator,
             GROUP_CONCAT(DISTINCT t2.id) AS associated_ids
           FROM
               tests t1
@@ -378,7 +378,7 @@ module Reports
           SELECT
             MONTHNAME(t2.created_date) AS month,
             COUNT(DISTINCT t2.id) AS total,
-            'Total Positive 5 months' AS indicator,
+            'Total Positive Microscopy 5 months' AS indicator,
             GROUP_CONCAT(DISTINCT t2.id) AS associated_ids
           FROM
               tests t1
@@ -443,7 +443,7 @@ module Reports
           SELECT
             MONTHNAME(t2.created_date) AS month,
             COUNT(DISTINCT t2.id) AS total,
-            'Total Negative 6/7 months' AS indicator,
+            'Total Negative Microscopy 6/7 months' AS indicator,
             GROUP_CONCAT(DISTINCT t2.id) AS associated_ids
           FROM
               tests t1
@@ -479,7 +479,7 @@ module Reports
           SELECT
             MONTHNAME(t2.created_date) AS month,
             COUNT(DISTINCT t2.id) AS total,
-            'Total Positive 6/7 months' AS indicator,
+            'Total Positive Microscopy 6/7 months' AS indicator,
             GROUP_CONCAT(DISTINCT t2.id) AS associated_ids
           FROM
               tests t1
