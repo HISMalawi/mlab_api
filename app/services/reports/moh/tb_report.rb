@@ -38,7 +38,8 @@ module Reports
                       genexpert_indeterminate + genexpert_total_errors + genexpert_no_results +
                       genexpert_xdr_total_tests_done + genexpert_xdr_total_negative + genexpert_xdr_total_positive +
                       genexpert_xdr_total_resistance_detected + genexpert_xdr_inh_resistance +
-                      genexpert_xdr_flq_resistance + genexpert_total_stool_tests_done
+                      genexpert_xdr_flq_resistance + genexpert_total_stool_tests_done +
+                      genexpert_stool_total_negative + genexpert_stool_total_positive
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'tb-report', year:).update(data:)
         data
@@ -99,7 +100,9 @@ module Reports
         'GeneXpert XDR Total Resistance Detected',
         'GeneXpert XDR INH Resistance',
         'GeneXpert XDR FLQ Resistance',
-        'GeneXpert Total stool tests done'
+        'GeneXpert Total stool tests done',
+        'GeneXpert Stool Total Negative',
+        'GeneXpert Stool Total Positive'
       ].freeze
 
       def initialize_report_counts
@@ -1744,6 +1747,63 @@ module Reports
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4, 5)
               AND t.voided = 0
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert Stool Total Negative
+      def genexpert_stool_total_negative
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert Stool Total Negative' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
+              AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Stool'], ['NLIMS_SP_0011_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%Not Detected%' OR tr.value LIKE '%Negative%')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert Stool Total Positive
+      def genexpert_stool_total_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert Stool Total Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
+              AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Stool'], ['NLIMS_SP_0011_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%Detected%' OR tr.value LIKE '%Positive%')
+              AND tr.value NOT LIKE '%Not Detected%'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
