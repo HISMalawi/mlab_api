@@ -35,7 +35,10 @@ module Reports
                       genexpert_mtb_not_detected_male + genexpert_mtb_not_detected_female + genexpert_mtb_not_detected_children +
                       genexpert_mtb_detected_male + genexpert_mtb_detected_female + genexpert_mtb_detected_children +
                       genexpert_rif_detected_male + genexpert_rif_detected_female + genexpert_rif_detected_children +
-                      genexpert_indeterminate + genexpert_total_errors + genexpert_no_results
+                      genexpert_indeterminate + genexpert_total_errors + genexpert_no_results +
+                      genexpert_xdr_total_tests_done + genexpert_xdr_total_negative + genexpert_xdr_total_positive +
+                      genexpert_xdr_total_resistance_detected + genexpert_xdr_inh_resistance +
+                      genexpert_xdr_flq_resistance + genexpert_total_stool_tests_done
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'tb-report', year:).update(data:)
         data
@@ -89,7 +92,14 @@ module Reports
         'GeneXpert Indeterminate',
         'GeneXpert Total Errors',
         'GeneXpert Error Rate',
-        'GeneXpert No Results'
+        'GeneXpert No Results',
+        'GeneXpert XDR Total tests done',
+        'GeneXpert XDR Total Negative',
+        'GeneXpert XDR Total Positive',
+        'GeneXpert XDR Total Resistance Detected',
+        'GeneXpert XDR INH Resistance',
+        'GeneXpert XDR FLQ Resistance',
+        'GeneXpert Total stool tests done'
       ].freeze
 
       def initialize_report_counts
@@ -1541,6 +1551,199 @@ module Reports
               AND t.status_id IN (4, 5)
               AND t.voided = 0
               AND (tr.value LIKE '%No Result%' OR tr.value = '' OR tr.value IS NULL)
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert XDR Total tests done
+      def genexpert_xdr_total_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert XDR Total tests done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['MTB MDR'], ['NLIMS_TI_0622_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert XDR Total Negative
+      def genexpert_xdr_total_negative
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert XDR Total Negative' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['MTB MDR'], ['NLIMS_TI_0622_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%Negative%' OR tr.value LIKE '%Not Detected%')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert XDR Total Positive
+      def genexpert_xdr_total_positive
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert XDR Total Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['MTB MDR'], ['NLIMS_TI_0622_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%XDR detected%' OR tr.value LIKE '%Positive%' OR tr.value LIKE '%Detected%')
+              AND tr.value NOT LIKE '%Not Detected%'
+              AND tr.value NOT LIKE '%Negative%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert XDR Total Resistance Detected
+      def genexpert_xdr_total_resistance_detected
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert XDR Total Resistance Detected' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['MTB MDR'], ['NLIMS_TI_0622_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%Resistance%' OR tr.value LIKE '%Detected%' OR tr.value LIKE '%Positive%')
+              AND tr.value NOT LIKE '%Not%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert XDR INH Resistance
+      def genexpert_xdr_inh_resistance
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert XDR INH Resistance' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['INH Resistance'], ['NLIMS_TI_0620_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%Resistance%' OR tr.value LIKE '%Detected%' OR tr.value LIKE '%Positive%')
+              AND tr.value NOT LIKE '%Not%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert XDR FLQ Resistance
+      def genexpert_xdr_flq_resistance
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert XDR FLQ Resistance' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['FLQ Resistance'], ['NLIMS_TI_0619_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+              AND (tr.value LIKE '%Resistance%' OR tr.value LIKE '%Detected%' OR tr.value LIKE '%Positive%')
+              AND tr.value NOT LIKE '%Not%'
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # GeneXpert Total stool tests done
+      def genexpert_total_stool_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'GeneXpert Total stool tests done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER JOIN test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN test_results tr ON tr.test_indicator_id = ti.id
+                      AND tr.test_id = t.id
+                      AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND ti.id IN #{GlobalService.fetch_ids(TestIndicator, ['Gene Xpert MTB'], ['NLIMS_TI_0202_MWI'])}
+              AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['Stool'], ['NLIMS_SP_0011_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
