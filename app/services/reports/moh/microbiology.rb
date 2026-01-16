@@ -207,6 +207,14 @@ module Reports
         'Shigella Spp Isolated from Stool',
         'Shigella Spp Isolated from Other Samples',
 
+        'TB Tests done on CSF',
+        'TB Tests done on other sterile fluids except CSF',
+        'TB Tests done on Urine',
+        'TB Tests done on Pus',
+        'TB Tests done on Stool',
+        'TB Tests done on Sputum',
+        'TB Tests done on Other TB Samples',
+
         'Other Spp Isolated from CSF',
         'Other Spp Isolated from other sterile fluids except CSF',
         'Other Spp Isolated from Urine',
@@ -215,14 +223,6 @@ module Reports
         'Other Spp Isolated from HVS',
         'Other Spp Isolated from Stool',
         'Other Spp Isolated from Other Samples',
-
-        'TB Tests done on CSF',
-        'TB Tests done on other sterile fluids except CSF',
-        'TB Tests done on Urine',
-        'TB Tests done on Pus',
-        'TB Tests done on Stool',
-        'TB Tests done on Sputum',
-        'TB Tests done on Other TB Samples'
       ].freeze
 
       def initialize_report_counts
