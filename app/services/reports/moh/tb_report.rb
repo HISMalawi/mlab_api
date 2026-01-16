@@ -41,6 +41,7 @@ module Reports
                       genexpert_xdr_flq_resistance + genexpert_total_stool_tests_done +
                       genexpert_stool_total_negative + genexpert_stool_total_positive
         data = update_report_counts(report_data)
+        data = calculate_pickup_rate(data)
         Report.find_or_create_by(name: 'tb-report', year:).update(data:)
         data
       end
@@ -119,6 +120,40 @@ module Reports
 
       def update_report_counts(counts)
         update_report_counts_optimized(counts, 'TB Report')
+      end
+
+      # Calculate Pick-up rate: (Total Positive TB tests / Total TB tests done) x 100
+      # Total Positive TB tests = sum of 1+, 2+, and 3+ results
+      def calculate_pickup_rate(data)
+        return data unless data.is_a?(Hash)
+
+        data.each do |month, indicators|
+          next unless indicators.is_a?(Hash)
+
+          # Get the counts for the calculation
+          total_tests_done = indicators[:'Total Number of Microscopy Tests done']&.dig(:count) || 0
+          microscopy_1_plus = indicators[:'Microscopy 1+']&.dig(:count) || 0
+          microscopy_2_plus = indicators[:'Microscopy 2+']&.dig(:count) || 0
+          microscopy_3_plus = indicators[:'Microscopy 3+']&.dig(:count) || 0
+
+          # Calculate total positive TB tests
+          total_positive = microscopy_1_plus + microscopy_2_plus + microscopy_3_plus
+
+          # Calculate pick-up rate
+          pickup_rate = if total_tests_done.positive?
+                          ((total_positive.to_f / total_tests_done) * 100).round(2)
+                        else
+                          0
+                        end
+
+          # Update the report with the calculated pick-up rate
+          data[month][:'Pick-up rate'] = {
+            count: pickup_rate,
+            associated_ids: ''
+          }
+        end
+
+        data
       end
 
       # Total number of Suspected TB Test samples (samples registered for tb testing)
