@@ -109,21 +109,6 @@ module Reports
         'Total number of Cultures with growth of Yeast Cells',
         'Total number of AST done',
 
-        'Amoxicillin/Clavulanic Acid # of Tests Done',
-        'Amoxicillin/Clavulanic Acid Sensitive (%)',
-        'Amoxicillin/Clavulanic Acid Intermediate (%)',
-        'Amoxicillin/Clavulanic Acid Resistant (%)',
-
-        'Ampicillin # of Tests Done',
-        'Ampicillin Sensitive (%)',
-        'Ampicillin Intermediate (%)',
-        'Ampicillin Resistant (%)',
-
-        'Piperacillin/Tazobactum # of Tests Done',
-        'Piperacillin/Tazobactum Sensitive (%)',
-        'Piperacillin/Tazobactum Intermediate (%)',
-        'Piperacillin/Tazobactum Resistant (%)',
-
         'E.Coli Isolated from CSF',
         'E.Coli Isolated from other sterile fluids except CSF',
         'E.Coli Isolated from Urine',
@@ -239,7 +224,77 @@ module Reports
         'Other Spp Isolated from Pus',
         'Other Spp Isolated from HVS',
         'Other Spp Isolated from Stool',
-        'Other Spp Isolated from Other Samples'
+        'Other Spp Isolated from Other Samples',
+
+        'Amoxicillin/Clavulanic Acid # of Tests Done',
+        'Amoxicillin/Clavulanic Acid Sensitive (%)',
+        'Amoxicillin/Clavulanic Acid Intermediate (%)',
+        'Amoxicillin/Clavulanic Acid Resistant (%)',
+
+        'Ampicillin # of Tests Done',
+        'Ampicillin Sensitive (%)',
+        'Ampicillin Intermediate (%)',
+        'Ampicillin Resistant (%)',
+
+        'Piperacillin/Tazobactum # of Tests Done',
+        'Piperacillin/Tazobactum Sensitive (%)',
+        'Piperacillin/Tazobactum Intermediate (%)',
+        'Piperacillin/Tazobactum Resistant (%)',
+
+        'Cefoxitin # of Tests Done',
+        'Cefoxitin Sensitive (%)',
+        'Cefoxitin Intermediate (%)',
+        'Cefoxitin Resistant (%)',
+
+        'Ceftriaxone # of Tests Done',
+        'Ceftriaxone Sensitive (%)',
+        'Ceftriaxone Intermediate (%)',
+        'Ceftriaxone Resistant (%)',
+
+        'Ceftazidime # of Tests Done',
+        'Ceftazidime Sensitive (%)',
+        'Ceftazidime Intermediate (%)',
+        'Ceftazidime Resistant (%)',
+
+        'Cefotaxime # of Tests Done',
+        'Cefotaxime Sensitive (%)',
+        'Cefotaxime Intermediate (%)',
+        'Cefotaxime Resistant (%)',
+
+        'Meropenem # of Tests Done',
+        'Meropenem Sensitive (%)',
+        'Meropenem Intermediate (%)',
+        'Meropenem Resistant (%)',
+
+        'Ciplofloxacin # of Tests Done',
+        'Ciplofloxacin Sensitive (%)',
+        'Ciplofloxacin Intermediate (%)',
+        'Ciplofloxacin Resistant (%)',
+
+        'Gentamicin # of Tests Done',
+        'Gentamicin Sensitive (%)',
+        'Gentamicin Intermediate (%)',
+        'Gentamicin Resistant (%)',
+
+        'Tobramycin # of Tests Done',
+        'Tobramycin Sensitive (%)',
+        'Tobramycin Intermediate (%)',
+        'Tobramycin Resistant (%)',
+
+        'Vancomycin # of Tests Done',
+        'Vancomycin Sensitive (%)',
+        'Vancomycin Intermediate (%)',
+        'Vancomycin Resistant (%)',
+
+        'Erythromycin # of Tests Done',
+        'Erythromycin Sensitive (%)',
+        'Erythromycin Intermediate (%)',
+        'Erythromycin Resistant (%)',
+
+        'Amikacin # of Tests Done',
+        'Amikacin Sensitive (%)',
+        'Amikacin Intermediate (%)',
+        'Amikacin Resistant (%)'
       ].freeze
 
       def initialize_report_counts
@@ -265,7 +320,18 @@ module Reports
         antibiotics_config = [
           { name: 'Amoxicillin/Clavulanic Acid', method: :amoxicillin_clavulanic_acid_ids },
           { name: 'Ampicillin', method: :ampicillin_ids },
-          { name: 'Piperacillin/Tazobactum', method: :piperacillin_tazobactum_ids }
+          { name: 'Piperacillin/Tazobactum', method: :piperacillin_tazobactum_ids },
+          { name: 'Cefoxitin', method: :cefoxitin_ids },
+          { name: 'Ceftriaxone', method: :ceftriaxone_ids },
+          { name: 'Ceftazidime', method: :ceftazidime_ids },
+          { name: 'Cefotaxime', method: :cefotaxime_ids },
+          { name: 'Meropenem', method: :meropenem_ids },
+          { name: 'Ciplofloxacin', method: :ciplofloxacin_ids },
+          { name: 'Gentamicin', method: :gentamicin_ids },
+          { name: 'Tobramycin', method: :tobramycin_ids },
+          { name: 'Vancomycin', method: :vancomycin_ids },
+          { name: 'Erythromycin', method: :erythromycin_ids },
+          { name: 'Amikacin', method: :amikacin_ids }
         ]
 
         data.each do |month, indicators|
@@ -2262,6 +2328,50 @@ module Reports
       def piperacillin_tazobactum_ids
         GlobalService.fetch_ids(Drug,
                                 ['Piperacillin/Tazobactam'], %w[NLIMS_DRG_0016_MWI])
+      end
+
+      def cefoxitin_ids
+        GlobalService.fetch_ids(Drug, ['Cefoxitin'], %w[NLIMS_DRG_0020_MWI])
+      end
+
+      def ceftriaxone_ids
+        GlobalService.fetch_ids(Drug, ['Ceftriaxone'], %w[NLIMS_DRG_0003_MWI])
+      end
+
+      def ceftazidime_ids
+        GlobalService.fetch_ids(Drug, ['Ceftazidime'], %w[NLIMS_DRG_0014_MWI])
+      end
+
+      def cefotaxime_ids
+        GlobalService.fetch_ids(Drug, ['Cefotaxime'], %w[NLIMS_DRG_0018_MWI])
+      end
+
+      def meropenem_ids
+        GlobalService.fetch_ids(Drug, ['Meropenem'], %w[NLIMS_DRG_0027_MWI])
+      end
+
+      def ciplofloxacin_ids
+        GlobalService.fetch_ids(Drug, %w[Ciplofloxacin Ciprofloxacin], %w[NLIMS_DRG_0005_MWI])
+      end
+
+      def gentamicin_ids
+        GlobalService.fetch_ids(Drug, ['Gentamicin'], %w[NLIMS_DRG_0010_MWI])
+      end
+
+      def tobramycin_ids
+        GlobalService.fetch_ids(Drug, ['Tobramycin'], %w[NLIMS_DRG_0028_MWI])
+      end
+
+      def vancomycin_ids
+        GlobalService.fetch_ids(Drug, ['Vancomycin'], %w[NLIMS_DRG_0019_MWI])
+      end
+
+      def erythromycin_ids
+        GlobalService.fetch_ids(Drug, ['Erythromycin'], %w[NLIMS_DRG_0009_MWI])
+      end
+
+      def amikacin_ids
+        GlobalService.fetch_ids(Drug, ['Amikacin'], %w[NLIMS_DRG_0023_MWI])
       end
 
       def other_spp
