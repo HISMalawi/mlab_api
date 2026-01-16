@@ -36,6 +36,7 @@ module Reports
                       total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants +
                       total_cultures_with_growth_of_yeast_cells + total_ast_done + csf_ast_organisms + tb_tests_done
         data = update_report_counts(report_data)
+        data = calculate_ast_percentages(data)
         Report.find_or_create_by(name: 'moh_microbiology', year:).update(data:)
         data
       end
@@ -107,6 +108,22 @@ module Reports
         'Total number of Cultures with growth of contaminants',
         'Total number of Cultures with growth of Yeast Cells',
         'Total number of AST done',
+
+        'Amoxicillin/Clavulanic Acid # of Tests Done',
+        'Amoxicillin/Clavulanic Acid Sensitive (%)',
+        'Amoxicillin/Clavulanic Acid Intermediate (%)',
+        'Amoxicillin/Clavulanic Acid Resistant (%)',
+
+        'Ampicillin # of Tests Done',
+        'Ampicillin Sensitive (%)',
+        'Ampicillin Intermediate (%)',
+        'Ampicillin Resistant (%)',
+
+        'Piperacillin/Tazobactum # of Tests Done',
+        'Piperacillin/Tazobactum Sensitive (%)',
+        'Piperacillin/Tazobactum Intermediate (%)',
+        'Piperacillin/Tazobactum Resistant (%)',
+
         'E.Coli Isolated from CSF',
         'E.Coli Isolated from other sterile fluids except CSF',
         'E.Coli Isolated from Urine',
@@ -222,7 +239,7 @@ module Reports
         'Other Spp Isolated from Pus',
         'Other Spp Isolated from HVS',
         'Other Spp Isolated from Stool',
-        'Other Spp Isolated from Other Samples',
+        'Other Spp Isolated from Other Samples'
       ].freeze
 
       def initialize_report_counts
@@ -239,6 +256,106 @@ module Reports
 
       def update_report_counts(counts)
         update_report_counts_optimized(counts, 'Microbiology')
+      end
+
+      # Calculate AST percentages for antibiotics
+      def calculate_ast_percentages(data)
+        return data unless data.is_a?(Hash)
+
+        antibiotics_config = [
+          { name: 'Amoxicillin/Clavulanic Acid', method: :amoxicillin_clavulanic_acid_ids },
+          { name: 'Ampicillin', method: :ampicillin_ids },
+          { name: 'Piperacillin/Tazobactum', method: :piperacillin_tazobactum_ids }
+        ]
+
+        data.each do |month, indicators|
+          next unless indicators.is_a?(Hash)
+
+          antibiotics_config.each do |antibiotic|
+            drug_ids = send(antibiotic[:method])
+            # Get the total tests done for this antibiotic in this month
+            total_tests = ast_tests_for_antibiotic(drug_ids, month)
+            sensitive_count = ast_susceptibility_count(drug_ids, month, 'Sensitive')
+            intermediate_count = ast_susceptibility_count(drug_ids, month, 'Intermediate')
+            resistant_count = ast_susceptibility_count(drug_ids, month, 'Resistant')
+
+            # Calculate percentages
+            sensitive_percent = total_tests.positive? ? ((sensitive_count.to_f / total_tests) * 100).round(2) : 0
+            intermediate_percent = total_tests.positive? ? ((intermediate_count.to_f / total_tests) * 100).round(2) : 0
+            resistant_percent = total_tests.positive? ? ((resistant_count.to_f / total_tests) * 100).round(2) : 0
+
+            # Update the report with calculated values
+            data[month]["#{antibiotic[:name]} # of Tests Done".to_sym] = {
+              count: total_tests,
+              associated_ids: ''
+            }
+            data[month]["#{antibiotic[:name]} Sensitive (%)".to_sym] = {
+              count: sensitive_percent,
+              associated_ids: ''
+            }
+            data[month]["#{antibiotic[:name]} Intermediate (%)".to_sym] = {
+              count: intermediate_percent,
+              associated_ids: ''
+            }
+            data[month]["#{antibiotic[:name]} Resistant (%)".to_sym] = {
+              count: resistant_percent,
+              associated_ids: ''
+            }
+          end
+        end
+
+        data
+      end
+
+      # Get total AST tests done for a specific antibiotic in a given month
+      def ast_tests_for_antibiotic(drug_ids, month_name)
+        result = ActiveRecord::Base.connection.execute(<<~SQL)
+          SELECT COUNT(DISTINCT ds.id) AS total
+          FROM drug_susceptibilities ds
+            INNER JOIN drugs d ON d.id = ds.drug_id
+            INNER JOIN tests t ON t.id = ds.test_id
+          WHERE d.id IN #{drug_ids}
+            AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+            AND YEAR(t.created_date) = #{year}
+            AND LOWER(MONTHNAME(t.created_date)) = '#{month_name}'
+            AND t.status_id IN (4, 5)
+            AND t.voided = 0
+            AND ds.voided = 0
+            AND ds.interpretation IS NOT NULL
+            AND ds.interpretation NOT IN ('', '0')
+        SQL
+        result.first.is_a?(Hash) ? result.first['total'] : result.first[0]
+      end
+
+      # Get count of AST tests with specific susceptibility result for an antibiotic in a given month
+      def ast_susceptibility_count(drug_ids, month_name, susceptibility)
+        # Map susceptibility to both old and new formats
+        susceptibility_conditions = case susceptibility
+                                    when 'Sensitive'
+                                      "ds.interpretation IN ('S', 'S - Sensitive')"
+                                    when 'Intermediate'
+                                      "ds.interpretation IN ('I', 'I - Intermediate')"
+                                    when 'Resistant'
+                                      "ds.interpretation IN ('R', 'R - Resistant')"
+                                    else
+                                      "ds.interpretation = '#{susceptibility}'"
+                                    end
+
+        result = ActiveRecord::Base.connection.execute(<<~SQL)
+          SELECT COUNT(DISTINCT ds.id) AS total
+          FROM drug_susceptibilities ds
+            INNER JOIN drugs d ON d.id = ds.drug_id
+            INNER JOIN tests t ON t.id = ds.test_id
+          WHERE d.id IN #{drug_ids}
+            AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+            AND YEAR(t.created_date) = #{year}
+            AND LOWER(MONTHNAME(t.created_date)) = '#{month_name}'
+            AND t.status_id IN (4, 5)
+            AND t.voided = 0
+            AND ds.voided = 0
+            AND #{susceptibility_conditions}
+        SQL
+        result.first.is_a?(Hash) ? result.first['total'] : result.first[0]
       end
 
       def number_of_afb_examined
@@ -2131,6 +2248,20 @@ module Reports
       def cryptococcus_spp
         GlobalService.fetch_ids(Organism, ['Cryptococcus neoformans', 'Cryptococcus species'],
                                 %w[NLIMS_ORG_0106_MWI NLIMS_ORG_0108_MWI])
+      end
+
+      def amoxicillin_clavulanic_acid_ids
+        GlobalService.fetch_ids(Drug, ['Amoxicillin/Clavulanate'],
+                                %w[NLIMS_DRG_0001_MWI])
+      end
+
+      def ampicillin_ids
+        GlobalService.fetch_ids(Drug, ['Ampicillin'], %w[NLIMS_DRG_0002_MWI])
+      end
+
+      def piperacillin_tazobactum_ids
+        GlobalService.fetch_ids(Drug,
+                                ['Piperacillin/Tazobactam'], %w[NLIMS_DRG_0016_MWI])
       end
 
       def other_spp
