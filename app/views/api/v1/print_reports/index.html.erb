@@ -584,7 +584,7 @@ const app = createApp({
       );
     },
     getAuthorizedTests(tests){
-      const validStatuses = new Set(["verified", "test-rejected", "rejected", "voided"]);
+      const validStatuses = new Set(["verified", "test-rejected", "rejected"]);
       return tests.filter((item) =>
         validStatuses.has(item.status.toLowerCase())
       );
