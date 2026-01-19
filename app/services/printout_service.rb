@@ -44,7 +44,7 @@ module PrintoutService
       patient = person.fullname
       date = Date.today.strftime
       ward = order.encounter&.facility_section&.name
-      by = User.where(id: TestStatus.where(test_id: test_ids,
+      by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id),
                                            status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = ''
       post_crossmatch_process = []
@@ -58,7 +58,8 @@ module PrintoutService
                                )
 
       if is_cross_match
-        post_crossmatch_process = PostCrossmatchProcess.joins(:facility_section).where(test_id: test_ids).select(
+        test_id = Test.where(order_id: order.id)
+        post_crossmatch_process = PostCrossmatchProcess.joins(:facility_section).where(test_id:).select(
           'collected_by',
           'facility_sections.name AS to_ward',
           'collection_date',
@@ -69,7 +70,7 @@ module PrintoutService
           'returned_reason'
         )&.first || post_crossmatch_process
         pack_abo_group = TestResult.where(
-          test_id: test_ids,
+          test_id:,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
