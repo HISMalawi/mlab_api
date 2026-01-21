@@ -97,8 +97,29 @@ module OrderService
     end
 
     def add_test_to_order(order_id, tests, lab_location)
+      order = Order.find(order_id)
+      # Get existing test IDs before creating new tests
+      existing_test_ids = Test.where(order_id: order_id).pluck(:id)
+      
       create_test(order_id, tests, lab_location)
-      Order.find(order_id)
+      
+      # Get newly created test IDs
+      all_test_ids = Test.where(order_id: order_id).pluck(:id)
+      new_test_ids = all_test_ids - existing_test_ids
+      
+      # Stage new tests in unsync_orders for NLIMS sync
+      new_test_ids.each do |test_id|
+        UnsyncOrder.create!(
+          test_or_order_id: test_id,
+          data_not_synced: 'add_test_to_order',
+          data_level: 'test',
+          sync_status: false,
+          created_date: Time.now,
+          updated_date: Time.now
+        )
+      end
+      
+      order
     end
 
     def search_by_accession_or_tracking_number(search_query)
