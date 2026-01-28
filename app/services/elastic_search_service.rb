@@ -50,7 +50,7 @@ class ElasticSearchService
       es_test_id = @elasticsearch.search(params)['hits']['hits'][0]['sort'][0]
       tests = Test.where(id: (es_test_id + 1)...)
       Parallel.map(tests, in_processes: 4) do |test|
-        @elasticsearch.create(
+        @elasticsearch.index(
           index: @index_name,
           id: test&.id,
           body: index_body(test)
