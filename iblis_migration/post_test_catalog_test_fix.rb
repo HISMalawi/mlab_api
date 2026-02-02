@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# This migration script resolves missing nlims codes by mapping existing specimen types,
+# test types, and test indicators to their corresponding entries in the test catalog.
 specimen_types = [
   {
     current_name: 'Tissue fluid',
@@ -129,6 +131,6 @@ ActiveRecord::Base.transaction do
   puts "Migration to resolve missing nlims codes completed successfully"
 end
 
-# FIX/VOID Unsyc Order for bwaila: BWL2500000189 - Macroscopy test
+# FIX/VOID Unsyc Order for bwaila: BWL2500000189 - Macroscopy test - never used due to test being voided
 order = Order.find_by(accession_number: 'BWL2500000189')
 UnsyncOrder.where(data_level: 'order', test_or_order_id: order.id).update_all(sync_status: 1) if order.present?
