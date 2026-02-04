@@ -94,13 +94,13 @@ module Nlims
             uo.test_or_order_id = o.id
           WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
           #{id_condition(id)}
-          ORDER BY uo.id DESC LIMIT 500"
+          ORDER BY uo.id DESC LIMIT 5000"
       )
       Parallel.each(orders, in_threads: 4) do |order_record|
         Rails.logger.info("=======Creating order #{order_record&.tracking_number} in nlims =============")
         order = Order.find_by(id: order_record&.id)
         next if order.nil?
- 
+
         # Check for tests using unscoped query to be consistent
         tests = Test.where(order_id: order_record.id)
         unless tests.exists?
@@ -120,7 +120,43 @@ module Nlims
           next
         end
 
-        payload = order_payload(order)
+        # Separate tests with and without nlims_code
+        tests_with_code = []
+        tests_without_code = []
+
+        order.tests.each do |test|
+          if test&.test_type&.nlims_code.present?
+            tests_with_code << test
+          else
+            tests_without_code << test
+          end
+        end
+
+        # Create UnsyncOrder records for tests without nlims_code
+        unless tests_without_code.empty?
+          Rails.logger.warn("=======Order #{order&.tracking_number} has #{tests_without_code.size} tests without nlims_code=============")
+          tests_without_code.each do |test|
+            UnsyncOrder.find_or_create_by!(
+              test_or_order_id: test.id,
+              data_level: 'test',
+              data_not_synced: 'add_test_to_order'
+            ) do |unsync|
+              unsync.sync_status = false
+              unsync.created_date = Time.now
+              unsync.updated_date = Time.now
+            end
+            Rails.logger.warn("  - Test ID #{test.id} (#{test&.test_type&.name}) has no nlims_code, marked for later sync")
+          end
+        end
+
+        # Skip order if no valid tests remain
+        if tests_with_code.empty?
+          Rails.logger.warn("=======Order #{order&.tracking_number} has no tests with nlims_code, skipping sync=============")
+          next
+        end
+
+        # Build payload with only tests that have nlims_code
+        payload = order_payload(order, tests_with_code)
         url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/orders/"
         begin
           response = RestClient::Request.execute(
@@ -158,7 +194,7 @@ module Nlims
         INNER JOIN current_order_status cos ON cos.order_id = uo.test_or_order_id
         INNER JOIN orders o ON uo.test_or_order_id = o.id
         WHERE uo.data_level = 'order' AND (uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected')
-          AND uo.sync_status = 0 #{id_condition(id)} LIMIT 100
+          AND uo.sync_status = 0 #{id_condition(id)} LIMIT 500
         ")
       orders.each do |order|
         Rails.logger.info('=======Updating orders in nlims=============')
@@ -218,7 +254,7 @@ module Nlims
           INNER JOIN tests t ON t.id = uo.test_or_order_id
           INNER JOIN orders o ON t.order_id  = o.id
           WHERE
-            uo.data_level = 'test' AND uo.sync_status = 0 #{id_condition(id)} ORDER BY uo.id DESC LIMIT 100
+            uo.data_level = 'test' AND uo.sync_status = 0 #{id_condition(id)} ORDER BY uo.id DESC LIMIT 500
       ")
       tests.each do |test_res|
         Rails.logger.info('=======Updating tests in nlims=============')
@@ -387,13 +423,16 @@ module Nlims
       }
     end
 
-    def self.order_payload(order)
+    def self.order_payload(order, tests_to_include = nil)
       person_creator = Person.find_by(id: User.find_by(id: order&.creator)&.person_id)
       client = order&.encounter&.client
+      # Use provided tests or all order tests
+      tests = tests_to_include || order&.tests
+      
       {
         order: {
           tracking_number: order&.tracking_number.present? ? order&.tracking_number : "X#{order&.accession_number}",
-          sample_type: order&.tests&.first&.specimen,
+          sample_type: tests&.first&.specimen,
           sample_status: { name: Status.find_by(id: order&.status_id)&.name&.gsub('-', '_') || 'specimen_collected' },
           order_location: order&.encounter&.facility_section&.name || 'OPD',
           date_created: order&.created_date,
@@ -415,7 +454,7 @@ module Nlims
           )&.value,
           art_regimen: client.try(:art_regimen),
           client_history: order&.encounter&.client_history,
-          lab_location: LabLocation.find_by(id: order&.tests&.first&.lab_location_id)&.name,
+          lab_location: LabLocation.find_by(id: tests&.first&.lab_location_id)&.name,
           source_system: 'IBLIS',
           status_trail: OrderStatus.where(order_id: order.id).map do |trail|
             person_creator = Person.find_by(id: User.find_by(id: trail&.creator)&.person_id)
@@ -431,7 +470,7 @@ module Nlims
             }
           end
         },
-        tests: order&.tests&.map do |t|
+        tests: tests&.map do |t|
           test_payload(t)
         end,
         patient: {
