@@ -100,7 +100,25 @@ module Nlims
         Rails.logger.info("=======Creating order #{order_record&.tracking_number} in nlims =============")
         order = Order.find_by(id: order_record&.id)
         next if order.nil?
-        next unless order.tests&.present?
+ 
+        # Check for tests using unscoped query to be consistent
+        tests = Test.where(order_id: order_record.id)
+        unless tests.exists?
+          Rails.logger.info("=======No tests present for order #{order&.tracking_number}=============")
+          Rails.logger.info("=======Setting order #{order&.tracking_number} as synced due to no tests present =============")
+          # Batch update using a single query
+          test_ids = tests.pluck(:id)
+          UnsyncOrder.where(test_or_order_id: [order_record.id] + test_ids)
+                     .update_all(
+                       sync_status: 1,
+                       voided: 1,
+                       voided_by: User.first&.id,
+                       voided_date: Time.now,
+                       voided_reason: 'No tests present'
+                     )
+          Rails.logger.info("=======Skipping order #{order&.tracking_number} due to no tests present =============")
+          next
+        end
 
         payload = order_payload(order)
         url = once_off ? "#{nlims[:base_url]}/api/v2/create_order_once_off/" : "#{nlims[:base_url]}/api/v2/orders/"
@@ -123,6 +141,7 @@ module Nlims
             raise StandardError, "Failed to create order in nlims: #{response['message']}"
           end
         rescue StandardError => e
+          Rails.logger.error("====Creation failed:===#{e&.response&.body}:#{order_record&.tracking_number}===Creation failure==========")
           Rails.logger.error("=======#{e.message}:#{payload[:order][:tracking_number]}=============")
           next
         end
@@ -388,7 +407,7 @@ module Nlims
           target_lab: GlobalService.current_location.name,
           sending_facility: GlobalService.current_location.name,
           district: GlobalService.current_location.district,
-          requested_by: order&.requested_by,
+          requested_by: order&.requested_by.present? ? order&.requested_by : person_creator&.fullname,
           art_start_date: client.try(:art_start_date),
           arv_number: ClientIdentifier.find_by(
             client_identifier_type_id: ClientIdentifierType.find_by(name: 'art_number')&.id,
