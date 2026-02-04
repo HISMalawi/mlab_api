@@ -335,7 +335,7 @@ module Nlims
           INNER JOIN orders o ON t.order_id = o.id
           WHERE
             uo.data_level = 'test' AND uo.sync_status = 0 #{id_condition(id)}
-          ORDER BY uo.id DESC LIMIT 100
+          ORDER BY uo.id DESC LIMIT 500
       ")
 
       GlobalService.current_location
