@@ -439,8 +439,8 @@ module Nlims
             client_identifier_type_id: ClientIdentifierType.find_by(name: 'npid')&.id,
             client_id: client.id
           )&.value,
-          first_name: client&.person&.first_name&.blank? ? client&.person&.last_name : client&.person&.first_name,
-          last_name: client&.person&.last_name&.blank? ? client&.person&.first_name : client&.person&.last_name,
+          first_name: client&.person&.first_name&.blank? ? (client&.person&.last_name&.blank? ? 'Unknown' : client&.person&.last_name) : client&.person&.first_name,
+          last_name: client&.person&.last_name&.blank? ? (client&.person&.first_name&.blank? ? 'Unknown' : client&.person&.first_name) : client&.person&.last_name,
           date_of_birth: client&.person&.date_of_birth,
           gender: client&.person&.sex
         }
