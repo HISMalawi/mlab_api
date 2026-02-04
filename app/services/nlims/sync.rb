@@ -392,7 +392,7 @@ module Nlims
       client = order&.encounter&.client
       {
         order: {
-          tracking_number: order&.tracking_number,
+          tracking_number: order&.tracking_number.present? ? order&.tracking_number : "X#{order&.accession_number}",
           sample_type: order&.tests&.first&.specimen,
           sample_status: { name: Status.find_by(id: order&.status_id)&.name&.gsub('-', '_') || 'specimen_collected' },
           order_location: order&.encounter&.facility_section&.name || 'OPD',
