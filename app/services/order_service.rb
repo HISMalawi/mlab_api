@@ -30,18 +30,21 @@ module OrderService
         client_id = client.id
       end
       g = Global.find(params[:encounter][:sending_facility])
-      facility = Facility.find_or_create_by!(name: g.name).id
-      facility_section = params[:encounter][:facility_section]
-      encounterType = EncounterType.find(params[:encounter][:encounter_type])
-      destination = facility
-      destination = params[:encounter][:facility_section] if encounterType.name == 'Referral'
+      encounter_type = EncounterType.find(params[:encounter][:encounter_type])
+      facility_id = Facility.find_or_create_by!(name: g.name).id
+      facility_section_id = params[:encounter][:facility_section]
+      destination_id = facility_id
+      if encounter_type.name == 'Referral'
+        facility_section_id = FacilitySection.find_or_create_by!(name: Facility.find(facility_section_id)&.name).id
+        destination_id = params[:encounter][:facility_section]
+      end
       Encounter.create!(
         client_id:,
-        facility_id: facility,
-        destination_id: destination,
-        facility_section_id: facility_section,
+        facility_id: facility_id,
+        destination_id: destination_id,
+        facility_section_id: facility_section_id,
         start_date: Time.now,
-        encounter_type_id: encounterType.id,
+        encounter_type_id: encounter_type.id,
         client_history: params[:encounter][:client_history]
       )
     end
