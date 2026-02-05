@@ -39,6 +39,9 @@ module Api
             # void_previous_x_matches(test_indicator_id, value) if Test.find(test_id).test_type_id == 30
             test_result = TestResult.find_by(test_id:, test_indicator_id:)
             test_result&.void('Edited')
+            next if value.blank?
+
+            value = value&.gsub('$', '')&.strip if value.present?
             TestResult.create!(test_id:, test_indicator_id:, value:,
                                result_date: Time.now, machine_name:)
           end
