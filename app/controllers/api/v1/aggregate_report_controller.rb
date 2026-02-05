@@ -7,10 +7,15 @@ module Api
     class AggregateReportController < ApplicationController
       def lab_statistics
         from, to, department, report_id = params.values_at(:from, :to, :department, :report_id)
-        data = Reports::ReportCacheService.find(report_id)
-        data ||= Reports::ReportCacheService.create(
-          Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
-        )
+        cached_data = Reports::ReportCacheService.find(report_id)
+        # Check if cached data matches the from/to dates
+        data = if cached_data.is_a?(Hash) && cached_data['from'] == from && cached_data['to'] == to
+                 cached_data
+               else
+                 Reports::ReportCacheService.create(
+                   Reports::Aggregate::LabStatistic.generate_report(from:, to:, department:)
+                 )
+               end
         render json: data
       end
 
@@ -25,10 +30,14 @@ module Api
         from, to, report_id = params.values_at(:from, :to, :report_id)
         to = to.present? ? to : today
         from = from.present? ? from : today
-        data = Reports::ReportCacheService.find(report_id)
-        data ||= Reports::ReportCacheService.create(
-          Reports::Aggregate::Malaria.generate_report(from, to)
-        )
+        cached_data = Reports::ReportCacheService.find(report_id)
+        data = if cached_data.is_a?(Hash) && cached_data['from'] == from && cached_data['to'] == to
+                 cached_data
+               else
+                 Reports::ReportCacheService.create(
+                   Reports::Aggregate::Malaria.generate_report(from, to)
+                 )
+               end
         render json: data
       end
 
