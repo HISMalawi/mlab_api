@@ -25,7 +25,7 @@ module Tests
         organism_id = params.require(:organism_id)
         response = params[:drugs].collect do |drug|
           d = DrugSusceptibility.find_or_create_by(test_id:, organism_id:, drug_id: drug[:drug_id])
-          d.update!(zone: drug[:zone], interpretation: drug[:interpretation])
+          d.update!(zone: drug[:zone], interpretation: drug[:interpretation], mic: drug[:mic])
           d
         end
         response
@@ -77,7 +77,8 @@ module Tests
             drug_id: result.drug_id,
             drug_name: result.drug.name,
             zone: result.zone,
-            interpretation: result.interpretation
+            interpretation: result.interpretation,
+            mic: result.mic
           }
         end
         {
@@ -85,7 +86,6 @@ module Tests
           drug_suscep_test_results: results_
         }
       end
-
     end
   end
 end
