@@ -787,7 +787,7 @@ module Reports
         end
 
         def mrdt_indicators_ids
-          GlobalService.fetch_ids(TestIndicator, 'MRDT', 'NLIMS_TT_0590_MWI')
+          GlobalService.fetch_ids(TestIndicator, 'MRDT', 'NLIMS_TI_0590_MWI')
         end
 
         def transform_data(data, key)
