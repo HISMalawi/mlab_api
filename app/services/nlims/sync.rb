@@ -81,11 +81,11 @@ module Nlims
       end
     end
 
-    def self.create_order_v2(id: nil, once_off: false)
+    def self.create_order_v2(id: nil, once_off: false, orders: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
 
-      orders = Order.find_by_sql(
+      orders ||= Order.find_by_sql(
         "SELECT o.id, o.encounter_id, o.tracking_number, o.sample_collected_time,
             o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id,
             o.creator, o.status_id
@@ -365,8 +365,20 @@ module Nlims
             Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
             raise StandardError, "Failed to create order in nlims: #{response['message']}"
           end
+        rescue RestClient::NotFound => e
+          Rails.logger.error("=======#{e.message} : Test not found in nlims:#{payload[:tracking_number]}=============")
+          Rails.logger.info("=======Adding test to order in nlims:#{payload[:tracking_number]} =============")
+          unsync_order = UnsyncOrder.where(
+            sync_status: 0,
+            data_not_synced: test_res[:test_status],
+            test_or_order_id: test_res[:test_id]
+          ).first
+          tests = unsync_tests(unsync_order&.id)
+          next if tests.empty?
+
+          sync_add_test_to_order(tests: tests)
         rescue StandardError => e
-          Rails.logger.error("=======#{e.message}:#{payload[:tracking_number]}=============")
+          Rails.logger.error("=======#{e.message}:#{payload[:tracking_number]}: #{e.response.body}=============")
           next
         end
       end
@@ -378,7 +390,7 @@ module Nlims
                                .where.not(value: '').where.not(value: nil)
       status_trail = TestStatus.where(test_id: test_record.id).map do |st|
         {
-          status: st&.status&.name&.gsub('-', '_'),
+          status: st&.status&.name&.gsub('_', '-'),
           timestamp: st&.created_date,
           updated_by: {
             first_name: st.user&.person&.first_name,
@@ -412,7 +424,7 @@ module Nlims
       {
         tracking_number: test_record.order&.tracking_number,
         arv_number: client.try(:arv_number),
-        test_status: test_record.status&.gsub('-', '_'),
+        test_status: test_record.status&.gsub('_', '-'),
         time_updated: test_record&.updated_date,
         test_type: {
           name: test_record&.test_type&.name,
@@ -428,7 +440,6 @@ module Nlims
       client = order&.encounter&.client
       # Use provided tests or all order tests
       tests = tests_to_include || order&.tests
-      
       {
         order: {
           tracking_number: order&.tracking_number.present? ? order&.tracking_number : "X#{order&.accession_number}",
@@ -557,11 +568,11 @@ module Nlims
       JSON.parse(response.body, symbolize_names: true)
     end
 
-    def self.sync_add_test_to_order(id: nil)
+    def self.sync_add_test_to_order(id: nil, tests: nil)
       nlims = nlims_token
       return if nlims[:token].blank?
 
-      tests = Test.find_by_sql("
+      tests ||= Test.find_by_sql("
           SELECT
             o.id AS order_id, t.id AS test_id, o.tracking_number, uo.id AS unsync_id
           FROM
@@ -596,10 +607,8 @@ module Nlims
             headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
             payload: payload.to_json
           )
-
           response = JSON.parse(response.body)
-
-          if response['error'] == false || response['success'] == true
+          if response['error'] == false && ['test added successfully', 'test already exists for order'].include?(response['message'])
             unsync_order = UnsyncOrder.find_by(id: test_res[:unsync_id])
             update_unsync_order(unsync_order)
             Rails.logger.info("=======Successfully synced add_test_to_order to NLIMS: #{test_res[:tracking_number]} =============")
@@ -608,12 +617,49 @@ module Nlims
             Rails.logger.error("=============#{message}: #{test_res[:tracking_number]}====================")
           end
         rescue RestClient::NotFound => e
-          Rails.logger.error("=======Order not found in NLIMS: #{test_res[:tracking_number]} - #{e.message}==============")
+          Rails.logger.error("=======Order not found in NLIMS: #{test_res[:tracking_number]} - #{e.message} While syncing add_test_to_order==============")
+          orders = unsync_orders(test_res[:test_id])
+          if orders.empty?
+            Rails.logger.error("=======No order found for unsync_id #{test_res[:unsync_id]} to sync add_test_to_order: #{test_res[:tracking_number]}==============")
+            next
+          else
+            Rails.logger.info("=======Attempting to create order in NLIMS for add_test_to_order: #{test_res[:tracking_number]} ==============")
+            create_order_v2(orders: orders)
+            update_test_v2(id: test_res[:unsync_id])
+          end
         rescue StandardError => e
           Rails.logger.error("=======Error syncing add_test_to_order: #{test_res[:tracking_number]} - #{e.message}==============")
           next
         end
       end
+    end
+
+    def self.unsync_orders(id)
+      order_id = Test.find_by(id: id)&.order_id
+      return [] if order_id.nil?
+
+      Order.find_by_sql(
+        "SELECT o.id, o.encounter_id, o.tracking_number, o.sample_collected_time,
+            o.collected_by, o.requested_by , o.created_date , o.updated_date, o.priority_id,
+            o.creator, o.status_id
+          FROM orders o
+          INNER JOIN unsync_orders uo ON
+            uo.test_or_order_id = o.id
+          WHERE uo.data_level = 'order' AND uo.test_or_order_id = #{order_id} LIMIT 1"
+      )
+    end
+
+    def self.unsync_tests(id)
+      Test.find_by_sql("
+          SELECT
+            o.id AS order_id, t.id AS test_id, o.tracking_number, uo.id AS unsync_id
+          FROM
+            unsync_orders uo
+          INNER JOIN tests t ON t.id = uo.test_or_order_id
+          INNER JOIN orders o ON t.order_id = o.id
+          WHERE
+            uo.id = #{id}
+      ")
     end
   end
 end
