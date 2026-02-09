@@ -582,7 +582,7 @@ module Nlims
           WHERE
             uo.data_level = 'test' AND uo.data_not_synced = 'add_test_to_order' AND uo.sync_status = 0
             #{id_condition(id)}
-          ORDER BY uo.id DESC LIMIT 100
+          ORDER BY uo.id DESC LIMIT 500
       ")
 
       GlobalService.current_location
