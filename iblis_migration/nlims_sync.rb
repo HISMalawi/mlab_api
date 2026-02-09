@@ -5,4 +5,5 @@ return unless nlims[:token].present? && nlims[:base_url].present?
 
 Nlims::Sync.create_order_v2
 Nlims::Sync.update_order
+Nlims::Sync.sync_add_test_to_order
 Nlims::Sync.update_test_v2

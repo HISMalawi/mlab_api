@@ -556,5 +556,64 @@ module Nlims
       )
       JSON.parse(response.body, symbolize_names: true)
     end
+
+    def self.sync_add_test_to_order(id: nil)
+      nlims = nlims_token
+      return if nlims[:token].blank?
+
+      tests = Test.find_by_sql("
+          SELECT
+            o.id AS order_id, t.id AS test_id, o.tracking_number, uo.id AS unsync_id
+          FROM
+            unsync_orders uo
+          INNER JOIN tests t ON t.id = uo.test_or_order_id
+          INNER JOIN orders o ON t.order_id = o.id
+          WHERE
+            uo.data_level = 'test' AND uo.data_not_synced = 'add_test_to_order' AND uo.sync_status = 0
+            #{id_condition(id)}
+          ORDER BY uo.id DESC LIMIT 100
+      ")
+
+      GlobalService.current_location
+
+      tests.each do |test_res|
+        Rails.logger.info("=======Syncing add_test_to_order for test #{test_res[:test_id]} to NLIMS =============")
+
+        begin
+          test = Test.find_by(id: test_res[:test_id])
+          next if test.nil?
+
+          order = Order.find_by(id: test_res[:order_id])
+          next if order.nil?
+
+          # Build payload similar to update_test_v2
+          payload = test_payload(test)
+
+          # POST to NLIMS v2/tests/:tracking_number/add_test_to_order
+          response = RestClient::Request.execute(
+            method: :post,
+            url: "#{nlims[:base_url]}/api/v2/tests/#{test_res[:tracking_number]}/add_test_to_order",
+            headers: { content_type: :json, accept: :json, 'token': nlims[:token].to_s },
+            payload: payload.to_json
+          )
+
+          response = JSON.parse(response.body)
+
+          if response['error'] == false || response['success'] == true
+            unsync_order = UnsyncOrder.find_by(id: test_res[:unsync_id])
+            update_unsync_order(unsync_order)
+            Rails.logger.info("=======Successfully synced add_test_to_order to NLIMS: #{test_res[:tracking_number]} =============")
+          else
+            message = response['message'] || response['error_message'] || 'Unknown error'
+            Rails.logger.error("=============#{message}: #{test_res[:tracking_number]}====================")
+          end
+        rescue RestClient::NotFound => e
+          Rails.logger.error("=======Order not found in NLIMS: #{test_res[:tracking_number]} - #{e.message}==============")
+        rescue StandardError => e
+          Rails.logger.error("=======Error syncing add_test_to_order: #{test_res[:tracking_number]} - #{e.message}==============")
+          next
+        end
+      end
+    end
   end
 end

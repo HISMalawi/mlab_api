@@ -5,6 +5,6 @@ class DrugSusceptibility < VoidableRecord
 
 
   def as_json(options = {})
-    super(options.merge({only: %i[organism_id test_id drug_id zone interpretation]}))
+    super(options.merge({only: %i[organism_id test_id drug_id zone mic interpretation]}))
   end
 end

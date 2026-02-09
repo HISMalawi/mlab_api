@@ -10,6 +10,7 @@ class NlimsSyncNowJob
 
     Nlims::Sync.create_order_v2(id:)
     Nlims::Sync.update_order(id:)
+    Nlims::Sync.sync_add_test_to_order(id:)
     Nlims::Sync.update_test_v2(id:)
   end
 end
