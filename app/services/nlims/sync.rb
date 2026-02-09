@@ -94,7 +94,7 @@ module Nlims
             uo.test_or_order_id = o.id
           WHERE uo.data_level = 'order' AND uo.data_not_synced ='new order' AND uo.sync_status = 0
           #{id_condition(id)}
-          ORDER BY uo.id DESC LIMIT 5000"
+          ORDER BY uo.id DESC LIMIT 500"
       )
       Parallel.each(orders, in_threads: 4) do |order_record|
         Rails.logger.info("=======Creating order #{order_record&.tracking_number} in nlims =============")
