@@ -177,7 +177,7 @@ module Nlims
             raise StandardError, "Failed to create order in nlims: #{response['message']}"
           end
         rescue StandardError => e
-          Rails.logger.error("====Creation failed:===#{e&.response&.body}:#{order_record&.tracking_number}===Creation failure==========")
+          Rails.logger.error("====Creation failed for order #{order_record&.tracking_number} due to error: #{e&.response&.body} ==========")
           Rails.logger.error("=======#{e.message}:#{payload[:order][:tracking_number]}=============")
           next
         end
@@ -378,7 +378,7 @@ module Nlims
 
           sync_add_test_to_order(tests: tests)
         rescue StandardError => e
-          Rails.logger.error("=======#{e.message}:#{payload[:tracking_number]}: #{e.response.body}=============")
+          Rails.logger.error("=======#{e.message}:#{payload[:tracking_number]}: #{e&.response&.body}=============")
           next
         end
       end
@@ -628,7 +628,7 @@ module Nlims
             update_test_v2(id: test_res[:unsync_id])
           end
         rescue StandardError => e
-          Rails.logger.error("=======Error syncing add_test_to_order: #{test_res[:tracking_number]} - #{e.message}==============")
+          Rails.logger.error("=======Error syncing add_test_to_order: #{test_res[:tracking_number]} - #{e.message} - #{e&.response&.body}==============")
           next
         end
       end
