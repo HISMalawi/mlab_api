@@ -13,7 +13,7 @@ unsynced_orders.in_batches(of: 500) do |batch|
   end
 end
 
-unsynced_ids = UnsyncOrder.where(data_not_synced: 'new order').select(:test_or_order_id)
+unsynced_ids = UnsyncOrder.unscoped.where(data_not_synced: 'new order').select(:test_or_order_id)
 scope = Order.where.not(id: unsynced_ids)
 User.current = User.first
 

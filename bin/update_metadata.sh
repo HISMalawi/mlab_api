@@ -30,5 +30,6 @@ rails db:migrate && {
     rails r iblis_migration/load_preferences.rb &&
     rails r iblis_migration/user_preferences_init.rb &&
     rails r iblis_migration/app_setting_init.rb &&
-    rails r iblis_migration/fix_test_panel.rb
+    rails r iblis_migration/fix_test_panel.rb &&
+    rails r iblis_migration/post_test_catalog_test_fix.rb
 }
