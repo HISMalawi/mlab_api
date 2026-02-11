@@ -274,6 +274,10 @@ SPECIAL_MAPPINGS = {
   'haemoglobin' => {
     targets: ['haemoglobine Test'],
     update_name_for: nil
+  },
+  'ziehl-neelsen (zn) stain' => {
+    targets: ['ZN Stain'],
+    update_name_for: nil
   }
 }
 
@@ -424,32 +428,6 @@ retired_test_indicators.each do |indicator|
   TestTypeTestIndicator.where(test_indicators_id: indicator.id).update_all(test_indicators_id: active_indicator_id)
 end
 
-# retired_test_indicators = TestIndicator.unscoped.where(retired: 1)
-# Parallel.each(retired_test_indicators, in_threads: 4) do |indicator|
-#   ActiveRecord::Base.connection_pool.with_connection do
-#     active_indicator_id = TestIndicator.find_by(name: indicator.name, retired: 0)&.id
-#     next unless active_indicator_id
-
-#     puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id} for test results"
-
-#     TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
-#   end
-# end
-
-# sql = <<-SQL.squish
-#   UPDATE test_results tr
-#   JOIN test_indicators r#{' '}
-#     ON tr.test_indicator_id = r.id#{' '}
-#    AND r.retired = 1
-#   JOIN test_indicators a#{' '}
-#     ON a.name = r.name#{' '}
-#    AND a.retired = 0
-#   SET tr.test_indicator_id = a.id;
-# SQL
-
-# puts 'Updating references from retired indicators to active indicators for test results'
-# ActiveRecord::Base.connection.execute(sql)
-
 # Helper method to format time duration
 def format_time(seconds)
   return '0s' if seconds <= 0
@@ -465,83 +443,87 @@ def format_time(seconds)
   parts.join(' ')
 end
 
-retired_indicators = TestIndicator.unscoped.where(retired: 1).pluck(:id, :name)
+def update_test_results_with_active_indicators
+  retired_indicators = TestIndicator.unscoped.where(retired: 1).pluck(:id, :name)
 
-# Calculate total rows to update
-total_to_update = 0
-indicator_counts = {}
-retired_indicators.each do |retired_id, name|
-  active_indicator = TestIndicator.find_by(name: name, retired: 0)
-  next unless active_indicator
+  # Calculate total rows to update
+  total_to_update = 0
+  indicator_counts = {}
+  retired_indicators.each do |retired_id, name|
+    active_indicator = TestIndicator.find_by(name: name, retired: 0)
+    next unless active_indicator
 
-  count = TestResult.where(test_indicator_id: retired_id).count
-  indicator_counts[retired_id] = { name: name, active_id: active_indicator.id, count: count }
-  total_to_update += count
-end
+    count = TestResult.where(test_indicator_id: retired_id).count
+    indicator_counts[retired_id] = { name: name, active_id: active_indicator.id, count: count }
+    total_to_update += count
+  end
 
-puts '=' * 80
-puts "Total test results to migrate: #{total_to_update.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
-puts "Number of retired indicators: #{indicator_counts.size}"
-puts '=' * 80
+  puts '=' * 80
+  puts "Total test results to migrate: #{total_to_update.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+  puts "Number of retired indicators: #{indicator_counts.size}"
+  puts '=' * 80
 
-start_time = Time.now
-total_processed = 0
+  start_time = Time.now
+  total_processed = 0
 
-indicator_counts.each_with_index do |(retired_id, info), index|
-  current_index = index + 1
-  puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
-  puts "  From ID: #{retired_id} -> To ID: #{info[:active_id]}"
-  puts "  Rows to update: #{info[:count].to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+  indicator_counts.each_with_index do |(retired_id, info), index|
+    current_index = index + 1
+    puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
+    puts "  From ID: #{retired_id} -> To ID: #{info[:active_id]}"
+    puts "  Rows to update: #{info[:count].to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
 
-  indicator_processed = 0
+    indicator_processed = 0
 
-  # Process in batches of 10,000
-  loop do
-    ActiveRecord::Base.connection.execute(<<-SQL.squish)
+    # Process in batches of 10,000
+    loop do
+      ActiveRecord::Base.connection.execute(<<-SQL.squish)
       UPDATE test_results
       SET test_indicator_id = #{info[:active_id]}
       WHERE test_indicator_id = #{retired_id}
       LIMIT 10000
-    SQL
+      SQL
 
-    affected_rows = ActiveRecord::Base.connection.raw_connection.affected_rows
-    break if affected_rows == 0
+      affected_rows = ActiveRecord::Base.connection.raw_connection.affected_rows
+      break if affected_rows == 0
 
-    indicator_processed += affected_rows
-    total_processed += affected_rows
+      indicator_processed += affected_rows
+      total_processed += affected_rows
 
-    percentage = (total_processed.to_f / total_to_update * 100).round(2)
-    remaining = total_to_update - total_processed
+      percentage = (total_processed.to_f / total_to_update * 100).round(2)
+      remaining = total_to_update - total_processed
 
-    # Calculate elapsed and estimated time
-    elapsed_seconds = (Time.now - start_time).to_i
-    elapsed_time = format_time(elapsed_seconds)
+      # Calculate elapsed and estimated time
+      elapsed_seconds = (Time.now - start_time).to_i
+      elapsed_time = format_time(elapsed_seconds)
 
-    # Estimate time remaining based on processing rate
-    rate = total_processed.to_f / elapsed_seconds if elapsed_seconds > 0
-    est_remaining_seconds = rate && rate > 0 ? (remaining / rate).to_i : 0
-    est_remaining_time = format_time(est_remaining_seconds)
+      # Estimate time remaining based on processing rate
+      rate = total_processed.to_f / elapsed_seconds if elapsed_seconds > 0
+      est_remaining_seconds = rate && rate > 0 ? (remaining / rate).to_i : 0
+      est_remaining_time = format_time(est_remaining_seconds)
 
-    puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
-    puts "    Batch: #{affected_rows.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse} rows | " \
-         "Indicator total: #{indicator_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/,
-                                                                   '\\1,').reverse}/#{info[:count].to_s.reverse.gsub(
-                                                                     /(\d{3})(?=\d)/, '\\1,'
-                                                                   ).reverse} | " \
-         "Overall: #{percentage}% | Remaining: #{remaining.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
-    puts "    Elapsed: #{elapsed_time} | Est. remaining: #{est_remaining_time}"
+      puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
+      puts "    Batch: #{affected_rows.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse} rows | " \
+           "Indicator total: #{indicator_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/,
+                                                                     '\\1,').reverse}/#{info[:count].to_s.reverse.gsub(
+                                                                       /(\d{3})(?=\d)/, '\\1,'
+                                                                     ).reverse} | " \
+           "Overall: #{percentage}% | Remaining: #{remaining.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+      puts "    Elapsed: #{elapsed_time} | Est. remaining: #{est_remaining_time}"
 
-    sleep 0.1 # Give DB a breather
+      sleep 0.1 # Give DB a breather
+    end
+
+    puts "  ✓ Completed indicator: #{info[:name]} (#{indicator_processed} rows migrated)"
   end
 
-  puts "  ✓ Completed indicator: #{info[:name]} (#{indicator_processed} rows migrated)"
+  total_elapsed = (Time.now - start_time).to_i
+  puts "\n" + '=' * 80
+  puts "Migration complete! Total rows updated: #{total_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+  puts "Total time elapsed: #{format_time(total_elapsed)}"
+  puts '=' * 80
 end
 
-total_elapsed = (Time.now - start_time).to_i
-puts "\n" + '=' * 80
-puts "Migration complete! Total rows updated: #{total_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
-puts "Total time elapsed: #{format_time(total_elapsed)}"
-puts '=' * 80
+update_test_results_with_active_indicators
 
 TestPanel.find_each do |panel|
   puts "Fixing Panel: #{panel.name}"
@@ -553,12 +535,23 @@ TestPanel.find_each do |panel|
 end
 
 p = ProcessTestCatalogService.new(nil)
-puts 'Final processing of test catalog...'
 p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
-puts 'Finished processing test catalog.'
 
 TestType.unscoped.where(can_be_ordered: false).each do |test_type|
   preferred_name = test_type.preferred_name || test_type.name
   # Use update_columns to bypass validation when disabling
   test_type.update_columns(preferred_name: preferred_name, disabled: true)
 end
+
+update_test_results_with_active_indicators
+
+p = ProcessTestCatalogService.new(nil)
+puts 'Final processing of test catalog...'
+p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
+
+TestType.unscoped.where(can_be_ordered: false).each do |test_type|
+  preferred_name = test_type.preferred_name || test_type.name
+  # Use update_columns to bypass validation when disabling
+  test_type.update_columns(preferred_name: preferred_name, disabled: true)
+end
+puts 'Finished processing test catalog.'
