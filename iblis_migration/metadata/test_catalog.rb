@@ -306,7 +306,13 @@ def update_record(record, test_type, department_id, update_name = false)
   # Only update name if specified
   update_attributes[:name] = test_type['name'] if update_name
 
-  record.update!(update_attributes)
+  # Skip validation for disabled records to avoid uniqueness conflicts
+  if record.disabled?
+    record.update_columns(update_attributes)
+  else
+    record.update!(update_attributes)
+  end
+
   update_test_indicators(test_type, record)
 end
 
@@ -323,7 +329,7 @@ def handle_special_mapping(test_type, department_id)
 
     # Update name only for the specified target
     should_update_name = (target_name == mapping[:update_name_for])
-    target_record.update!(disabled: true) unless should_update_name
+    target_record.update_column(:disabled, true) unless should_update_name
     update_record(target_record, test_type, department_id, should_update_name)
   end
 
@@ -338,7 +344,8 @@ cancer_tests.update_all(disabled: true)
 dp = Department.unscoped.where(retired: 1).pluck(:id)
 TestType.where(department_id: dp).update_all(department_id: Department.first.id)
 TestType.all.each do |test_type|
-  test_type.update!(preferred_name: test_type.name)
+  # Use update_columns to bypass validation and avoid conflicts
+  test_type.update_columns(preferred_name: test_type.name)
 end
 puts 'Fixed Paeds and CancerCenter tests.'
 
@@ -348,22 +355,27 @@ test_types.each do |test_type|
 
   department_id = Department.find_by(name: test_type['test_category']['name'])&.id
 
-  # Step 1: Handle Paeds variant
-  paeds_record = find_variant_record(test_type, ' (Paeds)')
-  paeds_record&.update!(disabled: true, preferred_name: paeds_record&.name, can_be_ordered: false)
-  update_record(paeds_record, test_type, department_id)
-
-  # Step 2: Handle CancerCenter variant
-  cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
-  cancer_center_record&.update!(disabled: true, preferred_name: cancer_center_record&.name, can_be_ordered: false)
-  update_record(cancer_center_record, test_type, department_id)
-
-  # Step 3: Handle main test type record
+  # Step 1: Handle main test type record FIRST to avoid validation conflicts
   main_record = find_test_type_record(test_type)
   if main_record
     update_record(main_record, test_type, department_id, true)
     main_record.update!(preferred_name: test_type['preferred_name'])
     main_record.update!(can_be_ordered: true, disabled: false)
+  end
+
+  # Step 2: Handle Paeds variant - use update_columns to bypass validation
+  paeds_record = find_variant_record(test_type, ' (Paeds)')
+  if paeds_record
+    paeds_record.update_columns(disabled: true, preferred_name: paeds_record.name, can_be_ordered: false)
+    update_record(paeds_record, test_type, department_id)
+  end
+
+  # Step 3: Handle CancerCenter variant - use update_columns to bypass validation
+  cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
+  if cancer_center_record
+    cancer_center_record.update_columns(disabled: true, preferred_name: cancer_center_record.name,
+                                        can_be_ordered: false)
+    update_record(cancer_center_record, test_type, department_id)
   end
 
   # Step 4: Handle special mappings
@@ -424,24 +436,118 @@ end
 #   end
 # end
 
-sql = <<-SQL.squish
-  UPDATE test_results tr
-  JOIN test_indicators r#{' '}
-    ON tr.test_indicator_id = r.id#{' '}
-   AND r.retired = 1
-  JOIN test_indicators a#{' '}
-    ON a.name = r.name#{' '}
-   AND a.retired = 0
-  SET tr.test_indicator_id = a.id;
-SQL
+# sql = <<-SQL.squish
+#   UPDATE test_results tr
+#   JOIN test_indicators r#{' '}
+#     ON tr.test_indicator_id = r.id#{' '}
+#    AND r.retired = 1
+#   JOIN test_indicators a#{' '}
+#     ON a.name = r.name#{' '}
+#    AND a.retired = 0
+#   SET tr.test_indicator_id = a.id;
+# SQL
 
-puts 'Updating references from retired indicators to active indicators for test results'
-ActiveRecord::Base.connection.execute(sql)
+# puts 'Updating references from retired indicators to active indicators for test results'
+# ActiveRecord::Base.connection.execute(sql)
+
+# Helper method to format time duration
+def format_time(seconds)
+  return '0s' if seconds <= 0
+
+  hours = seconds / 3600
+  minutes = (seconds % 3600) / 60
+  secs = seconds % 60
+
+  parts = []
+  parts << "#{hours}h" if hours > 0
+  parts << "#{minutes}m" if minutes > 0 || hours > 0
+  parts << "#{secs}s"
+  parts.join(' ')
+end
+
+retired_indicators = TestIndicator.unscoped.where(retired: 1).pluck(:id, :name)
+
+# Calculate total rows to update
+total_to_update = 0
+indicator_counts = {}
+retired_indicators.each do |retired_id, name|
+  active_indicator = TestIndicator.find_by(name: name, retired: 0)
+  next unless active_indicator
+
+  count = TestResult.where(test_indicator_id: retired_id).count
+  indicator_counts[retired_id] = { name: name, active_id: active_indicator.id, count: count }
+  total_to_update += count
+end
+
+puts '=' * 80
+puts "Total test results to migrate: #{total_to_update.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+puts "Number of retired indicators: #{indicator_counts.size}"
+puts '=' * 80
+
+start_time = Time.now
+total_processed = 0
+
+indicator_counts.each_with_index do |(retired_id, info), index|
+  current_index = index + 1
+  puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
+  puts "  From ID: #{retired_id} -> To ID: #{info[:active_id]}"
+  puts "  Rows to update: #{info[:count].to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+
+  indicator_processed = 0
+
+  # Process in batches of 10,000
+  loop do
+    ActiveRecord::Base.connection.execute(<<-SQL.squish)
+      UPDATE test_results
+      SET test_indicator_id = #{info[:active_id]}
+      WHERE test_indicator_id = #{retired_id}
+      LIMIT 10000
+    SQL
+
+    affected_rows = ActiveRecord::Base.connection.raw_connection.affected_rows
+    break if affected_rows == 0
+
+    indicator_processed += affected_rows
+    total_processed += affected_rows
+
+    percentage = (total_processed.to_f / total_to_update * 100).round(2)
+    remaining = total_to_update - total_processed
+
+    # Calculate elapsed and estimated time
+    elapsed_seconds = (Time.now - start_time).to_i
+    elapsed_time = format_time(elapsed_seconds)
+
+    # Estimate time remaining based on processing rate
+    rate = total_processed.to_f / elapsed_seconds if elapsed_seconds > 0
+    est_remaining_seconds = rate && rate > 0 ? (remaining / rate).to_i : 0
+    est_remaining_time = format_time(est_remaining_seconds)
+
+    puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
+    puts "    Batch: #{affected_rows.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse} rows | " \
+         "Indicator total: #{indicator_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/,
+                                                                   '\\1,').reverse}/#{info[:count].to_s.reverse.gsub(
+                                                                     /(\d{3})(?=\d)/, '\\1,'
+                                                                   ).reverse} | " \
+         "Overall: #{percentage}% | Remaining: #{remaining.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+    puts "    Elapsed: #{elapsed_time} | Est. remaining: #{est_remaining_time}"
+
+    sleep 0.1 # Give DB a breather
+  end
+
+  puts "  ✓ Completed indicator: #{info[:name]} (#{indicator_processed} rows migrated)"
+end
+
+total_elapsed = (Time.now - start_time).to_i
+puts "\n" + '=' * 80
+puts "Migration complete! Total rows updated: #{total_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+puts "Total time elapsed: #{format_time(total_elapsed)}"
+puts '=' * 80
 
 TestPanel.find_each do |panel|
   puts "Fixing Panel: #{panel.name}"
   next if panel.test_types.present?
 
+  Test.where(test_panel_id: panel.id).update_all(test_panel_id: nil)
   panel.delete
   puts "Fixed Panel: #{panel.name}"
 end
@@ -453,6 +559,6 @@ puts 'Finished processing test catalog.'
 
 TestType.unscoped.where(can_be_ordered: false).each do |test_type|
   preferred_name = test_type.preferred_name || test_type.name
-  test_type.update!(preferred_name:)
-  test_type.update!(disabled: true)
+  # Use update_columns to bypass validation when disabling
+  test_type.update_columns(preferred_name: preferred_name, disabled: true)
 end
