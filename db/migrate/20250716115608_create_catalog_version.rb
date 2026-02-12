@@ -3,6 +3,8 @@
 # This migration creates the catalog_versions table.
 class CreateCatalogVersion < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:test_catalog_versions)
+
     create_table :test_catalog_versions do |t|
       t.string :version
       t.json :version_details

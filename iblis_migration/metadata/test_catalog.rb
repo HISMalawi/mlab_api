@@ -154,7 +154,6 @@ departments.each do |department|
 end
 
 # Update test_types
-test_types = test_catalog['catalog']['test_types']
 unwanted_tests = TestType.where(name: %w[
                                   try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
                                 ])
@@ -354,38 +353,41 @@ end
 puts 'Fixed Paeds and CancerCenter tests.'
 
 # Main processing loop
-test_types.each do |test_type|
-  puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
+def main_processing(test_types)
+  test_types.each do |test_type|
+    puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
 
-  department_id = Department.find_by(name: test_type['test_category']['name'])&.id
+    department_id = Department.find_by(name: test_type['test_category']['name'])&.id
 
-  # Step 1: Handle main test type record FIRST to avoid validation conflicts
-  main_record = find_test_type_record(test_type)
-  if main_record
-    update_record(main_record, test_type, department_id, true)
-    main_record.update!(preferred_name: test_type['preferred_name'])
-    main_record.update!(can_be_ordered: true, disabled: false)
+    # Step 1: Handle main test type record FIRST to avoid validation conflicts
+    main_record = find_test_type_record(test_type)
+    if main_record
+      update_record(main_record, test_type, department_id, true)
+      # main_record.update!(preferred_name: test_type['preferred_name'])
+      main_record.update!(can_be_ordered: true, disabled: false)
+    end
+
+    # Step 2: Handle Paeds variant - use update_columns to bypass validation
+    paeds_record = find_variant_record(test_type, ' (Paeds)')
+    if paeds_record
+      paeds_record.update_columns(disabled: true, preferred_name: paeds_record.name, can_be_ordered: false)
+      update_record(paeds_record, test_type, department_id)
+    end
+
+    # Step 3: Handle CancerCenter variant - use update_columns to bypass validation
+    cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
+    if cancer_center_record
+      cancer_center_record.update_columns(disabled: true, preferred_name: cancer_center_record.name,
+                                          can_be_ordered: false)
+      update_record(cancer_center_record, test_type, department_id)
+    end
+
+    # Step 4: Handle special mappings
+    handle_special_mapping(test_type, department_id)
   end
-
-  # Step 2: Handle Paeds variant - use update_columns to bypass validation
-  paeds_record = find_variant_record(test_type, ' (Paeds)')
-  if paeds_record
-    paeds_record.update_columns(disabled: true, preferred_name: paeds_record.name, can_be_ordered: false)
-    update_record(paeds_record, test_type, department_id)
-  end
-
-  # Step 3: Handle CancerCenter variant - use update_columns to bypass validation
-  cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
-  if cancer_center_record
-    cancer_center_record.update_columns(disabled: true, preferred_name: cancer_center_record.name,
-                                        can_be_ordered: false)
-    update_record(cancer_center_record, test_type, department_id)
-  end
-
-  # Step 4: Handle special mappings
-  handle_special_mapping(test_type, department_id)
 end
 
+main_processing(test_catalog['catalog']['test_types'])
 TestIndicator.where('nlims_code IS NOT NULL').each do |indicator|
   TestIndicator.where(name: indicator.name)&.update!(
     nlims_code: indicator.nlims_code,
@@ -542,7 +544,7 @@ TestType.unscoped.where(can_be_ordered: false).each do |test_type|
   # Use update_columns to bypass validation when disabling
   test_type.update_columns(preferred_name: preferred_name, disabled: true)
 end
-
+main_processing(test_catalog['catalog']['test_types'])
 update_test_results_with_active_indicators
 
 p = ProcessTestCatalogService.new(nil)
