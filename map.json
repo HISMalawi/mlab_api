@@ -60,5 +60,6 @@
   "Albumin/Globulin Ratio (A/G)" : ["A/G"],
   "Smear examination": ["ZN", "ZN Stain", "ZN Smear"],
   "Antibodies to Hepatitis C Virus": ["HCV"],
-  "Lactate Dehydrogenase": ["LDH", "LDH-H"]
+  "Lactate Dehydrogenase": ["LDH", "LDH-H"],
+  "Blood film": ["Parasite Stage"] 
 }
