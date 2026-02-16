@@ -322,6 +322,10 @@ SPECIAL_MAPPINGS = {
   'antibodies to hepatitis c virus' => {
     targets: ['Hepatitis C antibody test'],
     update_name_for: 'Hepatitis C antibody test'
+  },
+  'hpv nucleic acid test' => {
+    targets: ['Human papiloma virus'],
+    update_name_for: nil
   }
 }
 

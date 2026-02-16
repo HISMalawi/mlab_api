@@ -61,5 +61,7 @@
   "Smear examination": ["ZN", "ZN Stain", "ZN Smear"],
   "Antibodies to Hepatitis C Virus": ["HCV"],
   "Lactate Dehydrogenase": ["LDH", "LDH-H"],
-  "Blood film": ["Parasite Stage"] 
+  "Blood film": ["Parasite Stage"],
+  "HPV 18_45" : ["HPV18/45"],
+  "OTHER HR HPV": ["other hrHPV"]
 }
