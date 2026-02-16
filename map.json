@@ -57,5 +57,6 @@
   "Gamma-Glutamyl Transferase": ["GGT", "GGT-H"],
   "AST/ALT Ratio": ["AST/ALT"],
   "Globulin (Glo)" : ["Globulin (Glo)", "Glo"],
-  "Albumin/Globulin Ratio (A/G)" : ["A/G"]
+  "Albumin/Globulin Ratio (A/G)" : ["A/G"],
+  "Smear examination": ["ZN", "ZN Stain", "ZN Smear"]
 }
