@@ -8,7 +8,7 @@ puts 'Initializing processing of test types'
 [TestIndicator, TestType, Drug, Organism].each do |model|
   model.find_each do |record|
     cleaned_name = record.name.strip
-    record.update!(name: cleaned_name) if record.name != cleaned_name
+    record.update_columns(name: cleaned_name) if record.name != cleaned_name
   end
 end
 
@@ -157,17 +157,54 @@ end
 unwanted_tests = TestType.where(name: %w[
                                   try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
                                 ])
-tis = TestIndicator.where(name: %w[ss qqq he aaa nn lk zz ll])
-tests = Test.where(test_type_id: unwanted_tests.pluck(:id))
-TestStatus.where(test_id: tests.pluck(:id)).delete_all
-tests.delete_all
-TestTypeTestIndicator.where(test_types_id: unwanted_tests.pluck(:id)).delete_all
-TestTypeTestIndicator.where(test_indicators_id: tis.pluck(:id)).delete_all
-TestIndicatorRange.where(test_indicator_id: tis.pluck(:id)).delete_all
-SpecimenTestTypeMapping.where(test_type_id: unwanted_tests.pluck(:id)).delete_all
-ExpectedTat.where(test_type_id: unwanted_tests.pluck(:id)).delete_all
-unwanted_tests.delete_all
-tis.delete_all
+tis = TestIndicator.unscoped.where(name: %w[ss qqq he aaa nn lk zz ll])
+ActiveRecord::Base.transaction do
+  unwanted_test_type_ids = unwanted_tests.pluck(:id)
+  unwanted_indicator_ids = tis.pluck(:id)
+
+  # 1️⃣ Test statuses
+  TestStatus.unscoped
+            .where(test_id: Test.unscoped.where(test_type_id: unwanted_test_type_ids).pluck(:id))
+            .delete_all
+
+  # 2️⃣ Tests (CRITICAL: unscoped)
+  Test.unscoped
+      .where(test_type_id: unwanted_test_type_ids)
+      .delete_all
+
+  # 3️⃣ Test ↔ Indicator mappings
+  TestTypeTestIndicator.unscoped
+                       .where(test_types_id: unwanted_test_type_ids)
+                       .or(
+                         TestTypeTestIndicator.unscoped.where(test_indicators_id: unwanted_indicator_ids)
+                       )
+                       .delete_all
+
+  # 4️⃣ Indicator ranges
+  TestIndicatorRange.unscoped
+                    .where(test_indicator_id: unwanted_indicator_ids)
+                    .delete_all
+
+  # 5️⃣ Specimen mappings
+  SpecimenTestTypeMapping.unscoped
+                         .where(test_type_id: unwanted_test_type_ids)
+                         .delete_all
+
+  # 6️⃣ Expected TATs
+  ExpectedTat.unscoped
+             .where(test_type_id: unwanted_test_type_ids)
+             .delete_all
+
+  # 7️⃣ Test indicators
+  TestIndicator.unscoped
+               .where(id: unwanted_indicator_ids)
+               .delete_all
+
+  # 8️⃣ Test types (LAST)
+  TestType.unscoped
+          .where(id: unwanted_test_type_ids)
+          .delete_all
+end
 
 maping = JSON.parse(File.read('map.json'))
 maping.each do |canonical, aliases|
@@ -529,10 +566,23 @@ update_test_results_with_active_indicators
 
 TestPanel.find_each do |panel|
   puts "Fixing Panel: #{panel.name}"
-  next if panel.test_types.present?
 
-  Test.where(test_panel_id: panel.id).update_all(test_panel_id: nil)
+  # Skip panels that still have test types (Rails-level)
+  next if panel.test_types.exists?
+
+  # 🔥 Remove join-table references FIRST
+  TestTypePanelMapping.unscoped
+                      .where(test_panel_id: panel.id)
+                      .delete_all
+
+  # Nullify tests just in case
+  Test.unscoped
+      .where(test_panel_id: panel.id)
+      .update_all(test_panel_id: nil)
+
+  # Now safe to delete
   panel.delete
+
   puts "Fixed Panel: #{panel.name}"
 end
 
