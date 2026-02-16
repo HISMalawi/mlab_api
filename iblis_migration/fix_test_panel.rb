@@ -14,10 +14,12 @@ panels = ['CSF Analysis',
 test_panels = TestPanel.where.not(name: panels)
 test_panels.each do |panel|
   if panel.name == 'Urinalysis'
-    Test.where(test_panel_id: panel.id).update_all(test_panel_id: TestPanel.find_by(name: 'Urine analysis').id)
+    test_panel = TestPanel.find_by(name: 'Urine analysis')
+    Test.where(test_panel_id: panel.id).update_all(test_panel_id: test_panel.id) if test_panel.present?
   end
   if panel.name == 'Sterile Fluid Analysis'
-    Test.where(test_panel_id: panel.id).update_all(test_panel_id: TestPanel.find_by(name: 'Sterile Fluid Full Analysis').id)
+    test_panel = TestPanel.find_by(name: 'Sterile Fluid Full Analysis')
+    Test.where(test_panel_id: panel.id).update_all(test_panel_id: test_panel.id) if test_panel.present?
   end
   puts "Voiding panel #{panel.name}"
   panel.void('No longer used')

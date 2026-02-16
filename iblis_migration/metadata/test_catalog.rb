@@ -8,7 +8,7 @@ puts 'Initializing processing of test types'
 [TestIndicator, TestType, Drug, Organism].each do |model|
   model.find_each do |record|
     cleaned_name = record.name.strip
-    record.update!(name: cleaned_name) if record.name != cleaned_name
+    record.update_columns(name: cleaned_name) if record.name != cleaned_name
   end
 end
 
@@ -154,21 +154,57 @@ departments.each do |department|
 end
 
 # Update test_types
-test_types = test_catalog['catalog']['test_types']
 unwanted_tests = TestType.where(name: %w[
                                   try tr q ss cs n pll fd nn lk zz ll fd(CancerCenter) nn(CancerCenter) lk(CancerCenter) zz(CancerCenter) ll(CancerCenter)
                                 ])
-tis = TestIndicator.where(name: %w[ss qqq he aaa nn lk zz ll])
-tests = Test.where(test_type_id: unwanted_tests.pluck(:id))
-TestStatus.where(test_id: tests.pluck(:id)).delete_all
-tests.delete_all
-TestTypeTestIndicator.where(test_types_id: unwanted_tests.pluck(:id)).delete_all
-TestTypeTestIndicator.where(test_indicators_id: tis.pluck(:id)).delete_all
-TestIndicatorRange.where(test_indicator_id: tis.pluck(:id)).delete_all
-SpecimenTestTypeMapping.where(test_type_id: unwanted_tests.pluck(:id)).delete_all
-ExpectedTat.where(test_type_id: unwanted_tests.pluck(:id)).delete_all
-unwanted_tests.delete_all
-tis.delete_all
+tis = TestIndicator.unscoped.where(name: %w[ss qqq he aaa nn lk zz ll])
+ActiveRecord::Base.transaction do
+  unwanted_test_type_ids = unwanted_tests.pluck(:id)
+  unwanted_indicator_ids = tis.pluck(:id)
+
+  # 1️⃣ Test statuses
+  TestStatus.unscoped
+            .where(test_id: Test.unscoped.where(test_type_id: unwanted_test_type_ids).pluck(:id))
+            .delete_all
+
+  # 2️⃣ Tests (CRITICAL: unscoped)
+  Test.unscoped
+      .where(test_type_id: unwanted_test_type_ids)
+      .delete_all
+
+  # 3️⃣ Test ↔ Indicator mappings
+  TestTypeTestIndicator.unscoped
+                       .where(test_types_id: unwanted_test_type_ids)
+                       .or(
+                         TestTypeTestIndicator.unscoped.where(test_indicators_id: unwanted_indicator_ids)
+                       )
+                       .delete_all
+
+  # 4️⃣ Indicator ranges
+  TestIndicatorRange.unscoped
+                    .where(test_indicator_id: unwanted_indicator_ids)
+                    .delete_all
+
+  # 5️⃣ Specimen mappings
+  SpecimenTestTypeMapping.unscoped
+                         .where(test_type_id: unwanted_test_type_ids)
+                         .delete_all
+
+  # 6️⃣ Expected TATs
+  ExpectedTat.unscoped
+             .where(test_type_id: unwanted_test_type_ids)
+             .delete_all
+
+  # 7️⃣ Test indicators
+  TestIndicator.unscoped
+               .where(id: unwanted_indicator_ids)
+               .delete_all
+
+  # 8️⃣ Test types (LAST)
+  TestType.unscoped
+          .where(id: unwanted_test_type_ids)
+          .delete_all
+end
 
 maping = JSON.parse(File.read('map.json'))
 maping.each do |canonical, aliases|
@@ -234,6 +270,10 @@ SPECIAL_MAPPINGS = {
     targets: ['Hepatitis B', 'Hepatitis B(CancerCenter)'],
     update_name_for: 'Hepatitis B'
   },
+  'hepatitis b test' => {
+    targets: ['Hepatitis B Antigen Test'],
+    update_name_for: 'Hepatitis B Antigen Test'
+  },
   'covid-19 nucleic acid test' => {
     targets: ['SARS COV 2', 'SARS COV 2(CancerCenter)'],
     update_name_for: 'SARS COV 2'
@@ -274,6 +314,18 @@ SPECIAL_MAPPINGS = {
   'haemoglobin' => {
     targets: ['haemoglobine Test'],
     update_name_for: nil
+  },
+  'ziehl-neelsen (zn) stain' => {
+    targets: ['ZN Stain'],
+    update_name_for: nil
+  },
+  'antibodies to hepatitis c virus' => {
+    targets: ['Hepatitis C antibody test'],
+    update_name_for: 'Hepatitis C antibody test'
+  },
+  'hpv nucleic acid test' => {
+    targets: ['Human papiloma virus'],
+    update_name_for: nil
   }
 }
 
@@ -306,7 +358,13 @@ def update_record(record, test_type, department_id, update_name = false)
   # Only update name if specified
   update_attributes[:name] = test_type['name'] if update_name
 
-  record.update!(update_attributes)
+  # Skip validation for disabled records to avoid uniqueness conflicts
+  if record.disabled?
+    record.update_columns(update_attributes)
+  else
+    record.update!(update_attributes)
+  end
+
   update_test_indicators(test_type, record)
 end
 
@@ -323,7 +381,7 @@ def handle_special_mapping(test_type, department_id)
 
     # Update name only for the specified target
     should_update_name = (target_name == mapping[:update_name_for])
-    target_record.update!(disabled: true) unless should_update_name
+    target_record.update_column(:disabled, true) unless should_update_name
     update_record(target_record, test_type, department_id, should_update_name)
   end
 
@@ -338,38 +396,47 @@ cancer_tests.update_all(disabled: true)
 dp = Department.unscoped.where(retired: 1).pluck(:id)
 TestType.where(department_id: dp).update_all(department_id: Department.first.id)
 TestType.all.each do |test_type|
-  test_type.update!(preferred_name: test_type.name)
+  # Use update_columns to bypass validation and avoid conflicts
+  test_type.update_columns(preferred_name: test_type.name)
 end
 puts 'Fixed Paeds and CancerCenter tests.'
 
 # Main processing loop
-test_types.each do |test_type|
-  puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
+def main_processing(test_types)
+  test_types.each do |test_type|
+    puts "Test Type ID: #{test_type['id']}, Name: #{test_type['name']}"
 
-  department_id = Department.find_by(name: test_type['test_category']['name'])&.id
+    department_id = Department.find_by(name: test_type['test_category']['name'])&.id
 
-  # Step 1: Handle Paeds variant
-  paeds_record = find_variant_record(test_type, ' (Paeds)')
-  paeds_record&.update!(disabled: true, preferred_name: paeds_record&.name, can_be_ordered: false)
-  update_record(paeds_record, test_type, department_id)
+    # Step 1: Handle main test type record FIRST to avoid validation conflicts
+    main_record = find_test_type_record(test_type)
+    if main_record
+      update_record(main_record, test_type, department_id, true)
+      # main_record.update!(preferred_name: test_type['preferred_name'])
+      main_record.update!(can_be_ordered: true, disabled: false)
+    end
 
-  # Step 2: Handle CancerCenter variant
-  cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
-  cancer_center_record&.update!(disabled: true, preferred_name: cancer_center_record&.name, can_be_ordered: false)
-  update_record(cancer_center_record, test_type, department_id)
+    # Step 2: Handle Paeds variant - use update_columns to bypass validation
+    paeds_record = find_variant_record(test_type, ' (Paeds)')
+    if paeds_record
+      paeds_record.update_columns(disabled: true, preferred_name: paeds_record.name, can_be_ordered: false)
+      update_record(paeds_record, test_type, department_id)
+    end
 
-  # Step 3: Handle main test type record
-  main_record = find_test_type_record(test_type)
-  if main_record
-    update_record(main_record, test_type, department_id, true)
-    main_record.update!(preferred_name: test_type['preferred_name'])
-    main_record.update!(can_be_ordered: true, disabled: false)
+    # Step 3: Handle CancerCenter variant - use update_columns to bypass validation
+    cancer_center_record = find_variant_record(test_type, '(CancerCenter)')
+    if cancer_center_record
+      cancer_center_record.update_columns(disabled: true, preferred_name: cancer_center_record.name,
+                                          can_be_ordered: false)
+      update_record(cancer_center_record, test_type, department_id)
+    end
+
+    # Step 4: Handle special mappings
+    handle_special_mapping(test_type, department_id)
   end
-
-  # Step 4: Handle special mappings
-  handle_special_mapping(test_type, department_id)
 end
 
+main_processing(test_catalog['catalog']['test_types'])
 TestIndicator.where('nlims_code IS NOT NULL').each do |indicator|
   TestIndicator.where(name: indicator.name)&.update!(
     nlims_code: indicator.nlims_code,
@@ -412,47 +479,143 @@ retired_test_indicators.each do |indicator|
   TestTypeTestIndicator.where(test_indicators_id: indicator.id).update_all(test_indicators_id: active_indicator_id)
 end
 
-# retired_test_indicators = TestIndicator.unscoped.where(retired: 1)
-# Parallel.each(retired_test_indicators, in_threads: 4) do |indicator|
-#   ActiveRecord::Base.connection_pool.with_connection do
-#     active_indicator_id = TestIndicator.find_by(name: indicator.name, retired: 0)&.id
-#     next unless active_indicator_id
+# Helper method to format time duration
+def format_time(seconds)
+  return '0s' if seconds <= 0
 
-#     puts "Updating references from retired indicator #{indicator.id} to active indicator #{active_indicator_id} for test results"
+  hours = seconds / 3600
+  minutes = (seconds % 3600) / 60
+  secs = seconds % 60
 
-#     TestResult.where(test_indicator_id: indicator.id).update_all(test_indicator_id: active_indicator_id)
-#   end
-# end
+  parts = []
+  parts << "#{hours}h" if hours > 0
+  parts << "#{minutes}m" if minutes > 0 || hours > 0
+  parts << "#{secs}s"
+  parts.join(' ')
+end
 
-sql = <<-SQL.squish
-  UPDATE test_results tr
-  JOIN test_indicators r#{' '}
-    ON tr.test_indicator_id = r.id#{' '}
-   AND r.retired = 1
-  JOIN test_indicators a#{' '}
-    ON a.name = r.name#{' '}
-   AND a.retired = 0
-  SET tr.test_indicator_id = a.id;
-SQL
+def update_test_results_with_active_indicators
+  retired_indicators = TestIndicator.unscoped.where(retired: 1).pluck(:id, :name)
 
-puts 'Updating references from retired indicators to active indicators for test results'
-ActiveRecord::Base.connection.execute(sql)
+  # Calculate total rows to update
+  total_to_update = 0
+  indicator_counts = {}
+  retired_indicators.each do |retired_id, name|
+    active_indicator = TestIndicator.find_by(name: name, retired: 0)
+    next unless active_indicator
+
+    count = TestResult.where(test_indicator_id: retired_id).count
+    indicator_counts[retired_id] = { name: name, active_id: active_indicator.id, count: count }
+    total_to_update += count
+  end
+
+  puts '=' * 80
+  puts "Total test results to migrate: #{total_to_update.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+  puts "Number of retired indicators: #{indicator_counts.size}"
+  puts '=' * 80
+
+  start_time = Time.now
+  total_processed = 0
+
+  indicator_counts.each_with_index do |(retired_id, info), index|
+    current_index = index + 1
+    puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
+    puts "  From ID: #{retired_id} -> To ID: #{info[:active_id]}"
+    puts "  Rows to update: #{info[:count].to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+
+    indicator_processed = 0
+
+    # Process in batches of 10,000
+    loop do
+      ActiveRecord::Base.connection.execute(<<-SQL.squish)
+      UPDATE test_results
+      SET test_indicator_id = #{info[:active_id]}
+      WHERE test_indicator_id = #{retired_id}
+      LIMIT 10000
+      SQL
+
+      affected_rows = ActiveRecord::Base.connection.raw_connection.affected_rows
+      break if affected_rows == 0
+
+      indicator_processed += affected_rows
+      total_processed += affected_rows
+
+      percentage = (total_processed.to_f / total_to_update * 100).round(2)
+      remaining = total_to_update - total_processed
+
+      # Calculate elapsed and estimated time
+      elapsed_seconds = (Time.now - start_time).to_i
+      elapsed_time = format_time(elapsed_seconds)
+
+      # Estimate time remaining based on processing rate
+      rate = total_processed.to_f / elapsed_seconds if elapsed_seconds > 0
+      est_remaining_seconds = rate && rate > 0 ? (remaining / rate).to_i : 0
+      est_remaining_time = format_time(est_remaining_seconds)
+
+      puts "\n[#{current_index}/#{indicator_counts.size}] Migrating indicator: #{info[:name]}"
+      puts "    Batch: #{affected_rows.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse} rows | " \
+           "Indicator total: #{indicator_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/,
+                                                                     '\\1,').reverse}/#{info[:count].to_s.reverse.gsub(
+                                                                       /(\d{3})(?=\d)/, '\\1,'
+                                                                     ).reverse} | " \
+           "Overall: #{percentage}% | Remaining: #{remaining.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+      puts "    Elapsed: #{elapsed_time} | Est. remaining: #{est_remaining_time}"
+
+      sleep 0.1 # Give DB a breather
+    end
+
+    puts "  ✓ Completed indicator: #{info[:name]} (#{indicator_processed} rows migrated)"
+  end
+
+  total_elapsed = (Time.now - start_time).to_i
+  puts "\n" + '=' * 80
+  puts "Migration complete! Total rows updated: #{total_processed.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
+  puts "Total time elapsed: #{format_time(total_elapsed)}"
+  puts '=' * 80
+end
+
+update_test_results_with_active_indicators
 
 TestPanel.find_each do |panel|
   puts "Fixing Panel: #{panel.name}"
-  next if panel.test_types.present?
 
+  # Skip panels that still have test types (Rails-level)
+  next if panel.test_types.exists?
+
+  # 🔥 Remove join-table references FIRST
+  TestTypePanelMapping.unscoped
+                      .where(test_panel_id: panel.id)
+                      .delete_all
+
+  # Nullify tests just in case
+  Test.unscoped
+      .where(test_panel_id: panel.id)
+      .update_all(test_panel_id: nil)
+
+  # Now safe to delete
   panel.delete
+
   puts "Fixed Panel: #{panel.name}"
 end
 
 p = ProcessTestCatalogService.new(nil)
-puts 'Final processing of test catalog...'
 p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
-puts 'Finished processing test catalog.'
 
 TestType.unscoped.where(can_be_ordered: false).each do |test_type|
   preferred_name = test_type.preferred_name || test_type.name
-  test_type.update!(preferred_name:)
-  test_type.update!(disabled: true)
+  # Use update_columns to bypass validation when disabling
+  test_type.update_columns(preferred_name: preferred_name, disabled: true)
 end
+main_processing(test_catalog['catalog']['test_types'])
+update_test_results_with_active_indicators
+
+p = ProcessTestCatalogService.new(nil)
+puts 'Final processing of test catalog...'
+p.process_test_catalog(test_catalog['catalog'].deep_symbolize_keys)
+
+TestType.unscoped.where(can_be_ordered: false).each do |test_type|
+  preferred_name = test_type.preferred_name || test_type.name
+  # Use update_columns to bypass validation when disabling
+  test_type.update_columns(preferred_name: preferred_name, disabled: true)
+end
+puts 'Finished processing test catalog.'
