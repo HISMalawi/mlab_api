@@ -270,6 +270,10 @@ SPECIAL_MAPPINGS = {
     targets: ['Hepatitis B', 'Hepatitis B(CancerCenter)'],
     update_name_for: 'Hepatitis B'
   },
+  'hepatitis b test' => {
+    targets: ['Hepatitis B Antigen Test'],
+    update_name_for: 'Hepatitis B Antigen Test'
+  },
   'covid-19 nucleic acid test' => {
     targets: ['SARS COV 2', 'SARS COV 2(CancerCenter)'],
     update_name_for: 'SARS COV 2'
@@ -314,6 +318,10 @@ SPECIAL_MAPPINGS = {
   'ziehl-neelsen (zn) stain' => {
     targets: ['ZN Stain'],
     update_name_for: nil
+  },
+  'antibodies to hepatitis c virus' => {
+    targets: ['Hepatitis C antibody test'],
+    update_name_for: 'Hepatitis C antibody test'
   }
 }
 

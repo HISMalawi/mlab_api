@@ -41,7 +41,7 @@
   "Thrombin Time": ["TT"],
   "Progesterone": ["PROGEST"],
   "Testosterone": ["TESTO"],
-  "Hepatitis B": ["HepB"],
+  "Hepatitis B": ["HepB","HBsAg"],
   "Erythrocyte Sedimentation Rate": ["ESR Peads", "ESR"],
   "Epithelial cells": ["Epithelial cell"],
   "Casts": ["Cast"],
@@ -58,5 +58,6 @@
   "AST/ALT Ratio": ["AST/ALT"],
   "Globulin (Glo)" : ["Globulin (Glo)", "Glo"],
   "Albumin/Globulin Ratio (A/G)" : ["A/G"],
-  "Smear examination": ["ZN", "ZN Stain", "ZN Smear"]
+  "Smear examination": ["ZN", "ZN Stain", "ZN Smear"],
+  "Antibodies to Hepatitis C Virus": ["HCV"]
 }
