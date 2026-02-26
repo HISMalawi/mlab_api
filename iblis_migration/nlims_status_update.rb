@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Lock file path
-LOCK_FILE = Rails.root.join('tmp', 'nlims_status_update.lock')
+# Lock file path (using /tmp for consistency with other cron jobs)
+LOCK_FILE = '/tmp/nlims_status_update.lock'
 
 # Check if another instance is already running
 if File.exist?(LOCK_FILE)

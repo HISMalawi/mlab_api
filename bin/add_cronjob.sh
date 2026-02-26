@@ -75,6 +75,7 @@ rm -f "$LOCK_DIR/log_tracking_numbers.lock" \
       "$LOCK_DIR/nlims_update_couch_id.lock" \
       "$LOCK_DIR/nlims_sync.lock" \
       "$LOCK_DIR/nlims_sync_migrate.lock" \
+      "$LOCK_DIR/nlims_status_update.lock" \
       "$LOCK_DIR/update_elasticsearch_index.lock"
 
 echo "Stale locks removed (if they existed)."
@@ -90,6 +91,8 @@ cron_elasticsearch="*/2 * * * * flock -n $LOCK_DIR/update_elasticsearch_index.lo
 
 cron_nlims_sync="*/5 * * * * flock -n $LOCK_DIR/nlims_sync.lock /bin/bash -l -c 'cd /var/www/mlab_api && ./bin/nlims_sync.sh --silent >> log/nlims_sync.log 2>&1'"
 cron_nlims_sync_migrate="*/5 * * * * flock -n /tmp/nlims_sync_migrate.lock /bin/bash -l -c 'export PATH=\"\$HOME/.rbenv/bin:\$PATH\" && eval \"\$(rbenv init -)\" && cd /var/www/mlab_api && rbenv local 3.2.0 && DISABLE_SPRING=1 bundle exec rails r iblis_migration/migrate_order_to_nlims.rb --silent >> log/nlims_sync_migrate.log 2>&1'"
+
+cron_nlims_status_update="*/15 * * * * /bin/bash -l -c 'export PATH=\"\$HOME/.rbenv/bin:\$PATH\" && eval \"\$(rbenv init -)\" && cd /var/www/mlab_api && rbenv local 3.2.0 && DISABLE_SPRING=1 bundle exec rails r iblis_migration/nlims_status_update.rb >> log/nlims_status_update.log 2>&1'"
 
 cron_rm_stale_locks="0 3 * * 6 /bin/bash -l -c 'cd /var/www/mlab_api && ./bin/clean_up_stale_lock.sh --silent >> log/clean_up_stale_lock.log 2>&1'"
 
@@ -110,6 +113,7 @@ echo "Adding new cron jobs..."
 add_job "$cron_elasticsearch"
 add_job "$cron_nlims_sync"
 add_job "$cron_nlims_sync_migrate"
+add_job "$cron_nlims_status_update"
 add_job "$cron_rm_stale_locks"
 
 echo
