@@ -24,6 +24,30 @@ File.write(LOCK_FILE, Process.pid)
 puts "Lock acquired (PID: #{Process.pid})"
 
 begin
+  # Process add_test_to_order records first
+  add_test_updates = UnsyncOrder.joins('INNER JOIN tests ON tests.id = unsync_orders.test_or_order_id')
+                                .joins('INNER JOIN orders ON orders.id = tests.order_id')
+                                .where(data_level: 'test', sync_status: false)
+                                .where(data_not_synced: 'add_test_to_order')
+                                .where('orders.created_date >= ?', '2026-02-25')
+
+  puts "Processing #{add_test_updates.count} add_test_to_order updates"
+
+  add_test_success = 0
+  add_test_errors = 0
+
+  add_test_updates.select(:id).find_each do |update|
+    Nlims::Sync.sync_add_test_to_order(id: update.id)
+    add_test_success += 1
+  rescue StandardError => e
+    add_test_errors += 1
+    Rails.logger.error("Error processing add_test_to_order UnsyncOrder ID #{update.id}: #{e.message}")
+    puts "Error processing add_test_to_order UnsyncOrder ID #{update.id}: #{e.message}"
+  end
+
+  puts "add_test_to_order complete: #{add_test_success} successful, #{add_test_errors} errors\n"
+
+  # Process other test updates
   unsynchronized_updates = UnsyncOrder.joins('INNER JOIN tests ON tests.id = unsync_orders.test_or_order_id')
                                       .joins('INNER JOIN orders ON orders.id = tests.order_id')
                                       .where(data_level: 'test', sync_status: false)
@@ -48,7 +72,10 @@ begin
     puts "Error processing UnsyncOrder ID #{update.id}: #{e.message}"
   end
 
-  puts "\nProcessing complete: #{success_count} successful, #{error_count} errors"
+  puts "Test updates complete: #{success_count} successful, #{error_count} errors"
+  puts "\n=========================================="
+  puts "TOTAL: #{add_test_success + success_count} successful, #{add_test_errors + error_count} errors"
+  puts '=========================================='
 ensure
   # Always remove lock file when done
   File.delete(LOCK_FILE) if File.exist?(LOCK_FILE)
