@@ -225,7 +225,8 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['order updated successfuly', 'order updated successfully'].include?(response['message'])
+          if response['error'] == false && ['order updated successfuly',
+                                            'order updated successfully'].include?(response['message'])
             unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                              test_or_order_id: order[:id]).first
             update_unsync_order(unsync_order)
@@ -354,13 +355,13 @@ module Nlims
 
           response = JSON.parse(response.body)
           if response['error'] == false && response['message'] == 'test updated successfuly'
-          unsync_order = UnsyncOrder.where(
-            sync_status: 0,
-            data_not_synced: test_res[:test_status],
-            test_or_order_id: test_res[:test_id]
-          ).first
-          update_unsync_order(unsync_order)
-          Rails.logger.info("=======Successfully updated test in nlims:#{payload[:tracking_number]}=============")
+            unsync_order = UnsyncOrder.where(
+              sync_status: 0,
+              data_not_synced: test_res[:test_status],
+              test_or_order_id: test_res[:test_id]
+            ).first
+            update_unsync_order(unsync_order)
+            Rails.logger.info("=======Successfully updated test in nlims:#{payload[:tracking_number]}=============")
           else
             Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
             raise StandardError, "Failed to create order in nlims: #{response['message']}"
@@ -388,18 +389,34 @@ module Nlims
       client = test_record.order&.encounter&.client&.person
       test_results = TestResult.where(test_id: test_record.id)
                                .where.not(value: '').where.not(value: nil)
-      status_trail = TestStatus.where(test_id: test_record.id).map do |st|
+
+      # Use joins and select to avoid loading full TestStatus objects that may cause recursion
+      status_trail = ActiveRecord::Base.connection.execute("
+        SELECT
+          s.name AS status_name,
+          ts.created_date,
+          u.id AS user_id,
+          p.first_name,
+          p.last_name
+        FROM test_statuses ts
+        INNER JOIN statuses s ON s.id = ts.status_id
+        LEFT JOIN users u ON u.id = ts.creator
+        LEFT JOIN people p ON p.id = u.person_id
+        WHERE ts.test_id = #{test_record.id} AND ts.voided = 0
+        ORDER BY ts.created_date ASC
+      ").map do |row|
         {
-          status: st&.status&.name&.gsub('_', '-'),
-          timestamp: st&.created_date,
+          status: row[0]&.gsub('_', '-'),
+          timestamp: row[1],
           updated_by: {
-            first_name: st.user&.person&.first_name,
-            last_name: st.user&.person&.last_name,
-            id: st.user&.id,
+            first_name: row[3],
+            last_name: row[4],
+            id: row[2],
             phone_number: nil
           }
         }
       end
+
       test_results = test_results.map do |results|
         test_indicator_test_type = TestTypeTestIndicator.find_by(
           test_indicators_id: results&.test_indicator_id,
@@ -489,8 +506,16 @@ module Nlims
             client_identifier_type_id: ClientIdentifierType.find_by(name: 'npid')&.id,
             client_id: client.id
           )&.value,
-          first_name: client&.person&.first_name&.blank? ? (client&.person&.last_name&.blank? ? 'Unknown' : client&.person&.last_name) : client&.person&.first_name,
-          last_name: client&.person&.last_name&.blank? ? (client&.person&.first_name&.blank? ? 'Unknown' : client&.person&.first_name) : client&.person&.last_name,
+          first_name: if client&.person&.first_name&.blank?
+                        client&.person&.last_name&.blank? ? 'Unknown' : client&.person&.last_name
+                      else
+                        client&.person&.first_name
+                      end,
+          last_name: if client&.person&.last_name&.blank?
+                       client&.person&.first_name&.blank? ? 'Unknown' : client&.person&.first_name
+                     else
+                       client&.person&.last_name
+                     end,
           date_of_birth: client&.person&.date_of_birth,
           gender: client&.person&.sex
         }
@@ -608,7 +633,8 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['test added successfully', 'test already exists for order'].include?(response['message'])
+          if response['error'] == false && ['test added successfully',
+                                            'test already exists for order'].include?(response['message'])
             unsync_order = UnsyncOrder.find_by(id: test_res[:unsync_id])
             update_unsync_order(unsync_order)
             Rails.logger.info("=======Successfully synced add_test_to_order to NLIMS: #{test_res[:tracking_number]} =============")
