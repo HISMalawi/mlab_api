@@ -24,28 +24,27 @@ File.write(LOCK_FILE, Process.pid)
 puts "Lock acquired (PID: #{Process.pid})"
 
 begin
-  # Process add_test_to_order records first
-  add_test_updates = UnsyncOrder.joins('INNER JOIN tests ON tests.id = unsync_orders.test_or_order_id')
-                                .joins('INNER JOIN orders ON orders.id = tests.order_id')
-                                .where(data_level: 'test', sync_status: false)
-                                .where(data_not_synced: 'add_test_to_order')
+  # Process order updates first
+  unsynced_orders = UnsyncOrder.joins('INNER JOIN orders ON orders.id = unsync_orders.test_or_order_id')
+                                .where(data_level: 'order', sync_status: false)
                                 .where('orders.created_date >= ?', '2026-02-25')
+                                .where("orders.tracking_number like '%MPC%'")
 
-  puts "Processing #{add_test_updates.count} add_test_to_order updates"
+  puts "Processing #{unsynced_orders.count} order updates"
 
-  add_test_success = 0
-  add_test_errors = 0
+  order_success = 0
+  order_errors = 0
 
-  add_test_updates.select(:id).find_each do |update|
-    Nlims::Sync.sync_add_test_to_order(id: update.id)
-    add_test_success += 1
+  unsynced_orders.select(:id).find_each do |update|
+    Nlims::Sync.update_order(id: update.id)
+    order_success += 1
   rescue StandardError => e
-    add_test_errors += 1
-    Rails.logger.error("Error processing add_test_to_order UnsyncOrder ID #{update.id}: #{e.message}")
-    puts "Error processing add_test_to_order UnsyncOrder ID #{update.id}: #{e.message}"
+    order_errors += 1
+    Rails.logger.error("Error processing update_order UnsyncOrder ID #{update.id}: #{e.message}")
+    puts "Error processing update_order UnsyncOrder ID #{update.id}: #{e.message}"
   end
 
-  puts "add_test_to_order complete: #{add_test_success} successful, #{add_test_errors} errors\n"
+  puts "update_order complete: #{order_success} successful, #{order_errors} errors\n"
 
   # Process other test updates
   unsynchronized_updates = UnsyncOrder.joins('INNER JOIN tests ON tests.id = unsync_orders.test_or_order_id')
@@ -53,13 +52,17 @@ begin
                                       .where(data_level: 'test', sync_status: false)
                                       .where.not(data_not_synced: 'add_test_to_order')
                                       .where('orders.created_date >= ?', '2026-02-25')
+                                      .where("orders.tracking_number like '%MPC%'")
 
   puts "Processing #{unsynchronized_updates.count} unsynchronized updates"
 
   success_count = 0
   error_count = 0
 
-  unsynchronized_updates.select(:id).find_each do |update|
+  unsynchronized_updates.select(:id, :test_or_order_id).find_each do |update|
+    order = Order.joins(:tests).where(tests: { id: update.test_or_order_id }).first
+    u_order = UnsyncOrder.find_by(test_or_order_id: order.id, data_level: 'order', data_not_synced: %w[specimen-accepted specimen-rejected]) if order.present?
+    Nlims::Sync.update_order(id: u_order.id) if u_order.present?
     Nlims::Sync.update_test_v2(id: update.id)
     success_count += 1
   rescue SystemStackError => e
@@ -74,7 +77,7 @@ begin
 
   puts "Test updates complete: #{success_count} successful, #{error_count} errors"
   puts "\n=========================================="
-  puts "TOTAL: #{add_test_success + success_count} successful, #{add_test_errors + error_count} errors"
+  puts "TOTAL: #{order_success + success_count} successful, #{order_errors + error_count} errors"
   puts '=========================================='
 ensure
   # Always remove lock file when done
