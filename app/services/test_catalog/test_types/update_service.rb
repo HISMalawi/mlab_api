@@ -34,17 +34,22 @@ module TestCatalog
           end
         end
 
-        def update_test_indicator_range(test_indicator_ranges, test_indicator_id, test_indicator_type)
+        def update_test_indicator_range(test_indicator_ranges, test_indicator_id, test_type_id, test_indicator_type)
           test_indicator_range_ids = test_indicator_ranges.each.with_object(:id).map(&:[])
+          # Free text and rich text don't have ranges
           if %w[rich_text free_text].include?(test_indicator_type)
             test_indicator_range_ids = []
             test_indicator_ranges = []
           end
-          TestIndicatorRange.where(test_indicator_id:).where.not(id: test_indicator_range_ids).each do |test_indicator_range|
+          # Void ranges that are no longer in the list for this specific test_indicator AND test_type combination
+          TestIndicatorRange.where(test_indicator_id: test_indicator_id, test_type_id: test_type_id)
+                            .where.not(id: test_indicator_range_ids).each do |test_indicator_range|
             test_indicator_range.void('Removed from test indicator')
           end
+          # Create or update ranges
           test_indicator_ranges.each do |test_indicator_range|
             test_indicator_range[:test_indicator_id] = test_indicator_id
+            test_indicator_range[:test_type_id] = test_type_id
             test_indicator_range_attributes = JSON.parse(test_indicator_range.to_json)
             test_indicator_range = TestIndicatorRange.find_or_initialize_by(id: test_indicator_range_attributes['id'])
             test_indicator_range.update!(test_indicator_range_attributes)
@@ -56,7 +61,11 @@ module TestCatalog
           test_indicator_ids = test_indicator_params.each.with_object(:id).map(&:[])
           TestTypeTestIndicator.where(test_types_id: test_type_id).where.not(test_indicators_id: test_indicator_ids).each do |test_type_test_indicator|
             test_type_test_indicator.void('Removed test type - test indicator mapping')
-            TestIndicatorRange.where(test_indicator_id: test_type_test_indicator.test_indicators_id).each do |test_indicator_range|
+            # Void ranges for this specific test_type and test_indicator combination
+            TestIndicatorRange.where(
+              test_indicator_id: test_type_test_indicator.test_indicators_id,
+              test_type_id: test_type_id
+            ).each do |test_indicator_range|
               test_indicator_range.void('Removed from test indicator')
             end
           end
@@ -72,11 +81,31 @@ module TestCatalog
               test_types_id: test_type_id,
               test_indicators_id: test_indicator.id
             )
-            # testtype_indicator.update!(test_indicator_type: test_indicator_param[:test_indicator_type],
-            #                            unit: test_indicator_param[:unit])
-            update_test_indicator_range(test_indicator_param[:indicator_ranges], test_indicator.id,
-                                        test_indicator.test_indicator_type)
+            # Update the junction table with unit and test_indicator_type
+            testtype_indicator.update!(
+              test_indicator_type: test_indicator_param[:test_indicator_type],
+              unit: test_indicator_param[:unit]
+            )
+            # Use test_indicator_type from params, not from test_indicator model
+            indicator_type_name = get_indicator_type_name(test_indicator_param[:test_indicator_type])
+            update_test_indicator_range(
+              test_indicator_param[:indicator_ranges],
+              test_indicator.id,
+              test_type_id,
+              indicator_type_name
+            )
           end
+        end
+
+        def get_indicator_type_name(type_id)
+          type_map = {
+            0 => 'auto_complete',
+            1 => 'free_text',
+            2 => 'numeric',
+            3 => 'alpha_numeric',
+            4 => 'rich_text'
+          }
+          type_map[type_id] || 'numeric'
         end
       end
     end
