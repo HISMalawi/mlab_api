@@ -61,24 +61,45 @@ class ProcessTestCatalogService
     if record.new_record?
       record.name = data[:name]&.strip
       record.nlims_code = data[:nlims_code]
-      record.preferred_name = data[:preferred_name]
+      record.preferred_name = unique_preferred_name(data[:preferred_name], record)
       record.moh_code = data[:moh_code]
       record.loinc_code = data[:loinc_code]
       record.short_name = data[:short_name]
       record.description = data[:description]
       record.save!
     else
-      record.update!(
+      attrs = {
         name: data[:name]&.strip,
         nlims_code: data[:nlims_code],
-        preferred_name: record.preferred_name.present? ? record.preferred_name : data[:preferred_name],
         moh_code: data[:moh_code],
         loinc_code: data[:loinc_code],
         short_name: data[:short_name],
-        description: data[:description]
-      )
+        # Never overwrite description if the user has already customised it
+        description: record.description.present? ? record.description : data[:description],
+        updated_date: Time.current
+      }
+      # If preferred_name is blank, assign only if the desired value is available.
+      unless record.preferred_name.present?
+        attrs[:preferred_name] = unique_preferred_name(data[:preferred_name], record)
+      end
+      # Use update_columns to bypass model validations (sync is a trusted source).
+      # This prevents the preferred_name uniqueness validator from firing on the
+      # existing in-memory value even when preferred_name is not being changed.
+      record.update_columns(attrs)
     end
     record
+  end
+
+  # Returns name only when it is not already taken by another non-retired record of the same type.
+  # Returns nil otherwise so the field is simply left blank.
+  def unique_preferred_name(name, record)
+    return nil if name.blank?
+
+    taken = record.class
+                  .where(preferred_name: name)
+                  .where.not(id: record.id || 0)
+                  .exists?
+    taken ? nil : name
   end
 
   def create_or_update_drugs(drugs)
@@ -132,8 +153,13 @@ class ProcessTestCatalogService
   end
 
   def create_or_update_test_indicator_ranges(test_indicator_ranges, test_indicator_id, test_type)
+    # If the test type already has ranges for this indicator, the user may have
+    # customised them via the UI — skip the sync to avoid overwriting their work.
+    existing_ranges = TestIndicatorRange.where(test_indicator_id:, test_type_id: test_type.id)
+    return existing_ranges if existing_ranges.exists?
+
     unless test_indicator_ranges.empty?
-      TestIndicatorRange.where(test_indicator_id:, test_type_id: test_type.id).each do |test_indicator_range|
+      existing_ranges.each do |test_indicator_range|
         test_indicator_range.void('Removed from test indicator')
       end
     end
@@ -169,13 +195,15 @@ class ProcessTestCatalogService
       duplicates = test_type.test_type_test_indicators.where(test_indicators_id: indicator.id)
       duplicates.offset(1).destroy_all if duplicates.count > 1
       join_record = test_type.test_type_test_indicators.find_or_create_by!(test_indicators_id: indicator.id)
-      join_record.unit = item[:unit]
-      join_record.test_indicator_type = item.dig(:measure_type, :name)
+      # Only set unit and test_indicator_type if the join record was just created;
+      # do not overwrite values the user has already configured via the UI.
+      join_record.unit = item[:unit] unless join_record.unit.present?
+      join_record.test_indicator_type = item.dig(:measure_type, :name) unless join_record.test_indicator_type.present?
       join_record.save! if join_record.changed?
       create_or_update_test_indicator_ranges(item[:measure_ranges_attributes], indicator.id, test_type)
       indicator
     end
-     # voids removed indicators
+    # voids removed indicators
     existing_indicator_ids = test_indicators.map do |ti|
       record = TestIndicator.find_by(nlims_code: ti[:nlims_code]) if ti[:nlims_code].present?
       record ||= TestIndicator.find_by(scientific_name: ti[:scientific_name]) if ti[:scientific_name].present?
@@ -220,14 +248,13 @@ class ProcessTestCatalogService
                end
     tat_record = ExpectedTat.find_by(test_type_id:)
     tat_record ||= ExpectedTat.new
-    if tat_record.new_record?
-      tat_record.value = tat_value || 24
-      tat_record.unit = tat_unit || 'Hours'
-      tat_record.test_type_id = test_type_id
-      tat_record.save!
-    else
-      ExpectedTat.update!(tat_record.id, value: tat_value || 24, unit: tat_unit || 'Hours')
-    end
+    return unless tat_record.new_record?
+
+    tat_record.value = tat_value || 24
+    tat_record.unit = tat_unit || 'Hours'
+    tat_record.test_type_id = test_type_id
+    tat_record.save!
+    # If a user has already customised the TAT, do not overwrite it on sync
   end
 
   def create_or_update_lab_test_sites(lab_test_sites)
@@ -275,18 +302,24 @@ class ProcessTestCatalogService
     record ||= TestType.new
     if record.new_record?
       record.name = item[:name]&.strip
-      record.preferred_name = item[:preferred_name]
+      record.preferred_name = unique_preferred_name(item[:preferred_name], record)
       record.department = create_or_update_department(item[:test_category])
       record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
       record.can_be_ordered = true
       record.disabled = false
-    else
-      record.department = create_or_update_department(item[:test_category])
-      record.sex = item[:can_be_done_on_sex] if item[:can_be_done_on_sex].present?
-      record.can_be_ordered = true
-      record.disabled = false
+      # New records use save! (validations are safe here since preferred_name was pre-checked)
+      record.save!
+    elsif record.changed?
+      # For existing records: department, sex, can_be_ordered, and disabled are
+      # user-editable via the UI and must not be overwritten on sync.
+      # Use update_columns to bypass model validations (preferred_name uniqueness)
+      # which would fire on the existing in-memory value even when not being changed.
+      record.update_columns(
+        name: record.name,
+        nlims_code: record.nlims_code,
+        updated_date: Time.current
+      )
     end
-    record.save!
     record
   end
 end
