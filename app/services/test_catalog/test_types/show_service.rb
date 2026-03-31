@@ -64,6 +64,7 @@ module TestCatalog
                                                 name: type_name
                                               },
                                               unit: mapping.unit,
+                                              disabled: mapping.disabled.to_i == 1,
                                               retired: test_indicator.retired,
                                               retired_reason: test_indicator.retired_reason,
                                               indicator_ranges: test_indicator_ranges

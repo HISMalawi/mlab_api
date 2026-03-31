@@ -88,7 +88,7 @@ module TestCatalog
             test_indicator = TestIndicator.find_or_initialize_by(id: test_indicator_attributes['id'])
             begin
               test_indicator.update!(test_indicator_attributes)
-            rescue ActiveRecord::RecordInvalid => e
+            rescue ActiveRecord::RecordInvalid
               if test_indicator.errors[:preferred_name].any?
                 raise IndicatorValidationError.new(
                   "Indicator \"#{test_indicator_attributes['name']}\" - Preferred name #{test_indicator.errors[:preferred_name].first}",
@@ -104,10 +104,11 @@ module TestCatalog
               test_types_id: test_type_id,
               test_indicators_id: test_indicator.id
             )
-            # Update the junction table with unit and test_indicator_type
+            # Update the junction table with unit, test_indicator_type, and disabled flag
             testtype_indicator.update!(
               test_indicator_type: test_indicator_param[:test_indicator_type],
-              unit: test_indicator_param[:unit]
+              unit: test_indicator_param[:unit],
+              disabled: test_indicator_param[:disabled] ? 1 : 0
             )
             # Use test_indicator_type from params, not from test_indicator model
             indicator_type_name = get_indicator_type_name(test_indicator_param[:test_indicator_type])
