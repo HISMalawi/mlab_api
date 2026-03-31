@@ -9,6 +9,10 @@ class TestIndicator < RetirableRecord
            source: :test_type
   enum test_indicator_type: %i[auto_complete free_text numeric alpha_numeric rich_text]
 
+  validates :preferred_name, uniqueness: { conditions: lambda {
+    where(retired: false)
+  }, message: 'has already been taken by another indicator' }, allow_blank: true
+
   def test_indicator_type=(value)
     normalized_value = {
       'AutoComplete' => :auto_complete,

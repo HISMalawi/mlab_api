@@ -26,7 +26,8 @@ module Api
       def department_test_types
         department_id = params.require(:department_id)
         test_display_pref = GlobalService.full_name_display? ? 'name' : 'COALESCE(preferred_name, name)'
-        render json: TestType.active_without_paediatric_cancer.where(department_id:, disabled: false).select("test_types.*, #{test_display_pref} AS name")
+        render json: TestType.active_without_paediatric_cancer.where(department_id:,
+                                                                     disabled: false).select("test_types.*, #{test_display_pref} AS name")
       end
 
       def show
@@ -41,6 +42,13 @@ module Api
       def update
         TestCatalog::TestTypes::UpdateService.update_test_type(@test_type, test_type_params, params)
         render json: @test_type
+      rescue TestCatalog::TestTypes::UpdateService::IndicatorValidationError => e
+        render json: {
+          errors: e.message,
+          indicator_error: { id: e.indicator_id, name: e.indicator_name, field: e.field }
+        }, status: :unprocessable_entity
+      rescue ActiveRecord::RecordInvalid => e
+        render json: { errors: e.message }, status: :unprocessable_entity
       end
 
       def destroy

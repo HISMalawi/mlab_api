@@ -1,6 +1,17 @@
 module TestCatalog
   module TestTypes
     module UpdateService
+      class IndicatorValidationError < StandardError
+        attr_reader :indicator_id, :indicator_name, :field
+
+        def initialize(msg, indicator_id:, indicator_name:, field:)
+          super(msg)
+          @indicator_id = indicator_id
+          @indicator_name = indicator_name
+          @field = field
+        end
+      end
+
       class << self
         def update_test_type(test_type, test_type_params, params)
           ActiveRecord::Base.transaction do
@@ -75,7 +86,19 @@ module TestCatalog
             test_indicator_attributes = JSON.parse(test_indicator_param.to_json)
                                             .slice('id', 'name', 'description', 'preferred_name')
             test_indicator = TestIndicator.find_or_initialize_by(id: test_indicator_attributes['id'])
-            test_indicator.update!(test_indicator_attributes)
+            begin
+              test_indicator.update!(test_indicator_attributes)
+            rescue ActiveRecord::RecordInvalid => e
+              if test_indicator.errors[:preferred_name].any?
+                raise IndicatorValidationError.new(
+                  "Indicator \"#{test_indicator_attributes['name']}\" - Preferred name #{test_indicator.errors[:preferred_name].first}",
+                  indicator_id: test_indicator_attributes['id'],
+                  indicator_name: test_indicator_attributes['name'],
+                  field: 'preferred_name'
+                )
+              end
+              raise
+            end
             test_indicator.reload
             testtype_indicator = TestTypeTestIndicator.find_or_create_by!(
               test_types_id: test_type_id,
