@@ -125,7 +125,7 @@ module Nlims
 
       return nil if nlims_code.blank?
 
-      TestType.find_by(nlims_code: nlims_code)
+      TestType.find_by(nlims_code: nlims_code, disabled: false, can_be_ordered: true)
     end
 
     def find_test_indicator_by_nlims_code(measure_data)
@@ -237,7 +237,8 @@ module Nlims
             specimen_id:,
             order_id:,
             test_type_id: test_type.id,
-            lab_location_id: location_id
+            lab_location_id: location_id,
+            method_of_testing: test_type_data[:method_of_testing] || test_type_data['method_of_testing']
           )
 
           # Process status trail and results

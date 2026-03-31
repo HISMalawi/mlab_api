@@ -4,6 +4,8 @@
 # This migration creates the catalog sync trail table.
 class CatalogSyncTrail < ActiveRecord::Migration[7.0]
   def change
+    return if table_exists?(:test_catalog_sync_trails)
+
     create_table :test_catalog_sync_trails do |t|
       t.string :version
       t.string :section

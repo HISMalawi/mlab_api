@@ -10,11 +10,12 @@ module PrintoutService
 
     def barcode_label(person, order, is_accession_number = true)
       tests = order.tests.map do |test_|
-        if test_.short_name.blank?
-          GlobalService.display_name(test_.test_type.name, test_.test_type.preferred_name)
-        else
-          test_.short_name
-        end
+        test_name = if test_.short_name.blank?
+                      GlobalService.display_name(test_.test_type.name, test_.test_type.preferred_name)
+                    else
+                      test_.short_name
+                    end
+        test_.method_of_testing.nil? ? test_name : "#{test_name}(#{test_.method_of_testing})"
       end
       priority = order&.priority&.name
       priority = priority.downcase == 'stat' ? " #{priority}  " : priority
@@ -43,7 +44,7 @@ module PrintoutService
       patient = person.fullname
       date = Date.today.strftime
       ward = order.encounter&.facility_section&.name
-      by = User.where(id: TestStatus.where(test_id: Test.where(order_id: order.id),
+      by = User.where(id: TestStatus.where(test_id: test_ids,
                                            status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = ''
       post_crossmatch_process = []
@@ -57,8 +58,7 @@ module PrintoutService
                                )
 
       if is_cross_match
-        test_id = Test.where(order_id: order.id)
-        post_crossmatch_process = PostCrossmatchProcess.joins(:facility_section).where(test_id:).select(
+        post_crossmatch_process = PostCrossmatchProcess.joins(:facility_section).where(test_id: test_ids).select(
           'collected_by',
           'facility_sections.name AS to_ward',
           'collection_date',
@@ -69,7 +69,7 @@ module PrintoutService
           'returned_reason'
         )&.first || post_crossmatch_process
         pack_abo_group = TestResult.where(
-          test_id:,
+          test_id: test_ids,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end

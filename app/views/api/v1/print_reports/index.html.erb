@@ -208,7 +208,7 @@
                           v-for="(indicator, t) in test.indicators"
                           :key="t"
                         >
-                          <tr class="border-b">
+                          <tr class="border-b" v-if="indicator.result?.value">
                             <td class="border-r px-1 py-1">
                               {{ use_full_name ? indicator.name : indicator.preferred_name || indicator.name }}
                             </td>
@@ -221,9 +221,6 @@
                                   )
                                 "
                               ></p>
-                              <span v-if="!indicator.result?.value"
-                                >Not done</span
-                              >
                             </td>
                             <td class="px-2">{{ indicator.unit }}</td>
                             <td
@@ -341,17 +338,19 @@
                   :key="index"
                   v-if="test.test_type_name.toLowerCase().includes('culture')"
                 >
-                  <div
-                    class="border rounded-tr rounded-tl px-1 py-1 font-medium text-lg"
-                  >
-                    {{ result.name }}
-                  </div>
                   <table class="w-full">
                     <thead>
+                      <tr class="bg-gray-100 border">
+                        <th colspan="4" class="px-4 py-1 text-left font-medium text-lg">
+                          {{ result.name }}
+                        </th>
+                      </tr>
                       <tr
                         class="border-b px-1 py-1 text-left border-r border-l"
                       >
                         <th class="px-4 py-1 border-r">Drug</th>
+                        <th class="px-4 py-1 border-r">Zone (mm)</th>
+                        <th class="px-4 py-1 border-r">Minimum Inhibitory Concentration (MIC)</th>
                         <th class="px-4 py-1">Intrepretation</th>
                       </tr>
                     </thead>
@@ -364,6 +363,16 @@
                           class="text-left border-l border-r px-4 py-1 border-b font-normal"
                         >
                           {{ drug.name }}
+                        </th>
+                        <th
+                          class="text-left border-l border-r px-4 py-1 border-b font-normal"
+                        >
+                          {{ drug.zone }}
+                        </th>
+                        <th
+                          class="text-left border-l border-r px-4 py-1 border-b font-normal"
+                        >
+                          {{ drug.mic || '-' }}
                         </th>
                         <th
                           class="text-left border-l border-r px-4 py-1 border-b font-normal"
@@ -584,7 +593,7 @@ const app = createApp({
       );
     },
     getAuthorizedTests(tests){
-      const validStatuses = new Set(["completed", "verified", "test-rejected", "rejected"]);
+      const validStatuses = new Set(["verified", "test-rejected", "rejected"]);
       return tests.filter((item) =>
         validStatuses.has(item.status.toLowerCase())
       );

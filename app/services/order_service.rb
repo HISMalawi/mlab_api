@@ -30,18 +30,21 @@ module OrderService
         client_id = client.id
       end
       g = Global.find(params[:encounter][:sending_facility])
-      facility = Facility.find_or_create_by!(name: g.name).id
-      facility_section = params[:encounter][:facility_section]
-      encounterType = EncounterType.find(params[:encounter][:encounter_type])
-      destination = facility
-      destination = params[:encounter][:facility_section] if encounterType.name == 'Referral'
+      encounter_type = EncounterType.find(params[:encounter][:encounter_type])
+      facility_id = Facility.find_or_create_by!(name: g.name).id
+      facility_section_id = params[:encounter][:facility_section]
+      destination_id = facility_id
+      if encounter_type.name == 'Referral'
+        facility_section_id = FacilitySection.find_or_create_by!(name: Facility.find(facility_section_id)&.name).id
+        destination_id = params[:encounter][:facility_section]
+      end
       Encounter.create!(
         client_id:,
-        facility_id: facility,
-        destination_id: destination,
-        facility_section_id: facility_section,
+        facility_id: facility_id,
+        destination_id: destination_id,
+        facility_section_id: facility_section_id,
         start_date: Time.now,
-        encounter_type_id: encounterType.id,
+        encounter_type_id: encounter_type.id,
         client_history: params[:encounter][:client_history]
       )
     end
@@ -97,8 +100,29 @@ module OrderService
     end
 
     def add_test_to_order(order_id, tests, lab_location)
+      order = Order.find(order_id)
+      # Get existing test IDs before creating new tests
+      existing_test_ids = Test.where(order_id: order_id).pluck(:id)
+      
       create_test(order_id, tests, lab_location)
-      Order.find(order_id)
+      
+      # Get newly created test IDs
+      all_test_ids = Test.where(order_id: order_id).pluck(:id)
+      new_test_ids = all_test_ids - existing_test_ids
+      
+      # Stage new tests in unsync_orders for NLIMS sync
+      new_test_ids.each do |test_id|
+        UnsyncOrder.create!(
+          test_or_order_id: test_id,
+          data_not_synced: 'add_test_to_order',
+          data_level: 'test',
+          sync_status: false,
+          created_date: Time.now,
+          updated_date: Time.now
+        )
+      end
+      
+      order
     end
 
     def search_by_accession_or_tracking_number(search_query)
