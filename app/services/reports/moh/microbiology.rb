@@ -32,7 +32,7 @@ module Reports
                       serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism + fluids_analysed +
                       culture + positive_culture + swab_positive_culture + cholera_culture + cholera_culture_positive +
                       cholera_rapid_diagnostic_done + cholera_rapid_diagonostic_positive + total_cultures_done +
-                      total_cultures_with_growth + total_cultures_with_no_growth + total_cultures_with_mixed_growth +
+                      total_cultures_with_growth + total_cultures_with_na_result_value + total_cultures_with_no_growth + total_cultures_with_mixed_growth +
                       total_cultures_with_growth_of_normal_flora + total_cultures_with_growth_of_contaminants +
                       total_cultures_with_growth_of_yeast_cells + total_ast_done + csf_ast_organisms + tb_tests_done
         data = update_report_counts(report_data)
@@ -44,71 +44,7 @@ module Reports
       private
 
       REPORT_INDICATORS = [
-        'Number of AFB sputum examined',
-        'Number of  new TB cases examined',
-        'New cases with positive smear',
-        'TB LAM Total',
-        'TB LAM Positive',
-        'MTB Not Detected',
-        'MTB Detected',
-        'RIF Resistant Detected',
-        'RIF Resistant Not Detected',
-        'RIF Resistant Indeterminate',
-        'Invalid',
-        'No results',
-        'Total number of COVID-19 tests performed',
-        'Total number of SARS-COV2 Positive',
-        'Total number of INVALID SARS-COV2 results',
-        'Total number of NO RESULTS',
-        'Total number of ERROR results',
-        'DNA-EID samples received',
-        'DNA-EID tests done',
-        'Number with positive results',
-        'VL samples received',
-        'VL tests done',
-        'VL results with less than 1000 copies per ml',
-        'Number of CSF samples analysed',
-        'Number of CSF samples analysed for AFB',
-        'Number of CSF samples with Organism',
-        'Number of CSF cultures done',
-        'Positive CSF cultures',
-        'Total India ink done',
-        'India ink positive',
-        'Total Gram stain done',
-        'Gram stain positive',
-
-        'Gram Stain CSF',
-        'Gram Stain Other Sterile Fluids',
-        'Gram Stain Blood',
-        'Gram Stain Pus/Wound swabs',
-        'Gram Stain High Vaginal swabs (HVS)',
-        'Gram Stain Sputum',
-        'Gram Stain Other Samples',
-
-        'HVS analysed',
-        'HVS with organism',
-        'HVS Culture',
-        'HVS Culture Positive',
-        'Other swabs analysed',
-        'Other swabs with organism',
-        'Other swabs culture',
-        'Other swabs culture Positive',
-        'Number of Blood Cultures done',
-        'Positive blood Cultures',
-        'Cryptococcal antigen test',
-        'Cryptococcal antigen test Positive',
-        'Serum Crag',
-        'Serum Crag Positive',
-        'Total number of fluids analysed',
-        'Fluids with organisms',
-        'Cholera Rapid Diagnostic test done',
-        'Positive Cholera Rapid Diagnostic test',
-        'Cholera cultures done',
-        'Positive cholera samples',
-        'Other stool cultures',
-        'Stool samples with organisms isolated on culture',
-        'Urine culture',
-        'Urine culture Positive',
+        # B- CULTURE (General Counts)
         'Total number of Cultures done',
         'Total number of Cultures with growth',
         'Total number of Cultures with no growth',
@@ -116,8 +52,11 @@ module Reports
         'Total number of Cultures with growth of normal flora',
         'Total number of Cultures with growth of contaminants',
         'Total number of Cultures with growth of Yeast Cells',
+        'Total number of Cultures with other growth results values',
         'Total number of AST done',
 
+        # C- PATHOGENIC ORGANISMS BASED ON SAMPLES
+        # E.Coli
         'E.Coli Isolated from CSF',
         'E.Coli Isolated from other sterile fluids except CSF',
         'E.Coli Isolated from Urine',
@@ -127,6 +66,7 @@ module Reports
         'E.Coli Isolated from Stool',
         'E.Coli Isolated from Other Samples',
 
+        # Klebsiella Spp
         'Klebsiella Spp Isolated from CSF',
         'Klebsiella Spp Isolated from other sterile fluids except CSF',
         'Klebsiella Spp Isolated from Urine',
@@ -136,6 +76,7 @@ module Reports
         'Klebsiella Spp Isolated from Stool',
         'Klebsiella Spp Isolated from Other Samples',
 
+        # Acinetobacter Spp
         'Acinetobacter Spp Isolated from CSF',
         'Acinetobacter Spp Isolated from other sterile fluids except CSF',
         'Acinetobacter Spp Isolated from Urine',
@@ -145,6 +86,7 @@ module Reports
         'Acinetobacter Spp Isolated from Stool',
         'Acinetobacter Spp Isolated from Other Samples',
 
+        # Proteus Spp
         'Proteus Spp Isolated from CSF',
         'Proteus Spp Isolated from other sterile fluids except CSF',
         'Proteus Spp Isolated from Urine',
@@ -153,6 +95,7 @@ module Reports
         'Proteus Spp Isolated from HVS',
         'Proteus Spp Isolated from Other Samples',
 
+        # Salmonella Spp
         'Salmonella Spp Isolated from CSF',
         'Salmonella Spp Isolated from other sterile fluids except CSF',
         'Salmonella Spp Isolated from Urine',
@@ -162,6 +105,7 @@ module Reports
         'Salmonella Spp Isolated from Stool',
         'Salmonella Spp Isolated from Other Samples',
 
+        # Pseudomonas Spp
         'Pseudomonas Spp Isolated from CSF',
         'Pseudomonas Spp Isolated from other sterile fluids except CSF',
         'Pseudomonas Spp Isolated from Urine',
@@ -170,6 +114,7 @@ module Reports
         'Pseudomonas Spp Isolated from HVS',
         'Pseudomonas Spp Isolated from Stool',
 
+        # Strept pneumoniae
         'Strept pneumoniae Isolated from CSF',
         'Strept pneumoniae Isolated from other sterile fluids except CSF',
         'Strept pneumoniae Isolated from Urine',
@@ -178,6 +123,7 @@ module Reports
         'Strept pneumoniae Isolated from HVS',
         'Strept pneumoniae Isolated from Other Samples',
 
+        # Enterococcus spp
         'Enterococcus spp Isolated from CSF',
         'Enterococcus spp Isolated from other sterile fluids except CSF',
         'Enterococcus spp Isolated from Urine',
@@ -186,6 +132,7 @@ module Reports
         'Enterococcus spp Isolated from HVS',
         'Enterococcus spp Isolated from Other Samples',
 
+        # Strep spp (A,B)
         'Strep spp (A,B) Isolated from CSF',
         'Strep spp (A,B) Isolated from other sterile fluids except CSF',
         'Strep spp (A,B) Isolated from Urine',
@@ -195,6 +142,7 @@ module Reports
         'Strep spp (A,B) Isolated from Stool',
         'Strep spp (A,B) Isolated from Other Samples',
 
+        # Staphylcoccus Aureus
         'Staphylcoccus Aureus Isolated from CSF',
         'Staphylcoccus Aureus Isolated from other sterile fluids except CSF',
         'Staphylcoccus Aureus Isolated from Urine',
@@ -203,6 +151,7 @@ module Reports
         'Staphylcoccus Aureus Isolated from HVS',
         'Staphylcoccus Aureus Isolated from Other Samples',
 
+        # Neisseria spp
         'Neisseria spp Isolated from CSF',
         'Neisseria spp Isolated from other sterile fluids except CSF',
         'Neisseria spp Isolated from Urine',
@@ -211,13 +160,16 @@ module Reports
         'Neisseria spp Isolated from HVS',
         'Staphylcoccus Aureus Isolated from Other Samples',
 
-        'Cryptococcal Spp Isolated from CSF',
-        'Cryptococcal Spp Isolated from other sterile fluids except CSF',
-
+        # Shigella Spp
         'Shigella Spp Isolated from Blood',
         'Shigella Spp Isolated from Stool',
         'Shigella Spp Isolated from Other Samples',
 
+        # Cryptococcal Spp
+        'Cryptococcal Spp Isolated from CSF',
+        'Cryptococcal Spp Isolated from other sterile fluids except CSF',
+
+        # TB Tests
         'TB Tests done on CSF',
         'TB Tests done on other sterile fluids except CSF',
         'TB Tests done on Urine',
@@ -226,6 +178,7 @@ module Reports
         'TB Tests done on Sputum',
         'TB Tests done on Other TB Samples',
 
+        # Other Spp
         'Other Spp Isolated from CSF',
         'Other Spp Isolated from other sterile fluids except CSF',
         'Other Spp Isolated from Urine',
@@ -235,6 +188,7 @@ module Reports
         'Other Spp Isolated from Stool',
         'Other Spp Isolated from Other Samples',
 
+        # D- ANTIMICROBIAL SUSCEPTIBILITY TESTING (AST)
         'Amoxicillin/Clavulanic Acid # of Tests Done',
         'Amoxicillin/Clavulanic Acid Sensitive (%)',
         'Amoxicillin/Clavulanic Acid Intermediate (%)',
@@ -303,7 +257,74 @@ module Reports
         'Amikacin # of Tests Done',
         'Amikacin Sensitive (%)',
         'Amikacin Intermediate (%)',
-        'Amikacin Resistant (%)'
+        'Amikacin Resistant (%)',
+
+        # Gram Stain (from definitions)
+        'Gram Stain CSF',
+        'Gram Stain Other Sterile Fluids',
+        'Gram Stain Blood',
+        'Gram Stain Pus/Wound swabs',
+        'Gram Stain High Vaginal swabs (HVS)',
+        'Gram Stain Sputum',
+        'Gram Stain Other Samples',
+
+        # Additional indicators not in definitions (kept at the end)
+        'Number of AFB sputum examined',
+        'Number of  new TB cases examined',
+        'New cases with positive smear',
+        'TB LAM Total',
+        'TB LAM Positive',
+        'MTB Not Detected',
+        'MTB Detected',
+        'RIF Resistant Detected',
+        'RIF Resistant Not Detected',
+        'RIF Resistant Indeterminate',
+        'Invalid',
+        'No results',
+        'Total number of COVID-19 tests performed',
+        'Total number of SARS-COV2 Positive',
+        'Total number of INVALID SARS-COV2 results',
+        'Total number of NO RESULTS',
+        'Total number of ERROR results',
+        'DNA-EID samples received',
+        'DNA-EID tests done',
+        'Number with positive results',
+        'VL samples received',
+        'VL tests done',
+        'VL results with less than 1000 copies per ml',
+        'Number of CSF samples analysed',
+        'Number of CSF samples analysed for AFB',
+        'Number of CSF samples with Organism',
+        'Number of CSF cultures done',
+        'Positive CSF cultures',
+        'Total India ink done',
+        'India ink positive',
+        'Total Gram stain done',
+        'Gram stain positive',
+        'HVS analysed',
+        'HVS with organism',
+        'HVS Culture',
+        'HVS Culture Positive',
+        'Other swabs analysed',
+        'Other swabs with organism',
+        'Other swabs culture',
+        'Other swabs culture Positive',
+        'Number of Blood Cultures done',
+        'Positive blood Cultures',
+        'Cryptococcal antigen test',
+        'Cryptococcal antigen test Positive',
+        'Serum Crag',
+        'Serum Crag Positive',
+        'Total number of fluids analysed',
+        'Fluids with organisms',
+        'Cholera Rapid Diagnostic test done',
+        'Positive Cholera Rapid Diagnostic test',
+        'Cholera cultures done',
+        'Positive cholera samples',
+        'Other stool cultures',
+        'Stool samples with organisms isolated on culture',
+        'Urine culture',
+        'Urine culture Positive'
       ].freeze
 
       def initialize_report_counts
@@ -1882,6 +1903,36 @@ module Reports
               AND tr.value IS NOT NULL
               AND tr.value NOT IN ('', '0')
               AND tr.value IN ('growth', 'Growth')
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_cultures_with_na_result_value
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.order_id) AS total, 'Total number of Cultures with other growth results values' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+            tests t
+              INNER JOIN
+            test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                INNER  JOIN
+            test_indicators ti ON ti.id = ttim.test_indicators_id
+              INNER JOIN
+            test_results tr ON tr.test_indicator_id = ti.id
+              AND tr.test_id = t.id
+              AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value IS NOT NULL
+              AND tr.value NOT IN ('', '0')
+              AND tr.value NOT IN ("Growth", "No Growth", "Growth of Yeast Cells",
+                "Growth of normal flora; no pathogens isolated", "Growth of contaminants", "Mixed growth; no predominant organism")
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
