@@ -26,7 +26,9 @@ module Reports
                       covid_tests_positive_results + covid_tests_invalid_results + covid_tests_no_results +
                       covid_tests_error_results + dna_eid_samples_received + dna_eid_positive_results +
                       vl_samples_received + vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed +
-                      csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
+                      other_sterile_fluids_analysed + urine_samples_analysed + blood_samples_analysed +
+                      pus_wound_swabs_analysed + hvs_samples_analysed + sputum_samples_analysed +
+                      stool_samples_analysed + other_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
                       csf_samples_organism + india_link_positive + gram_stain_done + gram_stain_positive +
                       gram_stain_by_specimen + hvs_analysed + hvs_organism + cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests +
                       serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism + fluids_analysed +
@@ -44,6 +46,17 @@ module Reports
       private
 
       REPORT_INDICATORS = [
+        # A- TOTAL NUMBER OF SAMPLES ANALYSED - Daily total number of all bactereology samples analysed
+        'Total number of CSF samples analysed',
+        'Total number of Other Sterile Fluids analysed',
+        'Total number of Urine samples analysed for culture and sensitivity',
+        'Total number of Blood samples analysed for culture and sensitivity',
+        'Total number of Pus/Wound swabs analysed for culture and sensitivity',
+        'Total number of HVS samples analysed for culture and sensitivity',
+        'Total number of Sputum samples analysed for culture and sensitivity',
+        'Total number of Stool samples analysed for culture and sensitivity',
+        'Total number of Other samples analysed',
+
         # B- CULTURE (General Counts)
         'Total number of Cultures done',
         'Total number of Cultures with growth',
@@ -113,6 +126,7 @@ module Reports
         'Pseudomonas Spp Isolated from Pus',
         'Pseudomonas Spp Isolated from HVS',
         'Pseudomonas Spp Isolated from Stool',
+        'Pseudomonas Spp Isolated from Other Samples',
 
         # Strept pneumoniae
         'Strept pneumoniae Isolated from CSF',
@@ -158,7 +172,7 @@ module Reports
         'Neisseria spp Isolated from Blood',
         'Neisseria spp Isolated from Pus',
         'Neisseria spp Isolated from HVS',
-        'Staphylcoccus Aureus Isolated from Other Samples',
+        'Neisseria spp Isolated from Other Samples',
 
         # Shigella Spp
         'Shigella Spp Isolated from Blood',
@@ -292,7 +306,6 @@ module Reports
         'VL samples received',
         'VL tests done',
         'VL results with less than 1000 copies per ml',
-        'Number of CSF samples analysed',
         'Number of CSF samples analysed for AFB',
         'Number of CSF samples with Organism',
         'Number of CSF cultures done',
@@ -1354,7 +1367,7 @@ module Reports
         Report.find_by_sql <<~SQL
             SELECT
               MONTHNAME(t.created_date) AS month,
-              COUNT(DISTINCT t.order_id) AS total, 'Number of CSF samples analysed' AS indicator,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of CSF samples analysed' AS indicator,
               GROUP_CONCAT(DISTINCT t.id) AS associated_ids
             FROM
               tests t
@@ -1368,6 +1381,259 @@ module Reports
                 AND tr.voided = 0
           WHERE
             t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Other Sterile Fluids samples analysed (All sterile fluids except CSF)
+      def other_sterile_fluids_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        csf_ids = GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Other Sterile Fluids analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids_like('Fluid')}
+              AND t.specimen_id NOT IN #{csf_ids}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Urine samples for culture and sensitivity analysed
+      def urine_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Urine samples analysed for culture and sensitivity' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids_like('Urine')}
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Blood samples for culture and sensitivity analysed
+      def blood_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Blood samples analysed for culture and sensitivity' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids_like('Blood')}
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Pus/Wound swabs for culture and sensitivity analysed
+      def pus_wound_swabs_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Pus/Wound swabs analysed for culture and sensitivity' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            (t.specimen_id IN #{report_utils.specimen_ids_like('Pus')} OR t.specimen_id IN #{report_utils.specimen_ids_like('Wound')} OR t.specimen_id IN #{report_utils.specimen_ids_like('Swab')})
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of HVS samples for culture and sensitivity analysed
+      def hvs_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of HVS samples analysed for culture and sensitivity' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            (t.specimen_id IN #{GlobalService.fetch_ids(Specimen, ['HVS', 'High Vaginal Swab', 'Vaginal Swab'], %w[NLIMS_SP_0014_MWI])} OR t.specimen_id IN #{report_utils.specimen_ids_like('Vaginal')})
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Sputum samples for culture and sensitivity analysed
+      def sputum_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Sputum samples analysed for culture and sensitivity' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids_like('Sputum')}
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Stool samples for culture and sensitivity analysed
+      def stool_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Stool samples analysed for culture and sensitivity' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id IN #{report_utils.specimen_ids_like('Stool')}
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Number of Other samples analysed (samples not in the above categories, e.g., tissue biopsy)
+      def other_samples_analysed
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        csf_ids = GlobalService.fetch_ids(Specimen, ['CSF', 'Cerebrospinal Fluid'], %w[NLIMS_SP_0002_MWI])
+        hvs_ids = GlobalService.fetch_ids(Specimen, ['HVS', 'High Vaginal Swab', 'Vaginal Swab'], %w[NLIMS_SP_0014_MWI])
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total number of Other samples analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.specimen_id NOT IN #{csf_ids}
+              AND t.specimen_id NOT IN #{hvs_ids}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Fluid')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Urine')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Blood')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Pus')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Wound')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Swab')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Sputum')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Stool')}
+              AND t.specimen_id NOT IN #{report_utils.specimen_ids_like('Vaginal')}
+              AND t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4 , 5)
               AND t.voided = 0
