@@ -316,6 +316,7 @@ class ProcessTestCatalogService
       # which would fire on the existing in-memory value even when not being changed.
       record.update_columns(
         name: record.name,
+        department_id: create_or_update_department(item[:test_category])&.id || record.department_id,
         nlims_code: record.nlims_code,
         updated_date: Time.current
       )
