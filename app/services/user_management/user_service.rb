@@ -165,18 +165,29 @@ module UserManagement
         user_odt[:departments] = departments
         user_odt[:permissions] = user_privileges(user)
         user_odt[:lab_locations] = lab_locations(user.id)
-        user_odt[:preferences] = (
-          (user&.user_preferences&.select(:id, :name, :value)&.map do |pref|
-            pref.attributes.merge(target: 'user')
-          end || []) +
-          (AppSetting.select(:id, :name, :value).map do |setting|
-            setting.attributes.merge(target: 'site')
-          end)
-        )
+        user_odt[:preferences] = build_user_preferences(user)
         user_odt
       end
       # rubocop:enable Metrics/AbcSize
       # rubocop:enable Metrics/MethodLength
+
+      def build_user_preferences(user)
+        # Build preferences with site preferences taking priority over user preferences
+        site_preferences = AppSetting.select(:id, :name, :value).map do |setting|
+          setting.attributes.merge(target: 'site')
+        end
+
+        site_preference_names = site_preferences.map { |pref| pref['name'] }
+
+        # Only include user preferences that don't have a corresponding site preference
+        user_preferences = user&.user_preferences&.select(:id, :name, :value)&.reject do |pref|
+          site_preference_names.include?(pref.name)
+        end&.map do |pref|
+          pref.attributes.merge(target: 'user')
+        end || []
+
+        site_preferences + user_preferences
+      end
 
       def user_privileges(user)
         user_roles = user.user_role_mappings.pluck(:role_id)
