@@ -28,7 +28,7 @@ module Reports
                       vl_samples_received + vl_tests_done + vl_results_less_100copies_permil + csf_samples_analysed +
                       other_sterile_fluids_analysed + urine_samples_analysed + blood_samples_analysed +
                       pus_wound_swabs_analysed + hvs_samples_analysed + sputum_samples_analysed +
-                      stool_samples_analysed + other_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
+                      stool_samples_analysed + total_bacteriology_samples_analysed + other_samples_analysed + csf_samples_analysed_afb + csf_samples_analysed_afb + india_ink_tests_done +
                       csf_samples_organism + india_link_positive + gram_stain_done + gram_stain_positive +
                       gram_stain_by_specimen + hvs_analysed + hvs_organism + cryptococcal_antigen_tests + positive_cryptococcal_antigen_tests +
                       serum_crag + positive_serum_crag + other_swabs_analysed + other_swabs_organism + fluids_analysed +
@@ -46,7 +46,8 @@ module Reports
       private
 
       REPORT_INDICATORS = [
-        # A- TOTAL NUMBER OF SAMPLES ANALYSED - Daily total number of all bactereology samples analysed
+        # A- TOTAL NUMBER OF SAMPLES ANALYSED - Daily total number of all bacteriology samples analysed
+        'Total Number of bacteriology samples analysed',
         'Total number of CSF samples analysed',
         'Total number of Other Sterile Fluids analysed',
         'Total number of Urine samples analysed for culture and sensitivity',
@@ -1358,6 +1359,39 @@ module Reports
               AND REPLACE(tr.value,' ', '') < 1000
               AND tr.value NOT IN ('NO RESULT', 'ERROR', 'INVALID')
           GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_bacteriology_samples_analysed
+        test_type_ids = TestType.where(department: Department.find_by(name: 'Microbiology'))
+                                .where('nlims_code is not null').pluck(:id)
+        specimen_ids = SpecimenTestTypeMapping.where(test_type_id: test_type_ids).pluck(:specimen_id)&.uniq
+        specimen_nlims_codes = Specimen.where(id: specimen_ids).pluck(:nlims_code)&.uniq&.compact
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+            SELECT
+              MONTHNAME(t.created_date) AS month,
+              COUNT(DISTINCT t.order_id) AS total, 'Total Number of bacteriology samples analysed' AS indicator,
+              GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+            FROM
+              tests t
+                INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                AND tr.test_id = t.id
+                AND tr.voided = 0
+          WHERE
+            t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['Cuture & Sensitivity', 'Culture and Sensitivity'], %w[NLIMS_TT_0004_MWI])}
+            AND t.specimen_id IN #{GlobalService.fetch_ids(Specimen, [], specimen_nlims_codes)}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4 , 5)
+              AND t.voided = 0
+              AND tr.value NOT IN ('' , '0')
+              AND tr.value IS NOT NULL
+            GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
