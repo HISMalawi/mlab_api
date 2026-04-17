@@ -1,11 +1,11 @@
 class Api::V1::EncountersController < ApplicationController
-  before_action :set_encounter, only: [:show, :update, :destroy]
+  before_action :set_encounter, only: %i[show update destroy]
 
   def index
     @encounters = Encounter.all
     render json: @encounters
   end
-  
+
   def show
     render json: @encounter
   end
@@ -21,6 +21,8 @@ class Api::V1::EncountersController < ApplicationController
   end
 
   def update
+    @encounter.current_user_id = User.current&.id if @encounter.respond_to?(:current_user_id=)
+
     if @encounter.update(encounter_params)
       render json: @encounter
     else
@@ -39,6 +41,7 @@ class Api::V1::EncountersController < ApplicationController
   end
 
   def encounter_params
-    params.require(:encounter).permit(:client_id, :facility_id, :destination_id, :facility_section_id, :start_date, :end_date, :voided, :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date, :uuid)
+    params.require(:encounter).permit(:client_id, :facility_id, :destination_id, :facility_section_id, :start_date,
+                                      :end_date, :voided, :voided_by, :voided_reason, :voided_date, :creator, :created_date, :updated_date, :uuid)
   end
 end
