@@ -671,6 +671,7 @@ module Tests
       json[:order_status_trail] = order_status_trail(record['order_id']) unless is_client_report
       json[:suscept_test_result] = suscept_test_result(record['id'])
       json[:culture_observation] = culture_observation(record['id']) unless is_client_report
+      json[:test_attributes] = TestAttributeValue.values_for_test(record['id'])
       json
     end
   end
