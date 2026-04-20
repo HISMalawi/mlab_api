@@ -24,14 +24,37 @@ module TestCatalog
         test_types = filter_test_types_by_sex(sex, test_types)
         test_types = TestType.where(id: test_types.pluck('specimen_test_type_mappings.test_type_id'))
         test_types = test_types.where(can_be_ordered: true, disabled: false)
-        test_types_display_column = GlobalService.full_name_display? ? 'test_types.name' : 'test_types.preferred_name'
-        test_panel_display_column = GlobalService.full_name_display? ? 'test_panels.name' : 'COALESCE(test_panels.preferred_name, test_panels.name)'
+
+        # Return structured data with test types and their attributes
+        test_types_with_attributes = test_types.map do |tt|
+          # Get attributes for this test type
+          test_type_attributes = TestTypeAttribute.root_attributes_for_test_type(tt.id)
+          attributes_data = test_type_attributes.map { |tta| tta.as_json(include_children: true) }
+
+          {
+            id: tt.id,
+            name: GlobalService.full_name_display? ? tt.name : (tt.preferred_name || tt.name),
+            is_panel: false,
+            attributes: attributes_data
+          }
+        end
+
+        # Get test panels
         test_type_ids = test_types.pluck(:id)
-        test_panel = TestTypePanelMapping.joins(:test_panel, :test_type)
-                                         .where(test_type_id: test_type_ids)
-                                         .pluck(Arel.sql(test_panel_display_column.to_s))
-        test_names = test_types.pluck(Arel.sql(test_types_display_column.to_s))
-        (test_names + test_panel).uniq.sort
+        test_panels = TestPanel.joins(:test_type_panel_mappings)
+                               .where(test_type_panel_mappings: { test_type_id: test_type_ids })
+                               .distinct
+
+        test_panels_data = test_panels.map do |tp|
+          {
+            id: tp.id,
+            name: GlobalService.full_name_display? ? tp.name : (tp.preferred_name || tp.name),
+            is_panel: true,
+            attributes: [] # Panels don't have attributes directly
+          }
+        end
+
+        (test_types_with_attributes + test_panels_data).sort_by { |item| item[:name] }
       end
 
       def filter_test_types_by_department(department_id, test_types)

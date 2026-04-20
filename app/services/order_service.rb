@@ -72,13 +72,17 @@ module OrderService
         test_type = TestType.find_by(preferred_name: test_param[:test_type]) || TestType.find_by_name(test_param[:test_type])
         test_panel = TestPanel.find_by(preferred_name: test_param[:test_type]) || TestPanel.find_by_name(test_param[:test_type])
         specimen_id = test_param[:specimen]
+        attribute_values = test_param[:attribute_values] || {}
+
         if test_panel.nil?
-          find_or_create_test(specimen_id, order_id, test_type, test_panel&.id, lab_location_id)
+          test = find_or_create_test(specimen_id, order_id, test_type, test_panel&.id, lab_location_id)
+          save_test_attribute_values(test.id, attribute_values) if test && attribute_values.present?
         else
           member_test_types = TestTypePanelMapping.joins(:test_type).where(test_panel_id: test_panel.id).pluck('test_types.id')
           member_test_types.each do |test_type_id|
             test_type = TestType.find_by_id(test_type_id)
-            find_or_create_test(specimen_id, order_id, test_type, test_panel&.id, lab_location_id)
+            test = find_or_create_test(specimen_id, order_id, test_type, test_panel&.id, lab_location_id)
+            # For panels, attribute values are not typically saved per member test
           end
         end
       end
@@ -94,7 +98,7 @@ module OrderService
       if test_type.name.downcase == 'cross-match'
         return Test.create!(specimen_id:, order_id:, test_type_id: test_type.id, test_panel_id:, lab_location_id:)
       end
-      return if status_ids.include?(test.status_id)
+      return nil if status_ids.include?(test.status_id)
 
       Test.create!(specimen_id:, order_id:, test_type_id: test_type.id, test_panel_id:, lab_location_id:)
     end
@@ -103,13 +107,13 @@ module OrderService
       order = Order.find(order_id)
       # Get existing test IDs before creating new tests
       existing_test_ids = Test.where(order_id: order_id).pluck(:id)
-      
+
       create_test(order_id, tests, lab_location)
-      
+
       # Get newly created test IDs
       all_test_ids = Test.where(order_id: order_id).pluck(:id)
       new_test_ids = all_test_ids - existing_test_ids
-      
+
       # Stage new tests in unsync_orders for NLIMS sync
       new_test_ids.each do |test_id|
         UnsyncOrder.create!(
@@ -121,7 +125,7 @@ module OrderService
           updated_date: Time.now
         )
       end
-      
+
       order
     end
 
@@ -228,9 +232,9 @@ module OrderService
                             .last
       if order
         current_year_record = Order
-                            .lock
-                            .where('accession_number LIKE ?', "#{code}#{year}%")
-                            .last
+                              .lock
+                              .where('accession_number LIKE ?', "#{code}#{year}%")
+                              .last
       end
       if current_year_record
         # Extract sequence number from current year record
@@ -288,6 +292,27 @@ module OrderService
         tests: test_params,
         lab_location:
       }
+    end
+
+    # Save test attribute values for a test
+    def save_test_attribute_values(test_id, attribute_values)
+      return if attribute_values.blank?
+
+      attribute_values.each do |attribute_id, value|
+        next if value.blank?
+
+        TestAttributeValue.create!(
+          test_id: test_id,
+          attribute_id: attribute_id,
+          value: value,
+          creator: User.current&.id,
+          created_date: Time.current,
+          updated_by: User.current&.id,
+          updated_date: Time.current
+        )
+      end
+    rescue StandardError => e
+      Rails.logger.error("Failed to save test attribute values: #{e.message}")
     end
   end
 end
