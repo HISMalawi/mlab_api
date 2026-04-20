@@ -47,6 +47,7 @@ class TestAttributeValue < VoidableRecord
           attribute_label: av.attribute_definition.label,
           field_type: av.attribute_definition.field_type,
           value: av.value,
+          options: av.attribute_definition.options,
           created_date: av.created_date
         }
       end

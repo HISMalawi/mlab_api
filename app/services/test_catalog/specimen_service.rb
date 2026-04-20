@@ -14,7 +14,7 @@ module TestCatalog
           specimens = specimens.where(test_types: { department_id: department_id })
         end
         specimen_ids = specimens.select(:specimen_id).distinct
-        specimen = Specimen.excluding_not_specified.where(id: specimen_ids)
+        specimen = Specimen.excluding_not_specified.where(id: specimen_ids).where('nlims_code IS NOT NULL')
         GlobalService.full_name_display? ? specimen.order(:name) : specimen.order(:preferred_name)
       end
 
