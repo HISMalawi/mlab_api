@@ -31,15 +31,32 @@ class TestTypeAttribute < VoidableRecord
   serialize :test_type_specific_options, JSON
 
   def as_json(options = {})
-    base_json = super(options).merge(
-      attribute: attribute_definition.as_json(only: %i[id name label description field_type options]),
-      test_type: test_type&.as_json(only: %i[id name short_name]),
+    # Only include essential fields for the UI
+    base_json = {
+      id: id,
+      test_type_id: test_type_id,
+      attribute_id: attribute_id,
+      is_required: is_required,
+      sort_order: sort_order,
+      parent_attribute_id: parent_attribute_id,
+      parent_attribute_value: parent_attribute_value,
+      attribute: {
+        id: attribute_definition.id,
+        name: attribute_definition.name,
+        label: attribute_definition.label,
+        description: attribute_definition.description,
+        field_type: attribute_definition.field_type,
+        options: attribute_definition.options
+      },
       effective_options: effective_options
-    )
+    }
 
     if parent_attribute.present?
-      base_json[:parent_attribute] = parent_attribute.as_json(only: %i[id name label])
-      base_json[:parent_attribute_value] = parent_attribute_value
+      base_json[:parent_attribute] = {
+        id: parent_attribute.id,
+        name: parent_attribute.name,
+        label: parent_attribute.label
+      }
     end
 
     # Include child attributes if requested

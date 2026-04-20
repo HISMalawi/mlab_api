@@ -11,11 +11,14 @@ module Api
       def index
         include_children = params[:include_children] == 'true'
 
-        if params[:root_only] == 'true'
+        # When include_children=true, return only root attributes with nested children
+        # This avoids duplication of child attributes at the top level
+        if include_children || params[:root_only] == 'true'
           @attributes = TestTypeAttribute.root_attributes_for_test_type(@test_type.id)
           render json: @attributes.map { |tta| tta.as_json(include_children: include_children) }
         else
-          @attributes = TestTypeAttribute.attributes_for_test_type(@test_type.id, include_children: include_children)
+          # Return all attributes (flat list) when children are not requested
+          @attributes = TestTypeAttribute.attributes_for_test_type(@test_type.id, include_children: false)
           render json: @attributes
         end
       end
