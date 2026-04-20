@@ -18,9 +18,20 @@ class TestType < TestTypeVoidableRecord
   has_many :lab_test_sites, through: :test_type_lab_test_sites
   has_many :test_type_panel_mappings, dependent: :destroy
   has_many :test_types, through: :test_type_panel_mappings
+  has_many :test_type_attributes, dependent: :destroy
+  has_many :custom_attributes, through: :test_type_attributes, source: :attribute_definition
+
+  # Scope for active test types
+  scope :active, -> { where.not(retired: true).where.not(disabled: true) }
 
   def as_json(options = {})
     base_json = super(options).merge(expected_turn_around_time: expected_tats, department:)
+
+    # Include attributes if requested
+    if options[:include_attributes]
+      base_json[:attributes] = TestTypeAttribute.attributes_for_test_type(id, include_children: true)
+    end
+
     return base_json if options[:single_item].nil?
 
     base_json.merge({
@@ -28,7 +39,13 @@ class TestType < TestTypeVoidableRecord
                       specimens:,
                       organisms:,
                       indicators: test_indicators,
-                      expected_turn_around_time: expected_tats
+                      expected_turn_around_time: expected_tats,
+                      attributes: if options[:include_attributes]
+                                    TestTypeAttribute.attributes_for_test_type(id,
+                                                                               include_children: true)
+                                  else
+                                    []
+                                  end
                     })
   end
 

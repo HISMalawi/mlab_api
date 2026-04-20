@@ -7,6 +7,8 @@ class Test < VoidableRecord
   belongs_to :test_panel, optional: true
   has_many :post_crossmatch_processes, dependent: :destroy
   has_many :pack_number_logs, dependent: :destroy
+  has_many :test_attribute_values, dependent: :destroy
+  has_many :custom_attributes, through: :test_attribute_values, source: :attribute_definition
 
   after_create :create_default_status
   after_create :update_elastic_search_index
@@ -23,7 +25,13 @@ class Test < VoidableRecord
                           is_machine_oriented order_status_trail]
       end
     end
-    super(options.merge(methods:))
+
+    json_data = super(options.merge(methods:))
+
+    # Include attribute values if requested
+    json_data[:attribute_values] = TestAttributeValue.values_for_test(id) if options[:include_attributes]
+
+    json_data
   end
 
   def short_name

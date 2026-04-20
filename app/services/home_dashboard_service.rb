@@ -11,7 +11,8 @@ module HomeDashboardService
         test_panels: TestPanel.count,
         test_types: TestType.active_without_paediatric_cancer.count,
         specimen_types: Specimen.count,
-        lab_sections: Department.count
+        lab_sections: Department.count,
+        attributes: Attribute.active.count
       }
       home_dashboard_reports('test_catalog', data, nil, 1)
     end

@@ -6,18 +6,16 @@ module TestCatalog
   module SpecimenService
     class << self
       def specimen(department_id: nil)
-        specimen = Specimen.order(:preferred_name)
-        not_specified = Specimen.find_by(name: 'not_Specified')
-        return specimen.where.not(id: not_specified&.id) if department_id.blank?
-
-        department = Department.find_by(id: department_id)
-        return specimen.where.not(id: not_specified&.id) if department.nil? || department.name == 'Lab Reception'
-
-        specimen_ids = SpecimenTestTypeMapping.joins(:test_type)
-                                              .where(test_types: { department_id: department.id })
-                                              .select(:specimen_id)
-                                              .distinct
-        specimen.where(id: specimen_ids).where.not(id: not_specified&.id)
+        reception_department_id = Department.find_by(name: 'Lab Reception')&.id
+        test_types = TestType.where('nlims_code IS NOT NULL').where(can_be_ordered: true).where.not(disabled: true)
+        specimens = SpecimenTestTypeMapping.joins(:test_type)
+                                           .where(test_types: { id: test_types.pluck(:id) })
+        if department_id.present? && department_id&.to_i != reception_department_id
+          specimens = specimens.where(test_types: { department_id: department_id })
+        end
+        specimen_ids = specimens.select(:specimen_id).distinct
+        specimen = Specimen.excluding_not_specified.where(id: specimen_ids)
+        GlobalService.full_name_display? ? specimen.order(:name) : specimen.order(:preferred_name)
       end
 
       def specimen_test_type(specimen_id, department_id, sex)
