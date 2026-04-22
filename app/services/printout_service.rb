@@ -48,6 +48,10 @@ module PrintoutService
                                            status_id: 4).first&.creator).first&.person&.fullname
       pack_abo_group = ''
       post_crossmatch_process = []
+      pack_abo_group_test_ids = Test.where(
+        test_type_id: TestType.where(nlims_code: 'NLIMS_TT_0029_MWI').pluck(:id) || TestType.where(name: 'ABO And RhD Blood Grouping').pluck(:id),
+        order_id: order&.id
+      ).pluck(:id)
       test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
                                .select(
                                  'test_results.id,
@@ -69,7 +73,7 @@ module PrintoutService
           'returned_reason'
         )&.first || post_crossmatch_process
         pack_abo_group = TestResult.where(
-          test_id: test_ids,
+          test_id: pack_abo_group_test_ids,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
