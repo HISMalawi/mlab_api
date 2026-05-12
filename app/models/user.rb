@@ -36,7 +36,7 @@ class User < VoidableRecord
   end
 
   def full_name
-    "#{person.first_name} #{person.last_name}"
+    "#{person.first_name&.strip} #{person.last_name&.strip}"
   end
 
   def self.current
