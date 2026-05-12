@@ -29,5 +29,6 @@ rails db:migrate && {
     rails r iblis_migration/void_lab_tech_indicator.rb &&
     rails r iblis_migration/load_preferences.rb &&
     rails r iblis_migration/user_preferences_init.rb &&
-    rails r iblis_migration/app_setting_init.rb
+    rails r iblis_migration/app_setting_init.rb &&
+    bash bin/attributes_metadata.sh $ENV
 }
