@@ -295,9 +295,12 @@ class ProcessTestCatalogService
 
   def find_or_initialize_test_type(item)
     puts "Processing test type: #{item[:name]}"
-    record = TestType.find_by(nlims_code: item[:nlims_code], disabled: false) if item[:nlims_code].present?
+    # if item[:name]&.upcase&.strip == 'STOOL MACROSCOPY'
+    #   TestType.where(name: 'Stool Macroscopy').first&.update(disabled: false)
+    # end
+    record = TestType.find_by(nlims_code: item[:nlims_code]) if item[:nlims_code].present?
     # record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
-    record ||= TestType.find_by(name: item[:name]&.strip, disabled: false)
+    record ||= TestType.find_by(name: item[:name]&.strip)
     # record ||= TestType.find_by(name: item[:iblis_mapping_name]) if item[:iblis_mapping_name].present?
     record ||= TestType.new
     if record.new_record?
