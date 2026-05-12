@@ -336,7 +336,7 @@
                 <div
                   v-for="(result, index) in test.suscept_test_result"
                   :key="index"
-                  v-if="test.test_type_name.toLowerCase().includes('culture')"
+                  v-if="test.test_type_name.toLowerCase().includes('culture') || test.test_type_name.toLowerCase().includes('cholera test')"
                 >
                   <table class="w-full">
                     <thead>
