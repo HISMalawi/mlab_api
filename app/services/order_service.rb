@@ -298,13 +298,13 @@ module OrderService
     def save_test_attribute_values(test_id, attribute_values)
       return if attribute_values.blank?
 
-      attribute_values.each do |attribute_id, value|
-        next if value.blank?
+      attribute_values.each do |attribute|
+        next if attribute[:value].blank?
 
         TestAttributeValue.create!(
           test_id: test_id,
-          attribute_id: attribute_id,
-          value: value,
+          attribute_id: attribute[:attribute_id],
+          value: attribute[:value],
           creator: User.current&.id,
           created_date: Time.current,
           updated_by: User.current&.id,
