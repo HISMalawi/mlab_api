@@ -17,7 +17,9 @@ class Person < VoidableRecord
   end
 
   def fullname
-    "#{first_name} #{middle_name} #{last_name}"
+    return "#{first_name} #{middle_name} #{last_name}" if middle_name.present?
+
+    "#{first_name} #{last_name}"
   end
 
   def self.search_by_first_name(name)
