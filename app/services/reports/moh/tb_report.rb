@@ -251,7 +251,7 @@ module Reports
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4, 5)
               AND t.voided = 0
-              AND tr.value LIKE '%1+%'
+              AND tr.value LIKE '1+%'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
