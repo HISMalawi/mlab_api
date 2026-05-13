@@ -20,7 +20,7 @@ module Reports
         data = Report.where(year:, name: 'tb-report').first&.data
         return data if data.present?
 
-        report_data = total_suspected_tb_samples + total_tb_tests_done + total_1_plus + total_2_plus + total_3_plus +
+        report_data = total_suspected_tb_samples + total_tb_tests_done + total_tb_micro_tests_done + total_1_plus + total_2_plus + total_3_plus +
                       total_follow_ups_2_3_months + total_negative_2_3_months + total_positive_2_3_months +
                       total_follow_ups_5_months + total_negative_5_months + total_positive_5_months +
                       total_follow_ups_6_7_months + total_negative_6_7_months + total_positive_6_7_months +
@@ -50,6 +50,7 @@ module Reports
 
       REPORT_INDICATORS = [
         'Total Number of cases',
+        'Total Number of Tests Done',
         'Total Number of Microscopy Tests done',
         'Microscopy 1+',
         'Microscopy 2+',
@@ -175,8 +176,27 @@ module Reports
         SQL
       end
 
-      # Total number of TB tests completed/done
       def total_tb_tests_done
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total,
+            'Total Number of Tests Done' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB Tests'], ['NLIMS_TT_0010_MWI'])}
+              AND YEAR(t.created_date) = #{year}
+              AND t.status_id IN (4, 5)
+              AND t.voided = 0
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # Total number of TB tests completed/done
+      def total_tb_micro_tests_done
         ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
         Report.find_by_sql <<~SQL
           SELECT
@@ -231,7 +251,7 @@ module Reports
               AND YEAR(t.created_date) = #{year}
               AND t.status_id IN (4, 5)
               AND t.voided = 0
-              AND tr.value LIKE '1+%'
+              AND tr.value LIKE '%1+%'
           GROUP BY MONTHNAME(t.created_date)
         SQL
       end
