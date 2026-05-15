@@ -252,6 +252,29 @@ Rails.application.routes.draw do
       end
       resources :user_preferences
       resources :encounters
+
+      # Test attributes routes
+      resources :attributes, only: %i[index show create update destroy]
+
+      resources :test_types do
+        resources :attributes, controller: 'test_type_attributes', only: %i[index create] do
+          collection do
+            get '/for_order' => 'test_type_attributes#for_order'
+          end
+        end
+      end
+
+      resources :test_type_attributes, only: %i[show update destroy]
+
+      resources :tests do
+        resources :attribute_values, controller: 'test_attribute_values', only: %i[index create] do
+          collection do
+            post '/bulk_save' => 'test_attribute_values#bulk_save'
+          end
+        end
+      end
+
+      resources :test_attribute_values, only: %i[show update destroy]
     end
   end
 end

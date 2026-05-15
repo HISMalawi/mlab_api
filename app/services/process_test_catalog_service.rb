@@ -295,6 +295,12 @@ class ProcessTestCatalogService
 
   def find_or_initialize_test_type(item)
     puts "Processing test type: #{item[:name]}"
+    if ['STOOL MICROSCOPY', 'STOOL MACROSCOPY'].include?(item[:name]&.upcase)
+      TestType.where(name: 'STOOL MACROSCOPY').first&.update(disabled: false, can_be_ordered: true)
+      TestType.where(name: 'STOOL MICROSCOPY').first&.update(disabled: false, can_be_ordered: true)
+      # Disable Stool Analysis for ordering
+      TestType.where(nlims_code: 'NLIMS_TT_0014_MWI').first&.update(disabled: true, can_be_ordered: false)
+    end
     record = TestType.find_by(nlims_code: item[:nlims_code], disabled: false) if item[:nlims_code].present?
     # record ||= TestType.find_by(scientific_name: item[:scientific_name]) if item[:scientific_name].present?
     record ||= TestType.find_by(name: item[:name]&.strip, disabled: false)

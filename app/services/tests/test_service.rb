@@ -699,6 +699,7 @@ module Tests
       json[:ward_change_trail] = ward_change_trail(record['encounter_id']) if is_client_report
       json[:suscept_test_result] = suscept_test_result(record['id'])
       json[:culture_observation] = culture_observation(record['id']) unless is_client_report
+      json[:test_attributes] = TestAttributeValue.values_for_test(record['id'])
       json
     end
   end
