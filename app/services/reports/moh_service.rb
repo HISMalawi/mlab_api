@@ -19,6 +19,8 @@ module Reports
           Reports::Moh::Microbiology.new.report_indicator
         when 'serology'
           Reports::Moh::Serology.new.report_indicator
+        when 'tb report', 'tb'
+          Reports::Moh::TbReport.new.report_indicator
         else
           []
         end
@@ -58,6 +60,12 @@ module Reports
         serology_report = Reports::Moh::Serology.new
         serology_report.year = year
         serology_report.generate_report
+      end
+
+      def generate_tb_report(year)
+        tb_report = Reports::Moh::TbReport.new
+        tb_report.year = year
+        tb_report.generate_report
       end
     end
   end
