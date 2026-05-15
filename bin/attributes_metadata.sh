@@ -28,4 +28,8 @@ PORT=`ruby -ryaml -e "puts YAML::load_file('config/database.yml',aliases: true)[
 SQL_FOLDER="db/sql/metadata"
 
 echo "Updating attributes metadata from SQL file..."
-mysql --host="$HOST" --port="$PORT" --user="$USERNAME" --password="$PASSWORD" "$DATABASE" < "$SQL_FOLDER/test_type_attributes.sql"
+mysql --host="$HOST" --port="$PORT" --user="$USERNAME" --password="$PASSWORD" "$DATABASE" < "$SQL_FOLDER/attributes_dump.sql"
+
+echo "Associating attributes with test types..."
+rails runner iblis_migration/metadata/test_type_attributes.rb
+echo "Attributes metadata update completed."
