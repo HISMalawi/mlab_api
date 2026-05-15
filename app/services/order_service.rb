@@ -69,7 +69,7 @@ module OrderService
     def create_test(order_id, test_params, lab_location)
       lab_location_id = lab_location.present? && lab_location != 0 ? lab_location.to_i : LabLocation.first&.id
       test_params.each do |test_param|
-        test_type = TestType.find_by(preferred_name: test_param[:test_type]) || TestType.find_by_name(test_param[:test_type])
+        test_type = TestType.find_by(preferred_name: test_param[:test_type], disabled: false) || TestType.find_by(name: test_param[:test_type], disabled: false)
         test_panel = TestPanel.find_by(preferred_name: test_param[:test_type]) || TestPanel.find_by_name(test_param[:test_type])
         specimen_id = test_param[:specimen]
         if test_panel.nil?

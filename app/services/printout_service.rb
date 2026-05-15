@@ -44,10 +44,18 @@ module PrintoutService
       patient = person.fullname
       date = Date.today.strftime
       ward = order.encounter&.facility_section&.name
-      by = User.where(id: TestStatus.where(test_id: test_ids,
-                                           status_id: 4).first&.creator).first&.person&.fullname
+      verified_status = Status.where(name: 'Verified').first&.id
+      completed_status = Status.where(name: 'Completed').first&.id
+      by = User.where(id: TestStatus.where(test_id: test_ids, status_id: completed_status).first&.creator)
+               .first&.person&.fullname
+      auth_by = User.where(id: TestStatus.where(test_id: test_ids, status_id: verified_status).first&.creator)
+                    .first&.person&.fullname
       pack_abo_group = ''
       post_crossmatch_process = []
+      pack_abo_group_test_ids = Test.where(
+        test_type_id: TestType.where(nlims_code: 'NLIMS_TT_0029_MWI').pluck(:id) || TestType.where(name: 'ABO And RhD Blood Grouping').pluck(:id),
+        order_id: order&.id
+      ).pluck(:id)
       test_results = TestResult.joins(:test_indicator).where(test_id: test_ids)
                                .select(
                                  'test_results.id,
@@ -69,7 +77,7 @@ module PrintoutService
           'returned_reason'
         )&.first || post_crossmatch_process
         pack_abo_group = TestResult.where(
-          test_id: test_ids,
+          test_id: pack_abo_group_test_ids,
           test_indicator_id: TestIndicator.where(name: 'Grouping').pluck('id')
         ).first&.value
       end
@@ -112,8 +120,8 @@ module PrintoutService
 
       z_label.draw_text("Patient: #{patient}", left_align_from, header_y + 28, 0, 1, 1, 2)
       z_label.draw_text("Ward: #{ward}", left_align_from + 290, header_y + 28, 0, 1, 1, 2)
-      z_label.draw_text("By: #{by}", left_align_from + 540, header_y + 28, 0, 1, 1, 2)
-
+      z_label.draw_text("Done By: #{by}", left_align_from + 540, header_y + 28, 0, 1, 1, 2)
+      z_label.draw_text("Auth By: #{auth_by}", left_align_from + 540, header_y + 56, 0, 1, 1, 2)
       unless pack_abo_group.blank?
         z_label.draw_text("ABO Group: #{pack_abo_group}", left_align_from + 290, header_y, 0, 1, 1, 2)
       end
