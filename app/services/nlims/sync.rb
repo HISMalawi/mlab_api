@@ -409,7 +409,7 @@ module Nlims
         )
         {
           uuid: results&.uuid,
-          test_uuid: test_record.uuid,
+          test_uuid: results&.test_uuid,
           measure: {
             name: results&.test_indicator&.name,
             nlims_code: results&.test_indicator&.nlims_code,
