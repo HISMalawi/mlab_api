@@ -2,6 +2,8 @@
 
 # Model for handling order statuses
 class OrderStatus < VoidableRecord
+  include Uuidable
+
   validates :status_id, presence: true
   validates :status_reason_id, presence: false
 
@@ -9,6 +11,7 @@ class OrderStatus < VoidableRecord
   belongs_to :status, optional: true
   belongs_to :status_reason, optional: true
 
+  before_create :set_order_uuid
   # after_commit :insert_into_report_data_raw, on: :create
   # after_commit :update_moh_report_data, on: :create
   after_create :create_unsync_order
@@ -87,5 +90,11 @@ class OrderStatus < VoidableRecord
     oerr_sync_trails.each do |oerr_sync_trail|
       OerrService.create_oerr_sync_trail_on_update(oerr_sync_trail)
     end
+  end
+
+  private
+
+  def set_order_uuid
+    self.order_uuid = order&.uuid if order.present?
   end
 end

@@ -1,4 +1,6 @@
 class Test < VoidableRecord
+  include Uuidable
+
   belongs_to :specimen
   belongs_to :order
   belongs_to :test_type
@@ -8,6 +10,7 @@ class Test < VoidableRecord
   has_many :post_crossmatch_processes, dependent: :destroy
   has_many :pack_number_logs, dependent: :destroy
 
+  before_create :set_order_uuid
   after_create :create_default_status
   after_create :update_elastic_search_index
 
@@ -152,5 +155,11 @@ class Test < VoidableRecord
 
   def test_service
     Tests::TestService.new
+  end
+
+  private
+
+  def set_order_uuid
+    self.order_uuid = order&.uuid if order.present?
   end
 end
