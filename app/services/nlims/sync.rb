@@ -392,6 +392,8 @@ module Nlims
         {
           status: st&.status&.name&.gsub('_', '-'),
           timestamp: st&.created_date,
+          trail_uuid: st&.uuid,
+          test_uuid: st&.test_uuid,
           updated_by: {
             first_name: st.user&.person&.first_name,
             last_name: st.user&.person&.last_name,
@@ -406,6 +408,8 @@ module Nlims
           test_types_id: test_record.test_type_id
         )
         {
+          uuid: results&.uuid,
+          test_uuid: test_record.uuid,
           measure: {
             name: results&.test_indicator&.name,
             nlims_code: results&.test_indicator&.nlims_code,
@@ -423,6 +427,8 @@ module Nlims
       end
       {
         tracking_number: test_record.order&.tracking_number,
+        order_uuid: test_record.order_uuid,
+        test_uuid: test_record.uuid,
         arv_number: client.try(:arv_number),
         test_status: test_record.status&.gsub('_', '-'),
         time_updated: test_record&.updated_date,
@@ -443,6 +449,7 @@ module Nlims
       {
         order: {
           tracking_number: order&.tracking_number.present? ? order&.tracking_number : "X#{order&.accession_number}",
+          order_uuid: order&.uuid,
           sample_type: tests&.first&.specimen,
           sample_status: { name: Status.find_by(id: order&.status_id)&.name&.gsub('-', '_') || 'specimen_collected' },
           order_location: order&.encounter&.facility_section&.name || 'OPD',
@@ -472,6 +479,8 @@ module Nlims
             {
               status: trail&.status&.name,
               timestamp: trail&.created_date,
+              trail_uuid: trail&.uuid,
+              order_uuid: trail&.order_uuid,
               update_by: {
                 first_name: person_creator&.first_name,
                 last_name: person_creator&.last_name,
