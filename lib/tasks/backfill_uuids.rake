@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 BATCH_SIZE = ENV.fetch('BATCH_SIZE', 10_000).to_i
+PROGRESS_MUTEX = Mutex.new
 
 # Rake tasks to backfill UUIDs for all transactional tables
 # This includes:
@@ -31,14 +32,23 @@ namespace :uuid do
 
     # Process parent tables first (these must be sequential)
     puts "\nProcessing parent tables..."
+    ENV['PARALLEL_MODE'] = 'false'
     Rake::Task['uuid:backfill_orders'].invoke
     Rake::Task['uuid:backfill_tests'].invoke
 
     # Process child tables (can run in parallel since they're independent)
     if use_parallel
       puts "\nProcessing child tables in parallel..."
+      puts "(Progress will be shown per task)\n"
+
+      # Reserve 3 lines for progress display
+      puts '[3/5] Order Statuses: Initializing...'
+      puts '[4/5] Test Statuses: Initializing...'
+      puts '[5/5] Test Results: Initializing...'
+
       require 'parallel'
 
+      ENV['PARALLEL_MODE'] = 'true'
       child_tasks = [
         'uuid:backfill_order_statuses',
         'uuid:backfill_test_statuses',
@@ -51,8 +61,14 @@ namespace :uuid do
           Rake::Task[task_name].invoke
         end
       end
+
+      # Move cursor down past the progress lines
+      puts "\n"
+
+      ENV['PARALLEL_MODE'] = 'false'
     else
       puts "\nProcessing child tables sequentially..."
+      ENV['PARALLEL_MODE'] = 'false'
       Rake::Task['uuid:backfill_order_statuses'].invoke
       Rake::Task['uuid:backfill_test_statuses'].invoke
       Rake::Task['uuid:backfill_test_results'].invoke
@@ -69,7 +85,11 @@ namespace :uuid do
 
   desc 'Backfill UUIDs for orders table'
   task backfill_orders: :environment do
+    parallel_mode = ENV['PARALLEL_MODE'] == 'true'
+    task_label = 'Orders'
+
     puts "\n[1/5] Backfilling orders table..."
+
     total = Order.where(uuid: nil).count
     processed = 0
 
@@ -80,16 +100,37 @@ namespace :uuid do
       batch.find_each do |record|
         record.update_column(:uuid, UUID7.generate) if record.uuid.nil?
         processed += 1
-        print "\r  Progress Orders: #{processed}/#{total} (#{(processed.to_f / total * 100).round(2)}%)" if total > 0
+
+        # Update progress every 1000 records
+        if total > 0 && processed % 1000 == 0
+          current_percent = (processed.to_f / total * 100).round(2)
+          if parallel_mode
+            PROGRESS_MUTEX.synchronize do
+              puts "  [#{task_label}] Progress: #{processed}/#{total} (#{current_percent}%)"
+              $stdout.flush
+            end
+          else
+            print "\r  Progress Orders: #{processed}/#{total} (#{current_percent}%)"
+            $stdout.flush
+          end
+        end
       end
     end
 
-    puts "\n  ✓ Orders complete. Total: #{total}"
+    if parallel_mode
+      PROGRESS_MUTEX.synchronize { puts "  ✓ [#{task_label}] Complete. Total: #{total}" }
+    else
+      puts "\n  ✓ Orders complete. Total: #{total}"
+    end
   end
 
   desc 'Backfill UUIDs for tests table and copy order UUIDs'
   task backfill_tests: :environment do
+    parallel_mode = ENV['PARALLEL_MODE'] == 'true'
+    task_label = 'Tests'
+
     puts "\n[2/5] Backfilling tests table..."
+
     total = Test.where(uuid: nil).count
     processed = 0
 
@@ -101,17 +142,36 @@ namespace :uuid do
             order_uuid: test.order&.uuid
           )
           processed += 1
-          print "\r  Progress Tests: #{processed}/#{total} (#{(processed.to_f / total * 100).round(2)}%)" if total > 0
+
+          # Update progress every 1000 records
+          if total > 0 && processed % 1000 == 0
+            current_percent = (processed.to_f / total * 100).round(2)
+            if parallel_mode
+              PROGRESS_MUTEX.synchronize do
+                puts "  [#{task_label}] Progress: #{processed}/#{total} (#{current_percent}%)"
+                $stdout.flush
+              end
+            else
+              print "\r  Progress Tests: #{processed}/#{total} (#{current_percent}%)"
+              $stdout.flush
+            end
+          end
         end
       end
     end
 
-    puts "\n  ✓ Tests complete. Total: #{total}"
+    if parallel_mode
+      PROGRESS_MUTEX.synchronize { puts "  ✓ [#{task_label}] Complete. Total: #{total}" }
+    else
+      puts "\n  ✓ Tests complete. Total: #{total}"
+    end
   end
 
   desc 'Backfill UUIDs for order_statuses table and copy order UUIDs'
   task backfill_order_statuses: :environment do
-    puts "\n[3/5] Backfilling order_statuses table..."
+    parallel_mode = ENV['PARALLEL_MODE'] == 'true'
+    line_offset = 3 # Line 1 of 3 in parallel display
+
     total = OrderStatus.where(uuid: nil).count
     processed = 0
 
@@ -123,17 +183,40 @@ namespace :uuid do
             order_uuid: order_status.order&.uuid
           )
           processed += 1
-          print "\r  Progress Order Statuses: #{processed}/#{total} (#{(processed.to_f / total * 100).round(2)}%)" if total > 0
+
+          # Update progress every 1000 records
+          if total > 0 && processed % 1000 == 0
+            current_percent = (processed.to_f / total * 100).round(2)
+            if parallel_mode
+              PROGRESS_MUTEX.synchronize do
+                # Move cursor up, clear line, print update, move cursor back down
+                print "\e[#{line_offset}A\r\e[2K[3/5] Order Statuses: #{processed}/#{total} (#{current_percent}%)\e[#{line_offset}B\r"
+                $stdout.flush
+              end
+            else
+              print "\r  Progress Order Statuses: #{processed}/#{total} (#{current_percent}%)"
+              $stdout.flush
+            end
+          end
         end
       end
     end
 
-    puts "\n  ✓ Order statuses complete. Total: #{total}"
+    if parallel_mode
+      PROGRESS_MUTEX.synchronize do
+        print "\e[#{line_offset}A\r\e[2K[3/5] Order Statuses: ✓ Complete (#{total} records)\e[#{line_offset}B\r"
+        $stdout.flush
+      end
+    else
+      puts "\n  ✓ Order statuses complete. Total: #{total}"
+    end
   end
 
   desc 'Backfill UUIDs for test_statuses table and copy test UUIDs'
   task backfill_test_statuses: :environment do
-    puts "\n[4/5] Backfilling test_statuses table..."
+    parallel_mode = ENV['PARALLEL_MODE'] == 'true'
+    line_offset = 2 # Line 2 of 3 in parallel display
+
     total = TestStatus.where(uuid: nil).count
     processed = 0
 
@@ -145,17 +228,40 @@ namespace :uuid do
             test_uuid: test_status.test&.uuid
           )
           processed += 1
-          print "\r  Progress Test Statuses: #{processed}/#{total} (#{(processed.to_f / total * 100).round(2)}%)" if total > 0
+
+          # Update progress every 1000 records
+          if total > 0 && processed % 1000 == 0
+            current_percent = (processed.to_f / total * 100).round(2)
+            if parallel_mode
+              PROGRESS_MUTEX.synchronize do
+                # Move cursor up, clear line, print update, move cursor back down
+                print "\e[#{line_offset}A\r\e[2K[4/5] Test Statuses: #{processed}/#{total} (#{current_percent}%)\e[#{line_offset}B\r"
+                $stdout.flush
+              end
+            else
+              print "\r  Progress Test Statuses: #{processed}/#{total} (#{current_percent}%)"
+              $stdout.flush
+            end
+          end
         end
       end
     end
 
-    puts "\n  ✓ Test statuses complete. Total: #{total}"
+    if parallel_mode
+      PROGRESS_MUTEX.synchronize do
+        print "\e[#{line_offset}A\r\e[2K[4/5] Test Statuses: ✓ Complete (#{total} records)\e[#{line_offset}B\r"
+        $stdout.flush
+      end
+    else
+      puts "\n  ✓ Test statuses complete. Total: #{total}"
+    end
   end
 
   desc 'Backfill UUIDs for test_results table and copy test UUIDs'
   task backfill_test_results: :environment do
-    puts "\n[5/5] Backfilling test_results table..."
+    parallel_mode = ENV['PARALLEL_MODE'] == 'true'
+    line_offset = 1 # Line 3 of 3 in parallel display
+
     total = TestResult.where(uuid: nil).count
     processed = 0
 
@@ -167,12 +273,33 @@ namespace :uuid do
             test_uuid: test_result.test&.uuid
           )
           processed += 1
-          print "\r  Progress Test Results: #{processed}/#{total} (#{(processed.to_f / total * 100).round(2)}%)" if total > 0
+
+          # Update progress every 1000 records
+          if total > 0 && processed % 1000 == 0
+            current_percent = (processed.to_f / total * 100).round(2)
+            if parallel_mode
+              PROGRESS_MUTEX.synchronize do
+                # Move cursor up, clear line, print update, move cursor back down
+                print "\e[#{line_offset}A\r\e[2K[5/5] Test Results: #{processed}/#{total} (#{current_percent}%)\e[#{line_offset}B\r"
+                $stdout.flush
+              end
+            else
+              print "\r  Progress Test Results: #{processed}/#{total} (#{current_percent}%)"
+              $stdout.flush
+            end
+          end
         end
       end
     end
 
-    puts "\n  ✓ Test results complete. Total: #{total}"
+    if parallel_mode
+      PROGRESS_MUTEX.synchronize do
+        print "\e[#{line_offset}A\r\e[2K[5/5] Test Results: ✓ Complete (#{total} records)\e[#{line_offset}B\r"
+        $stdout.flush
+      end
+    else
+      puts "\n  ✓ Test results complete. Total: #{total}"
+    end
   end
 
   desc 'Verify UUID backfill integrity'
