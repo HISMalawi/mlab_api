@@ -19,6 +19,15 @@ PROGRESS_MUTEX = Mutex.new
 #   rake uuid:add_indexes
 #   rake uuid:add_constraints
 #   rake uuid:progress
+#
+# # Quick status check
+# ./bin/monitor_uuid.sh
+#
+# Real-time log monitoring
+# tail -f log/uuid_backfill.log
+#
+# Check progress percentage
+# rake uuid:progress
 namespace :uuid do
   desc 'Backfill UUIDs for all transactional tables'
 
