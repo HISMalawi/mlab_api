@@ -152,6 +152,14 @@
                   {{ getOrderStatusInitiatorName(report.order_status_trail) }}
                 </td>
               </tr>
+              <tr v-if="getWardHistory(report.tests)">
+                <td class="border px-1 py-1 font-bold">
+                  Ward History
+                </td>
+                <td class="border px-1 py-1" colspan="3">
+                  <span class="text-gray-700">{{ getWardHistory(report.tests) }}</span>
+                </td>
+              </tr>
             </tbody>
           </table>
 
@@ -336,7 +344,7 @@
                 <div
                   v-for="(result, index) in test.suscept_test_result"
                   :key="index"
-                  v-if="test.test_type_name.toLowerCase().includes('culture')"
+                  v-if="test.test_type_name.toLowerCase().includes('culture') || test.test_type_name.toLowerCase().includes('cholera test')"
                 >
                   <table class="w-full">
                     <thead>
@@ -591,6 +599,35 @@ const app = createApp({
         const remarks = this.getRemarks(test);
         return remarks && remarks !== "N/A" && remarks !== '';
       });
+    },
+    getWardHistory(tests) {
+      if (!tests || tests.length === 0) return "";
+      
+      // Get ward trail from the first test (all tests in an order share the same encounter)
+      const wardTrail = tests[0]?.ward_change_trail;
+      
+      if (!wardTrail || wardTrail.length === 0) return "";
+      
+      // Sort by changed_at in ascending order to show chronological progression
+      const sortedTrail = [...wardTrail].sort((a, b) => 
+        new Date(a.changed_at).getTime() - new Date(b.changed_at).getTime()
+      );
+      
+      // Build the trail showing: Initial ward -> Next ward -> Final ward
+      const wards = [];
+      
+      // Add the initial ward (previous ward of the first change)
+      if (sortedTrail[0].previous_ward) {
+        wards.push(sortedTrail[0].previous_ward);
+      }
+      
+      // Add all subsequent wards
+      sortedTrail.forEach((trail) => {
+        wards.push(trail.new_ward);
+      });
+      
+      // Format as: Ward1 -> Ward2 -> Ward3
+      return wards.join(" → ");
     }
   },
   mounted() {

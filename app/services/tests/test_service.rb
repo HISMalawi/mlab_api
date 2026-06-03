@@ -543,6 +543,33 @@ module Tests
     end
     # rubocop:enable Metrics/MethodLength
 
+    # Fetch ward change trail for an encounter
+    def ward_change_trail(encounter_id)
+      return [] unless encounter_id
+
+      encounter = Encounter.includes(
+        :ward_change_trails,
+        ward_change_trails: %i[previous_facility_section new_facility_section changer]
+      ).find_by(id: encounter_id)
+
+      return [] unless encounter
+
+      encounter.ward_change_trails.order(changed_at: :desc).map do |trail|
+        {
+          id: trail.id,
+          encounter_id: trail.encounter_id,
+          previous_ward: trail.previous_facility_section&.name,
+          previous_ward_id: trail.previous_facility_section_id,
+          new_ward: trail.new_facility_section&.name,
+          new_ward_id: trail.new_facility_section_id,
+          changed_by: trail.changed_by_name || trail.changer&.username,
+          changed_by_id: trail.changed_by,
+          changed_at: trail.changed_at,
+          reason: trail.reason
+        }
+      end
+    end
+
     def suscept_test_result(test_id)
       Tests::CultureSensivityService.get_drug_susceptibility_test_results(test_id)
     end
@@ -669,6 +696,7 @@ module Tests
       json[:expected_turn_around_time] = expected_tat(record['test_type_id']) unless is_client_report
       json[:status_trail] = test_status_trail(record['id'])
       json[:order_status_trail] = order_status_trail(record['order_id']) unless is_client_report
+      json[:ward_change_trail] = ward_change_trail(record['encounter_id']) if is_client_report
       json[:suscept_test_result] = suscept_test_result(record['id'])
       json[:culture_observation] = culture_observation(record['id']) unless is_client_report
       json[:test_attributes] = TestAttributeValue.values_for_test(record['id'])

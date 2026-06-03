@@ -188,13 +188,14 @@ module Nlims
       nlims = nlims_token
       return if nlims[:token].blank?
 
+      condition = id.present? ? "#{id_condition(id)}" : 'AND uo.sync_status = 0'
       orders = Order.find_by_sql("
         SELECT o.tracking_number , cos.name AS status, cos.creator AS updater, uo.test_or_order_id AS id, o.updated_date AS updated_date
         FROM unsync_orders uo
         INNER JOIN current_order_status cos ON cos.order_id = uo.test_or_order_id
         INNER JOIN orders o ON uo.test_or_order_id = o.id
         WHERE uo.data_level = 'order' AND (uo.data_not_synced = 'specimen-accepted' OR uo.data_not_synced = 'specimen-rejected')
-          AND uo.sync_status = 0 #{id_condition(id)} LIMIT 500
+          #{condition} LIMIT 500
         ")
       orders.each do |order|
         Rails.logger.info('=======Updating orders in nlims=============')
@@ -225,7 +226,8 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['order updated successfuly', 'order updated successfully'].include?(response['message'])
+          if response['error'] == false && ['order updated successfuly',
+                                            'order updated successfully'].include?(response['message'])
             unsync_order = UnsyncOrder.where(sync_status: 0, data_not_synced: order[:status],
                                              test_or_order_id: order[:id]).first
             update_unsync_order(unsync_order)
@@ -354,13 +356,13 @@ module Nlims
 
           response = JSON.parse(response.body)
           if response['error'] == false && response['message'] == 'test updated successfuly'
-          unsync_order = UnsyncOrder.where(
-            sync_status: 0,
-            data_not_synced: test_res[:test_status],
-            test_or_order_id: test_res[:test_id]
-          ).first
-          update_unsync_order(unsync_order)
-          Rails.logger.info("=======Successfully updated test in nlims:#{payload[:tracking_number]}=============")
+            unsync_order = UnsyncOrder.where(
+              sync_status: 0,
+              data_not_synced: test_res[:test_status],
+              test_or_order_id: test_res[:test_id]
+            ).first
+            update_unsync_order(unsync_order)
+            Rails.logger.info("=======Successfully updated test in nlims:#{payload[:tracking_number]}=============")
           else
             Rails.logger.error("=============#{response['message']}:#{payload[:tracking_number]}===================")
             raise StandardError, "Failed to create order in nlims: #{response['message']}"
@@ -392,6 +394,8 @@ module Nlims
         {
           status: st&.status&.name&.gsub('_', '-'),
           timestamp: st&.created_date,
+          trail_uuid: st&.uuid,
+          test_uuid: st&.test_uuid,
           updated_by: {
             first_name: st.user&.person&.first_name,
             last_name: st.user&.person&.last_name,
@@ -400,12 +404,15 @@ module Nlims
           }
         }
       end
+
       test_results = test_results.map do |results|
         test_indicator_test_type = TestTypeTestIndicator.find_by(
           test_indicators_id: results&.test_indicator_id,
           test_types_id: test_record.test_type_id
         )
         {
+          uuid: results&.uuid,
+          test_uuid: results&.test_uuid,
           measure: {
             name: results&.test_indicator&.name,
             nlims_code: results&.test_indicator&.nlims_code,
@@ -423,6 +430,8 @@ module Nlims
       end
       {
         tracking_number: test_record.order&.tracking_number,
+        order_uuid: test_record.order_uuid,
+        test_uuid: test_record.uuid,
         arv_number: client.try(:arv_number),
         test_status: test_record.status&.gsub('_', '-'),
         time_updated: test_record&.updated_date,
@@ -443,6 +452,7 @@ module Nlims
       {
         order: {
           tracking_number: order&.tracking_number.present? ? order&.tracking_number : "X#{order&.accession_number}",
+          order_uuid: order&.uuid,
           sample_type: tests&.first&.specimen,
           sample_status: { name: Status.find_by(id: order&.status_id)&.name&.gsub('-', '_') || 'specimen_collected' },
           order_location: order&.encounter&.facility_section&.name || 'OPD',
@@ -472,6 +482,8 @@ module Nlims
             {
               status: trail&.status&.name,
               timestamp: trail&.created_date,
+              trail_uuid: trail&.uuid,
+              order_uuid: trail&.order_uuid,
               update_by: {
                 first_name: person_creator&.first_name,
                 last_name: person_creator&.last_name,
@@ -489,8 +501,16 @@ module Nlims
             client_identifier_type_id: ClientIdentifierType.find_by(name: 'npid')&.id,
             client_id: client.id
           )&.value,
-          first_name: client&.person&.first_name&.blank? ? (client&.person&.last_name&.blank? ? 'Unknown' : client&.person&.last_name) : client&.person&.first_name,
-          last_name: client&.person&.last_name&.blank? ? (client&.person&.first_name&.blank? ? 'Unknown' : client&.person&.first_name) : client&.person&.last_name,
+          first_name: if client&.person&.first_name&.blank?
+                        client&.person&.last_name&.blank? ? 'Unknown' : client&.person&.last_name
+                      else
+                        client&.person&.first_name
+                      end,
+          last_name: if client&.person&.last_name&.blank?
+                       client&.person&.first_name&.blank? ? 'Unknown' : client&.person&.first_name
+                     else
+                       client&.person&.last_name
+                     end,
           date_of_birth: client&.person&.date_of_birth,
           gender: client&.person&.sex
         }
@@ -608,7 +628,8 @@ module Nlims
             payload: payload.to_json
           )
           response = JSON.parse(response.body)
-          if response['error'] == false && ['test added successfully', 'test already exists for order'].include?(response['message'])
+          if response['error'] == false && ['test added successfully',
+                                            'test already exists for order'].include?(response['message'])
             unsync_order = UnsyncOrder.find_by(id: test_res[:unsync_id])
             update_unsync_order(unsync_order)
             Rails.logger.info("=======Successfully synced add_test_to_order to NLIMS: #{test_res[:tracking_number]} =============")

@@ -2,6 +2,8 @@
 
 # Test status model
 class TestStatus < VoidableRecord
+  include Uuidable
+
   validates :status_reason_id, presence: false
   validates :status_id, presence: true
   belongs_to :test
@@ -9,6 +11,7 @@ class TestStatus < VoidableRecord
   belongs_to :status_reason, optional: true
   belongs_to :user, foreign_key: 'creator', class_name: 'User', optional: true
 
+  before_create :set_test_uuid
   # after_commit :insert_into_report_data_raw, on: :create
   after_commit :create_unsync_order
   after_create :create_oerr_sync_trails
@@ -39,11 +42,11 @@ class TestStatus < VoidableRecord
   end
 
   def insert_into_report_data_raw
-      # created_date = test.created_date.nil? ? '' : test.created_date.strftime('%Y-%m-%d').to_s
-      InsertIntoReportRawDataJob.perform_async(test.id)
-      # UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
+    # created_date = test.created_date.nil? ? '' : test.created_date.strftime('%Y-%m-%d').to_s
+    InsertIntoReportRawDataJob.perform_async(test.id)
+  # UpdateMohReportDataJob.perform_at(1.minutes.from_now, created_date)
   rescue StandardError => e
-      Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
+    Rails.logger.error "Redis -- #{e.message} -- Check that redis is installed and running"
   end
 
   def create_unsync_order
@@ -62,5 +65,11 @@ class TestStatus < VoidableRecord
     return if oerr_sync_trail.nil?
 
     OerrService.create_oerr_sync_trail_on_update(oerr_sync_trail)
+  end
+
+  private
+
+  def set_test_uuid
+    self.test_uuid = test&.uuid if test.present?
   end
 end
