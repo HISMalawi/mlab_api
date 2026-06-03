@@ -1,4 +1,6 @@
 class Order < VoidableRecord
+  include Uuidable
+
   validates_uniqueness_of :accession_number, allow_blank: false
   belongs_to :encounter
   belongs_to :priority

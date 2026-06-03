@@ -390,29 +390,16 @@ module Nlims
       client = test_record.order&.encounter&.client&.person
       test_results = TestResult.where(test_id: test_record.id)
                                .where.not(value: '').where.not(value: nil)
-
-      # Use joins and select to avoid loading full TestStatus objects that may cause recursion
-      status_trail = ActiveRecord::Base.connection.execute("
-        SELECT
-          s.name AS status_name,
-          ts.created_date,
-          u.id AS user_id,
-          p.first_name,
-          p.last_name
-        FROM test_statuses ts
-        INNER JOIN statuses s ON s.id = ts.status_id
-        LEFT JOIN users u ON u.id = ts.creator
-        LEFT JOIN people p ON p.id = u.person_id
-        WHERE ts.test_id = #{test_record.id} AND ts.voided = 0
-        ORDER BY ts.created_date ASC
-      ").map do |row|
+      status_trail = TestStatus.where(test_id: test_record.id).map do |st|
         {
-          status: row[0]&.gsub('_', '-'),
-          timestamp: row[1],
+          status: st&.status&.name&.gsub('_', '-'),
+          timestamp: st&.created_date,
+          trail_uuid: st&.uuid,
+          test_uuid: st&.test_uuid,
           updated_by: {
-            first_name: row[3],
-            last_name: row[4],
-            id: row[2],
+            first_name: st.user&.person&.first_name,
+            last_name: st.user&.person&.last_name,
+            id: st.user&.id,
             phone_number: nil
           }
         }
@@ -424,6 +411,8 @@ module Nlims
           test_types_id: test_record.test_type_id
         )
         {
+          uuid: results&.uuid,
+          test_uuid: results&.test_uuid,
           measure: {
             name: results&.test_indicator&.name,
             nlims_code: results&.test_indicator&.nlims_code,
@@ -441,6 +430,8 @@ module Nlims
       end
       {
         tracking_number: test_record.order&.tracking_number,
+        order_uuid: test_record.order_uuid,
+        test_uuid: test_record.uuid,
         arv_number: client.try(:arv_number),
         test_status: test_record.status&.gsub('_', '-'),
         time_updated: test_record&.updated_date,
@@ -461,6 +452,7 @@ module Nlims
       {
         order: {
           tracking_number: order&.tracking_number.present? ? order&.tracking_number : "X#{order&.accession_number}",
+          order_uuid: order&.uuid,
           sample_type: tests&.first&.specimen,
           sample_status: { name: Status.find_by(id: order&.status_id)&.name&.gsub('-', '_') || 'specimen_collected' },
           order_location: order&.encounter&.facility_section&.name || 'OPD',
@@ -490,6 +482,8 @@ module Nlims
             {
               status: trail&.status&.name,
               timestamp: trail&.created_date,
+              trail_uuid: trail&.uuid,
+              order_uuid: trail&.order_uuid,
               update_by: {
                 first_name: person_creator&.first_name,
                 last_name: person_creator&.last_name,

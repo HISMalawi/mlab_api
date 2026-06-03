@@ -2,9 +2,12 @@
 
 # Test result model
 class TestResult < VoidableRecord
+  include Uuidable
+
   belongs_to :test
   belongs_to :test_indicator
 
+  before_create :set_test_uuid
   after_create :set_test_status_to_completed
   after_create :log_pack_number
 
@@ -32,5 +35,11 @@ class TestResult < VoidableRecord
     return unless test_indicator.id == pack_number_test_indicator.id
 
     PackNumberLog.create!(test_id: test.id, pack_number: value)
+  end
+
+  private
+
+  def set_test_uuid
+    self.test_uuid = test&.uuid if test.present?
   end
 end
