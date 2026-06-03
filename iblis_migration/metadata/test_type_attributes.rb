@@ -105,9 +105,7 @@ tb_test_type_attributes = [
 ]
 
 tb_test_type_attributes.each do |tta|
-  test_type = TestType.find_by(nlims_code: tta[:test_type_identifier][:nlims_code], name: tta[:test_type_identifier][:name]) ||
-              TestType.find_by(name: tta[:test_type_identifier][:nlims_code]) ||
-              TestType.find_by(name: tta[:test_type_identifier][:name])
+  test_type = TestType.find_by(nlims_code: tta[:test_type_identifier][:nlims_code], name: tta[:test_type_identifier][:name])
 
   if test_type.nil?
     puts "Test type not found for identifier: #{tta[:test_type_identifier]}"
