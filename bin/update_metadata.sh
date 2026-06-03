@@ -30,6 +30,7 @@ rails db:migrate && {
     rails r iblis_migration/load_preferences.rb &&
     rails r iblis_migration/user_preferences_init.rb &&
     rails r iblis_migration/app_setting_init.rb &&
+    bash bin/attributes_metadata.sh $ENV &&
     rails r iblis_migration/metadata/mark_synced.rb
 }
 
