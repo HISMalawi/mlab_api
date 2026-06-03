@@ -5,11 +5,12 @@ module Reports
   # Generates Parasitology reports
   module Moh
     # parasitology reports
-    class Parasitology
+    class Parasitology < BaseReport
       attr_reader :report, :report_indicator
       attr_accessor :year
 
       def initialize
+        super
         @report = {}
         @report_indicator = REPORT_INDICATORS
         initialize_report_counts
@@ -77,16 +78,7 @@ module Reports
       end
 
       def update_report_counts(counts)
-        counts.each do |count|
-          month_name = count.month.downcase
-          REPORT_INDICATORS.each do |_indicator|
-            @report[month_name][count.indicator.to_sym] = {
-              count: count.total,
-              associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Parasitology')
-            }
-          end
-        end
-        @report
+        update_report_counts_optimized(counts, 'Parasitology')
       end
 
       def total_malaria_microscopy_tests

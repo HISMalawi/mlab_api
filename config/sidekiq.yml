@@ -1,0 +1,8 @@
+:concurrency: 10
+
+:queues:
+  - critical
+  - default
+  - high_priority
+  - low_priority
+:namespace: "mlab_api"

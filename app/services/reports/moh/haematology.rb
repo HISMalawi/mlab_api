@@ -5,11 +5,12 @@ module Reports
   # Generates haematology reports
   module Moh
     # Haematology report class
-    class Haematology
+    class Haematology < BaseReport
       attr_reader :report, :report_indicator
       attr_accessor :year
 
       def initialize
+        super
         @report = {}
         @report_indicator = REPORT_INDICATORS
         initialize_report_counts
@@ -55,16 +56,7 @@ module Reports
       end
 
       def update_report_counts(counts)
-        counts.each do |count|
-          month_name = count.month.downcase
-          REPORT_INDICATORS.each do |_indicator|
-            @report[month_name][count.indicator.to_sym] = {
-              count: count.total,
-              associated_ids: UtilsService.insert_drilldown({ associated_ids: count.associated_ids }, 'Haematology')
-            }
-          end
-        end
-        @report
+        update_report_counts_optimized(counts, 'Haematology')
       end
 
       def full_blood_count
@@ -402,7 +394,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{GlobalService.fetch_ids(TestType,'Prothrombin Time', ['NLIMS_TT_0039_MWI'])}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, 'Prothrombin Time', ['NLIMS_TT_0039_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
@@ -420,7 +412,7 @@ module Reports
           FROM
               tests t
           WHERE
-              t.test_type_id IN #{GlobalService.fetch_ids(TestType,['APTT', 'Activated partial Thromboplastin Time'], ['NLIMS_TT_0040_MWI'])}
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['APTT', 'Activated partial Thromboplastin Time'], ['NLIMS_TT_0040_MWI'])}
                   AND YEAR(t.created_date) = #{year}
                   AND t.status_id IN (4 , 5)
                   AND t.voided = 0
