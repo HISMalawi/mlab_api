@@ -43,6 +43,7 @@ module TestCatalog
         test_type_ids = test_types.pluck(:id)
         test_panels = TestPanel.joins(:test_type_panel_mappings)
                                .where(test_type_panel_mappings: { test_type_id: test_type_ids })
+                               .where.not("test_panels.nlims_code IS NULL")
                                .distinct
 
         test_panels_data = test_panels.map do |tp|
@@ -75,6 +76,7 @@ module TestCatalog
                                .where(specimen_id:)
                                .where.not("test_types.name LIKE '%(Paed%'")
                                .where.not("test_types.name LIKE '%(cancer%'")
+                               .where.not('test_types.nlims_code IS NULL')
       end
     end
   end
