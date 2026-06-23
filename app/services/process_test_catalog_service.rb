@@ -156,14 +156,16 @@ class ProcessTestCatalogService
     # If the test type already has ranges for this indicator, the user may have
     # customised them via the UI — skip the sync to avoid overwriting their work.
     existing_ranges = TestIndicatorRange.where(test_indicator_id:, test_type_id: test_type.id)
-    return existing_ranges if existing_ranges.exists?
+    # return existing_ranges if existing_ranges.exists?
 
     unless test_indicator_ranges.empty?
       existing_ranges.each do |test_indicator_range|
-        test_indicator_range.void('Removed from test indicator')
+        test_indicator_range.void('Removed from test indicator') if test_indicator_range&.value&.present?
       end
     end
     test_indicator_ranges.map do |test_indicator_range|
+      next if test_indicator_range[:value].blank? || test_indicator_range[:value].nil?
+
       TestIndicatorRange.find_or_create_by!(
         test_indicator_id:,
         test_type_id: test_type.id,
