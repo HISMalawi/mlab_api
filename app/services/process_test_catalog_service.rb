@@ -316,14 +316,14 @@ class ProcessTestCatalogService
       record.disabled = false
       # New records use save! (validations are safe here since preferred_name was pre-checked)
       record.save!
-    elsif record.changed?
+    else
       # For existing records: department, sex, can_be_ordered, and disabled are
       # user-editable via the UI and must not be overwritten on sync.
       # Use update_columns to bypass model validations (preferred_name uniqueness)
       # which would fire on the existing in-memory value even when not being changed.
       record.update_columns(
         name: record.name,
-        department_id: create_or_update_department(item[:test_category])&.id || record.department_id,
+        department_id: create_or_update_department(item[:test_category])&.id,
         nlims_code: record.nlims_code,
         updated_date: Time.current
       )
