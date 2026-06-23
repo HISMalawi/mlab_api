@@ -74,6 +74,12 @@ module Api
         render json: clients
       end
 
+      def search_physical_address
+        physical_address = ClientIdentifierType.find_by(name: 'physical_address')&.id
+        physical_addressess = ClientIdentifier.search_identifier_value(params[:physical_address], physical_address)
+        render json: physical_addressess
+      end
+
       def create
         @client = ClientManagement::ClientService.create_client(client_params, params[:client_identifiers])
         render json: ClientManagement::ClientService.client(@client.id), status: :created

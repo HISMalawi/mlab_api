@@ -46,6 +46,10 @@ module Api
         render json: Order.requesting_clinician(params[:name])
       end
 
+      def search_by_collected_by
+        render json: Order.collect_by(params[:name])
+      end
+
       def create
         parameters = params[:oerr].present? ? OerrService.order_dto(params[:segments], params[:lab_location]) : params
         @order = OrderService.create(parameters)
