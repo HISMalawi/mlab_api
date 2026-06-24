@@ -16,7 +16,7 @@ fi
 set -x
 export RAILS_ENV=$ENV
 rails db:environment:set RAILS_ENV=$ENV
-
+rm Gemfile.lock
 bundle install --local
 
 # Only update metadata if migration is successful
