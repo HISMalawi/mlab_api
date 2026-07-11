@@ -16,7 +16,7 @@ fi
 set -x
 export RAILS_ENV=$ENV
 rails db:environment:set RAILS_ENV=$ENV
-
+rm Gemfile.lock
 bundle install --local
 
 # Only update metadata if migration is successful
@@ -31,7 +31,8 @@ rails db:migrate && {
     rails r iblis_migration/user_preferences_init.rb &&
     rails r iblis_migration/app_setting_init.rb &&
     bash bin/attributes_metadata.sh $ENV &&
-    rails r iblis_migration/metadata/mark_synced.rb
+    rails r iblis_migration/metadata/mark_synced.rb &&
+    rails r iblis_migration/fix_microscopy_indicators.rb
 }
 
 # Run UUID backfill tasks in background

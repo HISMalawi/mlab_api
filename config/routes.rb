@@ -98,6 +98,7 @@ Rails.application.routes.draw do
           get '/identifier_types/' => 'clients#identifier_types'
           get '/search_dde' => 'clients#dde_search_client'
           get '/search_by_name' => 'clients#search_by_name'
+          get '/search_physical_address' => 'clients#search_physical_address'
         end
       end
       resources :orders do
@@ -107,6 +108,7 @@ Rails.application.routes.draw do
           post '/merge_order_from_nlims' => 'orders#merge_order_from_nlims'
           get '/search_order_from_nlims_by_tracking_number' => 'orders#search_order_from_nlims_by_tracking_number'
           get '/search_by_requesting_clinician' => 'orders#search_by_requesting_clinician'
+          get '/search_by_collected_by' => 'orders#search_by_collected_by'
           post '/add_order_to_encounter' => 'orders#add_order_to_encounter'
         end
       end

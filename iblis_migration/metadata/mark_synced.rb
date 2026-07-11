@@ -10,11 +10,11 @@ test_ids = Test.where(order_id: order_ids).pluck(:id)
 puts "Found #{order_ids.count} orders and #{test_ids.count} tests"
 
 # Update order level
-UnsyncOrder.where(test_or_order_id: order_ids, data_level: 'order').update_all(sync_status: true)
+UnsyncOrder.where(test_or_order_id: order_ids, data_level: 'order', sync_status: false).update_all(sync_status: true)
 puts 'Updated order level sync status'
 
 # Update test level
-UnsyncOrder.where(test_or_order_id: test_ids, data_level: 'test').update_all(sync_status: true)
+UnsyncOrder.where(test_or_order_id: test_ids, data_level: 'test', sync_status: false).update_all(sync_status: true)
 puts 'Updated test level sync status'
 
 # Clear all Sidekiq jobs

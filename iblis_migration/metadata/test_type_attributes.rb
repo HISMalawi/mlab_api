@@ -38,48 +38,6 @@ tb_test_type_attributes = [
       name: "TB Tests",
       short_name: "TB"
     },
-    attribute_name: "Phone",
-    is_required: false,
-    sort_order: 3,
-    parent_attribute_name: nil,
-    parent_attribute_value: nil,
-    test_type_specific_options: nil,
-    active: true
-  },
-  {
-    test_type_identifier: {
-      nlims_code: "NLIMS_TT_0010_MWI",
-      name: "TB Tests",
-      short_name: "TB"
-    },
-    attribute_name: "District TB Reg No",
-    is_required: false,
-    sort_order: 4,
-    parent_attribute_name: nil,
-    parent_attribute_value: nil,
-    test_type_specific_options: nil,
-    active: true
-  },
-  {
-    test_type_identifier: {
-      nlims_code: "NLIMS_TT_0010_MWI",
-      name: "TB Tests",
-      short_name: "TB"
-    },
-    attribute_name: "HIV Status",
-    is_required: false,
-    sort_order: 5,
-    parent_attribute_name: nil,
-    parent_attribute_value: nil,
-    test_type_specific_options: nil,
-    active: true
-  },
-  {
-    test_type_identifier: {
-      nlims_code: "NLIMS_TT_0010_MWI",
-      name: "TB Tests",
-      short_name: "TB"
-    },
     attribute_name: "TB Treatment History",
     is_required: false,
     sort_order: 6,
@@ -88,25 +46,66 @@ tb_test_type_attributes = [
     test_type_specific_options: nil,
     active: true
   },
-  {
-    test_type_identifier: {
-      nlims_code: "NLIMS_TT_0010_MWI",
-      name: "TB Tests",
-      short_name: "TB"
-    },
-    attribute_name: "Health Facility",
-    is_required: false,
-    sort_order: 7,
-    parent_attribute_name: nil,
-    parent_attribute_value: nil,
-    test_type_specific_options: nil,
-    active: true
-  }
+  # {
+  #   test_type_identifier: {
+  #     nlims_code: "NLIMS_TT_0010_MWI",
+  #     name: "TB Tests",
+  #     short_name: "TB"
+  #   },
+  #   attribute_name: "Phone",
+  #   is_required: false,
+  #   sort_order: 3,
+  #   parent_attribute_name: nil,
+  #   parent_attribute_value: nil,
+  #   test_type_specific_options: nil,
+  #   active: true
+  # },
+  # {
+  #   test_type_identifier: {
+  #     nlims_code: "NLIMS_TT_0010_MWI",
+  #     name: "TB Tests",
+  #     short_name: "TB"
+  #   },
+  #   attribute_name: "District TB Reg No",
+  #   is_required: false,
+  #   sort_order: 4,
+  #   parent_attribute_name: nil,
+  #   parent_attribute_value: nil,
+  #   test_type_specific_options: nil,
+  #   active: true
+  # },
+  # {
+  #   test_type_identifier: {
+  #     nlims_code: "NLIMS_TT_0010_MWI",
+  #     name: "TB Tests",
+  #     short_name: "TB"
+  #   },
+  #   attribute_name: "HIV Status",
+  #   is_required: false,
+  #   sort_order: 5,
+  #   parent_attribute_name: nil,
+  #   parent_attribute_value: nil,
+  #   test_type_specific_options: nil,
+  #   active: true
+  # },
+  # {
+  #   test_type_identifier: {
+  #     nlims_code: "NLIMS_TT_0010_MWI",
+  #     name: "TB Tests",
+  #     short_name: "TB"
+  #   },
+  #   attribute_name: "Health Facility",
+  #   is_required: false,
+  #   sort_order: 7,
+  #   parent_attribute_name: nil,
+  #   parent_attribute_value: nil,
+  #   test_type_specific_options: nil,
+  #   active: true
+  # }
 ]
 
 tb_test_type_attributes.each do |tta|
-  test_type = TestType.find_by(nlims_code: tta[:test_type_identifier][:nlims_code]) ||
-              TestType.find_by(name: tta[:test_type_identifier][:name]) ||
+  test_type = TestType.find_by(nlims_code: tta[:test_type_identifier][:nlims_code], name: tta[:test_type_identifier][:name])
 
   if test_type.nil?
     puts "Test type not found for identifier: #{tta[:test_type_identifier]}"

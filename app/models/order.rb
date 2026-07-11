@@ -90,4 +90,8 @@ class Order < VoidableRecord
   def self.requesting_clinician(name)
     where("requested_by LIKE '#{name}%'").select('distinct requested_by').limit(10).map(&:requested_by)
   end
+
+  def self.collect_by(name)
+    where("collected_by LIKE '#{name}%'").select('distinct collected_by').limit(10).map(&:collected_by)
+  end
 end
