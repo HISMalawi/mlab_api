@@ -2,7 +2,7 @@
 
 module OerrService
   class << self
-    # Segments: "Jane^Doe~DF5U00~0~487720800~44~chaliram~mass~3~1733123041~32^31~R"
+    # Segments: "Jane^Doe~DF5U00~0~487720800~44~chaliram~mass~3~1733123041~32^35~R"
     def order_dto(segments, lab_location)
       segments = segments.split('~')
       specimen = Specimen.find_by(id: segments[7])&.id
@@ -113,13 +113,13 @@ module OerrService
       oerr_config = OerrService.oerr_configs
       url = "#{oerr_config[:base_url]}/oerr_update/"
       response = RestClient::Request.execute(
-                method: :post,
-                url:,
-                payload: to_oerr_dto(oerr_sync_trail).to_json,
-                headers: { content_type: :json, accept: :json },
-                user: oerr_config[:username],
-                password: oerr_config[:password]
-              )
+        method: :post,
+        url:,
+        payload: to_oerr_dto(oerr_sync_trail).to_json,
+        headers: { content_type: :json, accept: :json },
+        user: oerr_config[:username],
+        password: oerr_config[:password]
+      )
       if response.code == 200
         data = JSON.parse(response.body)
         Rails.logger.info "Pushed to oerr #{data}"
@@ -144,7 +144,7 @@ module OerrService
         requested_by: params[:requested_by],
         sample_collected_time: Time.at(params[:sample_collected_time].to_i),
         test_type_id: params[:test_type_id]
-        )
+      )
     end
 
     def oerr_configs
