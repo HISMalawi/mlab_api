@@ -207,13 +207,14 @@ module PrintoutService
     end
 
     def oerr_printout(s, person, order)
+      patient_name = person.fullname
       s += "\n##########BEGIN FORM##########\n\n"
       s += "\nN\nq616\nQ090,0\nZT\n"
       s += "A140,100,0,4,1,1,N,\"#{GlobalService.current_location.name}\"\n"
       s += "A50,150,0,4,1,1,N,\"Laboratory Test Order Form V2.0.0\"\n"
       s += "A30,250,0,1,1,1,N,\"--------------------------------------------------------\"\n"
       s += "A30,300,0,1,2,2,N,\"PATIENT DETAILS\"\n"
-      s += "A30,350,0,4,1,1,N,\"Patient : #{person.fullname} (#{person.sex})\"\n"
+      s += "A30,350,0,4,1,1,N,\"Patient : #{patient_name.gsub("'", '')} (#{person.sex})\"\n"
       s += "A30,400,0,4,1,1,N,\"Patient ID : #{order.encounter.client.uuid}\"\n"
       s += "A30,450,0,4,1,1,N,\"Patient DOB: #{person.date_of_birth.strftime('%d-%b-%Y')}\"\n"
       s += "A30,500,0,1,1,1,N,\"--------------------------------------------------------\"\n"

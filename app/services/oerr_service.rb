@@ -81,7 +81,9 @@ module OerrService
     end
 
     def oerr_sync_trail_update(oerr_sync_trail, doc_id = '')
-      oerr_sync_trail.update(synced: true, synced_at: Time.now, doc_id:)
+      is_forged_doc_id = doc_id&.include?('forged')
+      doc_id = nil if is_forged_doc_id
+      oerr_sync_trail.update(synced: true, synced_at: Time.now, doc_id: doc_id)
     end
 
     def set_to_push?
@@ -105,6 +107,9 @@ module OerrService
 
     def to_oerr_dto(oerr_sync_trail)
       test_obj = Tests::TestService.new.find(oerr_sync_trail.test_id)
+      is_forged_doc_id = oerr_sync_trail&.doc_id&.include?('forged')
+      oerr_sync_trail.update(doc_id: nil) if is_forged_doc_id
+      oerr_sync_trail = OerrSyncTrail.find(oerr_sync_trail.id)
       test_obj[:oerr_identifiers] = oerr_sync_trail
       test_obj
     end
