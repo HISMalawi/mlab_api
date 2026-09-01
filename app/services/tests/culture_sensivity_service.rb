@@ -23,12 +23,25 @@ module Tests
       def drug_susceptibility_test_results(params)
         test_id = params.require(:test_id)
         organism_id = params.require(:organism_id)
-        response = params[:drugs].collect do |drug|
+        drugs = params[:drugs]
+
+        # Growth recorded without AST: no drugs are supplied, but the organism
+        # still needs to be persisted so the report can show "Growth of
+        # <organism>". Keep a placeholder row (drug_id is nil; belongs_to :drug
+        # is optional) that get_drug_susceptibility_test_results surfaces as an
+        # organism with no drugs.
+        if drugs.blank?
+          return [DrugSusceptibility.find_or_create_by(test_id:, organism_id:, drug_id: nil)]
+        end
+
+        # A real AST result supersedes any earlier growth-only placeholder.
+        DrugSusceptibility.where(test_id:, organism_id:, drug_id: nil).find_each(&:destroy)
+
+        drugs.collect do |drug|
           d = DrugSusceptibility.find_or_create_by(test_id:, organism_id:, drug_id: drug[:drug_id])
           d.update!(zone: drug[:zone], interpretation: drug[:interpretation], mic: drug[:mic])
           d
         end
-        response
       end
 
       def get_drug_susceptibility_test_results(test_id)
