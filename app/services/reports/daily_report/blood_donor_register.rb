@@ -14,20 +14,22 @@ module Reports
     # status).
     module BloodDonorRegister
       # Names a "Blood Donor" test type might be registered under.
-      TEST_TYPE_NAMES = ['Blood Donor Test', 'Blood Donor', 'Blood Donor Register', 'Blood Donation'].freeze
+      TEST_TYPE_NAMES = ['Blood Donor Test', 'Blood Donor', 'Blood Donor Register', 'Blood Donation',
+                         'Blood Donor Screening'].freeze
 
       DEFAULT_LIMIT = 100
       MAX_LIMIT = 500
 
       # column key => [exact lowercase indicator names, fallback regex]
       RESULT_COLUMNS = {
-        blood_group: [['blood group', 'abo group', 'grouping', 'abo/rh group'], /blood\s*group|abo|grouping|rh\s*group/i],
+        blood_group: [['blood group', 'abo group', 'grouping', 'abo/rh group'],
+                      /blood\s*group|abo|grouping|rh\s*group/i],
         hb: [['hb', 'hb(g/dl)', 'haemoglobin', 'hemoglobin'], /\A(hb|hgb)\z|haemoglobin|hemoglobin/i],
         hiv: [['hiv'], /hiv/i],
         hep_c: [['hep c', 'hepatitis c', 'hcv'], /hep(atitis)?\s*-?\s*c\b|\bhcv\b|anti-?hcv/i],
         hep_b: [['hep b', 'hepatitis b', 'hbsag'], /hep(atitis)?\s*-?\s*b\b|\bhbs?ag\b|\bhbv\b/i],
-        syphilis: [['syphilis', 'vdrl', 'rpr', 'tpha'], /syphilis|vdrl|\brpr\b|\btpha\b/i],
-        malaria: [['malaria', 'mrdt', 'mps'], /malaria|\bmrdt\b|\bmps\b/i],
+        syphilis: [%w[syphilis vdrl rpr tpha], /syphilis|vdrl|\brpr\b|\btpha\b/i],
+        malaria: [['malaria', 'mrdt', 'mps', 'malaria rapid diagnostic test'], /malaria|\bmrdt\b|\bmps\b/i],
         donation_status: [['donation status', 'donor status', 'fitness to donate'],
                           /donation\s*status|donor\s*status|fit(ness)?\s*to\s*donate/i]
       }.freeze
