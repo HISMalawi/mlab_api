@@ -25,7 +25,8 @@ module Reports
                       hep_bs_ag_positive_tests + hep_cc_ag_test_done_patients + hep_cc_ag_positive_tests +
                       hcg_pregnancy_tests_done + hcg_pregnancy_positive_tests + hiv_tests_on_pep_patients +
                       hiv_pep_positives_tests + prostate_specific_antigen_tests + psa_positive +
-                      sars_covid_19_rapid_antigen_tests + sars_covid_19_positive + serum_crag + serum_crag_positive
+                      sars_covid_19_rapid_antigen_tests + sars_covid_19_positive + serum_crag + serum_crag_positive +
+                      total_tb_lam + total_pos_tb_lam
         data = update_report_counts(report_data)
         Report.find_or_create_by(name: 'moh_serology', year:).update(data:)
         data
@@ -51,7 +52,9 @@ module Reports
         'SARs-COVID-19 rapid antigen tests',
         'SARs-COVID-19 Positive',
         'Serum Crag',
-        'Serum Crag Positive'
+        'Serum Crag Positive',
+        'TB LAM Total',
+        'TB LAM Positive'
       ].freeze
 
       def initialize_report_counts
@@ -525,6 +528,66 @@ module Reports
               AND tr.value = 'Positive'
               AND tr.value NOT IN ('', '0')
             GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      # TB LAM indicators (mirrors Reports::Moh::Microbiology#total_tb_lam /
+      # #total_pos_tb_lam) so the TB LAM test type also surfaces on the Serology
+      # MoH report, since TB LAM is run under the Serology bench.
+      def total_tb_lam
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'TB LAM Total' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB LAM', 'Tuberculosis Lipoarabinomannan'], ['NLIMS_TT_0121_MWI'])}
+                  AND YEAR(t.created_date) = #{year}
+                  AND t.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+          GROUP BY MONTHNAME(t.created_date)
+        SQL
+      end
+
+      def total_pos_tb_lam
+        ActiveRecord::Base.connection.execute('SET SESSION group_concat_max_len = 1000000')
+        Report.find_by_sql <<~SQL
+          SELECT
+            MONTHNAME(t.created_date) AS month,
+            COUNT(DISTINCT t.id) AS total, 'TB LAM Positive' AS indicator,
+            GROUP_CONCAT(DISTINCT t.id) AS associated_ids
+          FROM
+              tests t
+                  INNER JOIN
+              test_type_indicator_mappings ttim ON ttim.test_types_id = t.test_type_id
+                  INNER  JOIN
+              test_indicators ti ON ti.id = ttim.test_indicators_id
+                  INNER JOIN
+              test_results tr ON tr.test_indicator_id = ti.id
+                  AND tr.test_id = t.id
+                  AND tr.voided = 0
+          WHERE
+              t.test_type_id IN #{GlobalService.fetch_ids(TestType, ['TB LAM', 'Tuberculosis Lipoarabinomannan'], ['NLIMS_TT_0121_MWI'])}
+                  AND YEAR(t.created_date) = #{year}
+                  AND t.status_id IN (4 , 5)
+                  AND t.voided = 0
+                  AND tr.value NOT IN ('', '0')
+                  AND tr.value IS NOT NULL
+                  AND tr.value = 'Positive'
+          GROUP BY MONTHNAME(t.created_date)
         SQL
       end
 
