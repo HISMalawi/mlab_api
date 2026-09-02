@@ -160,10 +160,12 @@ module OrderService
       tests_ = []
       tests.each do |test|
         tests_ << {
+          id: test.id,
           specimen_id: test.specimen.id,
           specimen: test.specimen.name,
           test_type: test.test_type.name,
-          test_type_short_name: test.test_type.short_name
+          test_type_short_name: test.test_type.short_name,
+          test_status: Status.find_by(id: test.status_id)&.name
         }
       end
       tests_
