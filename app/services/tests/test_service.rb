@@ -75,10 +75,18 @@ module Tests
     end
 
     def query(tests_ids)
+      verified_status_id = Status.find_by(name: 'verified')&.id || 0
       "SELECT
           t.id,
           t.order_id,
           t.voided,
+          (SELECT vts.created_date
+             FROM test_statuses vts
+            WHERE vts.test_id = t.id
+              AND vts.status_id = #{verified_status_id}
+              AND vts.voided = 0
+            ORDER BY vts.created_date DESC
+            LIMIT 1) AS verified_date,
           e.client_history,
           t.test_type_id,
           c.id AS patient_no,
@@ -666,6 +674,7 @@ module Tests
         test_panel_preferred_name: record['test_panel_preferred_name'],
         test_panel_nlims_code: record['test_panel_nlims_code'],
         created_date: record['created_date'],
+        verified_date: record['verified_date'],
         request_origin: record['request_origin'],
         requesting_ward: record['requesting_ward'],
         accession_number: record['accession_number'],
