@@ -557,10 +557,20 @@ const app = createApp({
       )[0];
     },
     getRemarks(test) {
-      const rejectedReason = test?.status_trail.find((trail) => trail.status.name.toLowerCase() === "test-rejected");
+      const rejectedStatusLabels = {
+        'rejected': 'Rejected Reason:',
+        'voided': 'Voided Reason:',
+        'not-done': 'Not Done Reason:',
+        'test-rejected': 'Rejected Reason:',
+      };
+      const rejectedReason = test?.status_trail.find((trail) =>
+        Object.keys(rejectedStatusLabels).includes(trail.status.name.toLowerCase())
+      );
       let reasonDescription = "N/A";
       if (rejectedReason) {
-        reasonDescription = `<b>Rejected Reason:</b> ${rejectedReason?.status_reason?.description}`;
+        const statusKey = rejectedReason.status.name.toLowerCase();
+        const label = rejectedStatusLabels[statusKey] ?? 'Rejected Reason:';
+        reasonDescription = `<b>${label}</b> ${rejectedReason?.status_reason?.description}`;
       }
       const remarks = test?.result_remarks?.value;
       if (remarks && reasonDescription !== "N/A") {
@@ -589,7 +599,7 @@ const app = createApp({
       );
     },
     getAuthorizedTests(tests){
-      const validStatuses = new Set(["verified", "test-rejected", "rejected"]);
+      const validStatuses = new Set(["verified", "test-rejected", "rejected", "not-done", "voided"]);
       return tests.filter((item) =>
         validStatuses.has(item.status.toLowerCase())
       );
