@@ -271,7 +271,7 @@
                   <td class="border px-1 py-1">
                     <div class="test-status">
                       <p class="font-bold">Test Status</p>
-                      <p class="px-1">{{ getTestStatusName(test.status) }}</p>
+                      <p class="px-1">{{ getTestStatusDisplayName(test.status) }}</p>
                       <p class="px-1">
                         By:
                         {{
@@ -482,6 +482,14 @@ const app = createApp({
           .join(" ");
       }
       return status;
+    },
+    // ISO 15189: an authorised result must reflect that it was reviewed and
+    // authorised, so surface both roles on the authorisation line.
+    getTestStatusDisplayName(status) {
+      const name = this.getTestStatusName(status);
+      return name.toLowerCase() === "authorized"
+        ? "Reviewed and Authorised"
+        : name;
     },
     capitalizeStr(str) {
       return str.charAt(0).toUpperCase() + str.slice(1);
