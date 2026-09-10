@@ -60,8 +60,14 @@ class Api::V1::TestStatusesController < ApplicationController
     params[:person_talked_to]
   end
 
+  # Reason id used to stamp the test status. When the client sends a free-text
+  # `other_reason` (the "Other" option), find-or-create the StatusReason first
+  # and use its id, so the rest of the flow is unchanged.
   def reason
-    params[:status_reason_id]
+    free_text = params[:other_reason]
+    return params[:status_reason_id] if free_text.blank?
+
+    StatusReason.for_description(free_text)&.id
   end
 
   def update_status(status)
