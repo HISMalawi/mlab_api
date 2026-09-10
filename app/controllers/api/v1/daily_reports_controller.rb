@@ -26,6 +26,17 @@ module Api
                                    })
         render json: records
       end
+
+      # Blood Donor Register report (ported from legacy iBLIS)
+      def blood_donor_register
+        records = Reports::DailyReport::BloodDonorRegister.generate_report(
+          search: params[:search],
+          from: params[:from],
+          to: params[:to],
+          limit: params[:limit]
+        )
+        render json: records
+      end
     end
   end
 end

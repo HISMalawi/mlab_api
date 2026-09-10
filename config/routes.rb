@@ -167,6 +167,7 @@ Rails.application.routes.draw do
       resources :reports do
         collection do
           get '/daily_reports/daily_log' => 'daily_reports#daily_log'
+          get '/daily_reports/blood_donor_register' => 'daily_reports#blood_donor_register'
         end
       end
       resources :reports do
