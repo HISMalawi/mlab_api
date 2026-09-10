@@ -9,6 +9,8 @@ class OerrSyncJob
 
     OerrSyncTrail.where(synced: false).each do |oerr_sync_trail|
       OerrService.push_to_oerr(oerr_sync_trail)
+    rescue StandardError => e
+      Rails.logger.error("Error syncing OERR trail ID #{oerr_sync_trail&.id}: #{e.message}")
     end
   end
 end

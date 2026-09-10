@@ -22,14 +22,22 @@ module ClientManagement
         client = find_or_initialize_client(params[:client][:uuid])
         middle_name = sanitize_middle_name(params[:person][:middle_name])
         lab_location_id = params[:lab_location].present? ? params[:lab_location].to_i : 1
-        return client unless client.new_record?
 
-        ActiveRecord::Base.transaction do
-          uuid = params[:client][:uuid].blank? ? SecureRandom.uuid : params[:client][:uuid]
-          person = create_person(params[:person], middle_name)
-          client = create_client_record(person, uuid, lab_location_id)
-          create_client_identifier(identifiers, client.id)
+        if client.new_record?
+          ActiveRecord::Base.transaction do
+            uuid = params[:client][:uuid].blank? ? SecureRandom.uuid : params[:client][:uuid]
+            person = create_person(params[:person], middle_name)
+            client = create_client_record(person, uuid, lab_location_id)
+            create_client_identifier(identifiers, client.id)
+          end
+        else
+          # Update existing client's person information
+          ActiveRecord::Base.transaction do
+            person_params = params[:person].merge(middle_name: middle_name)
+            update_person(client.person, person_params)
+          end
         end
+
         client
       end
       # rubocop:enable Metrics/AbcSize
