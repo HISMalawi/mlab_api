@@ -85,6 +85,8 @@ module Nlims
         specimen = find_specimen_by_nlims_code(sample_type)
 
         create_tests_from_nlims(order.id, tests_data, specimen.id, lab_location_id)
+      elsif client_history.present? && order.encounter&.client_history != client_history
+        order.encounter.update!(client_history: client_history)
       end
       order
     end
