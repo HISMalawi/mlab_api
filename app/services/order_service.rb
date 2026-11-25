@@ -143,7 +143,6 @@ module OrderService
                                                                           order_id: order.id,
                                                                           accession_number: order.accession_number,
                                                                           tracking_number: order.tracking_number,
-                                                                          client_history: encounter.client_history,
                                                                           requested_by: order.requested_by,
                                                                           collected_by: order.collected_by,
                                                                           registered_by: User.find(order.creator)&.username,
